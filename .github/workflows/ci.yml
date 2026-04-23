@@ -1,0 +1,120 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Tier 0 — static checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Shellcheck
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: ./scripts
+          format: gcc
+          severity: warning
+
+      - name: Setup shfmt
+        uses: mfinelli/setup-shfmt@v3
+        with:
+          shfmt-version: 3.8.0
+
+      - name: shfmt (check only)
+        run: shfmt -d -i 2 -ci scripts/
+
+      - name: Markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: |
+            **/*.md
+            !node_modules
+
+      - name: Lychee — broken links
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --config .lychee.toml --no-progress .
+          fail: true
+
+      - name: Gitleaks — secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Manifest JSON parses
+        run: |
+          jq . .claude-plugin/plugin.json
+          jq . .claude-plugin/marketplace.json
+          jq . hooks/hooks.json
+
+      - name: Manifest JSON schema
+        run: |
+          python -m pip install --quiet check-jsonschema
+          # Plugin manifest schema is not yet published by Anthropic.
+          # Once it is, pin against it here. For now, validate basic shape.
+          check-jsonschema --schemafile .github/schemas/plugin-json.schema.json .claude-plugin/plugin.json
+          check-jsonschema --schemafile .github/schemas/marketplace-json.schema.json .claude-plugin/marketplace.json
+
+      - name: Vocabulary gate
+        run: scripts/validate-docs.sh
+
+      - name: Skill and agent frontmatter
+        run: |
+          python -m pip install --quiet yq
+          for f in skills/*/SKILL.md agents/*.md; do
+            yq --yaml-output 'keys' "$(awk '/^---$/{n++; if(n==2) exit} n{print}' "$f")" >/dev/null \
+              || { echo "FAIL: $f has malformed frontmatter"; exit 1; }
+          done
+
+  test:
+    name: Tier 1 — Bats unit tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Bats (ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats jq
+          # Assertion helpers vendored under tests/test_helper/ via git submodules or release tarballs.
+          mkdir -p tests/test_helper
+          if [ ! -d tests/test_helper/bats-assert ]; then
+            git clone --depth 1 https://github.com/bats-core/bats-assert.git tests/test_helper/bats-assert
+          fi
+          if [ ! -d tests/test_helper/bats-support ]; then
+            git clone --depth 1 https://github.com/bats-core/bats-support.git tests/test_helper/bats-support
+          fi
+          if [ ! -d tests/test_helper/bats-file ]; then
+            git clone --depth 1 https://github.com/bats-core/bats-file.git tests/test_helper/bats-file
+          fi
+
+      - name: Install Bats (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install bats-core jq
+          mkdir -p tests/test_helper
+          for helper in bats-assert bats-support bats-file; do
+            if [ ! -d tests/test_helper/$helper ]; then
+              git clone --depth 1 "https://github.com/bats-core/${helper}.git" "tests/test_helper/${helper}"
+            fi
+          done
+
+      - name: Run Bats
+        run: bats --recursive tests/scripts/
+
+      - name: Run validate-docs locally
+        run: scripts/validate-docs.sh

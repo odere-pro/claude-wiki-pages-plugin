@@ -1,0 +1,26 @@
+name: smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Tier 2 — fresh-install + skill-schema smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq and yq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          python -m pip install yq
+      - name: Fresh install smoke
+        run: bash tests/smoke/fresh-install.sh
+      - name: Skill-schema smoke
+        run: bash tests/smoke/skill-schema.sh

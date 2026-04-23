@@ -1,0 +1,39 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code plugin development artifacts
+.claude/settings.local.json
+.claude/worktrees/
+.claude/memory/
+
+# Local scratch space (plans, drafts)
+tmp/
+
+# Obsidian app state (applies to user vaults and example-vault/)
+**/.obsidian/
+**/.trash/
+**/.dataview/
+**/.smart-connections/
+**/.copilot/
+
+# Node
+node_modules/
+
+# Bats test helpers (cloned at test time; do not commit)
+tests/test_helper/bats-assert/
+tests/test_helper/bats-support/
+tests/test_helper/bats-file/
+
+# Vault output scratch space (user projects)
+vault/output/
+example-vault/output/
+
+# Large binary assets in raw/
+**/raw/assets/*.pdf
+**/raw/assets/*.mp3
+**/raw/assets/*.mp4
+**/raw/assets/*.wav
+**/raw/assets/*.webm
+**/raw/assets/*.zip
+**/raw/assets/*.epub

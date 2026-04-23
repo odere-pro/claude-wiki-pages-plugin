@@ -1,0 +1,34 @@
+# Lychee broken-link checker configuration.
+# Run locally: lychee --config .lychee.toml .
+
+# Timeout and retry
+max_retries = 2
+retry_wait_time = 2
+timeout = 20
+
+# Skip external hosts that rate-limit or require auth
+exclude = [
+  "^https?://localhost",
+  "^https?://127\\.0\\.0\\.1",
+  "^mailto:",
+  # GitHub rate-limits anonymous link checks aggressively.
+  # The repo is verified by hand during release; the checker handles internal links.
+  "^https?://github\\.com/odere-pro/llm-wiki-stack",
+]
+
+# Internal link resolution
+base = "."
+include_fragments = false
+accept = ["200", "204", "206", "301", "302", "303", "304", "307", "308", "429"]
+
+# Ignore link types that are not reachable in CI
+exclude_loopback = true
+exclude_mail = true
+exclude_path = [
+  "tests/test_helper",
+  "node_modules",
+  "tmp",
+]
+
+# Only scan markdown and YAML for links in CI
+max_concurrency = 16

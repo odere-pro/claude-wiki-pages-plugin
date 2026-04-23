@@ -1,0 +1,15 @@
+# Gitleaks config. Extends the default ruleset with repo-specific allowlists.
+# Run locally: gitleaks detect --config .gitleaks.toml
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Repo-specific allowlist"
+# Example source files in example-vault/raw/ may contain realistic-looking URLs
+# or quoted tokens that match heuristics but are not real secrets.
+paths = [
+  '''example-vault/raw/.*''',
+  '''docs/.*''',
+  '''tests/fixtures/.*''',
+]

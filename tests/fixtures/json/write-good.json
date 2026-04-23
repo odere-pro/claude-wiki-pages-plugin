@@ -1,0 +1,7 @@
+{
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/tmp/test-project/vault/wiki/topics/good-entity.md",
+    "content": "---\ntitle: \"Good Entity\"\ntype: entity\nentity_type: tool\naliases: [\"Good Entity\"]\nparent: \"[[Topics — Index]]\"\npath: \"topics\"\nsources: [\"[[Sample]]\"]\nrelated: []\ntags: []\ncreated: 2026-04-18\nupdated: 2026-04-18\nupdate_count: 1\nstatus: active\nconfidence: 0.9\n---\n\n# Good Entity\n\nA clean entity page body. Cites [[Sample]].\n"
+  }
+}

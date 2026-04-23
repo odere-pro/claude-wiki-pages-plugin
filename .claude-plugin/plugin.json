@@ -1,0 +1,31 @@
+{
+  "name": "llm-wiki-stack",
+  "version": "0.1.0",
+  "description": "A Claude Code plugin for Obsidian — Karpathy's LLM Wiki shipped as a four-layer, hook-enforced agent stack with multi-agent orchestration.",
+  "author": {
+    "name": "Aleksandr Derechei",
+    "email": "odere.pub@gmail.com"
+  },
+  "homepage": "https://github.com/odere-pro/llm-wiki-stack",
+  "repository": "https://github.com/odere-pro/llm-wiki-stack",
+  "license": "Apache-2.0",
+  "hooks": "./hooks/hooks.json",
+  "supported_schema_versions": [1],
+  "keywords": [
+    "claude-code",
+    "agents",
+    "llm",
+    "obsidian",
+    "ai-agents",
+    "claude-code-plugin",
+    "claude-code-skills",
+    "rag",
+    "multi-agent",
+    "obsidian-plugin",
+    "knowledge-management",
+    "claude-code-agents",
+    "llm-wiki",
+    "llm-wiki-stack",
+    "llm-wiki-pattern"
+  ]
+}

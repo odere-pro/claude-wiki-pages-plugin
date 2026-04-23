@@ -1,0 +1,64 @@
+name: smoke-nightly
+
+# Tier 2 nightly smoke: runs the full fresh-install + skill-schema harness
+# against a live Claude Code CLI. When the CLI is unavailable (e.g. secrets
+# not provisioned), the scripts self-skip with exit 0 so the job remains green.
+
+on:
+  schedule:
+    # 03:00 UTC daily — low-traffic window.
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  nightly:
+    name: Tier 2 nightly
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install runtime deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          python -m pip install yq promptfoo
+
+      - name: Install Claude Code CLI (if credentials provisioned)
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          # TODO: pin the Claude Code install command when a stable release channel
+          # is documented. For now, require the maintainer to set ANTHROPIC_API_KEY
+          # in repo secrets; the install step is intentionally stubbed.
+          echo "[SKIP] Claude Code CLI install not yet wired; nightly runs in self-skip mode until then."
+
+      - name: Fresh-install smoke
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: bash tests/smoke/fresh-install.sh
+
+      - name: Skill-schema smoke
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: bash tests/smoke/skill-schema.sh
+
+      - name: Promptfoo semantic assertions
+        if: ${{ hashFiles('tests/smoke/promptfoo.yaml') != '' && env.ANTHROPIC_API_KEY != '' }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          cd tests/smoke
+          # Promptfoo config is a stub until Phase E wiring of the real prompts.
+          # Once populated, this step asserts: every generated wiki page has
+          # valid frontmatter; every sources entry is a [[wikilink]]; provenance
+          # chain is unbroken from wiki to source to raw.
+          if grep -q "Populated in Phase E" promptfoo.yaml; then
+            echo "[SKIP] promptfoo.yaml is a stub — asserts not yet wired."
+          else
+            promptfoo eval -c promptfoo.yaml
+          fi

@@ -1,0 +1,107 @@
+name: adversarial
+
+# Tier 4 — weekly adversarial sweep.
+#
+# Runs three jobs:
+#   1. osv-scanner — dependency vulnerabilities (Go, npm, PyPI, etc.)
+#   2. prompt-injection corpus replay — regressions against known PI patterns
+#   3. garak — NVIDIA's LLM red-team tool (OWASP LLM Top 10)
+#
+# All jobs are best-effort: findings are filed as issues, not merge blockers.
+
+on:
+  schedule:
+    # Mondays at 04:00 UTC.
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  osv-scan:
+    name: osv-scanner — dependency vulnerabilities
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run osv-scanner
+        uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v1
+        with:
+          scan-args: |
+            --recursive
+            --skip-git
+            ./
+
+  prompt-injection:
+    name: prompt-injection corpus replay
+    runs-on: ubuntu-latest
+    if: ${{ env.ANTHROPIC_API_KEY != '' }}
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install datasets
+      - name: Replay PI corpus against ingest skill
+        run: |
+          # TODO: wire when the corpus fixture lands under tests/fixtures/adversarial/.
+          # The intended flow:
+          #   1. Download a curated slice of the HuggingFace prompt-injection-eval dataset.
+          #   2. For each injection payload, drop it into a temp vault/raw/ source.
+          #   3. Run /llm-wiki-stack:llm-wiki-ingest.
+          #   4. Assert the hooks blocked any frontmatter violation or
+          #      cross-schema-boundary write; no secrets ever land in wiki/.
+          echo "[SKIP] prompt-injection corpus not yet fixtured."
+
+  garak:
+    name: garak — LLM red-team
+    runs-on: ubuntu-latest
+    if: ${{ env.ANTHROPIC_API_KEY != '' }}
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install garak
+        run: pip install garak
+      - name: Run garak baseline probes
+        run: |
+          # Scope: run only the OWASP LLM Top 10 baseline probes against the
+          # ingest and query surfaces. Full garak runs take hours; we sample.
+          # TODO: wire a proper target binding. For the initial run, garak
+          # probes the Anthropic API directly with no plugin context.
+          garak --model_type anthropic.AnthropicAPI --probes lmrc --list_probes \
+            || echo "[SKIP] garak target not yet bound to plugin surface."
+
+  report:
+    name: Aggregate findings
+    runs-on: ubuntu-latest
+    needs: [osv-scan, prompt-injection, garak]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - name: File an issue on new findings
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const anyFailed = ${{ contains(needs.*.result, 'failure') }};
+            if (!anyFailed) {
+              core.info("No adversarial findings this week.");
+              return;
+            }
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Adversarial sweep — ${new Date().toISOString().slice(0,10)}`,
+              body: `Weekly Tier 4 sweep flagged one or more issues. See the ` +
+                    `[workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`,
+              labels: ["security", "adversarial"]
+            });

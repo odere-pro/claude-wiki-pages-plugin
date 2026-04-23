@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/odere-pro/llm-wiki-stack/schemas/plugin-json.schema.json",
+  "title": "llm-wiki-stack plugin manifest",
+  "description": "Minimal shape check for .claude-plugin/plugin.json. Replace with Anthropic's published schema once available.",
+  "type": "object",
+  "required": ["name", "version", "description", "author", "license"],
+  "properties": {
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+" },
+    "description": { "type": "string", "minLength": 10 },
+    "author": {
+      "type": "object",
+      "required": ["name", "email"],
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" }
+      }
+    },
+    "homepage": { "type": "string", "format": "uri" },
+    "repository": { "type": "string", "format": "uri" },
+    "license": { "type": "string" },
+    "hooks": { "type": "string" },
+    "supported_schema_versions": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 1 },
+      "minItems": 1
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+      "uniqueItems": true,
+      "maxItems": 20
+    }
+  },
+  "additionalProperties": true
+}

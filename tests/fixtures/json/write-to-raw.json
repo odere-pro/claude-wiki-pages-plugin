@@ -1,0 +1,8 @@
+{
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "/tmp/test-project/vault/raw/sample.md",
+    "old_string": "original",
+    "new_string": "modified"
+  }
+}

@@ -1,0 +1,27 @@
+llm-wiki-stack
+Copyright 2026 Aleksandr Derechei
+
+This product includes software developed as an independent implementation
+of the LLM Wiki pattern described by Andrej Karpathy
+(https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
+The pattern is a public design; this product is not affiliated with,
+endorsed by, or licensed from the author of the gist.
+
+Portions of this product bundle code from the following third party under
+its original license. The bundled code is retained under its original name
+(skills/obsidian-markdown, skills/obsidian-bases, skills/obsidian-cli) and
+is not modified by this product:
+
+- kepano/obsidian-skills
+  Copyright (c) 2026 Steph Ango (@kepano)
+  License: MIT
+
+See THIRD_PARTY_LICENSES.md for the full license text of each bundled
+third-party component.
+
+All other source files in this repository — including every skill under
+skills/llm-wiki\* and skills/obsidian-graph-colors, every agent under agents/, every
+hook and script under hooks/ and scripts/, every rule under rules/, the
+example vault at example-vault/, and every document under docs/ — are the
+original work of the copyright holder listed above and are distributed
+under the terms of the Apache License, Version 2.0. See LICENSE.

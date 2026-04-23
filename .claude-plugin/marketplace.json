@@ -1,0 +1,17 @@
+{
+  "name": "llm-wiki-stack",
+  "owner": {
+    "name": "odere-pro",
+    "url": "https://github.com/odere-pro"
+  },
+  "plugins": [
+    {
+      "name": "llm-wiki-stack",
+      "source": ".",
+      "description": "A Claude Code plugin for Obsidian — Karpathy's LLM Wiki shipped as a four-layer, hook-enforced agent stack with multi-agent orchestration.",
+      "version": "0.1.0",
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/odere-pro/llm-wiki-stack"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD033": false,
+    "MD040": false,
+    "MD041": false,
+    "MD024": {
+      "siblings_only": true
+    },
+    "MD025": {
+      "front_matter_title": ""
+    },
+    "MD046": {
+      "style": "fenced"
+    }
+  },
+  "ignores": [
+    "node_modules",
+    "tmp",
+    "tests/test_helper",
+    "example-vault/wiki/log.md"
+  ]
+}
