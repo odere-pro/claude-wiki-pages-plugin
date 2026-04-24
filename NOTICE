@@ -22,6 +22,6 @@ third-party component.
 All other source files in this repository — including every skill under
 skills/llm-wiki\* and skills/obsidian-graph-colors, every agent under agents/, every
 hook and script under hooks/ and scripts/, every rule under rules/, the
-example vault at example-vault/, and every document under docs/ — are the
+example vault at vault-example/, and every document under docs/ — are the
 original work of the copyright holder listed above and are distributed
 under the terms of the Apache License, Version 2.0. See LICENSE.

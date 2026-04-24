@@ -13,12 +13,19 @@ jobs:
   release-please:
     name: release-please
     runs-on: ubuntu-latest
+    # release-please needs to open a PR. The default GITHUB_TOKEN is blocked
+    # by the org/repo setting "Allow GitHub Actions to create and approve pull
+    # requests" being OFF. To unblock without flipping that policy, add a
+    # fine-grained PAT (contents: write, pull-requests: write) as the
+    # RELEASE_PLEASE_TOKEN secret. If the secret is not set, this job no-ops
+    # so it does not turn the branch red.
+    if: ${{ vars.RELEASE_PLEASE_ENABLED == 'true' || secrets.RELEASE_PLEASE_TOKEN != '' }}
     steps:
       - uses: googleapis/release-please-action@v4
         with:
           config-file: .github/release-please-config.json
           manifest-file: .release-please-manifest.json
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
   release-drafter:
     name: release-drafter
@@ -30,4 +37,4 @@ jobs:
         with:
           config-name: release-drafter.yml
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}

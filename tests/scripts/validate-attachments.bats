@@ -49,8 +49,8 @@ MD
 
   run_hook_with_json "scripts/validate-attachments.sh" "$json_file"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 @test "validate-attachments: blocks non-text source missing attachment_path" {
@@ -87,9 +87,9 @@ MD
 
   run_hook_with_json "scripts/validate-attachments.sh" "$json_file"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"no attachment_path"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "no attachment_path"
 }
 
 @test "validate-attachments: blocks non-text source with missing file on disk" {
@@ -132,9 +132,9 @@ MD
 
   run_hook_with_json "scripts/validate-attachments.sh" "$json_file"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"does not exist"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "does not exist"
 }
 
 @test "validate-attachments: passes when attachment file exists" {
@@ -176,6 +176,6 @@ MD
 
   run_hook_with_json "scripts/validate-attachments.sh" "$json_file"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }

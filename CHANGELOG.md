@@ -19,10 +19,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
   - `vault-index` → `llm-wiki-index`
 
   Each new `SKILL.md` was authored from `docs/SPECIFICATION.md`,
-  `docs/architecture.md`, `example-vault/CLAUDE.md`, and the Karpathy LLM
+  `docs/architecture.md`, `docs/vault-example/CLAUDE.md`, and the Karpathy LLM
   Wiki gist — the previously-adapted content was not consulted during the
   rewrite. Mechanical 5-gram Jaccard similarity between each new file and
   its predecessor is below 0.02.
+
 - **Vocabulary.** `second-brain`, `second brain`, `vault-synthesize`, and
   `vault-index` are retired from the vocabulary and flagged by
   `scripts/validate-docs.sh` as banned strings outside `CHANGELOG.md`,
@@ -47,7 +48,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 Initial release as a Claude Code plugin.
 
 - **Plugin distribution.** `.claude-plugin/plugin.json` and same-repo marketplace.
-- **Layer 1 — Data.** `example-vault/` with authoritative schema (`example-vault/CLAUDE.md`, `schema_version: 1`), five frontmatter templates, a small sticky reference vault demonstrating sources, indexes, and two topic folders.
+- **Layer 1 — Data.** `docs/vault-example/` with authoritative schema (`docs/vault-example/CLAUDE.md`, `schema_version: 1`), five frontmatter templates, a small sticky reference vault demonstrating sources, indexes, and two topic folders.
 - **Layer 2 — Skills.** 11 skills: `second-brain`, `second-brain-ingest`, `second-brain-query`, `second-brain-lint`, `second-brain-fix`, `vault-synthesize`, `vault-index`, `graph-colors`, `obsidian-markdown`, `obsidian-bases`, `obsidian-cli`.
 - **Layer 3 — Agents.** 3 agents: `wiki-ingest-pipeline`, `wiki-lint-fix`, `wiki-analyst`.
 - **Layer 4 — Orchestration.** 10 hook scripts wired through `hooks/hooks.json`; 4 path-scoped rules in `rules/`.
@@ -56,7 +57,7 @@ Initial release as a Claude Code plugin.
 
 ### Schema
 
-`schema_version: 1`. Authoritative rules live in `example-vault/CLAUDE.md`; contract summary in `docs/SPECIFICATION.md`.
+`schema_version: 1`. Authoritative rules live in `docs/vault-example/CLAUDE.md`; contract summary in `docs/SPECIFICATION.md`.
 
 ### Known limitations
 

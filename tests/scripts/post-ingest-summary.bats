@@ -17,8 +17,8 @@ setup() {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/proj/vault/wiki/topics/page.md","content":"body"}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-ingest-summary.sh'"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 @test "post-ingest-summary: emits summary for a source write" {
@@ -45,15 +45,27 @@ MD
 
   run_hook_with_json "scripts/post-ingest-summary.sh" "$json_file"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"Source ingested"* ]]
-  [[ "$output" == *"New Source"* ]]
-  [[ "$output" == *"Total sources"* ]]
+  assert_success
+  assert_output_contains "Source ingested"
+  assert_output_contains "New Source"
+  assert_output_contains "Total sources"
 }
 
-@test "post-ingest-summary: runs without crashing on empty input payload" {
-  local json='{"tool_name":"Write","tool_input":{}}'
-  run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-ingest-summary.sh'"
+@test "post-ingest-summary: emits summary even when content has no title" {
+  # A _sources/ write with empty content must still produce the summary line
+  # (title falls back to "unknown"). Catches mutations that silence the echo
+  # on missing frontmatter.
+  local proj="$BATS_TEST_TMPDIR/proj"
+  mkdir -p "$proj/vault/wiki/_sources"
 
-  [ "$status" -eq 0 ]
+  local json
+  json=$(jq -n \
+    --arg path "$proj/vault/wiki/_sources/empty.md" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:""}}')
+
+  run bash -c "export LLM_WIKI_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-ingest-summary.sh'"
+
+  assert_success
+  assert_output_contains "Total sources"
+  assert_output_contains "unknown"
 }

@@ -22,16 +22,16 @@ permissions:
 jobs:
   osv-scan:
     name: osv-scanner — dependency vulnerabilities
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run osv-scanner
-        uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v1
-        with:
-          scan-args: |
-            --recursive
-            --skip-git
-            ./
+    # Reusable workflows must be invoked at the job level via `uses:`, not as a step.
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v1
+    with:
+      scan-args: |-
+        --recursive
+        --skip-git
+        ./
+    permissions:
+      contents: read
+      security-events: write
 
   prompt-injection:
     name: prompt-injection corpus replay

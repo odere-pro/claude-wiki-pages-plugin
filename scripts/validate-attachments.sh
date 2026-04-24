@@ -2,12 +2,17 @@
 # PreToolUse: blocks writes to vault/wiki/_sources/ when source_format != text
 # but attachment_path is missing or the referenced file does not exist.
 
+# shellcheck source=resolve-vault.sh
+source "$(dirname "$0")/resolve-vault.sh"
+VAULT=$(resolve_vault)
+VAULT_NAME=$(basename "$VAULT")
+
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // empty')
 
 # Only validate source notes
 case "$FILE_PATH" in
-  */vault/wiki/_sources/*.md) ;;
+  */${VAULT_NAME}/wiki/_sources/*.md) ;;
   *) exit 0 ;;
 esac
 

@@ -8,18 +8,18 @@ Most LLM-wiki implementations are one layer: a prompt and a folder convention. T
 
 | Layer                | Responsibility                                           | What lives here                                                        |
 | -------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------- |
-| **1. Data**          | Immutable sources + wiki schema                          | `example-vault/raw/`, `example-vault/wiki/`, `example-vault/CLAUDE.md` |
-| **2. Skills**        | Individual capabilities invoked by the human or an agent | `skills/` (11 skills)                                                  |
+| **1. Data**          | Immutable sources + wiki schema                          | `docs/vault-example/raw/`, `docs/vault-example/wiki/`, `docs/vault-example/CLAUDE.md` |
+| **2. Skills**        | Individual capabilities invoked by the human or an agent | `skills/` (13 skills)                                                  |
 | **3. Agents**        | Multi-step executors that orchestrate skills             | `agents/` (3 agents)                                                   |
 | **4. Orchestration** | Hooks, rules, provenance guards                          | `hooks/hooks.json`, `scripts/`, `rules/`                               |
 
 ### 1. Data
 
-Sources go into `raw/` and are never rewritten — the `protect-raw.sh` hook enforces this. Wiki pages live under `wiki/` and are typed by YAML frontmatter, not by folder. The schema (`example-vault/CLAUDE.md`) is the authority; every skill and agent defers to it. Every claim in every wiki page carries a `sources` field back to at least one `raw/` item, so provenance is structural, not cultural.
+Sources go into `raw/` and are never rewritten — the `protect-raw.sh` hook enforces this. Wiki pages live under `wiki/` and are typed by YAML frontmatter, not by folder. The schema (`docs/vault-example/CLAUDE.md`) is the authority; every skill and agent defers to it. Every claim in every wiki page carries a `sources` field back to at least one `raw/` item, so provenance is structural, not cultural.
 
 ### 2. Skills
 
-Each skill is a single-responsibility capability: `llm-wiki-ingest` ingests sources, `llm-wiki-query` answers questions, `llm-wiki-lint` audits structure, `llm-wiki-fix` repairs what lint reports, `llm-wiki-synthesize` writes cross-topic analyses, `llm-wiki-index` generates a top-level overview index across the vault, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 11.
+Each skill is a single-responsibility capability: `llm-wiki-ingest` ingests sources, `llm-wiki-query` answers questions, `llm-wiki-lint` audits structure, `llm-wiki-fix` repairs what lint reports, `llm-wiki-synthesize` writes cross-topic analyses, `llm-wiki-index` generates a top-level overview index across the vault, `llm-wiki-markdown` exports a query answer as portable markdown into `vault/output/`, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 13.
 
 ### 3. Agents
 
@@ -50,7 +50,7 @@ llm-wiki-stack/
 ├── hooks/                   # Layer 4 — hook definitions
 ├── scripts/                 # Layer 4 — hook implementations
 ├── rules/                   # Layer 4 — scoped LLM guidance
-├── example-vault/           # Layer 1 — schema + small sticky reference vault
+├── docs/vault-example/           # Layer 1 — schema + small sticky reference vault
 └── docs/                    # SPECIFICATION, VOCABULARY, architecture, security, user guides
 ```
 
@@ -58,7 +58,7 @@ llm-wiki-stack/
 
 1. Human drops a source into `vault/raw/`.
 2. Human runs `/llm-wiki-stack:llm-wiki-ingest`.
-3. Skill reads `example-vault/CLAUDE.md` (the schema).
+3. Skill reads `docs/vault-example/CLAUDE.md` (the schema).
 4. Skill writes a source summary to `wiki/_sources/`.
 5. Layer 4 hooks fire: `validate-frontmatter.sh`, `check-wikilinks.sh`, `validate-attachments.sh`.
 6. Skill extracts entities/concepts, updates existing wiki pages, creates new ones in topic folders.

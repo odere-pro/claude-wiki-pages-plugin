@@ -14,7 +14,7 @@ work distributed under the Apache License, Version 2.0. See `LICENSE`.
 **Bundled as:** `skills/obsidian-markdown/`, `skills/obsidian-bases/`,
 `skills/obsidian-cli/`.
 
-**Upstream:** https://github.com/kepano/obsidian-skills
+**Upstream:** <https://github.com/kepano/obsidian-skills>
 
 **License text (verbatim from the upstream `LICENSE` file):**
 

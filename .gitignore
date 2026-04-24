@@ -6,11 +6,12 @@ Thumbs.db
 .claude/settings.local.json
 .claude/worktrees/
 .claude/memory/
+.claude/llm-wiki-stack/
 
 # Local scratch space (plans, drafts)
 tmp/
 
-# Obsidian app state (applies to user vaults and example-vault/)
+# Obsidian app state (applies to user vaults and vault-example/)
 **/.obsidian/
 **/.trash/
 **/.dataview/
@@ -25,9 +26,9 @@ tests/test_helper/bats-assert/
 tests/test_helper/bats-support/
 tests/test_helper/bats-file/
 
-# Vault output scratch space (user projects)
+# Vault output scratch space (user projects and the reference demo)
 vault/output/
-example-vault/output/
+**/vault-example/output/
 
 # Large binary assets in raw/
 **/raw/assets/*.pdf

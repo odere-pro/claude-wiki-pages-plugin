@@ -23,7 +23,7 @@ confidence: 1.0
 
 - **Author:** Fixture Author
 - **Publisher:** Test Fixtures
-- **URL:** https://example.invalid/sample
+- **URL:** <https://example.invalid/sample>
 
 ## Summary
 

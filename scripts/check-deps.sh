@@ -8,9 +8,9 @@ set -uo pipefail
 
 MISSING=0
 
-red()   { printf '\033[0;31mMISSING:\033[0m %s\n' "$1"; }
+red() { printf '\033[0;31mMISSING:\033[0m %s\n' "$1"; }
 green() { printf '\033[0;32mOK:\033[0m %s\n' "$1"; }
-hint()  { printf '        %s\n' "$1"; }
+hint() { printf '        %s\n' "$1"; }
 
 # ─── jq ─────────────────────────────────────────────────────────────────────
 if command -v jq >/dev/null 2>&1; then
@@ -19,8 +19,8 @@ else
   red "jq"
   case "$(uname -s)" in
     Darwin*) hint "Install: brew install jq" ;;
-    Linux*)  hint "Install: sudo apt-get install jq  # or your distro equivalent" ;;
-    *)       hint "Install jq from https://stedolan.github.io/jq/download/" ;;
+    Linux*) hint "Install: sudo apt-get install jq  # or your distro equivalent" ;;
+    *) hint "Install jq from https://stedolan.github.io/jq/download/" ;;
   esac
   MISSING=$((MISSING + 1))
 fi

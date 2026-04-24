@@ -17,13 +17,14 @@ exclude = [
 ]
 
 # Internal link resolution
-base = "."
+# (base is resolved from the CLI source argument — see tests/run-tests.sh)
 include_fragments = false
 accept = ["200", "204", "206", "301", "302", "303", "304", "307", "308", "429"]
 
 # Ignore link types that are not reachable in CI
 exclude_loopback = true
-exclude_mail = true
+# exclude_mail dropped (not in current lychee schema); mailto: is excluded via exclude pattern above
+include_mail = false
 exclude_path = [
   "tests/test_helper",
   "node_modules",

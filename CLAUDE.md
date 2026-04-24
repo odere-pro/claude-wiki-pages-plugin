@@ -1,36 +1,51 @@
 # llm-wiki-stack — plugin repo
 
-This repo is the source of the `llm-wiki-stack` Claude Code plugin — a four-layer agent stack that turns an Obsidian vault into a maintained, provenance-tracked wiki following Karpathy's LLM Wiki pattern.
+Source of the `llm-wiki-stack` Claude Code plugin: a **four-layer stack** (Data · Skills · Agents · Orchestration) that turns an Obsidian vault into a provenance-tracked wiki, following [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
-## Repo layout
+**Authorities.** [`docs/SPECIFICATION.md`](./docs/SPECIFICATION.md) is the contract every skill, agent, and hook binds to. [`docs/VOCABULARY.md`](./docs/VOCABULARY.md) is the canonical term list; enforced by [`scripts/validate-docs.sh`](./scripts/validate-docs.sh). [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md) is the schema (`schema_version: 1`) and wins any frontmatter conflict.
 
-| Path                              | What it is                                                          |
-| --------------------------------- | ------------------------------------------------------------------- |
-| `.claude-plugin/plugin.json`      | Plugin manifest                                                     |
-| `.claude-plugin/marketplace.json` | Same-repo marketplace definition                                    |
-| `skills/`                         | 11 skills (Layer 2)                                                 |
-| `agents/`                         | 3 agents (Layer 3)                                                  |
-| `hooks/hooks.json` + `scripts/`   | Hook wiring and implementations (Layer 4)                           |
-| `rules/`                          | Path-scoped LLM guidance (Layer 4)                                  |
-| `example-vault/`                  | Small sticky reference vault and the authoritative schema (Layer 1) |
-| `docs/SPECIFICATION.md`           | Reproducibility-grade system spec                                   |
-| `docs/VOCABULARY.md`              | Canonical term list (technical + discoverability)                   |
-| `docs/architecture.md`            | Four-layer model explained                                          |
-| `docs/security.md`                | Threat model and limits                                             |
-| `docs/llm-wiki/`                  | Step-by-step user guides                                            |
+## Vault location
 
-## Authorities
+All Layer 4 scripts source `scripts/resolve-vault.sh`, which uses a four-tier resolution (first match wins):
 
-Two files govern every edit in this repo:
+1. **`LLM_WIKI_VAULT` env var** — explicit override for local dev / CI.
+2. **`.claude/llm-wiki-stack/settings.json`** — `current_vault_path` field; written by `scripts/set-vault.sh` or created with defaults on first `SessionStart`.
+3. **Auto-detect** — scan up to 4 levels for a `CLAUDE.md` with `schema_version` + a `wiki/` sibling.
+4. **Default** — `docs/vault`.
 
-- **Schema** — [`example-vault/CLAUDE.md`](./example-vault/CLAUDE.md) is authoritative for any wiki operation. Declares `schema_version: 1`. Skill and agent defaults that conflict with it MUST be overridden.
-- **Vocabulary** — [`docs/VOCABULARY.md`](./docs/VOCABULARY.md) governs every user-visible string. Canonical terms (technical vs. discoverability) and banned strings. `scripts/validate-docs.sh` (planned) will enforce it in CI.
+To change the vault: `bash scripts/set-vault.sh <path>`. This updates only `current_vault_path`; `default_vault_path` is fixed at `docs/vault` and serves as the reset reference. Claude applies the same logic when no vault path is given. See spec §2 for the full contract.
 
-When a user installs the plugin, their project's `vault/CLAUDE.md` plays the same schema role as the repo's `example-vault/CLAUDE.md`.
+## Dev-time vs. runtime
 
-## Before editing
+This tree is the plugin source — contributor view. Users never see it. On install, Claude Code loads only `skills/`, `agents/`, `hooks/hooks.json` + `scripts/`, and `rules/` as runtime context. The onboarding wizard (`/llm-wiki-stack:llm-wiki`) additionally copies `docs/vault-example/` into the user's project as `docs/vault/` (or the path set in `LLM_WIKI_VAULT`); the copied `vault/CLAUDE.md` takes over the schema-authority role in their sessions. Everything else — `docs/`, `tests/`, `.github/`, this root `CLAUDE.md`, `NOTICE`, `LICENSE`, `CHANGELOG.md` — sits in the plugin cache but is never session context.
 
-- Do not rewrite files in `example-vault/raw/` — the `protect-raw.sh` hook enforces immutability, and the principle applies to this repo's example content.
-- Do not flatten the four-layer directory structure — each layer is referenced by name in `docs/architecture.md`, `docs/SPECIFICATION.md`, and user-facing docs.
-- Do not edit scripts in `scripts/` without re-reading `hooks/hooks.json` first — the two are coupled.
-- Do not introduce vocabulary drift. If a term doesn't appear in `docs/VOCABULARY.md`, add it there first with a rationale, then use it.
+## Four-layer stack
+
+| Layer                   | Directory                                | Responsibility                                                                                                                                                                                | Spec §         |
+| ----------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| Layer 1 — Data          | `docs/vault-example/`                         | Immutable `raw/`, LLM-maintained `wiki/`, schema in `docs/vault-example/CLAUDE.md`. Passive.                                                                                                       | §4, §6, §7, §8 |
+| Layer 2 — Skills        | `skills/`                                | 13 single-responsibility capabilities: 9 plugin-authored `llm-wiki-*`, plugin-authored `obsidian-graph-colors`, plus 3 MIT-licensed `obsidian-*` reference skills (`kepano/obsidian-skills`). | §5, §9         |
+| Layer 3 — Agents        | `agents/`                                | 3 multi-step executors: `llm-wiki-ingest-pipeline` (default verb), `llm-wiki-lint-fix`, `llm-wiki-analyst`.                                                                                   | §5, §11        |
+| Layer 4 — Orchestration | `hooks/hooks.json`, `scripts/`, `rules/` | `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop` hooks; script implementations; path-scoped rules.                                                             | §5, §10        |
+
+Long-form model: [`docs/architecture.md`](./docs/architecture.md).
+
+## Where to look
+
+| Doing             | Primary source                                                                                                                                     |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Skills, agents    | Spec §5, §9, §11; existing SKILL.md / agent files                                                                                                  |
+| Hook scripts      | Spec §10; `hooks/hooks.json` (scripts and wiring are coupled); `tests/scripts/`                                                                    |
+| Frontmatter       | `docs/vault-example/CLAUDE.md`; spec §7; `docs/vault-example/_templates/`                                                                                    |
+| User-facing prose | `docs/VOCABULARY.md`; `docs/llm-wiki/` for voice                                                                                                   |
+| Security          | `docs/security.md` (threat model with per-threat test mapping); spec §15; Tier 4 CI at `.github/workflows/adversarial.yml` (corpus replay stubbed) |
+| Tests (Tier 0–4)  | `tests/README.md`; spec §14; hook tests in `tests/scripts/*.bats`                                                                                  |
+
+If an edit introduces a new concept, add the term to `docs/VOCABULARY.md` with a rationale first.
+
+## Local workflows
+
+- `bash tests/install-deps.sh` — install every dev/test tool (brew on macOS, apt on Linux). Idempotent. `--check` reports status, `--dry-run` previews.
+- `bash tests/run-tests.sh` — run Tier 0 + Tier 1 locally. Also accepts `tier0`, `tier1`, `tier2`, or `all`; `--list` prints the commands without running.
+- `scripts/validate-docs.sh` — vocabulary gate. Run before every commit.
+- `scripts/verify-ingest.sh docs/vault-example/` — verify the reference vault against the schema.

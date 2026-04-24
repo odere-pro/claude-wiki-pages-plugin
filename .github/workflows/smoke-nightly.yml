@@ -22,10 +22,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install runtime deps
+        # Smoke scripts use pure shell + jq only. promptfoo is installed
+        # on demand in the Promptfoo step below (Node tool via `npx`), and
+        # only when tests/smoke/promptfoo.yaml is no longer a Phase-E stub.
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
-          python -m pip install yq promptfoo
 
       - name: Install Claude Code CLI (if credentials provisioned)
         if: ${{ env.ANTHROPIC_API_KEY != '' }}
@@ -60,5 +62,6 @@ jobs:
           if grep -q "Populated in Phase E" promptfoo.yaml; then
             echo "[SKIP] promptfoo.yaml is a stub — asserts not yet wired."
           else
-            promptfoo eval -c promptfoo.yaml
+            # promptfoo is a Node tool; use npx to avoid Python wrappers.
+            npx --yes promptfoo@latest eval -c promptfoo.yaml
           fi

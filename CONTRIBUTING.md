@@ -4,7 +4,7 @@ Thanks for your interest in `llm-wiki-stack`. This document is short because the
 
 ## Ground rules
 
-- **The schema is authoritative.** Rules for the wiki live in [`example-vault/CLAUDE.md`](./example-vault/CLAUDE.md). Skill defaults that conflict with it must be overridden, not the other way around.
+- **The schema is authoritative.** Rules for the wiki live in [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md). Skill defaults that conflict with it must be overridden, not the other way around.
 - **The four layers are load-bearing.** Before proposing a change, say which layer it belongs to (Data, Skills, Agents, Orchestration). See [`docs/architecture.md`](./docs/architecture.md).
 - **Hooks and scripts are coupled.** If you change a script under `scripts/`, re-read `hooks/hooks.json` first. Never rename a hook script without updating the wiring.
 - **Provenance > prose.** When adding a feature, describe the failure mode it catches and which layer catches it.

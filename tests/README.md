@@ -36,10 +36,14 @@ tests/
 │   └── bats-support/          # cloned by CI, ignored by git
 ├── scripts/                   # Bats tests — one .bats file per script
 │   ├── check-wikilinks.bats
+│   ├── install-deps.bats
 │   ├── post-ingest-summary.bats
 │   ├── post-wiki-write.bats
 │   ├── prompt-guard.bats
 │   ├── protect-raw.bats
+│   ├── resolve-vault.bats
+│   ├── run-tests.bats
+│   ├── session-start.bats
 │   ├── subagent-ingest-gate.bats
 │   ├── subagent-lint-gate.bats
 │   ├── validate-attachments.bats
@@ -54,11 +58,36 @@ tests/
 
 ## Running locally
 
-### Prerequisites
+### Quick start
+
+Two scripts drive the local workflow:
+
+```bash
+bash tests/install-deps.sh       # install all dev and test dependencies
+bash tests/run-tests.sh          # run Tier 0 (static) + Tier 1 (Bats)
+```
+
+Both are idempotent and detect macOS (brew) or Linux (apt) automatically.
+
+Useful flags:
+
+```bash
+bash tests/install-deps.sh --check      # report status; no installs
+bash tests/install-deps.sh --dry-run    # print what would be installed
+
+bash tests/run-tests.sh tier0           # just Tier 0 (shellcheck, shfmt, markdownlint, lychee, gitleaks, validate-docs)
+bash tests/run-tests.sh tier1           # just Tier 1 (bats --recursive tests/scripts/)
+bash tests/run-tests.sh tier2           # Tier 2 smoke (self-skips without `claude` CLI)
+bash tests/run-tests.sh all             # all three tiers
+bash tests/run-tests.sh --list all      # print the commands without running them
+```
+
+### Manual prerequisites (if you prefer to install yourself)
 
 - `bats-core` (the test runner)
 - `jq` (used by every hook script and most tests)
 - `git` (used by `tests/scripts/validate-docs.bats` for isolated repos)
+- Optional Tier 0 tools: `shellcheck`, `shfmt`, `markdownlint-cli2`, `lychee`, `gitleaks`, plus `yq` and `check-jsonschema` via pip.
 
 Install on macOS:
 
@@ -74,7 +103,8 @@ sudo apt-get install -y bats jq
 
 The Bats assertion helpers (`bats-assert`, `bats-support`, `bats-file`) are
 **not checked into git**. `.github/workflows/ci.yml` clones them on CI via
-`git clone --depth 1 …` into `tests/test_helper/`. For local runs:
+`git clone --depth 1 …` into `tests/test_helper/`. `install-deps.sh` does the
+same for local runs; for manual setup:
 
 ```bash
 mkdir -p tests/test_helper
@@ -84,19 +114,14 @@ for h in bats-support bats-assert bats-file; do
 done
 ```
 
-### Run the whole unit-test tier
-
-```bash
-bats --recursive tests/scripts/
-```
-
-### Run one file
+### Run a single Bats file or test
 
 ```bash
 bats tests/scripts/verify-ingest.bats
+bats --filter "blocks legacy type: moc" tests/scripts/validate-frontmatter.bats
 ```
 
-### Tier 2 smoke
+### Tier 2 smoke — when you have the Claude Code CLI
 
 ```bash
 bash tests/smoke/fresh-install.sh
@@ -139,6 +164,42 @@ under test and check stdout / exit code.
 Shared helpers loaded via `load '../test_helper/common'` at the top of
 each `.bats` file.
 
+### Assertion helpers
+
+Use these — not raw `[[ ... ]]` — for any assertion against `$output`.
+
+| Helper                               | Use it for                                              |
+| ------------------------------------ | ------------------------------------------------------- |
+| `assert_success`                     | `$status` must be `0`                                   |
+| `assert_status <n>`                  | `$status` must be exactly `<n>`                         |
+| `assert_output_empty`                | `$output` must be empty                                 |
+| `assert_output_contains "<needle>"`  | `$output` must contain `<needle>` as a substring        |
+| `refute_output_contains "<needle>"`  | `$output` must NOT contain `<needle>`                   |
+| `assert_contains "<hay>" "<needle>"` | Generic substring check on any string (e.g., `$out`)    |
+| `assert_eq "<actual>" "<expected>"`  | Generic equality check (e.g., `$rc`, captured exit code)|
+
+**Why these exist.** Bash `set -e` (which Bats enables inside tests) does
+NOT trigger on a `[[ … ]]` that returns `1` when it appears in the middle
+of a test body — only the *last* command drives the test result. A test
+shaped like this:
+
+```bash
+[ "$status" -eq 0 ]
+[[ "$output" == *"expected"* ]]   # silently ignored if it fails
+[[ "$output" != *"forbidden"* ]]
+```
+
+passes even when the middle assertion is false. The helpers use a `case`
+statement plus an explicit `return 1`, which always surfaces the failure
+with a readable diagnostic, so a red test tells you exactly what it
+expected.
+
+If a test raw-matches against `$output` — `case "$output" in …` or
+`[[ "$output" == "$exact" ]]` as the **last** command — that's fine. The
+helpers are for the common substring / empty / status checks.
+
+### Fixture and hook helpers
+
 - `setup_fixture_vault` / `teardown_fixture_vault` — copy `minimal-vault`
   to a Bats tmpdir and export `$FIXTURE_VAULT`.
 - `setup_isolated_repo` / `teardown_isolated_repo` — build a throwaway
@@ -158,10 +219,46 @@ each `.bats` file.
 1. Pick an existing `.bats` file to extend, or create a new one at
    `tests/scripts/<script-name>.bats`.
 2. Add `load '../test_helper/common'` at the top.
-3. Call `_load_helpers` inside `setup` if the test uses `assert_*`.
+3. Call `_load_helpers` inside `setup`.
 4. Name tests descriptively: `@test "<script>: <behavior>"`.
 5. Use `run_hook_with_json` or construct stdin inline.
-6. Clean up any tmpdirs in `teardown` — tests must be idempotent.
+6. Assert with the helpers above — avoid raw `[[ == ]]` in the middle
+   of a test body.
+7. Clean up any tmpdirs in `teardown` — tests must be idempotent.
+
+### Example
+
+```bash
+@test "my-hook: blocks writes outside vault/wiki/" {
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/elsewhere.md"}}'
+  run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/my-hook.sh'"
+
+  assert_success
+  assert_output_contains '"decision":"block"'
+  refute_output_contains "something we should never print"
+}
+```
+
+## Writing mutation-resistant tests
+
+A test is only useful if it fails when the subject under test is broken.
+When you add a test, ask:
+
+- **What single-line change to the script would make this behavior wrong?**
+  Mentally apply it. If the test still passes, the assertion is too loose.
+- **Does the fixture actually trigger the rule?** A "blocks on X" test
+  whose fixture doesn't contain X passes even if the blocking logic is
+  deleted.
+- **Is the early-exit path the only thing being tested?** Tests like
+  "ignores non-wiki paths" must use content that *would* trigger the
+  validation if it ran — otherwise they only pin the guard, not the rule.
+- **Does the assertion pin the specific behavior?** Prefer
+  `assert_output_contains "Add [[New Page]]"` over
+  `assert_output_contains "index.md"` — the former names the branch.
+
+When in doubt, apply your candidate mutation to the script, run the test,
+and confirm it fails before reverting. That's the fastest way to prove
+the test earns its place.
 
 ## Constraints
 
@@ -169,4 +266,4 @@ each `.bats` file.
   assertions, no flaky wait-loops.
 - Tests must be idempotent. Mutations happen inside `$BATS_TEST_TMPDIR`.
 - Use absolute paths for fixtures: `$MINIMAL_VAULT_SRC`, `$JSON_FIXTURES_DIR`.
-- Never mutate files under the real `example-vault/`, `scripts/`, etc.
+- Never mutate files under the real `docs/vault-example/`, `scripts/`, etc.

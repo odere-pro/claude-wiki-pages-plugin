@@ -6,10 +6,10 @@ useDefault = true
 
 [allowlist]
 description = "Repo-specific allowlist"
-# Example source files in example-vault/raw/ may contain realistic-looking URLs
+# Example source files in vault-example/raw/ may contain realistic-looking URLs
 # or quoted tokens that match heuristics but are not real secrets.
 paths = [
-  '''example-vault/raw/.*''',
+  '''vault-example/raw/.*''',
   '''docs/.*''',
   '''tests/fixtures/.*''',
 ]

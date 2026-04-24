@@ -31,8 +31,8 @@ setup() {
   # vocabulary violation and the tests should surface that before CI does.
   run bash "$SCRIPTS_DIR/validate-docs.sh" "$REPO_ROOT"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"All vocabulary checks passed"* ]]
+  assert_success
+  assert_output_contains "All vocabulary checks passed"
 }
 
 # -----------------------------------------------------------------------------
@@ -51,9 +51,9 @@ setup() {
 
   teardown_isolated_repo
 
-  [ "$rc" -eq 1 ]
-  [[ "$out" == *"banned string"* ]]
-  [[ "$out" == *"architecture.md"* ]]
+  assert_eq "$rc" 1
+  assert_contains "$out" "banned string"
+  assert_contains "$out" "architecture.md"
 }
 
 @test "validate-docs: flags retired 'vault-synthesize' outside exempt set" {
@@ -68,8 +68,8 @@ setup() {
 
   teardown_isolated_repo
 
-  [ "$rc" -eq 1 ]
-  [[ "$out" == *"banned string"* ]]
+  assert_eq "$rc" 1
+  assert_contains "$out" "banned string"
 }
 
 @test "validate-docs: allows retired vocabulary in CHANGELOG.md" {
@@ -85,8 +85,8 @@ setup() {
 
   teardown_isolated_repo
 
-  [ "$rc" -eq 0 ]
-  [[ "$out" == *"no banned strings"* ]]
+  assert_eq "$rc" 0
+  assert_contains "$out" "no banned strings"
 }
 
 # -----------------------------------------------------------------------------
@@ -106,9 +106,9 @@ setup() {
 
   teardown_isolated_repo
 
-  [ "$rc" -eq 1 ]
-  [[ "$out" == *"SEO-register term"* ]]
-  [[ "$out" == *"architecture.md"* ]]
+  assert_eq "$rc" 1
+  assert_contains "$out" "SEO-register term"
+  assert_contains "$out" "architecture.md"
 }
 
 @test "validate-docs: allows SEO term in README (in allowlist)" {
@@ -124,8 +124,8 @@ setup() {
 
   teardown_isolated_repo
 
-  [ "$rc" -eq 0 ]
-  [[ "$out" == *"no SEO-register leaks"* ]]
+  assert_eq "$rc" 0
+  assert_contains "$out" "no SEO-register leaks"
 }
 
 # -----------------------------------------------------------------------------
@@ -143,9 +143,9 @@ setup() {
 
   teardown_isolated_repo
 
-  [ "$rc" -eq 1 ]
-  [[ "$out" == *"/llm-wiki-stack:nonexistent-skill"* ]]
-  [[ "$out" == *"does not resolve"* ]]
+  assert_eq "$rc" 1
+  assert_contains "$out" "/llm-wiki-stack:nonexistent-skill"
+  assert_contains "$out" "does not resolve"
 }
 
 @test "validate-docs: allows existing slash command reference" {
@@ -160,6 +160,6 @@ setup() {
 
   teardown_isolated_repo
 
-  [ "$rc" -eq 0 ]
-  [[ "$out" == *"all slash-command references resolve"* ]]
+  assert_eq "$rc" 0
+  assert_contains "$out" "all slash-command references resolve"
 }

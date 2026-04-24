@@ -17,7 +17,10 @@
 set -uo pipefail
 
 ROOT="${1:-.}"
-cd "$ROOT" || { echo "ERROR: cannot cd to $ROOT" >&2; exit 2; }
+cd "$ROOT" || {
+  echo "ERROR: cannot cd to $ROOT" >&2
+  exit 2
+}
 
 # Must run from repo root — git ls-files drives file discovery.
 if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
@@ -66,19 +69,18 @@ LAYER_DRIFT='\blayer [1-4]\b|\b(data|skills|agents|orchestration) layer\b'
 
 # Known skill and agent names — a bare /name reference (missing the
 # /llm-wiki-stack: prefix) signals a vocabulary violation.
-NAMESPACED_NAMES='llm-wiki-ingest-pipeline|llm-wiki-lint-fix|llm-wiki-analyst|llm-wiki-ingest|llm-wiki-query|llm-wiki-lint|llm-wiki-fix|llm-wiki-status|llm-wiki-synthesize|llm-wiki-index|llm-wiki|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
+NAMESPACED_NAMES='llm-wiki-ingest-pipeline|llm-wiki-lint-fix|llm-wiki-analyst|llm-wiki-ingest|llm-wiki-query|llm-wiki-lint|llm-wiki-fix|llm-wiki-status|llm-wiki-synthesize|llm-wiki-index|llm-wiki-markdown|llm-wiki|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
 RED=$'\033[0;31m'
-YELLOW=$'\033[0;33m'
 GREEN=$'\033[0;32m'
 BOLD=$'\033[1m'
 RESET=$'\033[0m'
 
 header() { printf '\n%s=== %s ===%s\n' "$BOLD" "$1" "$RESET"; }
-err()    { printf '%sFAIL:%s %s\n' "$RED" "$RESET" "$1"; }
-ok()     { printf '%sPASS:%s %s\n' "$GREEN" "$RESET" "$1"; }
+err() { printf '%sFAIL:%s %s\n' "$RED" "$RESET" "$1"; }
+ok() { printf '%sPASS:%s %s\n' "$GREEN" "$RESET" "$1"; }
 
 exempt_from() {
   local file="$1"
@@ -194,9 +196,9 @@ fi
 header "Slash-command references"
 
 # Collect every unique /llm-wiki-stack:<name> referenced anywhere in markdown.
-REFS=$(git ls-files -- '*.md' 2>/dev/null \
-  | xargs grep -ohE '/llm-wiki-stack:[a-z][a-z0-9-]+' 2>/dev/null \
-  | sort -u)
+REFS=$(git ls-files -- '*.md' 2>/dev/null |
+  xargs grep -ohE '/llm-wiki-stack:[a-z][a-z0-9-]+' 2>/dev/null |
+  sort -u)
 
 UNRESOLVED=0
 if [ -n "$REFS" ]; then
@@ -213,7 +215,7 @@ if [ -n "$REFS" ]; then
       printf '%s\n' "$uses" | sed 's/^/    referenced in: /'
     fi
     UNRESOLVED=$((UNRESOLVED + 1))
-  done <<< "$REFS"
+  done <<<"$REFS"
 fi
 
 if [ "$UNRESOLVED" -eq 0 ]; then

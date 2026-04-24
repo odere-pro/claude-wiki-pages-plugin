@@ -16,22 +16,22 @@ setup() {
   local json='{"agent_name":"other-agent","stdout":"anything"}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/subagent-lint-gate.sh'"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 @test "subagent-lint-gate: silent on clean llm-wiki-lint-fix stdout" {
   local json='{"agent_name":"llm-wiki-lint-fix","stdout":"OK: all clean"}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/subagent-lint-gate.sh'"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 @test "subagent-lint-gate: warns on unresolved errors" {
   local json='{"agent_name":"llm-wiki-lint-fix","stdout":"ERROR: 3 unresolved errors remain"}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/subagent-lint-gate.sh'"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"QUALITY GATE"* ]]
+  assert_success
+  assert_output_contains "QUALITY GATE"
 }

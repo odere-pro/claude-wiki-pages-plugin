@@ -15,11 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install jq and yq
+      - name: Install jq
+        # Smoke scripts use pure shell + jq only. No Python.
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
-          python -m pip install yq
       - name: Fresh install smoke
         run: bash tests/smoke/fresh-install.sh
       - name: Skill-schema smoke

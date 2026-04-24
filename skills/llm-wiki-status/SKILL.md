@@ -73,7 +73,7 @@ Run these checks in order. Each produces one line in the report.
 9. **`SubagentStop` lint gate.** Simulate the completion of a lint-fix
    agent; confirm the lint gate runs.
 10. **Schema read.** Confirm `vault/CLAUDE.md` parses as YAML frontmatter
-    + markdown, `schema_version` is an integer, and the plugin supports it.
+    - markdown, `schema_version` is an integer, and the plugin supports it.
 
 ## Report format
 

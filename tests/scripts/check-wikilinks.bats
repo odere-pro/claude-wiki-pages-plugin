@@ -13,20 +13,49 @@ setup() {
 }
 
 @test "check-wikilinks: allows [[wikilinks]] in wiki body" {
-  run_hook_with_json "scripts/check-wikilinks.sh" \
-    "$JSON_FIXTURES_DIR/write-good.json"
+  # Use content that contains BOTH a real [[wikilink]] and a bare HTTP link.
+  # A regex that over-matches (e.g., dropping the .md suffix) would false-
+  # positive on the HTTP link, so this fixture pins the discrimination.
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  local content
+  content=$(cat <<'MD'
+---
+title: "Wikilink Page"
+type: entity
+entity_type: tool
+aliases: ["Wikilink Page"]
+parent: "[[Topics — Index]]"
+path: "topics"
+sources: ["[[Sample]]"]
+created: 2026-04-18
+updated: 2026-04-18
+status: active
+confidence: 0.9
+---
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+# Wikilink Page
+
+Body cites [[Sample]] and links to [example](https://example.invalid).
+MD
+  )
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/topics/wikilink-page.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/check-wikilinks.sh" "$json_file"
+
+  assert_success
+  assert_output_empty
 }
 
 @test "check-wikilinks: blocks [text](file.md) in wiki body" {
   run_hook_with_json "scripts/check-wikilinks.sh" \
     "$JSON_FIXTURES_DIR/write-invalid-markdown-link.json"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"wikilinks"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "wikilinks"
 }
 
 @test "check-wikilinks: allows http links in wiki body" {
@@ -59,14 +88,14 @@ MD
 
   run_hook_with_json "scripts/check-wikilinks.sh" "$json_file"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 @test "check-wikilinks: ignores non-wiki paths" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/elsewhere/readme.md","content":"See [docs](docs.md) please."}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/check-wikilinks.sh'"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }

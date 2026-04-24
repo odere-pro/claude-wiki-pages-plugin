@@ -57,23 +57,37 @@ jobs:
           jq . hooks/hooks.json
 
       - name: Manifest JSON schema
-        run: |
-          python -m pip install --quiet check-jsonschema
-          # Plugin manifest schema is not yet published by Anthropic.
-          # Once it is, pin against it here. For now, validate basic shape.
-          check-jsonschema --schemafile .github/schemas/plugin-json.schema.json .claude-plugin/plugin.json
-          check-jsonschema --schemafile .github/schemas/marketplace-json.schema.json .claude-plugin/marketplace.json
+        # Pure-jq validator — no Python. Enforces the same shape rules the
+        # schemas under .github/schemas/*.schema.json assert. Swap for the
+        # canonical Anthropic schema + validator when one is published.
+        run: bash scripts/validate-manifests.sh
 
       - name: Vocabulary gate
         run: scripts/validate-docs.sh
 
       - name: Skill and agent frontmatter
+        # Pure-bash/awk check — no Python, no yq. For each skill/agent we
+        # assert that:
+        #   1. The file opens with a `---` line and has a matching closer.
+        #   2. The block contains a `name:` and a `description:` key.
+        # That's the contract the plugin loader cares about; a heavier YAML
+        # parser isn't needed at this tier.
         run: |
-          python -m pip install --quiet yq
+          fail=0
           for f in skills/*/SKILL.md agents/*.md; do
-            yq --yaml-output 'keys' "$(awk '/^---$/{n++; if(n==2) exit} n{print}' "$f")" >/dev/null \
-              || { echo "FAIL: $f has malformed frontmatter"; exit 1; }
+            awk -v file="$f" '
+              NR == 1 && $0 != "---" { print "FAIL: " file ": missing opening --- on line 1"; exit 1 }
+              NR > 1 && /^---$/      { closed = 1; exit }
+              /^name:[[:space:]]/         { has_name = 1 }
+              /^description:[[:space:]]/  { has_desc = 1 }
+              END {
+                if (!closed)   { print "FAIL: " file ": no closing --- found"; exit 1 }
+                if (!has_name) { print "FAIL: " file ": missing `name:` in frontmatter"; exit 1 }
+                if (!has_desc) { print "FAIL: " file ": missing `description:` in frontmatter"; exit 1 }
+              }
+            ' "$f" || fail=1
           done
+          [ "$fail" -eq 0 ] || exit 1
 
   test:
     name: Tier 1 — Bats unit tests

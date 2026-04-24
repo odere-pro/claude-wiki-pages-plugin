@@ -24,10 +24,16 @@ teardown() {
 }
 
 @test "verify-ingest: passes on minimal-vault fixture" {
-  run bash "$SCRIPTS_DIR/verify-ingest.sh" "$FIXTURE_VAULT"
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"All checks passed"* ]]
+  assert_success
+  # Pin each CHECK by its green success line, not just the final summary —
+  # otherwise a mutation that silences an individual check still passes.
+  assert_output_contains "schema_version"
+  assert_output_contains "No duplicates in index.md"
+  assert_output_contains "All sources fields use [[wikilinks]]"
+  assert_output_contains "_index.md checked"
+  assert_output_contains "All checks passed"
 }
 
 @test "verify-ingest: fails on duplicate index entries" {
@@ -35,11 +41,11 @@ teardown() {
   # Inject a duplicate [[Sample Entity]] link alongside the existing one.
   printf '\n\n- [[Sample Entity]] — duplicate entry that should trip the check.\n' >>"$index"
 
-  run bash "$SCRIPTS_DIR/verify-ingest.sh" "$FIXTURE_VAULT"
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
-  [ "$status" -eq 1 ]
-  [[ "$output" == *"Duplicate"* ]]
-  [[ "$output" == *"Sample Entity"* ]]
+  assert_status 1
+  assert_output_contains "Duplicate"
+  assert_output_contains "Sample Entity"
 }
 
 @test "verify-ingest: fails on plain-string source" {
@@ -49,19 +55,19 @@ teardown() {
   sed -i.bak 's|sources: \["\[\[Sample\]\]"\]|sources: ["Sample"]|' "$entity"
   rm -f "${entity}.bak"
 
-  run bash "$SCRIPTS_DIR/verify-ingest.sh" "$FIXTURE_VAULT"
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
-  [ "$status" -eq 1 ]
-  [[ "$output" == *"Plain string in sources"* ]]
+  assert_status 1
+  assert_output_contains "Plain string in sources"
 }
 
 @test "verify-ingest: fails on missing _index.md in topic folder" {
   rm -f "$FIXTURE_VAULT/wiki/topics/_index.md"
 
-  run bash "$SCRIPTS_DIR/verify-ingest.sh" "$FIXTURE_VAULT"
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
-  [ "$status" -eq 1 ]
-  [[ "$output" == *"no _index.md"* ]]
+  assert_status 1
+  assert_output_contains "no _index.md"
 }
 
 @test "verify-ingest: warns on orphan source summary" {
@@ -91,21 +97,21 @@ confidence: 1.0
 Not referenced by any wiki page.
 MD
 
-  run bash "$SCRIPTS_DIR/verify-ingest.sh" "$FIXTURE_VAULT"
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
   # Script treats orphan sources as warnings, not errors — exit 0 is correct.
-  [ "$status" -eq 0 ]
-  [[ "$output" == *"Orphan source"* ]]
-  [[ "$output" == *"Orphan Source"* ]]
+  assert_success
+  assert_output_contains "Orphan source"
+  assert_output_contains "Orphan Source"
 }
 
 @test "verify-ingest: fails when index.md missing" {
   rm -f "$FIXTURE_VAULT/wiki/index.md"
 
-  run bash "$SCRIPTS_DIR/verify-ingest.sh" "$FIXTURE_VAULT"
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
-  [ "$status" -eq 1 ]
-  [[ "$output" == *"index.md not found"* ]]
+  assert_status 1
+  assert_output_contains "index.md not found"
 }
 
 @test "verify-ingest: fails when _index.md children refer to missing pages" {
@@ -121,9 +127,17 @@ MD
   ' "$index" >"$index.new"
   mv "$index.new" "$index"
 
-  run bash "$SCRIPTS_DIR/verify-ingest.sh" "$FIXTURE_VAULT"
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
-  [ "$status" -eq 1 ]
-  [[ "$output" == *"Index lists"* ]]
-  [[ "$output" == *"Missing Page"* ]]
+  assert_status 1
+  assert_output_contains "Index lists"
+  assert_output_contains "Missing Page"
+}
+
+@test "verify-ingest: exits 1 with helpful message when vault dir missing" {
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "/nonexistent/vault/does-not-exist"
+
+  assert_status 1
+  assert_output_contains "not found"
+  assert_output_contains "/nonexistent/vault/does-not-exist"
 }

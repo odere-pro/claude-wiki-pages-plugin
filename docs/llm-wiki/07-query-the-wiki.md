@@ -96,6 +96,26 @@ Add queries like this to `dashboard.md` (or create a new Dataview page) when the
 - **Ask the agent to write to a file** if the answer is long. Otherwise the response scrolls off.
 - **Chain queries.** Use the answer from one query as context for the next — Claude's session keeps the running context.
 
+## Exporting to regular markdown
+
+When you need a shareable artifact (a PR comment, an email, a README
+snippet), use `/llm-wiki-stack:llm-wiki-markdown` instead of the query
+skill:
+
+```
+/llm-wiki-stack:llm-wiki-markdown what does the wiki say about <topic>?
+```
+
+The skill runs the same reading contract as the query, then renders the
+answer as portable markdown — no `[[wikilinks]]`, no Dataview blocks, no
+Obsidian callouts — and writes it to `vault/output/<slug>.md`. Provenance
+is preserved in the file's `sources:` frontmatter and a trailing
+attribution line, so the reader can still trace every claim back to the
+wiki.
+
+A `## [YYYY-MM-DD] markdown | <summary> → output/<slug>.md` entry is
+appended to `wiki/log.md` so the export is recorded.
+
 ## You have arrived
 
 If you have worked through `index.md` day-1/7/30 and skimmed guides 1–7, you now know how to install, seed, extend, validate, deliver, monitor, and interrogate the wiki. The rest is habit: drop sources, run the pipeline, lint every 10 ingests, query daily.

@@ -18,24 +18,24 @@ setup() {
 @test "protect-raw: blocks Edit to vault/raw/" {
   run_hook_with_json "scripts/protect-raw.sh" "$JSON_FIXTURES_DIR/write-to-raw.json"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"immutable"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "immutable"
 }
 
 @test "protect-raw: allows Write under vault/wiki/" {
   run_hook_with_json "scripts/protect-raw.sh" "$JSON_FIXTURES_DIR/write-good.json"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 @test "protect-raw: ignores non-vault paths" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/unrelated/foo.md","content":"hi"}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 @test "protect-raw: blocks Write to existing raw/ file" {
@@ -50,19 +50,29 @@ setup() {
 {"tool_name":"Write","tool_input":{"file_path":"$existing","content":"overwrite"}}
 EOF
 )
-  run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
+  run bash -c "export LLM_WIKI_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"Cannot overwrite"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "Cannot overwrite"
 }
 
 @test "protect-raw: allows Write to NEW raw/ file (new source)" {
-  # Path looks like vault/raw/ but no file exists there — allowed so the user
-  # can drop new sources in.
-  local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/does-not-exist/vault/raw/new-src.md","content":"new"}}'
-  run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
+  # Parent dir exists, target file does NOT — so the `[ -f "$FILE_PATH" ]`
+  # guard is meaningfully exercised (not tautologically skipped by a path
+  # that can never exist).
+  local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw"
+  mkdir -p "$vault_dir"
+  local new_path="$vault_dir/new-src.md"
+  [ ! -e "$new_path" ]
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  local json
+  json=$(cat <<EOF
+{"tool_name":"Write","tool_input":{"file_path":"$new_path","content":"new"}}
+EOF
+)
+  run bash -c "export LLM_WIKI_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
+
+  assert_success
+  assert_output_empty
 }

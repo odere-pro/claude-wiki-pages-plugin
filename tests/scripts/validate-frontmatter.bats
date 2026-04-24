@@ -15,28 +15,20 @@ setup() {
 
 # --- happy path --------------------------------------------------------------
 
-@test "validate-frontmatter: allows valid entity write" {
-  run_hook_with_json "scripts/validate-frontmatter.sh" \
-    "$JSON_FIXTURES_DIR/write-valid-wiki-page.json"
-
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
-}
-
 @test "validate-frontmatter: allows clean entity via write-good fixture" {
   run_hook_with_json "scripts/validate-frontmatter.sh" \
     "$JSON_FIXTURES_DIR/write-good.json"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 @test "validate-frontmatter: ignores non-wiki paths" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/not-a-wiki.md","content":"no frontmatter here"}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/validate-frontmatter.sh'"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 # --- block cases -------------------------------------------------------------
@@ -45,19 +37,19 @@ setup() {
   run_hook_with_json "scripts/validate-frontmatter.sh" \
     "$JSON_FIXTURES_DIR/write-invalid-no-type.json"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"Missing required field"* ]]
-  [[ "$output" == *"type"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "Missing required field"
+  assert_output_contains "type"
 }
 
 @test "validate-frontmatter: blocks legacy type: moc" {
   run_hook_with_json "scripts/validate-frontmatter.sh" \
     "$JSON_FIXTURES_DIR/write-invalid-moc-type.json"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"Unknown type: moc"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "Unknown type: moc"
 }
 
 @test "validate-frontmatter: blocks entity missing entity_type" {
@@ -88,18 +80,18 @@ MD
 
   run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"entity_type"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "entity_type"
 }
 
 @test "validate-frontmatter: blocks missing YAML frontmatter entirely" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test-project/vault/wiki/topics/no-frontmatter.md","content":"# No frontmatter\n\nJust body text.\n"}}'
-  run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/validate-frontmatter.sh'"
+  run bash -c "export LLM_WIKI_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/validate-frontmatter.sh'"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"YAML frontmatter"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "YAML frontmatter"
 }
 
 @test "validate-frontmatter: allows index with new-schema fields" {
@@ -131,8 +123,8 @@ MD
 
   run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
 
-  [ "$status" -eq 0 ]
-  [ -z "$output" ]
+  assert_success
+  assert_output_empty
 }
 
 @test "validate-frontmatter: blocks path mismatch on entity" {
@@ -164,7 +156,7 @@ MD
 
   run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
 
-  [ "$status" -eq 0 ]
-  [[ "$output" == *'"decision":"block"'* ]]
-  [[ "$output" == *"path"* ]]
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "path"
 }

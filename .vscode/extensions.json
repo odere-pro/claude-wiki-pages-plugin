@@ -1,0 +1,24 @@
+{
+  "recommendations": [
+    // Shell scripting
+    "timonwong.shellcheck",
+    "foxundermoon.shell-format",
+    "jetmartin.bats",
+
+    // YAML (CI workflows, pre-commit, promptfoo)
+    "redhat.vscode-yaml",
+
+    // Markdown (docs, vault notes)
+    "yzhang.markdown-all-in-one",
+    "DavidAnson.vscode-markdownlint",
+
+    // TOML (.gitleaks.toml, .lychee.toml)
+    "tamasfe.even-better-toml",
+
+    // EditorConfig (.editorconfig)
+    "EditorConfig.EditorConfig",
+
+    // Spell checking (for markdown docs)
+    "streetsidesoftware.code-spell-checker"
+  ]
+}

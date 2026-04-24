@@ -38,4 +38,4 @@ template: |
   $CHANGES
 
   ### Schema version
-  This release is compatible with schema_version 1 (declared in `example-vault/CLAUDE.md`).
+  This release is compatible with schema_version 1 (declared in `docs/vault-example/CLAUDE.md`).

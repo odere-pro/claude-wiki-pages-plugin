@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "llm-wiki-stack",
-      "source": ".",
+      "source": "./",
       "description": "A Claude Code plugin for Obsidian — Karpathy's LLM Wiki shipped as a four-layer, hook-enforced agent stack with multi-agent orchestration.",
       "version": "0.1.0",
       "license": "Apache-2.0",

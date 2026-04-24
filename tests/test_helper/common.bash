@@ -33,8 +33,9 @@ export FIXTURES_DIR="$REPO_ROOT/tests/fixtures"
 export MINIMAL_VAULT_SRC="$FIXTURES_DIR/minimal-vault"
 export JSON_FIXTURES_DIR="$FIXTURES_DIR/json"
 
-# Load bats assertion helpers if present. Tests that call `assert_*` require
-# these. Tests that only check `status` and `output` do not.
+# Load bats-assert helpers if the optional clones are present. When they
+# are absent, tests fall back to the in-repo helpers defined below — which
+# are deliberately self-contained so the suite runs without extra clones.
 _load_helpers() {
   local helper
   for helper in bats-support bats-assert bats-file; do
@@ -43,6 +44,91 @@ _load_helpers() {
       load "$REPO_ROOT/tests/test_helper/$helper/load"
     fi
   done
+}
+
+# -----------------------------------------------------------------------------
+# Assertion helpers
+# -----------------------------------------------------------------------------
+#
+# Why these exist — Bash `set -e` (which bats enables inside tests) does NOT
+# trigger on `[[ ... ]]` returning 1 when it appears in the middle of a test
+# body. Only the LAST command's exit status drives the test result. So:
+#
+#   [ "$status" -eq 0 ]
+#   [[ "$output" == *"expected"* ]]   # ← silently ignored on failure
+#   [[ "$output" != *"forbidden"* ]]
+#
+# would pass even when the middle assertion is false. The helpers below use
+# a `case` + `return 1` combination that always surfaces failure, and they
+# print a readable diagnostic so a red test tells you what it expected.
+#
+# Usage:
+#   run some_command
+#   assert_success
+#   assert_output_contains "expected substring"
+#   refute_output_contains "forbidden substring"
+#   assert_output_empty
+#   assert_status 2            # any explicit exit code
+
+assert_status() {
+  local expected="$1"
+  if [ "${status:-}" != "$expected" ]; then
+    printf 'assert_status: expected exit %s, got %s\n' "$expected" "${status:-<unset>}" >&2
+    printf 'output:\n%s\n' "${output:-}" >&2
+    return 1
+  fi
+}
+
+assert_success() { assert_status 0; }
+
+assert_output_empty() {
+  if [ -n "${output:-}" ]; then
+    printf 'assert_output_empty: expected no output, got:\n%s\n' "$output" >&2
+    return 1
+  fi
+}
+
+assert_output_contains() {
+  local needle="$1"
+  case "${output:-}" in
+    *"$needle"*) return 0 ;;
+    *)
+      printf 'assert_output_contains: expected output to contain %q\n' "$needle" >&2
+      printf 'actual output:\n%s\n' "${output:-}" >&2
+      return 1
+      ;;
+  esac
+}
+
+refute_output_contains() {
+  local needle="$1"
+  case "${output:-}" in
+    *"$needle"*)
+      printf 'refute_output_contains: expected output NOT to contain %q\n' "$needle" >&2
+      printf 'actual output:\n%s\n' "${output:-}" >&2
+      return 1
+      ;;
+  esac
+}
+
+# Generic variants for when the captured string is not $output — e.g.
+# tests that teardown before asserting and hold the output in a local.
+assert_contains() {
+  local haystack="$1" needle="$2"
+  case "$haystack" in
+    *"$needle"*) return 0 ;;
+    *)
+      printf 'assert_contains: expected %q in:\n%s\n' "$needle" "$haystack" >&2
+      return 1
+      ;;
+  esac
+}
+
+assert_eq() {
+  if [ "${1:-}" != "${2:-}" ]; then
+    printf 'assert_eq: expected %s, got %s\n' "${2:-<unset>}" "${1:-<unset>}" >&2
+    return 1
+  fi
 }
 
 # -----------------------------------------------------------------------------
@@ -149,7 +235,9 @@ run_hook_with_json() {
     *) script="$REPO_ROOT/$script" ;;
   esac
 
-  run bash -c "cat '$json_file' | bash '$script'"
+  # Pin LLM_WIKI_VAULT=vault so scripts resolve the vault name to "vault",
+  # matching the /tmp/test-project/vault/… paths used in JSON fixtures.
+  run bash -c "export LLM_WIKI_VAULT=vault; cat '$json_file' | bash '$script'"
 }
 
 # Like run_hook_with_json but takes a JSON string instead of a file path.
@@ -162,5 +250,5 @@ run_hook_with_json_string() {
     *) script="$REPO_ROOT/$script" ;;
   esac
 
-  run bash -c "printf '%s' \"\$json\" | bash '$script'" json="$json"
+  run bash -c "export LLM_WIKI_VAULT=vault; printf '%s' \"\$json\" | bash '$script'" json="$json"
 }
