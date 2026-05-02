@@ -69,7 +69,7 @@ cp ~/Desktop/screenshot.png vault/raw/assets/
 Then, from Claude Code, run the pipeline:
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:llm-wiki-stack-ingest-agent
 ```
 
 The pipeline:

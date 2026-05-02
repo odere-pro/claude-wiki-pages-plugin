@@ -192,7 +192,7 @@ updated: 2026-04-16
 
 Topic branches are color-coded in Obsidian's graph view via the internal graph plugin API. The `/llm-wiki-stack:obsidian-graph-colors` skill manages this programmatically using `obsidian eval`. Each topic folder gets a `path:` query mapped to a unique color. No frontmatter field needed — colors are applied at the Obsidian graph engine level.
 
-When creating a new top-level topic folder, run `/llm-wiki-stack:obsidian-graph-colors` (or the ingest pipeline handles it automatically in step 1.7). The `llm-wiki-lint-fix` agent also checks for missing color groups and applies them.
+When creating a new top-level topic folder, run `/llm-wiki-stack:obsidian-graph-colors` (or the ingest pipeline handles it automatically in step 1.7). The `llm-wiki-stack-curator-agent` agent also checks for missing color groups and applies them.
 
 ### Field: `parent` placeholder form
 

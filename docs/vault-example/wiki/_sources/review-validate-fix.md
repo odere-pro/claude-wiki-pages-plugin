@@ -25,7 +25,7 @@ confidence: 1.0
 
 ## Summary
 
-Three levels of validation: `llm-wiki-status` (one-command smoke test), `llm-wiki-lint` (read-only audit), `llm-wiki-lint-fix` (auto-repair). Lint reports; fix applies staged phases (sources, vault MOC, per-folder MOCs, parent/path, broken links, orphans, aliases, graph colors, flat-folder splits, body densification). Lists what the repair agent will NOT do: delete content, merge near-duplicates, create unresolvable wikilinks, lower confidence. Manual-review table covers near-duplicates, single-source high confidence, repeated blocks, orphan sources, and contradictions.
+Three levels of validation: `llm-wiki-status` (one-command smoke test), `llm-wiki-lint` (read-only audit), `llm-wiki-stack-curator-agent` (auto-repair). Lint reports; fix applies staged phases (sources, vault MOC, per-folder MOCs, parent/path, broken links, orphans, aliases, graph colors, flat-folder splits, body densification). Lists what the repair agent will NOT do: delete content, merge near-duplicates, create unresolvable wikilinks, lower confidence. Manual-review table covers near-duplicates, single-source high confidence, repeated blocks, orphan sources, and contradictions.
 
 ## Key Claims
 

@@ -22,5 +22,6 @@
     "tests/test_helper",
     "docs/vault-example/raw",
     "docs/vault-example/wiki/log.md",
+    "docs/plan",
   ],
 }

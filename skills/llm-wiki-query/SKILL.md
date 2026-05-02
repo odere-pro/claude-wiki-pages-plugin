@@ -22,7 +22,7 @@ without a source.
 
 - The user asks a natural-language question about a topic that might be
   covered in the wiki.
-- An agent (`llm-wiki-analyst`) is chaining query as a step.
+- An agent (`llm-wiki-stack-analyst-agent`) is chaining query as a step.
 
 Do NOT invoke for questions about the *plugin itself* (how to install, which
 hooks fire, what a skill does) — those are answered from the docs, not the

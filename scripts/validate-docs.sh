@@ -37,6 +37,9 @@ BAN_EXEMPT=(
   "scripts/validate-docs.sh"
   "docs/VOCABULARY.md"
   "CHANGELOG.md"
+  "docs/adr/*"
+  "docs/plan/*"
+  "docs/llm-wiki/migration-0.2.md"
   "tests/*"
 )
 
@@ -45,6 +48,7 @@ BAN_EXEMPT=(
 SEO_EXEMPT=(
   "README.md"
   "docs/VOCABULARY.md"
+  "SPEC.md"
   "docs/SPECIFICATION.md"
   "scripts/validate-docs.sh"
   ".claude-plugin/plugin.json"
@@ -58,7 +62,11 @@ SEO_EXEMPT=(
 
 # Strings retired from the vocabulary in schema version 1. Banned in every
 # tracked file except BAN_EXEMPT.
-BANNED_STRINGS='\bsecond-brain\b|\bsecond brain\b|\bvault-synthesize\b|\bvault-index\b'
+# Agent names retired in 0.2.0 (replaced by {plugin}-{role}-agent convention,
+# see docs/adr/ADR-0002-agent-naming-convention.md): llm-wiki-ingest-pipeline,
+# llm-wiki-lint-fix, llm-wiki-analyst. Allowlisted only in CHANGELOG and the
+# migration doc; otherwise flagged as drift.
+BANNED_STRINGS='\bsecond-brain\b|\bsecond brain\b|\bvault-synthesize\b|\bvault-index\b|\bllm-wiki-ingest-pipeline\b|\bllm-wiki-lint-fix\b|\bllm-wiki-analyst\b'
 
 # SEO-register terms that remain allowed in README/plugin.json but nowhere else.
 SEO_LEAK='\bknowledge base\b|\bknowledge management\b|\bagent harness\b|LLM Wiki Stack|\braw material\b'
@@ -69,7 +77,7 @@ LAYER_DRIFT='\blayer [1-4]\b|\b(data|skills|agents|orchestration) layer\b'
 
 # Known skill and agent names — a bare /name reference (missing the
 # /llm-wiki-stack: prefix) signals a vocabulary violation.
-NAMESPACED_NAMES='llm-wiki-ingest-pipeline|llm-wiki-lint-fix|llm-wiki-analyst|llm-wiki-ingest|llm-wiki-query|llm-wiki-lint|llm-wiki-fix|llm-wiki-status|llm-wiki-synthesize|llm-wiki-index|llm-wiki-markdown|llm-wiki|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
+NAMESPACED_NAMES='wiki-doctor|wiki|llm-wiki-stack-orchestrator-agent|llm-wiki-stack-ingest-agent|llm-wiki-stack-curator-agent|llm-wiki-stack-analyst-agent|llm-wiki-ingest|llm-wiki-query|llm-wiki-lint|llm-wiki-fix|llm-wiki-status|llm-wiki-synthesize|llm-wiki-index|llm-wiki-markdown|llm-wiki|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -205,10 +213,10 @@ if [ -n "$REFS" ]; then
   while IFS= read -r ref; do
     [ -z "$ref" ] && continue
     name="${ref#/llm-wiki-stack:}"
-    if [ -d "skills/$name" ] || [ -f "agents/${name}.md" ]; then
+    if [ -d "skills/$name" ] || [ -f "agents/${name}.md" ] || [ -f "commands/${name}.md" ]; then
       continue
     fi
-    err "$ref does not resolve to skills/$name/ or agents/$name.md"
+    err "$ref does not resolve to skills/$name/, agents/$name.md, or commands/$name.md"
     # Show which files use it.
     uses=$(git ls-files -- '*.md' | xargs grep -lF "$ref" 2>/dev/null || true)
     if [ -n "$uses" ]; then

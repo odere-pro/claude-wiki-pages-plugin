@@ -66,13 +66,13 @@ Or an image:
 cp ~/Desktop/screenshot.png vault/raw/assets/
 ```
 
-Then, from Claude Code, run the pipeline:
+Then, from Claude Code, run the orchestrator entry:
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:wiki
 ```
 
-The pipeline:
+It probes the vault, sees the new file in `raw/`, and dispatches to the ingest pipeline. The pipeline:
 
 1. Reads `vault/CLAUDE.md` (the schema) before reading the source.
 2. Dispatches by file extension (text vs image; PDFs are deferred — export to markdown first).

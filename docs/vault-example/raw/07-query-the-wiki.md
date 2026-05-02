@@ -30,7 +30,7 @@ The skill:
 For questions that span topics or require tables, comparisons, or document compilation, use the agent:
 
 ```
-/llm-wiki-stack:llm-wiki-analyst <your question>
+/llm-wiki-stack:llm-wiki-stack-analyst-agent <your question>
 ```
 
 Examples:
@@ -42,7 +42,7 @@ Examples:
 The agent can also run in **challenge mode** — pressure-test an idea against the wiki:
 
 ```
-/llm-wiki-stack:llm-wiki-analyst challenge mode — I'm about to decide I only need one authoritative source per concept. Push back.
+/llm-wiki-stack:llm-wiki-stack-analyst-agent challenge mode — I'm about to decide I only need one authoritative source per concept. Push back.
 ```
 
 The agent searches for contradicting sources, gaps, and past decisions that argue against the proposal, then responds with a structured critique.

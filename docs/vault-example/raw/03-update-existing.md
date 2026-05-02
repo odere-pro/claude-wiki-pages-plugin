@@ -11,7 +11,7 @@ cp ~/Downloads/new-article.md vault/raw/
 ```
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:llm-wiki-stack-ingest-agent
 ```
 
 The pipeline auto-detects unprocessed files by diffing `vault/raw/` against `wiki/log.md` ingest entries. No argument needed.
@@ -23,7 +23,7 @@ cp ~/Desktop/diagram.png vault/raw/assets/
 ```
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:llm-wiki-stack-ingest-agent
 ```
 
 Claude's vision reads the image natively and extracts on-image text, entities shown in diagrams, and visible concepts. The source summary gets `source_format: image` and `attachment_path: raw/assets/diagram.png`.
@@ -38,7 +38,7 @@ cp screenshots/*.png  vault/raw/assets/
 ```
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:llm-wiki-stack-ingest-agent
 ```
 
 The pipeline handles ingest → verify → lint-fix → synthesize in one pass. After the agent stops, the `subagent-ingest-gate.sh` hook automatically runs `verify-ingest.sh` and aborts the completion if the wiki is left in a half-written state. You see the failure immediately rather than discovering it days later.
@@ -51,7 +51,7 @@ If you want strict ingest-only (to line up several batches before running a sing
 /llm-wiki-stack:llm-wiki-ingest
 ```
 
-Same preconditions as the pipeline. No follow-on lint-fix, no synthesis. Run `/llm-wiki-stack:llm-wiki-lint-fix` separately when you are ready.
+Same preconditions as the pipeline. No follow-on lint-fix, no synthesis. Run `/llm-wiki-stack:llm-wiki-stack-curator-agent` separately when you are ready.
 
 ## Why you should NOT just write pages by hand
 

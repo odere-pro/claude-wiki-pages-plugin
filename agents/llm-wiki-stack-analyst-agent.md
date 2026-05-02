@@ -1,13 +1,13 @@
 ---
-name: llm-wiki-analyst
+name: llm-wiki-stack-analyst-agent
 description: >
   Query the wiki, produce dashboards and reports, reconstruct documents,
-  and extract information efficiently. Use when the user asks to "query",
-  "search the wiki", "build a report", "compile a document", "create a
-  dashboard", "extract information", "summarize what we know about X",
-  "produce a brief", "reconstruct a document from wiki", "what does the
-  wiki say about X", "challenge my assumptions", or needs any read-heavy
-  analytical operation against the vault.
+  and extract information efficiently. Invoked by the
+  llm-wiki-stack-orchestrator-agent when the user prompt is analytical
+  ("query", "what does the wiki say about X", "build a dashboard",
+  "compile", "extract", "challenge"). Five operating modes — Query,
+  Dashboard, Document Compile, Extract, Challenge — selected from the
+  prompt verbs.
 model: sonnet
 tools: Bash, Read, Write, Edit, Glob, Grep
 ---

@@ -23,7 +23,7 @@ confidence: 0.8
 
 ## Definition
 
-Three-level validation ladder: `llm-wiki-status` (smoke test), `llm-wiki-lint` (read-only audit), `llm-wiki-lint-fix` (auto-repair). Each level is a superset of the previous. Lint reports; fix mutates.
+Three-level validation ladder: `llm-wiki-status` (smoke test), `llm-wiki-lint` (read-only audit), `llm-wiki-stack-curator-agent` (auto-repair). Each level is a superset of the previous. Lint reports; fix mutates.
 
 ## Key Principles
 
@@ -34,7 +34,7 @@ Three-level validation ladder: `llm-wiki-status` (smoke test), `llm-wiki-lint` (
 
 ## Examples
 
-- After a batch ingest with warnings, run `/llm-wiki-stack:llm-wiki-lint-fix`; it repairs structural issues and surfaces the rest.
+- After a batch ingest with warnings, run `/llm-wiki-stack:llm-wiki-stack-curator-agent`; it repairs structural issues and surfaces the rest.
 - `/llm-wiki-stack:llm-wiki-fix` skips the analysis phase and applies known fixes directly — useful when you trust the prior lint report.
 
 ## Related Concepts

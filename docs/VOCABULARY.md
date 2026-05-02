@@ -67,7 +67,7 @@ Formal contracts. Defined in `docs/vault-example/CLAUDE.md`; enforced by `valida
 
 ### Architecture terms
 
-The plugin's structure. Contracts in `docs/SPECIFICATION.md`.
+The plugin's structure. Contracts in `/SPEC.md`.
 
 | Term                    | Description                                                                                    |
 | ----------------------- | ---------------------------------------------------------------------------------------------- |
@@ -75,14 +75,19 @@ The plugin's structure. Contracts in `docs/SPECIFICATION.md`.
 | four-layer stack        | The architecture. Four layers, each catching a different class of failure.                     |
 | Layer 1 — Data          | The vault: raw content, wiki, vault schema. Passive — holds the material.                      |
 | Layer 2 — Skills        | Single-responsibility slash commands. Thirteen ship.                                           |
-| Layer 3 — Agents        | Multi-step executors composing skills. Three ship.                                             |
+| Layer 3 — Agents        | Multi-step executors composing skills. Five ship: orchestrator, ingest, curator, analyst, polish. |
 | Layer 4 — Orchestration | Hooks, scripts, rules. Enforce the schema at every tool call.                                  |
 | skill                   | A capability under `skills/`. Entry point is `/llm-wiki-stack:<name>`.                         |
 | agent                   | A multi-step executor under `agents/`. Chains skills; owns completion gates.                   |
+| command                 | A user-facing slash command under `commands/`. Surfaced as `/llm-wiki-stack:<name>`. Today: `wiki`, `wiki-doctor`. |
 | hook                    | A lifecycle handler wired in `hooks/hooks.json`. Blocking hooks reject writes via exit code 2. |
 | hook triggers           | `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop`.               |
 | rule                    | A path-scoped guidance file under `rules/`. Declarative, not executable.                       |
-| pipeline                | Shorthand for the `llm-wiki-ingest-pipeline` agent. The default verb.                          |
+| orchestrator            | The Layer 4 entry agent (`llm-wiki-stack-orchestrator-agent`). Probes vault state; dispatches to one specialist per invocation. |
+| specialist              | A Layer 3 agent the orchestrator dispatches to (`-ingest-`, `-curator-`, `-analyst-`, `-polish-`). Never re-probes state; trusts the orchestrator's payload. |
+| polish                  | The tail-of-write step (`llm-wiki-stack-polish-agent`) that keeps the Obsidian-side experience in sync — graph colors, vault MOC, per-folder MOC consistency. Runs after every ingest or curator. |
+| doctor                  | The environment health check (`/llm-wiki-stack:wiki-doctor`, `scripts/doctor.sh`). Read-only by contract; exit codes 0–5. |
+| pipeline                | Shorthand for the `llm-wiki-stack-ingest-agent`. (Was `llm-wiki-ingest-pipeline` before `0.2.0`.)                          |
 | provenance              | The traceable chain from a wiki page's `sources` through `_sources/` to raw content.           |
 
 ### Skill and agent naming
@@ -92,7 +97,8 @@ Plugin-authored skills and agents use the `llm-wiki-` prefix when the target is 
 Skills and agents share the same namespace (`/llm-wiki-stack:<name>`), so their names must be globally unique. The convention below ensures they never collide:
 
 - **Skills** — single verb or noun suffix: `llm-wiki-ingest`, `llm-wiki-query`, `llm-wiki-lint`, `llm-wiki-markdown`.
-- **Agents** — compound suffix (verb+noun or role): `llm-wiki-ingest-pipeline`, `llm-wiki-lint-fix`, `llm-wiki-analyst`.
+- **Agents** — `{plugin-name}-{role}-agent` since `0.2.0`: `llm-wiki-stack-orchestrator-agent`, `llm-wiki-stack-ingest-agent`, `llm-wiki-stack-curator-agent`, `llm-wiki-stack-analyst-agent`. The plugin-prefix matches the plugin id exactly (not `llm-wiki-` substring) so future search-and-replace is unambiguous. The `-agent` suffix is mandatory; it disambiguates an agent from a skill on first read of a slash command.
+- **Commands** — short verb names under `commands/`: `wiki`, `wiki-doctor`. Surfaced as `/llm-wiki-stack:wiki` and `/llm-wiki-stack:wiki-doctor`.
 
 | Name                       | Kind            | Meaning                                                                                                                                                   |
 | -------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -105,9 +111,11 @@ Skills and agents share the same namespace (`/llm-wiki-stack:<name>`), so their 
 | `llm-wiki-synthesize`      | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
 | `llm-wiki-index`           | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
 | `llm-wiki-markdown`        | Skill (Layer 2) | Plugin-authored. Single-noun skill name; renders a query answer as portable markdown into `vault/output/`.                                                |
-| `llm-wiki-ingest-pipeline` | Agent (Layer 3) | Plugin-authored. Compound suffix (`ingest` + `pipeline`) distinguishes it from the `llm-wiki-ingest` skill.                                               |
-| `llm-wiki-lint-fix`        | Agent (Layer 3) | Plugin-authored. Compound suffix (`lint` + `fix`) chains the two skill names.                                                                             |
-| `llm-wiki-analyst`         | Agent (Layer 3) | Plugin-authored. Role-noun suffix (`analyst`) — not a skill verb.                                                                                         |
+| `llm-wiki-stack-orchestrator-agent`    | Agent (Layer 3/4) | Plugin-authored. Top-level dispatch for `/llm-wiki-stack:wiki`. `user-invocable: true`. Probes vault state; routes to exactly one specialist per turn. |
+| `llm-wiki-stack-ingest-agent`          | Agent (Layer 3) | Plugin-authored. Renamed from `llm-wiki-ingest-pipeline` in `0.2.0`. Chains ingest → curator → optimize (opt-in) → synthesize.                            |
+| `llm-wiki-stack-curator-agent`         | Agent (Layer 3) | Plugin-authored. Renamed from `llm-wiki-lint-fix` in `0.2.0`. Audits, auto-applies safe mechanical fixes, gates judgment fixes (restructures, merges) behind plans. |
+| `llm-wiki-stack-analyst-agent`         | Agent (Layer 3) | Plugin-authored. Renamed from `llm-wiki-analyst` in `0.2.0`. Five modes: query, dashboard, document compile, extract, challenge.                            |
+| `llm-wiki-stack-polish-agent`          | Agent (Layer 3) | Plugin-authored. New in `0.2.0`. Tail-of-write step run by the orchestrator after every successful ingest or curator pass — graph colors, vault MOC, per-folder MOC consistency. |
 | `obsidian-graph-colors`    | Skill (Layer 2) | Plugin-authored. `obsidian-` prefix signals the target (Obsidian's graph plugin), not third-party provenance.                                             |
 | `obsidian-markdown`        | Skill (Layer 2) | Third-party. MIT, `kepano/obsidian-skills`. Kept under original name and license; attribution in `NOTICE`.                                                |
 | `obsidian-bases`           | Skill (Layer 2) | Third-party. MIT, `kepano/obsidian-skills`. Kept under original name and license; attribution in `NOTICE`.                                                |
@@ -152,7 +160,7 @@ Lowercase in body prose; capitalize at the start of a heading. Each logs an entr
 | Term                     | Description                                                                                          |
 | ------------------------ | ---------------------------------------------------------------------------------------------------- |
 | onboarding wizard        | The `/llm-wiki-stack:llm-wiki` flow. Scaffolds the vault and orients the user.                       |
-| default verb             | `/llm-wiki-stack:llm-wiki-ingest-pipeline`. What users run 90% of sessions.                          |
+| default verb             | `/llm-wiki-stack:wiki`. The top-level entry — the plugin probes vault state and chooses what to run. |
 | power-user surface       | The individual skills users reach for when they want tighter scope than the pipeline.                |
 | post-install perspective | The voice user guides are written in. Assume `/plugin install`, not `git clone`.                     |
 | marketplace              | Same-repo marketplace: `.claude-plugin/marketplace.json` points at `.`; the repo is the marketplace. |
@@ -163,7 +171,7 @@ Lowercase in body prose; capitalize at the start of a heading. Each logs an entr
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | vault schema         | `vault/CLAUDE.md`. The authoritative schema; read at the start of every operation. Mirrored by `docs/vault-example/CLAUDE.md` in this repo. |
 | repo guide           | The repo root `CLAUDE.md`. A map for LLMs editing this repo. Not the schema.                                                           |
-| specification        | `docs/SPECIFICATION.md`. Reproducibility-grade contract. 16 sections.                                                                  |
+| specification        | `/SPEC.md` at the repo root. Reproducibility-grade contract. 17 sections. (Was `docs/SPECIFICATION.md` before `0.2.0`; stub remains for one minor.) |
 | NOTICE               | `NOTICE` at the repo root. Attribution for bundled third-party code. Apache-2.0 requires preservation.                                 |
 | third-party licenses | `THIRD_PARTY_LICENSES.md`. Full license text of any bundled non-Apache-2.0 code.                                                       |
 

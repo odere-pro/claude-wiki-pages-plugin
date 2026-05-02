@@ -1,12 +1,12 @@
 #!/bin/bash
-# SubagentStop: quality gate for llm-wiki-ingest-pipeline agent.
+# SubagentStop: quality gate for llm-wiki-stack-ingest-agent agent.
 # Runs verify-ingest.sh and warns if the wiki is in a half-written state.
 
 INPUT=$(cat)
 AGENT_NAME=$(echo "$INPUT" | jq -r '.agent_name // empty')
 
 case "$AGENT_NAME" in
-  llm-wiki-ingest-pipeline) ;;
+  llm-wiki-stack-ingest-agent) ;;
   *) exit 0 ;;
 esac
 
@@ -30,7 +30,7 @@ OUTPUT=$("$SCRIPT" --target "$VAULT" 2>&1)
 EXIT_CODE=$?
 
 if [ "$EXIT_CODE" -ne 0 ]; then
-  echo "QUALITY GATE: llm-wiki-ingest-pipeline left the wiki with unresolved issues. verify-ingest.sh exit=${EXIT_CODE}. Run @llm-wiki-lint-fix before continuing." >&2
+  echo "QUALITY GATE: llm-wiki-stack-ingest-agent left the wiki with unresolved issues. verify-ingest.sh exit=${EXIT_CODE}. Run @llm-wiki-stack-curator-agent before continuing." >&2
   # Surface a short summary of the problem lines.
   echo "$OUTPUT" | grep -E '^ERROR:|^WARN:' | head -20 >&2
 fi

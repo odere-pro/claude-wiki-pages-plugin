@@ -1,4 +1,4 @@
 # promptfoo config for Tier 2 skill smoke tests.
 # Runs each skill against a fixture source and asserts semantic properties
 # (frontmatter conforms to schema, sources contains [[wikilinks]], etc.).
-# Populated in Phase E. See docs/SPECIFICATION.md §13 for the test contract.
+# Populated in Phase E. See /SPEC.md §14 for the test contract.

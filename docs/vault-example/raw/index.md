@@ -9,7 +9,7 @@ A map. Each section points you at the one guide that actually teaches it.
 ## The one command
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:llm-wiki-stack-ingest-agent
 ```
 
 Run this every time you want to pull new sources into the wiki. Everything else is either setup (once) or diagnostic (occasional).
@@ -21,7 +21,7 @@ Read in order. Each guide is self-contained.
 1. **[Install and verify](./01-getting-started.md).** Get the plugin wired up. Confirm every hook fires.
 2. **[Create your vault](./02-create-new-knowledge-base.md).** Run `/llm-wiki-stack:llm-wiki` once per project. It scaffolds `vault/` and writes the authoritative schema at `vault/CLAUDE.md`.
 3. **[Add sources and ingest](./03-update-existing.md).** Drop files into `vault/raw/`. Run the pipeline. Read `wiki/log.md` to see what the LLM did.
-4. **[Validate and repair](./04-review-validate-fix.md).** Three levels: `llm-wiki-status` (hooks green/red), `llm-wiki-lint` (read-only audit), `llm-wiki-lint-fix` (repair). Run the last one weekly.
+4. **[Validate and repair](./04-review-validate-fix.md).** Three levels: `llm-wiki-status` (hooks green/red), `llm-wiki-lint` (read-only audit), `llm-wiki-stack-curator-agent` (repair). Run the last one weekly.
 5. **[Query the wiki](./07-query-the-wiki.md).** Ask questions. Use the analyst for cross-topic work and challenge mode.
 6. **[Check the dashboard](./06-check-the-dashboard.md).** The Dataview dashboard surfaces orphans, stale pages, and contradictions at a glance.
 7. **[Produce outputs](./05-export-outputs.md).** Reports, ADRs, briefs. Written to `vault/output/` (git-ignored, plain markdown).
@@ -33,11 +33,11 @@ That's the whole workflow.
 | Command | Purpose | Guide |
 | ------- | ------- | ----- |
 | `/llm-wiki-stack:llm-wiki` | Scaffold a vault (once per project) | [2](./02-create-new-knowledge-base.md) |
-| `/llm-wiki-stack:llm-wiki-ingest-pipeline` | Default: ingest → lint-fix → synthesize | [3](./03-update-existing.md) |
+| `/llm-wiki-stack:llm-wiki-stack-ingest-agent` | Default: ingest → lint-fix → synthesize | [3](./03-update-existing.md) |
 | `/llm-wiki-stack:llm-wiki-status` | Health check — every hook green? | [1](./01-getting-started.md) |
-| `/llm-wiki-stack:llm-wiki-lint-fix` | Audit and repair the wiki | [4](./04-review-validate-fix.md) |
+| `/llm-wiki-stack:llm-wiki-stack-curator-agent` | Audit and repair the wiki | [4](./04-review-validate-fix.md) |
 | `/llm-wiki-stack:llm-wiki-query` | Answer one question with citations | [7](./07-query-the-wiki.md) |
-| `/llm-wiki-stack:llm-wiki-analyst` | Cross-topic analysis, reports, challenge | [5](./05-export-outputs.md), [7](./07-query-the-wiki.md) |
+| `/llm-wiki-stack:llm-wiki-stack-analyst-agent` | Cross-topic analysis, reports, challenge | [5](./05-export-outputs.md), [7](./07-query-the-wiki.md) |
 | `/llm-wiki-stack:llm-wiki-synthesize` | Write a cross-topic synthesis note | [3](./03-update-existing.md) |
 
 Power-user verbs — `llm-wiki-ingest`, `llm-wiki-lint`, `llm-wiki-fix`, `llm-wiki-index`, `obsidian-graph-colors` — are documented in the guide that owns their domain. Reach for them only when the pipeline's scope is wrong.

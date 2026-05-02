@@ -2,7 +2,7 @@
 
 > Reference. For the day-1 path, see [index.md](./index.md).
 
-You have a populated vault and want to add or extend content. The pipeline is the default verb; reach for an individual skill only when you want to limit scope.
+You have a populated vault and want to add or extend content. The orchestrator entry (`/llm-wiki-stack:wiki`) is the default verb — it probes vault state and dispatches to the ingest pipeline when it sees new sources. Reach for the underlying agent or an individual skill only when you want to limit scope.
 
 ## Add a single text source
 
@@ -11,10 +11,10 @@ cp ~/Downloads/new-article.md vault/raw/
 ```
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:wiki
 ```
 
-The pipeline auto-detects unprocessed files by diffing `vault/raw/` against `wiki/log.md` ingest entries. No argument needed.
+The orchestrator notices the new file in `raw/` (newer than the last `wiki/log.md` ingest entry) and dispatches to `llm-wiki-stack-ingest-agent`. No argument needed.
 
 ## Add an image source
 
@@ -23,12 +23,12 @@ cp ~/Desktop/diagram.png vault/raw/assets/
 ```
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:wiki
 ```
 
 Claude's vision reads the image natively and extracts on-image text, entities shown in diagrams, and visible concepts. The source summary gets `source_format: image` and `attachment_path: raw/assets/diagram.png`.
 
-The `validate-attachments.sh` hook blocks the write if the attachment path is missing or the file is not there. Fix by moving the image into `vault/raw/assets/` and re-running the pipeline.
+The `validate-attachments.sh` hook blocks the write if the attachment path is missing or the file is not there. Fix by moving the image into `vault/raw/assets/` and re-running.
 
 ## Add a batch (text + images together)
 
@@ -38,10 +38,20 @@ cp screenshots/*.png  vault/raw/assets/
 ```
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:wiki
 ```
 
-The pipeline handles ingest → verify → lint-fix → synthesize in one pass. After the agent stops, the `subagent-ingest-gate.sh` hook automatically runs `verify-ingest.sh` and aborts the completion if the wiki is left in a half-written state. You see the failure immediately rather than discovering it days later.
+The dispatched ingest agent handles ingest → verify → lint-fix → synthesize in one pass. After the agent stops, the `subagent-ingest-gate.sh` hook automatically runs `verify-ingest.sh` and aborts the completion if the wiki is left in a half-written state. You see the failure immediately rather than discovering it days later.
+
+## Power-user bypass: call the ingest agent directly
+
+If you want to skip the orchestrator's state probe and dispatch step (you already know you want a batch ingest), call the agent directly:
+
+```
+/llm-wiki-stack:llm-wiki-stack-ingest-agent
+```
+
+Same downstream behaviour. Useful in scripted workflows where the routing decision is redundant.
 
 ## Ingest only, without lint-fix or synthesis
 
@@ -51,7 +61,7 @@ If you want strict ingest-only (to line up several batches before running a sing
 /llm-wiki-stack:llm-wiki-ingest
 ```
 
-Same preconditions as the pipeline. No follow-on lint-fix, no synthesis. Run `/llm-wiki-stack:llm-wiki-lint-fix` separately when you are ready.
+Same preconditions as the pipeline. No follow-on lint-fix, no synthesis. Run `/llm-wiki-stack:llm-wiki-stack-curator-agent` separately when you are ready.
 
 ## Why you should NOT just write pages by hand
 

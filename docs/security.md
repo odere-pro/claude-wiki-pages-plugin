@@ -8,7 +8,7 @@ A wiki built by an LLM from human-curated sources is a soft target. This documen
 - **Tier 2 (smoke)** — `tests/smoke/fresh-install.sh`, `tests/smoke/skill-schema.sh`. Exercise an end-to-end ingest against a fixture. Run via `bash tests/run-tests.sh tier2`.
 - **Tier 4 (adversarial, weekly)** — `.github/workflows/adversarial.yml`. Three jobs: `osv-scanner`, a prompt-injection corpus replay, and `garak`. **The corpus-replay job is currently stubbed** (prints `[SKIP] prompt-injection corpus not yet fixtured.`); the fixture is a known TODO. `garak` and `osv-scanner` run live.
 
-See `docs/SPECIFICATION.md §13` for the full tier contract and `tests/README.md` for how to run everything locally.
+See `/SPEC.md §14` for the full tier contract and `tests/README.md` for how to run everything locally.
 
 ## 1. Prompt injection via ingested sources
 
@@ -34,13 +34,13 @@ See `docs/SPECIFICATION.md §13` for the full tier contract and `tests/README.md
 
 **Threat.** Claims in wiki pages drift from their sources. Over time the human cannot tell which claim came from which source, or whether a claim was inferred by the LLM rather than stated.
 
-**What the model enforces.** Every non-source page has a `sources` frontmatter field with `[[wikilinks]]` to at least one page in `wiki/_sources/`. The `llm-wiki-lint` skill and the `llm-wiki-lint-fix` agent check this structurally. `confidence` scores are lower-bounded for inference-only claims: the schema specifies `≥ 0.8 requires two sources` and `≥ 1.0 requires a direct quote`.
+**What the model enforces.** Every non-source page has a `sources` frontmatter field with `[[wikilinks]]` to at least one page in `wiki/_sources/`. The `llm-wiki-lint` skill and the `llm-wiki-stack-curator-agent` check this structurally. `confidence` scores are lower-bounded for inference-only claims: the schema specifies `≥ 0.8 requires two sources` and `≥ 1.0 requires a direct quote`.
 
 **What it does not enforce.** Claim-level provenance. The `sources` field proves a page has _some_ source lineage, not that the specific paragraph you are reading came from the specific source you think it did.
 
 **Tests covering this threat.**
 
-- `tests/scripts/verify-ingest.bats` — asserts the verifier flags plain-string `sources:`, index drift, and missing `_index.md`. This is the same verifier the `SubagentStop` gate runs; it backs the structural side of `llm-wiki-lint-fix`.
+- `tests/scripts/verify-ingest.bats` — asserts the verifier flags plain-string `sources:`, index drift, and missing `_index.md`. This is the same verifier the `SubagentStop` gate runs; it backs the structural side of `llm-wiki-stack-curator-agent`.
 - `tests/scripts/check-wikilinks.bats` — asserts the `PreToolUse` hook blocks writes that introduce broken wikilinks, preventing citation chains from silently breaking.
 - `tests/smoke/fresh-install.sh` — runs a full ingest against a fixture and asserts the post-ingest wiki passes `verify-ingest.sh` with zero errors, i.e. every non-source page lands with a valid `sources` field.
 
@@ -69,7 +69,7 @@ If you install this plugin alongside MCP servers that provide filesystem, git, o
 - **No sandboxing of shell hooks.** The scripts in `scripts/` run with the user's privileges. They are short, single-purpose, and readable; still, run `ls scripts/` before enabling the plugin if you have not audited it.
 - **No secret scanning on ingest.** If a raw source contains credentials (in an accidentally-clipped transcript, for example), the ingest pipeline will write their content into a source summary. Defense: the human curates `raw/`.
 - **Confidence scores are the LLM's opinion.** They are directional, not mathematical. A `confidence: 0.9` does not mean a 90 % probability of truth; it means the model judged the claim well-evidenced. Lint enforces lower bounds (two sources for ≥ 0.8), not upper bounds.
-- **Topic-tree drift.** Under heavy ingest, entities can end up in the "wrong" topic folder by the time the human reviews. The `llm-wiki-lint-fix` agent catches structural drift, not semantic misplacement.
+- **Topic-tree drift.** Under heavy ingest, entities can end up in the "wrong" topic folder by the time the human reviews. The `llm-wiki-stack-curator-agent` catches structural drift, not semantic misplacement.
 - **Stubbed Tier 4 corpus replay.** `.github/workflows/adversarial.yml` declares a weekly prompt-injection corpus-replay job, but it currently emits `[SKIP] prompt-injection corpus not yet fixtured.` The `garak` and `osv-scanner` jobs in the same workflow run live; only the corpus-replay step is pending a fixture. Do not read the spec's "Tier 4 — adversarial" claim as "PI corpus replay runs weekly" until the fixture lands under `tests/fixtures/adversarial/`.
 
 ## Reporting a vulnerability

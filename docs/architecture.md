@@ -23,11 +23,11 @@ Each skill is a single-responsibility capability: `llm-wiki-ingest` ingests sour
 
 ### 3. Agents
 
-Agents chain skills and tools. `llm-wiki-ingest-pipeline` runs the full ingest-then-verify-then-lint-then-synthesize cycle. `llm-wiki-lint-fix` audits and repairs structural drift. `llm-wiki-analyst` answers analytical questions that require traversing the topic tree. Agents are where multi-step reliability lives — they own sequencing, retries, and quality gates.
+Agents chain skills and tools. `llm-wiki-stack-orchestrator-agent` is the user-facing entry — it probes vault state and dispatches to one of three specialists per invocation. `llm-wiki-stack-ingest-agent` runs the full ingest-then-verify-then-curate-then-synthesize cycle. `llm-wiki-stack-curator-agent` audits, auto-repairs, and gates judgment fixes (restructures, merges) behind explicit user approval. `llm-wiki-stack-analyst-agent` answers analytical questions that require traversing the topic tree. Agents are where multi-step reliability lives — they own sequencing, retries, and quality gates.
 
 ### 4. Orchestration
 
-Hooks turn the architecture into a contract. `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update `_index.md` and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
+Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/llm-wiki-stack:wiki`); it delegates to the orchestrator agent. `commands/wiki-doctor.md` wraps `scripts/doctor.sh` for environment health (`/llm-wiki-stack:wiki-doctor`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update `_index.md` and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
 
 ## Why four layers
 

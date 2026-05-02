@@ -1,11 +1,12 @@
 ---
-name: llm-wiki-lint-fix
+name: llm-wiki-stack-curator-agent
 description: >
-  Lint and fix wiki structural issues: broken wikilinks, orphan pages,
-  frontmatter gaps, index drift, plain-string sources, missing parent/path
-  fields, ghost-node aliases, missing graph color groups. Use when the user
-  says "lint", "fix wiki", "health check", "audit wiki", "fix lint issues",
-  "repair wiki", or after any ingest operation.
+  Curator for the wiki: lints structural issues (broken wikilinks, orphan
+  pages, frontmatter gaps, index drift, plain-string sources, missing
+  parent/path), auto-applies safe mechanical fixes, and gates judgment fixes
+  (restructures, merges) behind explicit user approval. Invoked by the
+  llm-wiki-stack-orchestrator-agent after every ingest, or directly when the
+  user asks to lint, audit, or repair the wiki.
 model: sonnet
 tools: Bash, Read, Write, Edit, Glob, Grep
 ---

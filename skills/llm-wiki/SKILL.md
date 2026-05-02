@@ -140,7 +140,8 @@ what is missing.
    - Whether settings were created fresh, updated, or already correct.
    - Three suggested next steps, in order of increasing commitment:
      1. Drop a source into `<vault>/raw/` and run
-        `/llm-wiki-stack:llm-wiki-ingest-pipeline`.
+        `/llm-wiki-stack:wiki` — the orchestrator detects the new source and
+        chains the ingest pipeline automatically.
      2. Run `/llm-wiki-stack:llm-wiki-status` to confirm every hook fires.
      3. Read `docs/llm-wiki/01-getting-started.md` for the long-form guide.
 
@@ -165,5 +166,23 @@ Print exactly one of these shapes:
 settings (filesystem permission error) — every other condition must resolve
 to a `READY:` or `WARN:` outcome.
 
-The pipeline agent (`llm-wiki-ingest-pipeline`) looks for the `READY:` prefix when
+The pipeline agent (`llm-wiki-stack-ingest-agent`) looks for the `READY:` prefix when
 chaining onboarding with an immediate first ingest.
+
+After the `READY:` or `WARN:` line, **always print exactly one trailing
+`NEXT_STEP:` line** with this shape:
+
+```
+NEXT_STEP: ingest_pending=<true|false> raw_count=<N> recommended=<llm-wiki-stack-ingest-agent|none>
+```
+
+- `ingest_pending=true` when one or more files in `<vault>/raw/` are not yet
+  referenced in `<vault>/wiki/log.md` ingest entries; otherwise `false`.
+- `raw_count` is the count of unreferenced raw files (0 when pending is false).
+- `recommended` is `llm-wiki-stack-ingest-agent` when pending is true, otherwise `none`.
+
+The `llm-wiki-stack-orchestrator-agent` (Layer 4 dispatch for
+`/llm-wiki-stack:wiki`) parses this line to decide whether the user's session
+should chain into an immediate ingest or end here. A missing or malformed
+`NEXT_STEP:` line breaks the orchestrator's chaining contract and is a Tier 1
+test failure.

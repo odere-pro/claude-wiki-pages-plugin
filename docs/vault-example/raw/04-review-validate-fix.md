@@ -49,12 +49,12 @@ Beyond the Level 1 checks, lint scans for:
 
 Lint only **reports**. It does not modify the wiki. Review the report; what you do next depends on whether each item is real.
 
-## Level 3 — `/llm-wiki-stack:llm-wiki-lint-fix` (auto-repair)
+## Level 3 — `/llm-wiki-stack:llm-wiki-stack-curator-agent` (auto-repair)
 
 For structural issues, run the repair agent:
 
 ```
-/llm-wiki-stack:llm-wiki-lint-fix
+/llm-wiki-stack:llm-wiki-stack-curator-agent
 ```
 
 Or, if you want to skip directly to auto-fix without the agent's analysis phase:
@@ -87,7 +87,7 @@ When the agent finishes, the `subagent-lint-gate.sh` hook inspects its output an
 ## Cadence
 
 - After every batch ingest → status check is already part of the pipeline. Read the report.
-- Every 10 ingests → run `/llm-wiki-stack:llm-wiki-lint`, then `/llm-wiki-stack:llm-wiki-lint-fix` if there are warnings.
+- Every 10 ingests → run `/llm-wiki-stack:llm-wiki-lint`, then `/llm-wiki-stack:llm-wiki-stack-curator-agent` if there are warnings.
 - Before exporting a deliverable → run status + lint.
 
 ## Next step

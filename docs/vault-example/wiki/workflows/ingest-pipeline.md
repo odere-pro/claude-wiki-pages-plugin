@@ -1,7 +1,7 @@
 ---
 title: "Ingest Pipeline"
 type: concept
-aliases: ["Ingest Pipeline", "ingest-pipeline", "llm-wiki-ingest-pipeline"]
+aliases: ["Ingest Pipeline", "ingest-pipeline", "llm-wiki-stack-ingest-agent"]
 parent: "[[Workflows — Index]]"
 path: "workflows"
 sources:
@@ -24,7 +24,7 @@ confidence: 0.9
 
 ## Definition
 
-The default, single-command workflow for pulling new sources into the wiki. Invoked as `/llm-wiki-stack:llm-wiki-ingest-pipeline`. Composes three steps: ingest → lint-fix → optional synthesis.
+The default, single-command workflow for pulling new sources into the wiki. Invoked as `/llm-wiki-stack:llm-wiki-stack-ingest-agent`. Composes three steps: ingest → lint-fix → optional synthesis.
 
 ## Key Principles
 
@@ -35,8 +35,8 @@ The default, single-command workflow for pulling new sources into the wiki. Invo
 
 ## Examples
 
-- Text source: `cp article.md vault/raw/ && /llm-wiki-stack:llm-wiki-ingest-pipeline`. Pipeline writes summary, extracts mentions, updates indexes.
-- Image source: `cp screenshot.png vault/raw/assets/ && /llm-wiki-stack:llm-wiki-ingest-pipeline`. Source summary gets `source_format: image` and an `attachment_path:`; `validate-attachments.sh` blocks the write if the file is missing.
+- Text source: `cp article.md vault/raw/ && /llm-wiki-stack:llm-wiki-stack-ingest-agent`. Pipeline writes summary, extracts mentions, updates indexes.
+- Image source: `cp screenshot.png vault/raw/assets/ && /llm-wiki-stack:llm-wiki-stack-ingest-agent`. Source summary gets `source_format: image` and an `attachment_path:`; `validate-attachments.sh` blocks the write if the file is missing.
 - Batch: drop several text and image files together; the pipeline handles them in one pass.
 
 ## Related Concepts

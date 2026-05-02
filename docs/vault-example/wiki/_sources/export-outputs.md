@@ -25,7 +25,7 @@ confidence: 1.0
 
 ## Summary
 
-How deliverables (reports, ADRs, briefs, memos) are compiled from the wiki into `vault/output/` — git-ignored scratch space with no frontmatter, no schema, no validation. The `llm-wiki-analyst` agent is the right tool; it cites every claim with `[[wikilinks]]` back to wiki pages. Explains two healthy patterns (narrative output vs navigation index), the rule against two narrative outputs on the same topic, and the export path to PDF/DOCX via pandoc.
+How deliverables (reports, ADRs, briefs, memos) are compiled from the wiki into `vault/output/` — git-ignored scratch space with no frontmatter, no schema, no validation. The `llm-wiki-stack-analyst-agent` agent is the right tool; it cites every claim with `[[wikilinks]]` back to wiki pages. Explains two healthy patterns (narrative output vs navigation index), the rule against two narrative outputs on the same topic, and the export path to PDF/DOCX via pandoc.
 
 ## Key Claims
 

@@ -2,7 +2,7 @@
 
 Source of the `llm-wiki-stack` Claude Code plugin: a **four-layer stack** (Data · Skills · Agents · Orchestration) that turns an Obsidian vault into a provenance-tracked wiki, following [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
-**Authorities.** [`docs/SPECIFICATION.md`](./docs/SPECIFICATION.md) is the contract every skill, agent, and hook binds to. [`docs/VOCABULARY.md`](./docs/VOCABULARY.md) is the canonical term list; enforced by [`scripts/validate-docs.sh`](./scripts/validate-docs.sh). [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md) is the schema (`schema_version: 1`) and wins any frontmatter conflict.
+**Authorities.** [`SPEC.md`](./SPEC.md) is the contract every skill, agent, and hook binds to. [`docs/VOCABULARY.md`](./docs/VOCABULARY.md) is the canonical term list; enforced by [`scripts/validate-docs.sh`](./scripts/validate-docs.sh). [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md) is the schema (`schema_version: 1`) and wins any frontmatter conflict.
 
 ## Vault location
 
@@ -25,8 +25,8 @@ This tree is the plugin source — contributor view. Users never see it. On inst
 | ----------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
 | Layer 1 — Data          | `docs/vault-example/`                         | Immutable `raw/`, LLM-maintained `wiki/`, schema in `docs/vault-example/CLAUDE.md`. Passive.                                                                                                       | §4, §6, §7, §8 |
 | Layer 2 — Skills        | `skills/`                                | 13 single-responsibility capabilities: 9 plugin-authored `llm-wiki-*`, plugin-authored `obsidian-graph-colors`, plus 3 MIT-licensed `obsidian-*` reference skills (`kepano/obsidian-skills`). | §5, §9         |
-| Layer 3 — Agents        | `agents/`                                | 3 multi-step executors: `llm-wiki-ingest-pipeline` (default verb), `llm-wiki-lint-fix`, `llm-wiki-analyst`.                                                                                   | §5, §11        |
-| Layer 4 — Orchestration | `hooks/hooks.json`, `scripts/`, `rules/` | `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop` hooks; script implementations; path-scoped rules.                                                             | §5, §10        |
+| Layer 3 — Agents        | `agents/`                                | 5 multi-step executors: `llm-wiki-stack-orchestrator-agent` (top-level entry), `llm-wiki-stack-ingest-agent`, `llm-wiki-stack-curator-agent`, `llm-wiki-stack-analyst-agent`, `llm-wiki-stack-polish-agent`. | §5, §11        |
+| Layer 4 — Orchestration | `commands/`, `hooks/hooks.json`, `scripts/`, `rules/` | `/llm-wiki-stack:wiki` and `/llm-wiki-stack:wiki-doctor` slash commands; `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop` hooks; script implementations; path-scoped rules. | §5, §9, §10  |
 
 Long-form model: [`docs/architecture.md`](./docs/architecture.md).
 

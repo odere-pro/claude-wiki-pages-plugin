@@ -27,11 +27,11 @@ confidence: 1.0
 
 ## Summary
 
-Top-level navigation map for the seven user guides. Frames the plugin as turning an Obsidian vault into a provenance-tracked wiki driven by one command: `/llm-wiki-stack:llm-wiki-ingest-pipeline`. Enumerates the slash commands and their owning guides, and states the two foundational invariants: `vault/CLAUDE.md` is the authoritative schema, and `vault/raw/` is immutable (enforced by `protect-raw.sh`).
+Top-level navigation map for the seven user guides. Frames the plugin as turning an Obsidian vault into a provenance-tracked wiki driven by one command: `/llm-wiki-stack:llm-wiki-stack-ingest-agent`. Enumerates the slash commands and their owning guides, and states the two foundational invariants: `vault/CLAUDE.md` is the authoritative schema, and `vault/raw/` is immutable (enforced by `protect-raw.sh`).
 
 ## Key Claims
 
-- The default workflow is a single command (`llm-wiki-ingest-pipeline`); every other command is setup or diagnostic.
+- The default workflow is a single command (`llm-wiki-stack-ingest-agent`); every other command is setup or diagnostic.
 - `vault/CLAUDE.md` wins over anything else when schemas disagree.
 - `vault/raw/` is immutable — writes are blocked by a hook, not by convention.
 

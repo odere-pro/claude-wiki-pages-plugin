@@ -16,7 +16,7 @@
 # tests/fixtures/minimal-vault/ so the script validates the checking logic
 # even when the CLI is absent.
 #
-# See docs/SPECIFICATION.md §13.
+# See /SPEC.md §14.
 
 set -euo pipefail
 

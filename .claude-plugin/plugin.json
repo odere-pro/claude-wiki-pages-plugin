@@ -1,6 +1,6 @@
 {
   "name": "llm-wiki-stack",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Claude Code plugin for Obsidian — Karpathy's LLM Wiki shipped as a four-layer, hook-enforced agent stack with multi-agent orchestration.",
   "author": {
     "name": "Aleksandr Derechei",

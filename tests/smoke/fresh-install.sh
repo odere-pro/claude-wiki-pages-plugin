@@ -14,7 +14,7 @@
 #     verify-ingest.sh call against a pre-built fixture still runs so the
 #     script is not a total no-op.
 #
-# See docs/SPECIFICATION.md §13 for the test contract.
+# See /SPEC.md §14 for the test contract.
 
 set -euo pipefail
 

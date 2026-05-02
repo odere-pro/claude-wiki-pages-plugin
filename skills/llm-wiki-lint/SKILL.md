@@ -2,8 +2,8 @@
 name: llm-wiki-lint
 description: >
   Read-only audit of vault/wiki/ for structural and provenance drift. Reports
-  Errors, Warnings, and Info per the rules in docs/SPECIFICATION.md section 12
-  and vault/CLAUDE.md. Trigger when the user says "lint the vault", "audit the
+  Errors, Warnings, and Info per the rules in /SPEC.md §13 and vault/CLAUDE.md.
+  Trigger when the user says "lint the vault", "audit the
   wiki", "check for broken links", "run a health check on the wiki", or
   invokes /llm-wiki-stack:llm-wiki-lint directly. Does not repair anything —
   that is /llm-wiki-stack:llm-wiki-fix.
@@ -14,7 +14,7 @@ allowed-tools: Read Glob Grep Bash Edit
 
 Audit the wiki. Do not repair.
 
-Every rule enumerated here is also listed in `docs/SPECIFICATION.md` §12 and
+Every rule enumerated here is also listed in `/SPEC.md` §13 and
 `vault/CLAUDE.md`. This skill is the executor for those rules; when the
 specification changes, update this skill.
 
@@ -22,7 +22,7 @@ specification changes, update this skill.
 
 - The user asks for a health check on the wiki.
 - Periodic audit (recommended every 10 ingests, or monthly).
-- As the first half of a lint-fix cycle — the `llm-wiki-lint-fix` agent invokes
+- As the first half of a lint-fix cycle — the `llm-wiki-stack-curator-agent` agent invokes
   this skill, consumes the report, invokes `/llm-wiki-stack:llm-wiki-fix`, and
   reinvokes this skill to verify.
 
@@ -116,5 +116,5 @@ Exit codes:
 - `1` — warnings present, no errors.
 - `2` — errors present.
 
-The `llm-wiki-lint-fix` agent uses the exit code to decide whether to invoke
+The `llm-wiki-stack-curator-agent` agent uses the exit code to decide whether to invoke
 `/llm-wiki-stack:llm-wiki-fix`.

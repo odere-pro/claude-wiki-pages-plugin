@@ -2,7 +2,7 @@
 # Tests for scripts/subagent-ingest-gate.sh
 #
 # Behavior under test:
-#   - Only acts on agent_name == llm-wiki-ingest-pipeline; silent otherwise.
+#   - Only acts on agent_name == llm-wiki-stack-ingest-agent; silent otherwise.
 #   - Exits 0 when the expected verify-ingest.sh or vault paths are missing
 #     (graceful no-op).
 
@@ -12,7 +12,7 @@ setup() {
   _load_helpers
 }
 
-@test "subagent-ingest-gate: silent when agent_name is not llm-wiki-ingest-pipeline" {
+@test "subagent-ingest-gate: silent when agent_name is not llm-wiki-stack-ingest-agent" {
   local json='{"agent_name":"something-else"}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/subagent-ingest-gate.sh'"
 
@@ -26,7 +26,7 @@ setup() {
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj"
 
-  local json='{"agent_name":"llm-wiki-ingest-pipeline"}'
+  local json='{"agent_name":"llm-wiki-stack-ingest-agent"}'
   run bash -c "CLAUDE_PROJECT_DIR='$proj' printf '%s' '$json' | bash '$REPO_ROOT/scripts/subagent-ingest-gate.sh'"
 
   assert_success
@@ -48,7 +48,7 @@ EOF
   local vault="$BATS_TEST_TMPDIR/real-vault"
   mkdir -p "$vault"
 
-  local json='{"agent_name":"llm-wiki-ingest-pipeline"}'
+  local json='{"agent_name":"llm-wiki-stack-ingest-agent"}'
   run bash -c "
     export CLAUDE_PLUGIN_ROOT='$plugin'
     export LLM_WIKI_VAULT='$vault'

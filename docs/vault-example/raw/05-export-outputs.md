@@ -8,10 +8,10 @@ The wiki is the source of truth. Deliverables compiled from it — reports, ADRs
 
 ## Produce an output
 
-The `llm-wiki-analyst` agent is the right tool:
+The `llm-wiki-stack-analyst-agent` agent is the right tool:
 
 ```
-/llm-wiki-stack:llm-wiki-analyst compile a report on <topic> for <audience>
+/llm-wiki-stack:llm-wiki-stack-analyst-agent compile a report on <topic> for <audience>
 ```
 
 Typical phrasing:

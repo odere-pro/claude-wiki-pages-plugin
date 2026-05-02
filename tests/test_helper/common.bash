@@ -167,7 +167,7 @@ setup_isolated_repo() {
   ISOLATED_REPO="$(mktemp -d "${BATS_TEST_TMPDIR:-/tmp}/isolated-repo.XXXXXX")"
   # Copy the top-level items validate-docs.sh inspects.
   local item
-  for item in scripts docs skills agents .claude-plugin README.md CLAUDE.md; do
+  for item in scripts docs skills agents commands .claude-plugin README.md CLAUDE.md SPEC.md SECURITY.md SUPPORT.md; do
     if [ -e "$REPO_ROOT/$item" ]; then
       cp -R "$REPO_ROOT/$item" "$ISOLATED_REPO/"
     fi

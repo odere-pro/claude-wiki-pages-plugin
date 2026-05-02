@@ -37,16 +37,19 @@ Or pick a path:
 !cp ~/Desktop/*.png vault/raw/assets/
 ```
 
-## 5. Ingest + lint-fix
+## 5. Run the wiki
+
+The recommended entry. Probes vault state and chains the right next step automatically — ingest if `raw/` has new files, curator if lint drift is pending, analyst if the prompt is a question.
 
 ```
-/llm-wiki-stack:llm-wiki-ingest-pipeline
+/llm-wiki-stack:wiki
 ```
 
-Or lint-fix on its own, any time after the wiki is populated:
+Power users can still call individual specialists directly:
 
 ```
-/llm-wiki-stack:llm-wiki-lint-fix
+/llm-wiki-stack:llm-wiki-stack-ingest-agent
+/llm-wiki-stack:llm-wiki-stack-curator-agent
 ```
 
 ## 6. Status check

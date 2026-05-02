@@ -27,7 +27,7 @@ Query stays in the conversation; markdown lands on disk.
 - The user explicitly asks to export, save, or render an answer as
   markdown ("export this as markdown", "save to the output folder").
 - The user invokes `/llm-wiki-stack:llm-wiki-markdown` directly.
-- An agent (`llm-wiki-analyst` Compile mode) chains this skill as a step.
+- An agent (`llm-wiki-stack-analyst-agent` Compile mode) chains this skill as a step.
 
 Do NOT invoke when the user just wants an answer in the chat — use
 `/llm-wiki-stack:llm-wiki-query` for that.

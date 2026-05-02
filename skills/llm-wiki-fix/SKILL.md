@@ -16,7 +16,7 @@ Apply the repairs `/llm-wiki-stack:llm-wiki-lint` identified.
 ## When to invoke
 
 - The user has just run lint and asks to fix what it found.
-- The `llm-wiki-lint-fix` agent is orchestrating the lint → fix → lint cycle.
+- The `llm-wiki-stack-curator-agent` agent is orchestrating the lint → fix → lint cycle.
 - The user is confident enough to fix without a prior lint pass (in which
   case this skill runs lint internally first).
 
@@ -90,7 +90,7 @@ Every write passes through `PreToolUse`: frontmatter, wikilinks, raw
 immutability, attachments. A failing hook means the proposed repair is wrong;
 do not retry the same content — adjust it.
 
-When this skill is invoked inside the `llm-wiki-lint-fix` agent, `SubagentStop`
+When this skill is invoked inside the `llm-wiki-stack-curator-agent` agent, `SubagentStop`
 runs a final lint gate. The agent blocks completion if that gate returns a
 non-zero exit.
 

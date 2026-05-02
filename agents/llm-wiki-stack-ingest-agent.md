@@ -1,11 +1,11 @@
 ---
-name: llm-wiki-ingest-pipeline
+name: llm-wiki-stack-ingest-agent
 description: >
   Full wiki ingest pipeline: read raw sources, create structured wiki pages in
   a topic tree, fix structural issues, optionally optimize the tree, and
-  produce a synthesis note. Use when the user says "ingest pipeline", "full
-  ingest", "ingest and optimize", "run the pipeline", or drops new files in
-  vault/raw/ and wants the complete ingest-fix-optimize cycle.
+  produce a synthesis note. Invoked by the llm-wiki-stack-orchestrator-agent
+  when /llm-wiki-stack:wiki detects pending sources in vault/raw/. Power users
+  may call this agent directly; the orchestrator is the recommended entry.
 model: sonnet
 tools: Bash, Read, Write, Edit, Glob, Grep, Task
 ---
@@ -162,20 +162,13 @@ For each entity and concept in the plan, follow the 13-step ingest rules in `vau
 
 Use the `index` frontmatter schema. Body: section headers grouping children by theme, each entry `- [[Page]] — one-line summary`. On index notes, `aliases` also includes topic-name variants (slug, title case, abbreviations).
 
-### 1.7 Apply graph colors for new top-level topics
+### 1.7 Polish (graph colors, vault MOC, MOC consistency) — owned by polish-agent
 
-If new top-level topic folders were created, follow `/llm-wiki-stack:obsidian-graph-colors`:
+**Do not duplicate polish-agent work here.** The orchestrator runs `llm-wiki-stack-polish-agent` after this agent returns; that agent owns graph colors for new top-level topics, vault-MOC regeneration, and per-folder `_index.md` consistency. This step intentionally does no work — it remains in the contract only as a marker that the polish pass is expected.
 
-1. Read current groups via `obsidian eval`.
-2. Add entries for new `path:wiki/<new-topic>` with the next unused palette color.
-3. Insert before the `_sources` / `_synthesis` / `_index` catch-all rules.
-4. Apply via `obsidian eval` + `graph.saveOptions()`.
+### 1.8 Append to `wiki/log.md`
 
-Skip if no new top-level folders.
-
-### 1.8 Update `wiki/index.md` and `wiki/log.md`
-
-Add every new page under its topic heading. Append to `log.md`:
+Append to `log.md`:
 
 ```
 ## [YYYY-MM-DD] ingest | <Source Title>
@@ -189,8 +182,8 @@ New concepts: ...
 
 ## Step 2 — Lint & Fix
 
-Delegate to the `llm-wiki-lint-fix` agent. Invoke the `Task` tool with
-`subagent_type: llm-wiki-lint-fix` and the following prompt verbatim:
+Delegate to the `llm-wiki-stack-curator-agent` agent. Invoke the `Task` tool with
+`subagent_type: llm-wiki-stack-curator-agent` and the following prompt verbatim:
 
 ```
 Run a full lint and fix pass. The wiki was just updated by ingest.
@@ -259,7 +252,7 @@ Only after explicit confirmation:
 
 ### 3.4 One re-run of lint-fix
 
-Invoke the `Task` tool with `subagent_type: llm-wiki-lint-fix` and the
+Invoke the `Task` tool with `subagent_type: llm-wiki-stack-curator-agent` and the
 following prompt verbatim:
 
 ```

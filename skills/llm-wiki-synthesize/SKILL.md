@@ -24,7 +24,7 @@ several synthesis notes, not one sprawling document.
 - The user names an explicit scope and asks for cross-topic analysis.
 - `/llm-wiki-stack:llm-wiki-query` offered to file an answer as a synthesis
   and the user accepted.
-- The `llm-wiki-ingest-pipeline` agent detects that a batch of new sources opens
+- The `llm-wiki-stack-ingest-agent` agent detects that a batch of new sources opens
   a synthesis opportunity — the agent passes the scope here.
 
 ## Reading contract
