@@ -6,7 +6,7 @@ Three ways to install `claude-wiki-pages`. Pick the one that matches your situat
 
 - [Claude Code](https://docs.claude.com/en/docs/claude-code) `>= 2.0`, signed in.
 - macOS or Linux shell. Windows/WSL is unverified but should work for the markdown-only paths.
-- `bash`, `git`, `jq`, `find` on `PATH`. The plugin's `/claude-wiki-pages:wiki-doctor` enumerates anything missing.
+- `bash`, `git`, `jq`, `find` on `PATH`. The plugin's `/claude-wiki-pages:doctor` enumerates anything missing.
 
 ## Remote — marketplace
 
@@ -61,7 +61,7 @@ Local source changes take effect on the next Claude Code session — no reinstal
 Always run after install or update:
 
 ```text
-/claude-wiki-pages:wiki-doctor
+/claude-wiki-pages:doctor
 ```
 
 Exit `0` and "OK" lines for every check means you're good. Any `FAIL[N]` line names the remedy. Exit codes documented in [`/SPEC.md` §10](../SPEC.md).

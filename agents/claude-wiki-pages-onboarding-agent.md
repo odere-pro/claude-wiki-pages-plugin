@@ -38,7 +38,7 @@ loop well enough to repeat it. Teach by doing, not by lecturing.
 
 ## Close
 
-Print a short "what's next" map (ingest more via `/claude-wiki-pages:wiki`, health via `/claude-wiki-pages:wiki-doctor`, ask via `/claude-wiki-pages:query`, rollback via `git log` in the vault), and point power users to `/claude-wiki-pages:engine-api` and `/claude-wiki-pages:maintain-contract`.
+Print a short "what's next" map (ingest more via `/claude-wiki-pages:wiki`, health via `/claude-wiki-pages:doctor`, ask via `/claude-wiki-pages:query`, rollback via `git log` in the vault), and point power users to `/claude-wiki-pages:engine-api` and `/claude-wiki-pages:maintain-contract`.
 
 ## Hard rules
 

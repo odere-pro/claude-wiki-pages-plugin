@@ -70,9 +70,9 @@
 
 ## P2 — Cosmetic / ergonomic
 
-### P2.1 — `/claude-wiki-pages:wiki-doctor` slash command has no test
+### P2.1 — `/claude-wiki-pages:doctor` slash command has no test
 
-**Where.** `commands/wiki-doctor.md` wraps `scripts/doctor.sh`. The script is tested via `tests/scripts/doctor.bats`; the command-level wrapping is not.
+**Where.** `commands/doctor.md` wraps `scripts/doctor.sh`. The script is tested via `tests/scripts/doctor.bats`; the command-level wrapping is not.
 
 **Risk.** Trivial. The command is a thin pass-through. CLI-integration tests are deferred to Phase E anyway.
 

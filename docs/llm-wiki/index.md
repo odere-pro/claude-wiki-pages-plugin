@@ -35,7 +35,7 @@ That's the whole workflow.
 | Command | Purpose | Guide |
 | ------- | ------- | ----- |
 | `/claude-wiki-pages:wiki` | **Orchestrator entry.** Probes vault state and routes to init, ingest, curator, or analyst. | [1](./01-getting-started.md), [3](./03-update-existing.md) |
-| `/claude-wiki-pages:wiki-doctor` | Environment health check — every hook green? | [1](./01-getting-started.md) |
+| `/claude-wiki-pages:doctor` | Environment health check — every hook green? | [1](./01-getting-started.md) |
 | `/claude-wiki-pages:init` | Scaffold a vault (once per project; the orchestrator dispatches here automatically on a fresh install) | [2](./02-create-new-knowledge-base.md) |
 | `/claude-wiki-pages:claude-wiki-pages-ingest-agent` | Power-user bypass: ingest → curator → optional synthesize | [3](./03-update-existing.md) |
 | `/claude-wiki-pages:claude-wiki-pages-curator-agent` | Power-user bypass: audit and repair the wiki | [4](./04-review-validate-fix.md) |

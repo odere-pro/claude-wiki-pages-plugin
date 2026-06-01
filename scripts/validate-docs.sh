@@ -83,7 +83,7 @@ LAYER_DRIFT='\blayer [1-4]\b|\b(data|skills|agents|orchestration) layer\b'
 
 # Known skill and agent names — a bare /name reference (missing the
 # /claude-wiki-pages: prefix) signals a glossary violation.
-NAMESPACED_NAMES='wiki-doctor|wiki|claude-wiki-pages-orchestrator-agent|claude-wiki-pages-ingest-agent|claude-wiki-pages-curator-agent|claude-wiki-pages-analyst-agent|ingest|query|lint|fix|status|synthesize|index|markdown|init|onboarding|engine-api|maintain-contract|claude-wiki-pages-onboarding-agent|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
+NAMESPACED_NAMES='doctor|wiki|claude-wiki-pages-orchestrator-agent|claude-wiki-pages-ingest-agent|claude-wiki-pages-curator-agent|claude-wiki-pages-analyst-agent|ingest|query|lint|fix|status|synthesize|index|markdown|init|onboarding|engine-api|maintain-contract|claude-wiki-pages-onboarding-agent|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 

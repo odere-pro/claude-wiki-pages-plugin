@@ -27,7 +27,7 @@ Agents chain skills and tools. `claude-wiki-pages-orchestrator-agent` is the use
 
 ### 4. Orchestration
 
-Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/claude-wiki-pages:wiki`); it delegates to the orchestrator agent. `commands/wiki-doctor.md` wraps `scripts/doctor.sh` for environment health (`/claude-wiki-pages:wiki-doctor`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update `_index.md` and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
+Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/claude-wiki-pages:wiki`); it delegates to the orchestrator agent. `commands/doctor.md` wraps `scripts/doctor.sh` for environment health (`/claude-wiki-pages:doctor`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update `_index.md` and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
 
 ## Why four layers
 

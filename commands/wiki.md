@@ -36,7 +36,7 @@ Task → claude-wiki-pages-orchestrator-agent
 
 ## Companion command
 
-- `/claude-wiki-pages:wiki-doctor` — environment health check. Run it once after install and any time something feels wrong.
+- `/claude-wiki-pages:doctor` — environment health check. Run it once after install and any time something feels wrong.
 
 ## Specification anchor
 

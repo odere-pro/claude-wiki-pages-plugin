@@ -23,7 +23,7 @@ git-checkpointed self-heal), ask a question.
 - You are unsure which skill or command to run first.
 - You want to see the whole loop — scaffold → ingest → query — once, end to end.
 
-For the unguided one-verb entry, use `/claude-wiki-pages:wiki`. For an environment health check, use `/claude-wiki-pages:wiki-doctor`.
+For the unguided one-verb entry, use `/claude-wiki-pages:wiki`. For an environment health check, use `/claude-wiki-pages:doctor`.
 
 ## Invocation
 

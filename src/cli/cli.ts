@@ -11,10 +11,11 @@
 import { verify } from "../commands/verify/verify.ts";
 import { fix } from "../commands/fix/fix.ts";
 import { heal } from "../commands/heal/heal.ts";
+import { doctor, doctorExit } from "../commands/doctor/doctor.ts";
 import { renderText, exitCode, type Report } from "../core/report.ts";
 
-const IMPLEMENTED = new Set(["verify", "fix", "heal"]);
-const PLANNED = ["index", "link-suggest", "search", "doctor", "config", "checkpoint"];
+const IMPLEMENTED = new Set(["verify", "fix", "heal", "doctor"]);
+const PLANNED = ["index", "link-suggest", "search", "config", "checkpoint"];
 const ALL = [...IMPLEMENTED, ...PLANNED];
 
 interface ParsedArgs {
@@ -22,6 +23,8 @@ interface ParsedArgs {
   readonly json: boolean;
   readonly target: string | undefined;
   readonly help: boolean;
+  readonly fix: boolean;
+  readonly strict: boolean;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -29,14 +32,18 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   let json = false;
   let target: string | undefined;
   let help = false;
+  let fixFlag = false;
+  let strict = false;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--json") json = true;
     else if (a === "--help" || a === "-h") help = true;
+    else if (a === "--fix") fixFlag = true;
+    else if (a === "--strict") strict = true;
     else if (a === "--target") target = argv[++i];
     else if (a && !a.startsWith("-") && command === undefined) command = a;
   }
-  return { command, json, target, help };
+  return { command, json, target, help, fix: fixFlag, strict };
 }
 
 function emit(report: Report, json: boolean): void {
@@ -52,14 +59,14 @@ function usage(): void {
       "",
       `Commands: ${ALL.join(", ")}`,
       "",
-      "Implemented: verify, fix, heal",
+      "Implemented: verify, fix, heal, doctor",
       "",
     ].join("\n"),
   );
 }
 
 function main(): number {
-  const { command, json, target, help } = parseArgs(process.argv.slice(2));
+  const { command, json, target, help, fix: fixFlag, strict } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
     usage();
@@ -70,6 +77,27 @@ function main(): number {
     const report = verify({ target });
     emit(report, json);
     return exitCode(report);
+  }
+
+  if (command === "doctor") {
+    const report = doctor({ target, fix: fixFlag });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else {
+      const glyph: Record<string, string> = {
+        pass: "[ok]",
+        warn: "[!!]",
+        fail: "[XX]",
+        fixed: "[fx]",
+        skip: "[--]",
+      };
+      for (const c of report.results) {
+        process.stdout.write(
+          `${glyph[c.status]} ${c.id} ${c.title} — ${c.message}${c.hint ? `\n         ↳ ${c.hint}` : ""}\n`,
+        );
+      }
+      process.stdout.write(`\nworst: ${report.worst}\n`);
+    }
+    return doctorExit(report, strict);
   }
 
   if (command === "fix") {

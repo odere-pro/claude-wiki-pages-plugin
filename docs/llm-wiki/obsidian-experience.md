@@ -67,7 +67,7 @@ POLISH:
 
 - Check that `obsidian-cli` is installed and on `PATH` (`which obsidian` should resolve). The bundled `obsidian-cli` reference skill provides the command; if it's missing, polish skips graph colors with the `[skip]` marker described above.
 - Open `.obsidian/graph.json` and confirm the new topic appears in `colorGroups`. If it does, restart Obsidian — the graph view caches the previous group list until reload.
-- Run `/claude-wiki-pages:wiki-doctor`. Exit code 4 (hooks not executable) suggests a deeper environment issue that polish itself cannot fix.
+- Run `/claude-wiki-pages:doctor`. Exit code 4 (hooks not executable) suggests a deeper environment issue that polish itself cannot fix.
 
 ### `wiki/index.md` page count looks wrong
 

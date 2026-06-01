@@ -7,7 +7,7 @@ The one verb you need to know is `/claude-wiki-pages:wiki`. The orchestrator pro
 | Verb            | Slash command                  | Notes                                                                                                                |
 | --------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
 | **Wiki**        | `/claude-wiki-pages:wiki`         | Top-level entry. One verb does the right thing — init, ingest, curator, or analyst depending on vault state.         |
-| **Doctor**      | `/claude-wiki-pages:wiki-doctor`  | Environment health check. Run after install and any time something feels wrong.                                      |
+| **Doctor**      | `/claude-wiki-pages:doctor`  | Environment health check. Run after install and any time something feels wrong.                                      |
 | **Query**       | `/claude-wiki-pages:query`  | Direct query skill. Traverses MOCs; every answer cites `[[wikilinks]]` back to wiki pages.                       |
 | **Status**      | `/claude-wiki-pages:status` | One-command status read of the last operations.                                                                   |
 

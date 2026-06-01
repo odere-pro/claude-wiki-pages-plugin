@@ -468,9 +468,9 @@ Runs a query and renders the answer as portable, GitHub-flavored markdown.
 
 ### Role E — Diagnostics
 
-#### `wiki-doctor`
+#### `doctor`
 
-Environment health check. Implemented as `commands/wiki-doctor.md` wrapping `scripts/doctor.sh`. Read-only; never writes.
+Environment health check. Implemented as `commands/doctor.md` wrapping `scripts/doctor.sh`. Read-only; never writes.
 
 - **Read.** Plugin root, `.claude-plugin/plugin.json`, `vault/CLAUDE.md`, `vault/raw/`, `vault/wiki/`, `hooks/hooks.json`, every script referenced from it, `scripts/validate-docs.sh`.
 - **Write.** Nothing.

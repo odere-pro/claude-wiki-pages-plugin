@@ -1,6 +1,6 @@
 #!/bin/bash
 # scripts/doctor.sh — Health check for claude-wiki-pages.
-# Wrapped by the /claude-wiki-pages:wiki-doctor slash command.
+# Wrapped by the /claude-wiki-pages:doctor slash command.
 #
 # Exit codes (catch first failure; do not mask later ones):
 #   0  healthy

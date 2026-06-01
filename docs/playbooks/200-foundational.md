@@ -39,7 +39,7 @@ That's it. Type it after install — the orchestrator runs the wizard. Type it a
 <details>
 <summary>Q: How many slash commands do I need to memorize for daily use?</summary>
 
-One: `/claude-wiki-pages:wiki`. A second one — `/claude-wiki-pages:wiki-doctor` — is for diagnostics. Everything else is a power-user bypass.
+One: `/claude-wiki-pages:wiki`. A second one — `/claude-wiki-pages:doctor` — is for diagnostics. Everything else is a power-user bypass.
 </details>
 
 ---
@@ -61,7 +61,7 @@ One: `/claude-wiki-pages:wiki`. A second one — `/claude-wiki-pages:wiki-doctor
 > Then verify the install:
 >
 > ```text
-> /claude-wiki-pages:wiki-doctor
+> /claude-wiki-pages:doctor
 > ```
 >
 > Expected first lines:
@@ -78,12 +78,12 @@ One: `/claude-wiki-pages:wiki`. A second one — `/claude-wiki-pages:wiki-doctor
 >
 > Exit code: `0`. Any non-zero, see the `FAIL[N]` line and the printed remedy.
 
-If `wiki-doctor` reports a missing tool (`jq`, `bash`, `find`), install it via your package manager and re-run.
+If `doctor` reports a missing tool (`jq`, `bash`, `find`), install it via your package manager and re-run.
 
 ### Knowledge check
 
 <details>
-<summary>Q: What does <code>wiki-doctor</code> not do?</summary>
+<summary>Q: What does <code>doctor</code> not do?</summary>
 
 It does not write anything. It is read-only by contract — exit codes 0–5 with a printed remedy per failure. Use it any time something feels wrong.
 </details>
@@ -298,7 +298,7 @@ At a file under `vault/raw/`. Every wiki citation eventually resolves to immutab
 | **Week 3** | Ask a synthesis question that crosses topics. The analyst will offer to file a synthesis note. | [`07-query-the-wiki.md`](../llm-wiki/07-query-the-wiki.md) |
 | **Month 1** | Compile your first deliverable into `vault/output/` — a brief, an ADR, a report. | [`05-export-outputs.md`](../llm-wiki/05-export-outputs.md) |
 
-If you skip steps and your vault gets weird, run `/claude-wiki-pages:wiki-doctor` first. Then run the curator (`/claude-wiki-pages:wiki check for drift`) to repair what's repairable.
+If you skip steps and your vault gets weird, run `/claude-wiki-pages:doctor` first. Then run the curator (`/claude-wiki-pages:wiki check for drift`) to repair what's repairable.
 
 ---
 

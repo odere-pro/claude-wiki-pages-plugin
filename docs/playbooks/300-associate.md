@@ -8,7 +8,7 @@
 
 ## Prerequisites
 
-- `/claude-wiki-pages:wiki-doctor` exits 0.
+- `/claude-wiki-pages:doctor` exits 0.
 - Your vault has at least 10 ingested sources and 20+ wiki pages.
 - You can read shell scripts and YAML frontmatter.
 
@@ -310,7 +310,7 @@ The lab works against either the env-var or the settings.json path:
 > In that session:
 >
 > ```text
-> /claude-wiki-pages:wiki-doctor
+> /claude-wiki-pages:doctor
 > ```
 >
 > Should report `[doctor] vault path resolved: /path/to/projB/docs/vault`. Run `/claude-wiki-pages:wiki` and it operates on projB. Exit; your default session is unchanged.

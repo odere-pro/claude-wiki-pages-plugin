@@ -79,14 +79,14 @@ The plugin's structure. Contracts in `/SPEC.md`.
 | Layer 4 — Orchestration | Hooks, scripts, rules. Enforce the schema at every tool call.                                  |
 | skill                   | A capability under `skills/`. Entry point is `/claude-wiki-pages:<name>`.                         |
 | agent                   | A multi-step executor under `agents/`. Chains skills; owns completion gates.                   |
-| command                 | A user-facing slash command under `commands/`. Surfaced as `/claude-wiki-pages:<name>`. Today: `wiki`, `wiki-doctor`. |
+| command                 | A user-facing slash command under `commands/`. Surfaced as `/claude-wiki-pages:<name>`. Today: `wiki`, `doctor`. |
 | hook                    | A lifecycle handler wired in `hooks/hooks.json`. Blocking hooks reject writes via exit code 2. |
 | hook triggers           | `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop`.               |
 | rule                    | A path-scoped guidance file under `rules/`. Declarative, not executable.                       |
 | orchestrator            | The Layer 4 entry agent (`claude-wiki-pages-orchestrator-agent`). Probes vault state; dispatches to one specialist per invocation. |
 | specialist              | A Layer 3 agent the orchestrator dispatches to (`-ingest-`, `-curator-`, `-analyst-`, `-polish-`). Never re-probes state; trusts the orchestrator's payload. |
 | polish                  | The tail-of-write step (`claude-wiki-pages-polish-agent`) that keeps the Obsidian-side experience in sync — graph colors, vault MOC, per-folder MOC consistency. Runs after every ingest or curator. |
-| doctor                  | The environment health check (`/claude-wiki-pages:wiki-doctor`, `scripts/doctor.sh`). Read-only by contract; exit codes 0–5. |
+| doctor                  | The environment health check (`/claude-wiki-pages:doctor`, `scripts/doctor.sh`). Read-only by contract; exit codes 0–5. |
 | pipeline                | Shorthand for the `claude-wiki-pages-ingest-agent`. (Was `llm-wiki-ingest-pipeline` before `0.2.0`.)                          |
 | provenance              | The traceable chain from a wiki page's `sources` through `_sources/` to raw content.           |
 
@@ -98,7 +98,7 @@ Skills and agents share the same namespace (`/claude-wiki-pages:<name>`), so the
 
 - **Skills** — single verb or noun suffix: `ingest`, `query`, `lint`, `markdown`.
 - **Agents** — `{plugin-name}-{role}-agent` since `0.2.0`: `claude-wiki-pages-orchestrator-agent`, `claude-wiki-pages-ingest-agent`, `claude-wiki-pages-curator-agent`, `claude-wiki-pages-analyst-agent`. The plugin-prefix matches the plugin id exactly (not `llm-wiki-` substring) so future search-and-replace is unambiguous. The `-agent` suffix is mandatory; it disambiguates an agent from a skill on first read of a slash command.
-- **Commands** — short verb names under `commands/`: `wiki`, `wiki-doctor`. Surfaced as `/claude-wiki-pages:wiki` and `/claude-wiki-pages:wiki-doctor`.
+- **Commands** — short verb names under `commands/`: `wiki`, `doctor`. Surfaced as `/claude-wiki-pages:wiki` and `/claude-wiki-pages:doctor`.
 
 | Name                       | Kind            | Meaning                                                                                                                                                   |
 | -------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
