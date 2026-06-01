@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/odere-pro/claude-wiki-pages/schemas/config.schema.json",
+  "title": "claude-wiki-pages config",
+  "description": "User (~/.config/claude-wiki-pages/config.json) and project (.claude/claude-wiki-pages.json) configuration. Created in M1; loaded and enforced in M5. Env overrides use CLAUDE_WIKI_PAGES_*.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "$schema": { "type": "string" },
+    "vault": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Explicit vault path. When omitted, four-tier resolution applies (see resolve-vault.sh / core/vault.ts)."
+        }
+      }
+    },
+    "autoHeal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "aggressiveness": {
+          "type": "string",
+          "enum": ["mechanical", "structural", "aggressive"],
+          "default": "structural",
+          "description": "mechanical = wikilinks/MOCs/frontmatter only; structural = + restructure/merge; aggressive = + deletions."
+        },
+        "maxIterations": { "type": "integer", "minimum": 1, "maximum": 20, "default": 5 }
+      }
+    },
+    "gitCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["commit", "branch", "both", "off"],
+          "default": "commit",
+          "description": "How auto-heal snapshots the vault before changing it. Rollback is git revert / branch checkout."
+        }
+      }
+    },
+    "modelHints": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Optional per-task model hints consumed by agents (e.g. ingest, query)."
+    }
+  }
+}

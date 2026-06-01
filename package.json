@@ -1,0 +1,45 @@
+{
+  "name": "@odere-pro/claude-wiki-pages",
+  "version": "1.0.0-pre.0",
+  "description": "Deterministic engine for the claude-wiki-pages Claude Code plugin: indexes, links, verifies, and self-heals an Obsidian LLM-Wiki vault. Bash for the hooks, Bun for the brain.",
+  "type": "module",
+  "engines": {
+    "bun": ">=1.2"
+  },
+  "bin": {
+    "claude-wiki-pages": "dist/cli.js",
+    "wiki-pages": "dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "schemas/",
+    "templates/",
+    "agents/claude-wiki-pages*.md"
+  ],
+  "scripts": {
+    "build": "bun build ./src/cli/cli.ts --outdir ./dist --target bun",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
+    "lint": "eslint \"src/**/*.ts\""
+  },
+  "dependencies": {
+    "yaml": "2.6.1"
+  },
+  "devDependencies": {
+    "@types/bun": "1.2.19",
+    "prettier": "3.4.2",
+    "typescript": "5.7.3"
+  },
+  "author": {
+    "name": "Aleksandr Derechei",
+    "email": "odere.pub@gmail.com"
+  },
+  "homepage": "https://github.com/odere-pro/claude-wiki-pages",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/odere-pro/claude-wiki-pages.git"
+  },
+  "license": "Apache-2.0"
+}
