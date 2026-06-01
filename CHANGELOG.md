@@ -18,6 +18,8 @@ Rebrand to **`claude-wiki-pages`** and the first cut of the deterministic **Bun 
 ### Added
 
 - **Deterministic engine (`@odere-pro/claude-wiki-pages`).** A Bun/TypeScript CLI under `src/` (bins `claude-wiki-pages` / `wiki-pages`) that the plugin calls for anything that must be exact. First command: `verify`, a faithful port of `scripts/verify-ingest.sh` CHECK 0–3 emitting structured `--json`. A parity test pins it to the bash verifier (equal error/warn sets on clean and dirty vaults). Tooling mirrors `claude-agentline`: `package.json`, `tsconfig.json`, `bunfig.toml`, prettier, plus staged `.eslintrc.cjs`/`knip.json`. 24 `bun test` cases.
+- **Git-checkpointed self-heal.** `engine fix`/`heal`: after ingest the engine writes a checkpoint commit, then loops verify → fix → re-verify and commits the result. Fully automatic — no approval prompts; rollback is `git revert`. The curator and ingest agents are rewired to this model (approval gates removed).
+- **Onboarding + agent-teaching skills.** New `onboarding` skill + `claude-wiki-pages-onboarding-agent` + `/claude-wiki-pages:onboarding` (guided first run: health → scaffold → ingest → first cited answer). Two Software-3.0 teaching skills — `engine-api` (the engine's `--json` tool contract) and `maintain-contract` (the safe ingest/retrieve/maintain ordering) — so any agent can drive the wiki correctly.
 - **`docs/migration-1.0.md`** — search-and-replace map from the old identifiers, plus what does NOT change (vault schema/content).
 
 ### Changed (breaking)

@@ -17,9 +17,9 @@ The system is spec-driven: the contract lives in [`SPEC.md`](./SPEC.md), the sch
 | Layer        | Surface                                                                                                                       | Count |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------- | :---: |
 | **Data**     | `docs/vault-example/` — immutable `raw/`, LLM-maintained `wiki/`, schema in `vault/CLAUDE.md`                                 |   1   |
-| **Skills**   | 9 plugin-authored short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`) + `obsidian-graph-colors` + 3 third-party `obsidian-*` (MIT, kepano) |  13   |
-| **Agents**   | Orchestrator (entry) + ingest, curator, analyst, polish — see [docs/operations.md](./docs/operations.md)                      |   5   |
-| **Commands** | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:wiki-doctor`                                                                         |   2   |
+| **Skills**   | 9 short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`) + `onboarding` + 2 agent-teaching (`engine-api`, `maintain-contract`) + `obsidian-graph-colors` + 3 third-party `obsidian-*` (MIT, kepano) |  16   |
+| **Agents**   | Orchestrator (entry) + onboarding, ingest, curator, analyst, polish — see [docs/operations.md](./docs/operations.md)          |   6   |
+| **Commands** | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:onboarding`, `/claude-wiki-pages:wiki-doctor`                                  |   3   |
 | **Hooks**    | `SessionStart` + `UserPromptSubmit` + 4 `PreToolUse` + 2 `PostToolUse` + 2 `SubagentStop`                                     |  10   |
 | **Rules**    | Path-scoped guidance under `rules/`                                                                                           |   4   |
 | **Tests**    | Five tiers — Tier 0 static, Tier 1 Bats unit, Tier 2 smoke, Tier 3 release, Tier 4 adversarial                                |   5   |

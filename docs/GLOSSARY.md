@@ -136,6 +136,9 @@ Canonical names for the plugin's single-responsibility capabilities. Every entry
 | synthesize   | Writes a cross-topic synthesis note under `wiki/_synthesis/`.                                                                    |
 | index        | Generates or refreshes the vault MOC at `wiki/index.md`.                                                                         |
 | markdown     | Renders a query answer as portable markdown under `vault/output/`. Strips Obsidian-only syntax so the file is usable elsewhere.  |
+| onboarding   | Guided first-run flow (new in `1.0.0`): health → scaffold → add source → ingest → first cited answer. Idempotent; resumes in place. |
+| engine-api   | Agent-teaching skill (new in `1.0.0`): the LLM-facing contract for the Bun engine — subcommands, `--json` shapes, exit codes.    |
+| maintain-contract | Agent-teaching skill (new in `1.0.0`): the safe ingest/retrieve/maintain ordering (ground → judge → verify) for any agent.   |
 | obsidian-graph-colors | Applies per-topic colors to Obsidian's graph view. Plugin-authored.                                                              |
 | obsidian-markdown     | Obsidian-flavored markdown reference. MIT, kepano/obsidian-skills.                                                               |
 | obsidian-bases        | Obsidian Bases (database) reference. MIT, kepano/obsidian-skills.                                                                |

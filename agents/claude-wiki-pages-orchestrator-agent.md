@@ -54,7 +54,7 @@ Walk this table top-to-bottom. The first matching row wins. Stop walking after t
 
 | If…                                                                              | Then `Task →`                       | With payload                                            |
 | -------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------- |
-| `vault_exists == false` OR `schema_version == ""`                                | Skill `llm-wiki` (the init wizard)  | `{vault_path: "$VAULT", goal: "scaffold or repair"}`    |
+| `vault_exists == false` OR `schema_version == ""`                                | Agent `claude-wiki-pages-onboarding-agent` (guided scaffold → orient → first steps; uses the `init` skill for the bare scaffold) | `{vault_path: "$VAULT", goal: "scaffold or repair"}`    |
 | `raw_pending > 0`                                                                | Agent `claude-wiki-pages-ingest-agent`   | `{vault_path: "$VAULT", scope: "<N> new sources"}`      |
 | `last_log_entry == "ingest"` (lint never ran after a previous ingest)            | Agent `claude-wiki-pages-curator-agent`  | `{vault_path: "$VAULT", mode: "audit-and-fix"}`         |
 | User prompt matches an analytical verb: `query`, `ask`, `summarize`, `report`, `compile`, `extract`, `compare`, `challenge`, `dashboard`, or starts with `?`/`what`/`why`/`how` | Agent `claude-wiki-pages-analyst-agent`  | `{vault_path: "$VAULT", question: "$ARGUMENTS"}`        |
