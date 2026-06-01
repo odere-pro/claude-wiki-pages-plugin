@@ -12,14 +12,16 @@ import { verify } from "../commands/verify/verify.ts";
 import { fix } from "../commands/fix/fix.ts";
 import { heal } from "../commands/heal/heal.ts";
 import { doctor, doctorExit } from "../commands/doctor/doctor.ts";
+import { config, configExit, type ConfigSub } from "../commands/config/config.ts";
 import { renderText, exitCode, type Report } from "../core/report.ts";
 
-const IMPLEMENTED = new Set(["verify", "fix", "heal", "doctor"]);
-const PLANNED = ["index", "link-suggest", "search", "config", "checkpoint"];
+const IMPLEMENTED = new Set(["verify", "fix", "heal", "doctor", "config"]);
+const PLANNED = ["index", "link-suggest", "search", "checkpoint"];
 const ALL = [...IMPLEMENTED, ...PLANNED];
 
 interface ParsedArgs {
   readonly command: string | undefined;
+  readonly sub: string | undefined;
   readonly json: boolean;
   readonly target: string | undefined;
   readonly help: boolean;
@@ -29,6 +31,7 @@ interface ParsedArgs {
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
   let command: string | undefined;
+  let sub: string | undefined;
   let json = false;
   let target: string | undefined;
   let help = false;
@@ -42,8 +45,9 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (a === "--strict") strict = true;
     else if (a === "--target") target = argv[++i];
     else if (a && !a.startsWith("-") && command === undefined) command = a;
+    else if (a && !a.startsWith("-") && sub === undefined) sub = a;
   }
-  return { command, json, target, help, fix: fixFlag, strict };
+  return { command, sub, json, target, help, fix: fixFlag, strict };
 }
 
 function emit(report: Report, json: boolean): void {
@@ -59,14 +63,22 @@ function usage(): void {
       "",
       `Commands: ${ALL.join(", ")}`,
       "",
-      "Implemented: verify, fix, heal, doctor",
+      "Implemented: verify, fix, heal, doctor, config",
       "",
     ].join("\n"),
   );
 }
 
 function main(): number {
-  const { command, json, target, help, fix: fixFlag, strict } = parseArgs(process.argv.slice(2));
+  const {
+    command,
+    sub,
+    json,
+    target,
+    help,
+    fix: fixFlag,
+    strict,
+  } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
     usage();
@@ -133,6 +145,25 @@ function main(): number {
           .join("\n"),
       );
     return report.clean ? 0 : 1;
+  }
+
+  if (command === "config") {
+    const allowed: ConfigSub[] = ["show", "validate", "path"];
+    const chosen = (allowed.includes(sub as ConfigSub) ? sub : "show") as ConfigSub;
+    const report = config({ sub: chosen });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else if (chosen === "path")
+      process.stdout.write(
+        `user:    ${report.paths.user} (${report.loaded.user ? "present" : "default"})\nproject: ${report.paths.project} (${report.loaded.project ? "present" : "absent"})\n`,
+      );
+    else if (chosen === "validate")
+      process.stdout.write(
+        report.errors.length === 0
+          ? "OK: config is valid\n"
+          : "INVALID:\n  - " + report.errors.join("\n  - ") + "\n",
+      );
+    else process.stdout.write(JSON.stringify(report.config, null, 2) + "\n");
+    return configExit(report);
   }
 
   if (PLANNED.includes(command)) {

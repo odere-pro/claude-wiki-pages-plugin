@@ -63,11 +63,22 @@ remain.** Rollback is `git revert <healCommit>`.
   "changes": [ … ], "unresolved": [] }
 ```
 
-### Planned (M-later, will return `{status:"not-implemented"}` until shipped)
+### `doctor` — environment + vault health (D01–D10)
 
-`index` (build a deterministic page/entity index), `link-suggest <page>` (exact
-auto-link candidates), `search <query>` (grounded retrieval), `doctor`, `config`,
-`checkpoint`.
+Returns `{ results: [{ id, title, status, message, hint }], worst }` with status
+`pass|warn|fail|fixed|skip`. `--fix` repairs D04/D05/D08; `--strict` exits 3 on
+any warn/fail. See `/claude-wiki-pages:doctor`.
+
+### `config` — effective configuration
+
+`config` (show), `config validate` (exit 1 on schema violations), `config path`.
+Merges defaults ← user (`~/.config/claude-wiki-pages/config.json`) ← project
+(`.claude/claude-wiki-pages.json`) ← `CLAUDE_WIKI_PAGES_*` env overrides.
+
+### Planned (return `{status:"not-implemented"}` until shipped)
+
+`index` (deterministic page/entity index), `link-suggest <page>` (exact auto-link
+candidates), `search <query>` (grounded retrieval), `checkpoint`.
 
 ## The rule for callers
 

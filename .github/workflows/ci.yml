@@ -132,3 +132,31 @@ jobs:
 
       - name: Run validate-docs locally
         run: scripts/validate-docs.sh
+
+  gates:
+    name: Engine + quality gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2"
+
+      - name: Install tooling for the gates
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck jq
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build the engine
+        run: bun run build
+
+      - name: Run all quality gates
+        # Wraps engine tests, typecheck, shellcheck, glossary, verify↔bash
+        # parity, no-absolute-paths, config-schema, prettier, npm-pack.
+        run: bash tests/gates/run-all.sh
