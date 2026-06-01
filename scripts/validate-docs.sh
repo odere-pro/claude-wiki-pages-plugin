@@ -9,8 +9,8 @@
 #   2. Discoverability-register terms ("knowledge management", "agent harness",
 #      "LLM Wiki Stack", "raw material") do not leak into technical surfaces.
 #   3. Layer references are capitalized ("Layer 1", "Data layer", etc.).
-#   4. Slash commands in docs carry the /llm-wiki-stack: namespace prefix.
-#   5. Every /llm-wiki-stack:<name> reference resolves to a real skill or agent.
+#   4. Slash commands in docs carry the /claude-wiki-pages: namespace prefix.
+#   5. Every /claude-wiki-pages:<name> reference resolves to a real skill or agent.
 #
 # Exit 0 = clean. Exit 1 = violations. Exit 2 = setup error (not in repo root).
 
@@ -76,8 +76,8 @@ SEO_LEAK='\bknowledge base\b|\bknowledge management\b|\bagent harness\b|LLM Wiki
 LAYER_DRIFT='\blayer [1-4]\b|\b(data|skills|agents|orchestration) layer\b'
 
 # Known skill and agent names — a bare /name reference (missing the
-# /llm-wiki-stack: prefix) signals a vocabulary violation.
-NAMESPACED_NAMES='wiki-doctor|wiki|llm-wiki-stack-orchestrator-agent|llm-wiki-stack-ingest-agent|llm-wiki-stack-curator-agent|llm-wiki-stack-analyst-agent|llm-wiki-ingest|llm-wiki-query|llm-wiki-lint|llm-wiki-fix|llm-wiki-status|llm-wiki-synthesize|llm-wiki-index|llm-wiki-markdown|llm-wiki|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
+# /claude-wiki-pages: prefix) signals a vocabulary violation.
+NAMESPACED_NAMES='wiki-doctor|wiki|claude-wiki-pages-orchestrator-agent|claude-wiki-pages-ingest-agent|claude-wiki-pages-curator-agent|claude-wiki-pages-analyst-agent|llm-wiki-ingest|llm-wiki-query|llm-wiki-lint|llm-wiki-fix|llm-wiki-status|llm-wiki-synthesize|llm-wiki-index|llm-wiki-markdown|llm-wiki|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -183,18 +183,18 @@ while IFS= read -r file; do
   # and from URLs in prose.
   #
   # The trailing `([^-[:alnum:]]|$)` guard keeps `llm-wiki` from matching
-  # inside `/llm-wiki-stack:` (the properly-namespaced form) — `\b` would
+  # inside `/claude-wiki-pages:` (the properly-namespaced form) — `\b` would
   # match there because `-` is a non-word char, causing a false positive.
   hits=$(grep -nHE "\`/($NAMESPACED_NAMES)([^-[:alnum:]]|$)" "$file" 2>/dev/null || true)
   if [ -n "$hits" ]; then
-    err "bare slash command in $file (missing /llm-wiki-stack: prefix)"
+    err "bare slash command in $file (missing /claude-wiki-pages: prefix)"
     printf '%s\n' "$hits" | sed 's/^/    /'
     BARE_HITS=$((BARE_HITS + 1))
   fi
 done < <(git ls-files -- '*.md' 2>/dev/null)
 
 if [ "$BARE_HITS" -eq 0 ]; then
-  ok "all slash commands use the llm-wiki-stack: namespace"
+  ok "all slash commands use the claude-wiki-pages: namespace"
 else
   VIOLATIONS=$((VIOLATIONS + BARE_HITS))
 fi
@@ -203,16 +203,16 @@ fi
 
 header "Slash-command references"
 
-# Collect every unique /llm-wiki-stack:<name> referenced anywhere in markdown.
+# Collect every unique /claude-wiki-pages:<name> referenced anywhere in markdown.
 REFS=$(git ls-files -- '*.md' 2>/dev/null |
-  xargs grep -ohE '/llm-wiki-stack:[a-z][a-z0-9-]+' 2>/dev/null |
+  xargs grep -ohE '/claude-wiki-pages:[a-z][a-z0-9-]+' 2>/dev/null |
   sort -u)
 
 UNRESOLVED=0
 if [ -n "$REFS" ]; then
   while IFS= read -r ref; do
     [ -z "$ref" ] && continue
-    name="${ref#/llm-wiki-stack:}"
+    name="${ref#/claude-wiki-pages:}"
     if [ -d "skills/$name" ] || [ -f "agents/${name}.md" ] || [ -f "commands/${name}.md" ]; then
       continue
     fi

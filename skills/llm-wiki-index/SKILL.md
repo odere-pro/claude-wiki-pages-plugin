@@ -14,14 +14,14 @@ allowed-tools: Read Write Edit Glob Grep
 Refresh `vault/wiki/index.md` — the vault MOC.
 
 Per-folder `_index.md` files (inside topic folders) are maintained by
-`/llm-wiki-stack:llm-wiki-ingest` during ingest. This skill does not touch
+`/claude-wiki-pages:llm-wiki-ingest` during ingest. This skill does not touch
 them.
 
 ## When to invoke
 
 - A new top-level topic folder has been created.
 - A synthesis note has been added under `wiki/_synthesis/`.
-- `/llm-wiki-stack:llm-wiki-lint` reports vault-MOC drift.
+- `/claude-wiki-pages:llm-wiki-lint` reports vault-MOC drift.
 - The user asks for an index refresh.
 
 ## Reading contract

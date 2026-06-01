@@ -6,7 +6,7 @@ parent: "[[Workflows — Index]]"
 path: "workflows"
 sources:
   - "[[Query the Wiki]]"
-related: ["[[LLM Wiki Pattern]]", "[[Output Compilation Workflow]]", "[[llm-wiki-stack]]"]
+related: ["[[LLM Wiki Pattern]]", "[[Output Compilation Workflow]]", "[[claude-wiki-pages]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -22,7 +22,7 @@ confidence: 0.8
 
 ## Definition
 
-Ask the wiki a question; receive a prose answer whose every claim ends in a `[[wikilink]]` to the wiki page that justifies it. Two entry points: `llm-wiki-query` for single questions, `llm-wiki-stack-analyst-agent` for cross-topic analysis, challenge mode, and document compilation.
+Ask the wiki a question; receive a prose answer whose every claim ends in a `[[wikilink]]` to the wiki page that justifies it. Two entry points: `llm-wiki-query` for single questions, `claude-wiki-pages-analyst-agent` for cross-topic analysis, challenge mode, and document compilation.
 
 ## Key Principles
 
@@ -33,9 +33,9 @@ Ask the wiki a question; receive a prose answer whose every claim ends in a `[[w
 
 ## Examples
 
-- `/llm-wiki-stack:llm-wiki-query what does the wiki say about the [[LLM Wiki Pattern]]?`
-- `/llm-wiki-stack:llm-wiki-stack-analyst-agent compare [[LLM Wiki Pattern]] and [[Hook-Enforced Guarantees]]`
-- Challenge mode: `/llm-wiki-stack:llm-wiki-stack-analyst-agent challenge mode — I'm about to decide X. Push back.`
+- `/claude-wiki-pages:llm-wiki-query what does the wiki say about the [[LLM Wiki Pattern]]?`
+- `/claude-wiki-pages:claude-wiki-pages-analyst-agent compare [[LLM Wiki Pattern]] and [[Hook-Enforced Guarantees]]`
+- Challenge mode: `/claude-wiki-pages:claude-wiki-pages-analyst-agent challenge mode — I'm about to decide X. Push back.`
 
 ## Related Concepts
 

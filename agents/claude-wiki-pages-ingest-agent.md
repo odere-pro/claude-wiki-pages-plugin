@@ -1,10 +1,10 @@
 ---
-name: llm-wiki-stack-ingest-agent
+name: claude-wiki-pages-ingest-agent
 description: >
   Full wiki ingest pipeline: read raw sources, create structured wiki pages in
   a topic tree, fix structural issues, optionally optimize the tree, and
-  produce a synthesis note. Invoked by the llm-wiki-stack-orchestrator-agent
-  when /llm-wiki-stack:wiki detects pending sources in vault/raw/. Power users
+  produce a synthesis note. Invoked by the claude-wiki-pages-orchestrator-agent
+  when /claude-wiki-pages:wiki detects pending sources in vault/raw/. Power users
   may call this agent directly; the orchestrator is the recommended entry.
 model: sonnet
 tools: Bash, Read, Write, Edit, Glob, Grep, Task
@@ -164,7 +164,7 @@ Use the `index` frontmatter schema. Body: section headers grouping children by t
 
 ### 1.7 Polish (graph colors, vault MOC, MOC consistency) — owned by polish-agent
 
-**Do not duplicate polish-agent work here.** The orchestrator runs `llm-wiki-stack-polish-agent` after this agent returns; that agent owns graph colors for new top-level topics, vault-MOC regeneration, and per-folder `_index.md` consistency. This step intentionally does no work — it remains in the contract only as a marker that the polish pass is expected.
+**Do not duplicate polish-agent work here.** The orchestrator runs `claude-wiki-pages-polish-agent` after this agent returns; that agent owns graph colors for new top-level topics, vault-MOC regeneration, and per-folder `_index.md` consistency. This step intentionally does no work — it remains in the contract only as a marker that the polish pass is expected.
 
 ### 1.8 Append to `wiki/log.md`
 
@@ -182,8 +182,8 @@ New concepts: ...
 
 ## Step 2 — Lint & Fix
 
-Delegate to the `llm-wiki-stack-curator-agent` agent. Invoke the `Task` tool with
-`subagent_type: llm-wiki-stack-curator-agent` and the following prompt verbatim:
+Delegate to the `claude-wiki-pages-curator-agent` agent. Invoke the `Task` tool with
+`subagent_type: claude-wiki-pages-curator-agent` and the following prompt verbatim:
 
 ```
 Run a full lint and fix pass. The wiki was just updated by ingest.
@@ -252,7 +252,7 @@ Only after explicit confirmation:
 
 ### 3.4 One re-run of lint-fix
 
-Invoke the `Task` tool with `subagent_type: llm-wiki-stack-curator-agent` and the
+Invoke the `Task` tool with `subagent_type: claude-wiki-pages-curator-agent` and the
 following prompt verbatim:
 
 ```

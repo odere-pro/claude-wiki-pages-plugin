@@ -4,8 +4,8 @@ description: >
   Ingest one or more sources from vault/raw/ into typed wiki pages under
   vault/wiki/. Trigger when the user says "ingest this source", "process the
   file I just dropped in raw/", "add this to the wiki", or invokes
-  /llm-wiki-stack:llm-wiki-ingest directly. Prefer the pipeline
-  (/llm-wiki-stack:llm-wiki-stack-ingest-agent) unless the user has asked to skip
+  /claude-wiki-pages:llm-wiki-ingest directly. Prefer the pipeline
+  (/claude-wiki-pages:claude-wiki-pages-ingest-agent) unless the user has asked to skip
   lint-fix and synthesis.
 allowed-tools: Bash Read Write Edit Glob Grep
 ---
@@ -14,7 +14,7 @@ allowed-tools: Bash Read Write Edit Glob Grep
 
 Process sources under `vault/raw/` into the wiki. This skill is the
 single-responsibility ingest verb; it is the middle third of what the
-`llm-wiki-stack-ingest-agent` agent does. The agent wraps this skill with a
+`claude-wiki-pages-ingest-agent` agent does. The agent wraps this skill with a
 post-ingest lint-fix pass and an optional synthesis step — invoke the agent
 when the user wants the full cycle, invoke this skill when the user wants only
 the ingest portion.
@@ -102,5 +102,5 @@ On success, print:
 READY: <N> sources ingested, <M> pages written (<C> created, <U> updated).
 ```
 
-The `llm-wiki-stack-ingest-agent` agent looks for this prefix to know it can hand off
-to `llm-wiki-stack-curator-agent`.
+The `claude-wiki-pages-ingest-agent` agent looks for this prefix to know it can hand off
+to `claude-wiki-pages-curator-agent`.

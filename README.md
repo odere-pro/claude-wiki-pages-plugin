@@ -1,4 +1,4 @@
-# llm-wiki-stack
+# claude-wiki-pages
 
 > Karpathy's LLM Wiki, shipped as a Claude Code plugin — four layers, hook-enforced.
 
@@ -19,7 +19,7 @@ The system is spec-driven: the contract lives in [`SPEC.md`](./SPEC.md), the sch
 | **Data**     | `docs/vault-example/` — immutable `raw/`, LLM-maintained `wiki/`, schema in `vault/CLAUDE.md`                                 |   1   |
 | **Skills**   | 9 plugin-authored `llm-wiki-*` + `obsidian-graph-colors` + 3 third-party `obsidian-*` (MIT, kepano)                           |  13   |
 | **Agents**   | Orchestrator (entry) + ingest, curator, analyst, polish — see [docs/operations.md](./docs/operations.md)                      |   5   |
-| **Commands** | `/llm-wiki-stack:wiki`, `/llm-wiki-stack:wiki-doctor`                                                                         |   2   |
+| **Commands** | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:wiki-doctor`                                                                         |   2   |
 | **Hooks**    | `SessionStart` + `UserPromptSubmit` + 4 `PreToolUse` + 2 `PostToolUse` + 2 `SubagentStop`                                     |  10   |
 | **Rules**    | Path-scoped guidance under `rules/`                                                                                           |   4   |
 | **Tests**    | Five tiers — Tier 0 static, Tier 1 Bats unit, Tier 2 smoke, Tier 3 release, Tier 4 adversarial                                |   5   |
@@ -44,9 +44,9 @@ Long-form architecture: [docs/architecture.md](./docs/architecture.md). Feature 
 ## Install
 
 ```text
-/plugin marketplace add odere-pro/llm-wiki-stack
-/plugin install llm-wiki-stack
-/llm-wiki-stack:wiki-doctor
+/plugin marketplace add odere-pro/claude-wiki-pages
+/plugin install claude-wiki-pages
+/claude-wiki-pages:wiki-doctor
 ```
 
 `wiki-doctor` should print all green. If it does not, fix the prerequisite it flags. Local-clone install, update, and uninstall: see [docs/install.md](./docs/install.md).
@@ -56,15 +56,15 @@ Long-form architecture: [docs/architecture.md](./docs/architecture.md). Feature 
 ## Quickstart
 
 ```text
-/llm-wiki-stack:wiki
+/claude-wiki-pages:wiki
 ```
 
 The orchestrator probes vault state and dispatches:
 
 - **No vault yet** → runs the `llm-wiki` wizard. Scaffolds `docs/vault/` from the example, writes the schema, prints the next three things to do.
-- **New files in `raw/`** → runs `llm-wiki-stack-ingest-agent`. Produces typed wiki pages with citations and a `wiki/log.md` entry, then runs `llm-wiki-stack-polish-agent` to refresh graph colors and indexes.
-- **Pending lint after an ingest** → runs `llm-wiki-stack-curator-agent` to audit and repair.
-- **Analytical prompt** (`what`, `why`, `compare`, `summarize`, …) → runs `llm-wiki-stack-analyst-agent`. Every answer cites `[[wikilinks]]` back to source.
+- **New files in `raw/`** → runs `claude-wiki-pages-ingest-agent`. Produces typed wiki pages with citations and a `wiki/log.md` entry, then runs `claude-wiki-pages-polish-agent` to refresh graph colors and indexes.
+- **Pending lint after an ingest** → runs `claude-wiki-pages-curator-agent` to audit and repair.
+- **Analytical prompt** (`what`, `why`, `compare`, `summarize`, …) → runs `claude-wiki-pages-analyst-agent`. Every answer cites `[[wikilinks]]` back to source.
 
 First-time walkthrough (~30 minutes): [docs/playbooks/200-foundational.md](./docs/playbooks/200-foundational.md). Full operations reference: [docs/operations.md](./docs/operations.md).
 
@@ -94,7 +94,7 @@ First-time walkthrough (~30 minutes): [docs/playbooks/200-foundational.md](./doc
 
 ## Privacy
 
-No telemetry. The plugin never phones home. Your vault, your hooks, your shell. Settings are local at `.claude/llm-wiki-stack/settings.json`.
+No telemetry. The plugin never phones home. Your vault, your hooks, your shell. Settings are local at `.claude/claude-wiki-pages/settings.json`.
 
 ---
 

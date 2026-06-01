@@ -4,8 +4,8 @@ type: source
 source_type: manual
 source_format: text
 url: ""
-author: "llm-wiki-stack maintainers"
-publisher: "llm-wiki-stack plugin"
+author: "claude-wiki-pages maintainers"
+publisher: "claude-wiki-pages plugin"
 date_published: 2026-04-24
 date_ingested: 2026-04-24
 tags: ["documentation", "onboarding"]
@@ -25,7 +25,7 @@ confidence: 1.0
 
 ## Summary
 
-Reference guide covering prerequisites (Claude Code, Obsidian 1.5+, jq), plugin install (remote marketplace or local path), session-start hook preamble confirmation, vault scaffolding via `/llm-wiki-stack:llm-wiki`, and the health check via `/llm-wiki-stack:llm-wiki-status`. Also lists the optional Obsidian setup (Dataview, Templater, Web Clipper) and graph coloring.
+Reference guide covering prerequisites (Claude Code, Obsidian 1.5+, jq), plugin install (remote marketplace or local path), session-start hook preamble confirmation, vault scaffolding via `/claude-wiki-pages:llm-wiki`, and the health check via `/claude-wiki-pages:llm-wiki-status`. Also lists the optional Obsidian setup (Dataview, Templater, Web Clipper) and graph coloring.
 
 ## Key Claims
 
@@ -38,7 +38,7 @@ Reference guide covering prerequisites (Claude Code, Obsidian 1.5+, jq), plugin 
 - [[Claude Code]]
 - [[Obsidian]]
 - [[Dataview]]
-- [[llm-wiki-stack]]
+- [[claude-wiki-pages]]
 
 ## Concepts Mentioned
 

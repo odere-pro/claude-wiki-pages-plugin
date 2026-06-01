@@ -6,7 +6,7 @@ Thumbs.db
 .claude/settings.local.json
 .claude/worktrees/
 .claude/memory/
-.claude/llm-wiki-stack/
+.claude/claude-wiki-pages/
 
 # Local scratch space (plans, drafts)
 tmp/

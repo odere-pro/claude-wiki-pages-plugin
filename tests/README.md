@@ -1,6 +1,6 @@
 # Tests
 
-Shell-based test harness for the `llm-wiki-stack` plugin.
+Shell-based test harness for the `claude-wiki-pages` plugin.
 
 This repo has no runtime — every layer is shell, YAML, and markdown. The
 test layer is therefore also shell-based, using [Bats](https://bats-core.readthedocs.io/)

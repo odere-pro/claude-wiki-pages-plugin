@@ -5,7 +5,7 @@ aliases: ["Hook-Enforced Guarantees", "hook-enforced-guarantees"]
 parent: "[[Patterns — Index]]"
 path: "patterns"
 sources:
-  - "[[Using llm-wiki-stack]]"
+  - "[[Using claude-wiki-pages]]"
   - "[[Getting Started]]"
   - "[[Update an Existing Vault]]"
   - "[[Review, Validate, Fix]]"

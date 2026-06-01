@@ -31,7 +31,7 @@ header() { printf '\n\033[1m=== %s ===\033[0m\n' "$1"; }
 
 if [ ! -d "$VAULT" ]; then
   red "Vault directory not found at '$VAULT'"
-  printf 'Run /llm-wiki-stack:llm-wiki to initialise, or set a different path: bash scripts/set-vault.sh <path>\n'
+  printf 'Run /claude-wiki-pages:llm-wiki to initialise, or set a different path: bash scripts/set-vault.sh <path>\n'
   exit 1
 fi
 

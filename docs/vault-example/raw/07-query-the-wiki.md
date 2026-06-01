@@ -7,13 +7,13 @@ The wiki exists to be asked questions. Answers come back with `[[wikilink]]` cit
 ## Basic query
 
 ```
-/llm-wiki-stack:llm-wiki-query what does the wiki say about the [[LLM Wiki Pattern]]?
+/claude-wiki-pages:llm-wiki-query what does the wiki say about the [[LLM Wiki Pattern]]?
 ```
 
 Or without the argument:
 
 ```
-/llm-wiki-stack:llm-wiki-query
+/claude-wiki-pages:llm-wiki-query
 ```
 
 …then type your question when prompted.
@@ -30,7 +30,7 @@ The skill:
 For questions that span topics or require tables, comparisons, or document compilation, use the agent:
 
 ```
-/llm-wiki-stack:llm-wiki-stack-analyst-agent <your question>
+/claude-wiki-pages:claude-wiki-pages-analyst-agent <your question>
 ```
 
 Examples:
@@ -42,7 +42,7 @@ Examples:
 The agent can also run in **challenge mode** — pressure-test an idea against the wiki:
 
 ```
-/llm-wiki-stack:llm-wiki-stack-analyst-agent challenge mode — I'm about to decide I only need one authoritative source per concept. Push back.
+/claude-wiki-pages:claude-wiki-pages-analyst-agent challenge mode — I'm about to decide I only need one authoritative source per concept. Push back.
 ```
 
 The agent searches for contradicting sources, gaps, and past decisions that argue against the proposal, then responds with a structured critique.
@@ -71,7 +71,7 @@ Options:
 If a query produces a genuinely novel insight (not restating existing pages), offer to file it:
 
 ```
-/llm-wiki-stack:llm-wiki-query ... and save as synthesis
+/claude-wiki-pages:llm-wiki-query ... and save as synthesis
 ```
 
 The skill creates `wiki/_synthesis/<slug>.md` with `type: synthesis`, the right `synthesis_type`, `scope:` covering the pages referenced, and `sources:` reflecting the provenance chain.

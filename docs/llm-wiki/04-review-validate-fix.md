@@ -7,7 +7,7 @@ Three levels of validation: the one-command health check, the read-only lint ski
 ## Level 1 — status (one-command smoke test)
 
 ```
-/llm-wiki-stack:llm-wiki-status
+/claude-wiki-pages:llm-wiki-status
 ```
 
 Exercises every hook path and reports green/red per path:
@@ -28,10 +28,10 @@ The underlying `verify-ingest.sh` checks:
 
 Green across the board means clean. Red means the status report points at the script that flagged the issue — fix the trivial cases by hand and hand the rest to Level 2.
 
-## Level 2 — `/llm-wiki-stack:llm-wiki-lint` (read-only audit)
+## Level 2 — `/claude-wiki-pages:llm-wiki-lint` (read-only audit)
 
 ```
-/llm-wiki-stack:llm-wiki-lint
+/claude-wiki-pages:llm-wiki-lint
 ```
 
 Beyond the Level 1 checks, lint scans for:
@@ -49,18 +49,18 @@ Beyond the Level 1 checks, lint scans for:
 
 Lint only **reports**. It does not modify the wiki. Review the report; what you do next depends on whether each item is real.
 
-## Level 3 — `/llm-wiki-stack:llm-wiki-stack-curator-agent` (auto-repair)
+## Level 3 — `/claude-wiki-pages:claude-wiki-pages-curator-agent` (auto-repair)
 
 For structural issues, run the repair agent:
 
 ```
-/llm-wiki-stack:llm-wiki-stack-curator-agent
+/claude-wiki-pages:claude-wiki-pages-curator-agent
 ```
 
 Or, if you want to skip directly to auto-fix without the agent's analysis phase:
 
 ```
-/llm-wiki-stack:llm-wiki-fix
+/claude-wiki-pages:llm-wiki-fix
 ```
 
 The agent collects every issue first, then applies fixes in phases (sources → vault MOC → per-folder MOCs → parent/path → broken links → orphans → aliases → graph colors → flat-folder splits → body densification), then re-runs lint and compares before/after counts.
@@ -87,7 +87,7 @@ When the agent finishes, the `subagent-lint-gate.sh` hook inspects its output an
 ## Cadence
 
 - After every batch ingest → status check is already part of the pipeline. Read the report.
-- Every 10 ingests → run `/llm-wiki-stack:llm-wiki-lint`, then `/llm-wiki-stack:llm-wiki-stack-curator-agent` if there are warnings.
+- Every 10 ingests → run `/claude-wiki-pages:llm-wiki-lint`, then `/claude-wiki-pages:claude-wiki-pages-curator-agent` if there are warnings.
 - Before exporting a deliverable → run status + lint.
 
 ## Next step

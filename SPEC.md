@@ -1,16 +1,16 @@
 # Specification
 
-Authoritative description of `llm-wiki-stack`, version `0.1.0`, schema version `1`. This document is reproducibility-grade — every contract an implementer needs is here. The example vault demonstrates the schema; this file defines it.
+Authoritative description of `claude-wiki-pages`, version `0.1.0`, schema version `1`. This document is reproducibility-grade — every contract an implementer needs is here. The example vault demonstrates the schema; this file defines it.
 
 Terminology follows `docs/VOCABULARY.md`. Where this file and `docs/vault-example/CLAUDE.md` diverge, **this file wins for schema intent** and the example vault is updated to match. Where a user guide and this file diverge, **this file wins** and the guide is corrected.
 
 ## 1. Identity
 
-- **Name.** `llm-wiki-stack`.
+- **Name.** `claude-wiki-pages`.
 - **Distribution.** Standalone Claude Code plugin. Installed via same-repo marketplace.
 - **License.** Apache 2.0. See `LICENSE` and `NOTICE`.
 - **Versioning.** Semantic versioning. `plugin.json` `version` is the product version. `schema_version` in `docs/vault-example/CLAUDE.md` is the vault schema version, independent of product version.
-- **Homepage.** `https://github.com/odere-pro/llm-wiki-stack`.
+- **Homepage.** `https://github.com/odere-pro/claude-wiki-pages`.
 
 ## 2. Configuration
 
@@ -21,12 +21,12 @@ four-tier resolution (first match wins):
 
 | Priority | Source                                          | Behaviour                                                                                                                             |
 | -------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 1        | `LLM_WIKI_VAULT` env var                        | Used as-is (relative or absolute). Explicit override — good for local dev and CI.                                                     |
-| 2        | `.claude/llm-wiki-stack/settings.json`          | `current_vault_path` field. Written by `scripts/set-vault.sh` or the plugin on session start.                                        |
+| 1        | `CLAUDE_WIKI_PAGES_VAULT` env var                        | Used as-is (relative or absolute). Explicit override — good for local dev and CI.                                                     |
+| 2        | `.claude/claude-wiki-pages/settings.json`          | `current_vault_path` field. Written by `scripts/set-vault.sh` or the plugin on session start.                                        |
 | 3        | Auto-detect                                     | Scan up to 4 levels deep for a `CLAUDE.md` declaring `schema_version` whose parent directory also contains `wiki/`. First match wins. |
 | 4        | Default                                         | `docs/vault` relative to the project root.                                                                                            |
 
-### `.claude/llm-wiki-stack/settings.json`
+### `.claude/claude-wiki-pages/settings.json`
 
 Created automatically on `SessionStart` if it does not exist. Contains two
 fields — `default_vault_path` is recorded once and never changed; only
@@ -45,8 +45,8 @@ To change the active vault call `scripts/set-vault.sh <path>` or set
 
 ```sh
 # Priority-1 override — local dev and CI only; does not write settings.json
-export LLM_WIKI_VAULT=docs/vault   # explicit relative, same as default
-export LLM_WIKI_VAULT=/mnt/shared  # absolute for shared / multi-project vaults
+export CLAUDE_WIKI_PAGES_VAULT=docs/vault   # explicit relative, same as default
+export CLAUDE_WIKI_PAGES_VAULT=/mnt/shared  # absolute for shared / multi-project vaults
 
 # Priority-2 — persistent per-project setting
 bash scripts/set-vault.sh my/project/vault
@@ -68,7 +68,7 @@ A Claude Code plugin that turns an Obsidian vault into a maintained, provenance-
 ### Inputs
 
 - **Sources** (`vault/raw/`) — immutable files the user drops in. Markdown, PDFs, images, transcripts. Mutation blocked by `scripts/protect-raw.sh`.
-- **Queries** (`/llm-wiki-stack:llm-wiki-query`) — natural-language questions answered from `vault/wiki/`.
+- **Queries** (`/claude-wiki-pages:llm-wiki-query`) — natural-language questions answered from `vault/wiki/`.
 - **Schema overrides** (`vault/CLAUDE.md`) — per-vault schema with `schema_version` field.
 
 ### Outputs
@@ -127,11 +127,11 @@ Five multi-step executors that compose Layer 2 skills.
 
 | Agent                                  | Chains                                                                                              |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `llm-wiki-stack-orchestrator-agent`    | Probes vault state and dispatches to the wizard skill (`llm-wiki`) or one of three specialists (`ingest`, `curator`, `analyst`). The polish agent runs as a separate post-step after `ingest` or `curator` returns. The user-facing entry. |
-| `llm-wiki-stack-ingest-agent`          | ingest → curator → _optimize (opt-in)_ → synthesize. Invoked by the orchestrator on pending sources. |
-| `llm-wiki-stack-curator-agent`         | Audits, auto-repairs, gates judgment fixes behind plans, reports unresolved items.                  |
-| `llm-wiki-stack-analyst-agent`         | Answers analytical questions requiring traversal of the topic tree (5 modes: query, dashboard, compile, extract, challenge). |
-| `llm-wiki-stack-polish-agent`          | Tail-of-write step — graph colors, vault-MOC refresh, per-folder MOC consistency. Runs after ingest or curator returns. |
+| `claude-wiki-pages-orchestrator-agent`    | Probes vault state and dispatches to the wizard skill (`llm-wiki`) or one of three specialists (`ingest`, `curator`, `analyst`). The polish agent runs as a separate post-step after `ingest` or `curator` returns. The user-facing entry. |
+| `claude-wiki-pages-ingest-agent`          | ingest → curator → _optimize (opt-in)_ → synthesize. Invoked by the orchestrator on pending sources. |
+| `claude-wiki-pages-curator-agent`         | Audits, auto-repairs, gates judgment fixes behind plans, reports unresolved items.                  |
+| `claude-wiki-pages-analyst-agent`         | Answers analytical questions requiring traversal of the topic tree (5 modes: query, dashboard, compile, extract, challenge). |
+| `claude-wiki-pages-polish-agent`          | Tail-of-write step — graph colors, vault-MOC refresh, per-folder MOC consistency. Runs after ingest or curator returns. |
 
 - **Input.** User invocation; schema.
 - **Output.** Agent reports aggregating per-skill output; wiki writes via the chained skills.
@@ -150,7 +150,7 @@ Hooks, scripts, and path-scoped rules. Defines the contracts Layers 1–3 operat
 ## 6. Directory layout
 
 ```
-llm-wiki-stack/                         # plugin source (installed to the user's plugin cache)
+claude-wiki-pages/                         # plugin source (installed to the user's plugin cache)
 ├── .claude-plugin/
 │   ├── plugin.json                     # product version, description, keywords
 │   └── marketplace.json                # same-repo marketplace definition
@@ -366,13 +366,13 @@ Every folder under `wiki/` contains exactly one **per-folder MOC** (file: `_inde
 
 ## 9. Command contracts
 
-Every slash command is `/llm-wiki-stack:<name>`. Each skill contract is a triple: **what must be true before invocation**, **what must be true after**, and **which hooks enforce the gap between them**. Skills are grouped below by the role they play in a session, not by alphabetical order.
+Every slash command is `/claude-wiki-pages:<name>`. Each skill contract is a triple: **what must be true before invocation**, **what must be true after**, and **which hooks enforce the gap between them**. Skills are grouped below by the role they play in a session, not by alphabetical order.
 
 ### Role A — Top-level entry and bootstrap
 
 #### `wiki`
 
-The user-facing top-level verb. Implemented as `commands/wiki.md` and dispatches to `llm-wiki-stack-orchestrator-agent` (§11). The orchestrator probes vault state and routes to one specialist per invocation.
+The user-facing top-level verb. Implemented as `commands/wiki.md` and dispatches to `claude-wiki-pages-orchestrator-agent` (§11). The orchestrator probes vault state and routes to one specialist per invocation.
 
 - **Read.** Filesystem only — vault path resolved via `scripts/resolve-vault.sh`; `vault/CLAUDE.md`; `vault/raw/`; `vault/wiki/log.md`.
 - **Write.** Nothing directly. All writes happen inside the dispatched specialist.
@@ -385,18 +385,18 @@ The onboarding entry point. Run by the orchestrator on a missing or under-scaffo
 
 - **Read.** `docs/vault-example/` (reference vault); plugin config; the user's project root.
 - **Write.** `vault/` scaffolded from `docs/vault-example/`, including `vault/CLAUDE.md` with `schema_version: 1`.
-- **Exit state.** `verify-ingest.sh` exits 0 against the new vault. A "you are here" summary prints to the terminal pointing the user at `/llm-wiki-stack:wiki` (the orchestrator chains directly into ingest if `raw/` has files) as the next step.
+- **Exit state.** `verify-ingest.sh` exits 0 against the new vault. A "you are here" summary prints to the terminal pointing the user at `/claude-wiki-pages:wiki` (the orchestrator chains directly into ingest if `raw/` has files) as the next step.
 - **Enforced by.** `SessionStart` schema-reminder preamble fires on first invocation. `PreToolUse` frontmatter validation catches any malformed template copy.
 
 ### Role B — Pipeline (orchestrator-driven default)
 
-#### `llm-wiki-stack-ingest-agent` (Layer 3 agent, listed here for parity)
+#### `claude-wiki-pages-ingest-agent` (Layer 3 agent, listed here for parity)
 
-The Layer 3 agent the orchestrator dispatches when `vault/raw/` has unprocessed sources. Full contract in §11; summarized here because its precondition is the default starting point for the power-user skills below. Users typically invoke it via `/llm-wiki-stack:wiki`; direct invocation is supported for scripting.
+The Layer 3 agent the orchestrator dispatches when `vault/raw/` has unprocessed sources. Full contract in §11; summarized here because its precondition is the default starting point for the power-user skills below. Users typically invoke it via `/claude-wiki-pages:wiki`; direct invocation is supported for scripting.
 
 - **Read.** Files in `vault/raw/` not yet referenced in `wiki/log.md`.
 - **Write.** Source summaries in `wiki/_sources/`, new/updated typed pages in `wiki/<topic>/`, maintained per-folder `_index.md`, refreshed `wiki/index.md`, appended `wiki/log.md`, and — when warranted — a synthesis note under `wiki/_synthesis/`.
-- **Exit state.** `verify-ingest.sh` clean; `llm-wiki-stack-curator-agent` reports zero errors.
+- **Exit state.** `verify-ingest.sh` clean; `claude-wiki-pages-curator-agent` reports zero errors.
 - **Enforced by.** `PreToolUse` (frontmatter, wikilinks, raw immutability, attachment validity) + `PostToolUse` summary + `SubagentStop` ingest and lint gates.
 
 ### Role C — Power-user verbs (narrower scope than the pipeline)
@@ -512,30 +512,30 @@ Planned additions (Phase D):
 
 ## 11. Agent contracts
 
-### `llm-wiki-stack-orchestrator-agent`
+### `claude-wiki-pages-orchestrator-agent`
 
-- **Invocation.** Entry point for `/llm-wiki-stack:wiki`. `user-invocable: true`. Single-pass; never recurses.
+- **Invocation.** Entry point for `/claude-wiki-pages:wiki`. `user-invocable: true`. Single-pass; never recurses.
 - **Probes.** `vault_exists`, `schema_version`, `raw_pending` (count of files in `raw/` not referenced in `wiki/log.md`), `last_log_entry` (most recent verb in `wiki/log.md`).
-- **Dispatch.** First-match-wins on the table in `agents/llm-wiki-stack-orchestrator-agent.md` Step 2. Routes to: the `llm-wiki` skill (init wizard), `llm-wiki-stack-ingest-agent`, `llm-wiki-stack-curator-agent`, or `llm-wiki-stack-analyst-agent`. Falls through to one clarifying question.
+- **Dispatch.** First-match-wins on the table in `agents/claude-wiki-pages-orchestrator-agent.md` Step 2. Routes to: the `llm-wiki` skill (init wizard), `claude-wiki-pages-ingest-agent`, `claude-wiki-pages-curator-agent`, or `claude-wiki-pages-analyst-agent`. Falls through to one clarifying question.
 - **Guarantees.** Calls exactly one specialist per invocation. Specialists must not re-probe state; the orchestrator passes `vault_path` explicitly. Never writes to `vault/`.
 
-### `llm-wiki-stack-ingest-agent`
+### `claude-wiki-pages-ingest-agent`
 
 - **Chains.** ingest → curator (wraps verify) → _optimize (opt-in, destructive)_ → synthesize. Optimize is gated behind explicit user confirmation and skipped if no folder exceeds the ≤ 12-children target.
 - **Guarantees.** On clean return: every source has a summary; every touched page carries valid frontmatter and updated `sources`; every affected `_index.md` is up to date; `wiki/index.md` and `wiki/log.md` advanced; synthesis note filed if the run warrants one; `verify-ingest.sh` exits 0.
 - **Failure policy.** On any `SubagentStop` gate failure, the agent halts and surfaces the unresolved items. It does not retry silently.
 
-### `llm-wiki-stack-curator-agent`
+### `claude-wiki-pages-curator-agent`
 
 - **Chains.** lint → fix → lint (revalidation).
 - **Guarantees.** On clean return: no errors; warnings reported to the user; info items documented. Fix passes are idempotent — running twice does not change the tree. Judgment fixes (restructures, merges) require explicit user approval before any write.
 
-### `llm-wiki-stack-analyst-agent`
+### `claude-wiki-pages-analyst-agent`
 
 - **Chains.** query → (optionally) synthesize.
 - **Guarantees.** Answers carry `[[wikilink]]` citations. No hallucinated page titles; every citation resolves. Modes 2 (Dashboard) and 3 (Document Compile) gate writes to `wiki/dashboard.md` and `wiki/_synthesis/`.
 
-### `llm-wiki-stack-polish-agent`
+### `claude-wiki-pages-polish-agent`
 
 - **Invocation.** Tail-of-write specialist. Fanned out by the orchestrator after every successful ingest or curator run; never invoked directly. `user-invocable: false`.
 - **Chains.** graph-colors → vault-MOC refresh → per-folder MOC consistency. Single pass, no destructive ops, idempotent.
@@ -589,7 +589,7 @@ Each tier's assertions are a contract: a PR that breaks a Tier 0–2 assertion d
 ## 15. Security model
 
 - **Prompt injection via ingested sources.** The schema is read before the source, not after it. `raw/` is immutable. Frontmatter-bound writes block malicious output shapes. `prompt-guard.sh` inspects user prompts for patterns that invite schema violations.
-- **Provenance drift.** Every non-source page has a `sources:` field. `confidence` is lower-bounded by the number of corroborating sources. `llm-wiki-stack-curator-agent` repairs structural drift between pages and their indexes.
+- **Provenance drift.** Every non-source page has a `sources:` field. `confidence` is lower-bounded by the number of corroborating sources. `claude-wiki-pages-curator-agent` repairs structural drift between pages and their indexes.
 - **Vault poisoning.** Ingest is additive. A contradicting source adds to `contradicts:`; it does not silently overwrite.
 - **Confidence discipline.** `1.0` only for direct quotes or settled facts from an authoritative source. `≥ 0.8` requires two independent corroborating sources. `≥ 0.6` acceptable for a single authoritative source. Below `0.5` flags for review. Lint enforces the single-source-≥0.8 check.
 - **MCP auth.** The plugin exposes no MCP server. If it does in future, scope is limited to the vault path.

@@ -1,11 +1,11 @@
 ---
-name: llm-wiki-stack-curator-agent
+name: claude-wiki-pages-curator-agent
 description: >
   Curator for the wiki: lints structural issues (broken wikilinks, orphan
   pages, frontmatter gaps, index drift, plain-string sources, missing
   parent/path), auto-applies safe mechanical fixes, and gates judgment fixes
   (restructures, merges) behind explicit user approval. Invoked by the
-  llm-wiki-stack-orchestrator-agent after every ingest, or directly when the
+  claude-wiki-pages-orchestrator-agent after every ingest, or directly when the
   user asks to lint, audit, or repair the wiki.
 model: sonnet
 tools: Bash, Read, Write, Edit, Glob, Grep
@@ -210,7 +210,7 @@ Never delete an orphan. Unresolvable orphans stay as report-only items.
 For each top-level topic folder without a matching `path:wiki/<folder>` color group:
 
 1. Read current groups via `obsidian eval`.
-2. Pick the next unused palette color per `/llm-wiki-stack:obsidian-graph-colors`.
+2. Pick the next unused palette color per `/claude-wiki-pages:obsidian-graph-colors`.
 3. Insert before the `_sources` / `_synthesis` / `_index` catch-all rules.
 4. Apply via `obsidian eval` + `graph.saveOptions()`.
 

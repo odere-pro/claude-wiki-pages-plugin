@@ -1,7 +1,7 @@
 #!/bin/bash
 # PreToolUse: blocks wiki files that use [text](file.md) instead of [[wikilinks]]
 # Usage (CLI): scripts/check-wikilinks.sh [--target <vault-path>]
-# Default target: $LLM_WIKI_VAULT (fallback: docs/vault)
+# Default target: $CLAUDE_WIKI_PAGES_VAULT (fallback: docs/vault)
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"

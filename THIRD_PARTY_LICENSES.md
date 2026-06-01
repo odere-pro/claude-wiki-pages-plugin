@@ -1,10 +1,10 @@
 # Third-Party Licenses
 
 This document reproduces the full license text of every third-party
-component bundled with `llm-wiki-stack`. The `NOTICE` file in the repo
+component bundled with `claude-wiki-pages`. The `NOTICE` file in the repo
 root summarizes these bundles; this document is the authoritative text.
 
-The rest of `llm-wiki-stack` (everything not listed below) is original
+The rest of `claude-wiki-pages` (everything not listed below) is original
 work distributed under the Apache License, Version 2.0. See `LICENSE`.
 
 ---

@@ -15,4 +15,4 @@ updated: 2026-04-24
 
 Master catalog of every page in the wiki.
 
-This vault is empty. Drop a source into `raw/` and run `/llm-wiki-stack:wiki` to start populating it. The orchestrator detects the new source and runs the ingest pipeline, creating topic folders, source summaries, entity / concept pages, and updating this index automatically.
+This vault is empty. Drop a source into `raw/` and run `/claude-wiki-pages:wiki` to start populating it. The orchestrator detects the new source and runs the ingest pipeline, creating topic folders, source summaries, entity / concept pages, and updating this index automatically.

@@ -1,9 +1,9 @@
 ---
-name: llm-wiki-stack-analyst-agent
+name: claude-wiki-pages-analyst-agent
 description: >
   Query the wiki, produce dashboards and reports, reconstruct documents,
   and extract information efficiently. Invoked by the
-  llm-wiki-stack-orchestrator-agent when the user prompt is analytical
+  claude-wiki-pages-orchestrator-agent when the user prompt is analytical
   ("query", "what does the wiki say about X", "build a dashboard",
   "compile", "extract", "challenge"). Five operating modes — Query,
   Dashboard, Document Compile, Extract, Challenge — selected from the

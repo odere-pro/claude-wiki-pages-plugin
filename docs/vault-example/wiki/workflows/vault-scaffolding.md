@@ -7,7 +7,7 @@ path: "workflows"
 sources:
   - "[[Getting Started]]"
   - "[[Create a New Vault]]"
-related: ["[[Ingest Pipeline]]", "[[llm-wiki-stack]]"]
+related: ["[[Ingest Pipeline]]", "[[claude-wiki-pages]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -23,7 +23,7 @@ confidence: 0.8
 
 ## Definition
 
-The one-time workflow for standing up a new `vault/` in a project. Invoked as `/llm-wiki-stack:llm-wiki`. Copies an empty starter scaffold into the project, writes the per-vault `CLAUDE.md`, and persists the chosen vault path into `.claude/llm-wiki-stack/settings.json` so subsequent sessions resolve it automatically.
+The one-time workflow for standing up a new `vault/` in a project. Invoked as `/claude-wiki-pages:llm-wiki`. Copies an empty starter scaffold into the project, writes the per-vault `CLAUDE.md`, and persists the chosen vault path into `.claude/claude-wiki-pages/settings.json` so subsequent sessions resolve it automatically.
 
 ## Key Principles
 
@@ -34,8 +34,8 @@ The one-time workflow for standing up a new `vault/` in a project. Invoked as `/
 
 ## Examples
 
-- Fresh project: `/llm-wiki-stack:llm-wiki` — scaffolds at the default path `docs/vault`.
-- Custom path: `/llm-wiki-stack:llm-wiki my vault is docs/my-research`.
+- Fresh project: `/claude-wiki-pages:llm-wiki` — scaffolds at the default path `docs/vault`.
+- Custom path: `/claude-wiki-pages:llm-wiki my vault is docs/my-research`.
 - Second vault in a second project: run the same command from that project's directory.
 
 ## Related Concepts

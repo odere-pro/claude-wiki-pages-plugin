@@ -20,7 +20,7 @@ Master catalog of every page in the wiki.
 
 ## Sources
 
-- [[Using llm-wiki-stack]] — top-level navigation map for the seven user guides.
+- [[Using claude-wiki-pages]] — top-level navigation map for the seven user guides.
 - [[Getting Started]] — install, session start, scaffold, health check.
 - [[Create a New Vault]] — first-time scaffold and multi-project vaults.
 - [[Update an Existing Vault]] — day-to-day ingest workflow.
@@ -42,7 +42,7 @@ Master catalog of every page in the wiki.
 - [[Claude Code]] — CLI harness for skills, agents, and hooks.
 - [[Obsidian]] — local-first markdown editor; vault = folder.
 - [[Dataview]] — Obsidian community plugin powering the dashboard.
-- [[llm-wiki-stack]] — this plugin.
+- [[claude-wiki-pages]] — this plugin.
 - [[Pandoc]] — markdown → PDF / DOCX for deliverables.
 
 ### Workflows ([[Workflows — Index]])
@@ -55,4 +55,4 @@ Master catalog of every page in the wiki.
 
 ## Synthesis
 
-None yet. Run `/llm-wiki-stack:llm-wiki-synthesize` when the wiki has enough content to warrant cross-topic analysis.
+None yet. Run `/claude-wiki-pages:llm-wiki-synthesize` when the wiki has enough content to warrant cross-topic analysis.

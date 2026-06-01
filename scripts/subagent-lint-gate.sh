@@ -1,5 +1,5 @@
 #!/bin/bash
-# SubagentStop: quality gate for llm-wiki-stack-curator-agent agent
+# SubagentStop: quality gate for claude-wiki-pages-curator-agent agent
 # Warns if the agent's output indicates unresolved errors
 
 INPUT=$(cat)
@@ -7,7 +7,7 @@ AGENT_NAME=$(echo "$INPUT" | jq -r '.agent_name // empty')
 
 # Only gate the lint-fix agent
 case "$AGENT_NAME" in
-  llm-wiki-stack-curator-agent) ;;
+  claude-wiki-pages-curator-agent) ;;
   *) exit 0 ;;
 esac
 
@@ -15,7 +15,7 @@ STDOUT=$(echo "$INPUT" | jq -r '.stdout // empty')
 
 # Check for unresolved errors in the agent's output
 if echo "$STDOUT" | grep -qiE '(unresolved.*error|error.*unresolved|errors:.*[1-9]|ERROR:)'; then
-  echo "QUALITY GATE: llm-wiki-stack-curator-agent agent completed with unresolved errors. Review the report before continuing the pipeline."
+  echo "QUALITY GATE: claude-wiki-pages-curator-agent agent completed with unresolved errors. Review the report before continuing the pipeline."
 fi
 
 exit 0

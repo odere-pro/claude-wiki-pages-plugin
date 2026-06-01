@@ -1,6 +1,6 @@
 #!/bin/bash
-# scripts/doctor.sh — Health check for llm-wiki-stack.
-# Wrapped by the /llm-wiki-stack:wiki-doctor slash command.
+# scripts/doctor.sh — Health check for claude-wiki-pages.
+# Wrapped by the /claude-wiki-pages:wiki-doctor slash command.
 #
 # Exit codes (catch first failure; do not mask later ones):
 #   0  healthy
@@ -33,7 +33,7 @@ fi
 if [ ! -d "$VAULT" ]; then
   # Tier 4 (default) is `docs/vault`. If it doesn't exist either, the user
   # hasn't run the wizard yet — that's a recoverable state, not a failure.
-  red 1 "vault path" "$VAULT does not exist (run /llm-wiki-stack:llm-wiki to scaffold)"
+  red 1 "vault path" "$VAULT does not exist (run /claude-wiki-pages:llm-wiki to scaffold)"
   exit 1
 fi
 green "vault path resolves to $VAULT"

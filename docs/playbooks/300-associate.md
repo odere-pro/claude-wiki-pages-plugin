@@ -8,7 +8,7 @@
 
 ## Prerequisites
 
-- `/llm-wiki-stack:wiki-doctor` exits 0.
+- `/claude-wiki-pages:wiki-doctor` exits 0.
 - Your vault has at least 10 ingested sources and 20+ wiki pages.
 - You can read shell scripts and YAML frontmatter.
 
@@ -22,36 +22,36 @@
 - Predict which specialist runs for a given prompt.
 - Recognize the polish-agent's tail-step.
 
-The Layer 3 orchestrator (`llm-wiki-stack-orchestrator-agent`) does exactly one job: **state probe → choose one specialist → fan out → optional polish tail**. It never recurses, never picks two specialists, and never re-routes after a specialist returns.
+The Layer 3 orchestrator (`claude-wiki-pages-orchestrator-agent`) does exactly one job: **state probe → choose one specialist → fan out → optional polish tail**. It never recurses, never picks two specialists, and never re-routes after a specialist returns.
 
-The full contract is in [`agents/llm-wiki-stack-orchestrator-agent.md`](../../agents/llm-wiki-stack-orchestrator-agent.md) and [`/SPEC.md` §11](../../SPEC.md). The dispatch table summarized:
+The full contract is in [`agents/claude-wiki-pages-orchestrator-agent.md`](../../agents/claude-wiki-pages-orchestrator-agent.md) and [`/SPEC.md` §11](../../SPEC.md). The dispatch table summarized:
 
 | Probe result                                                                                  | Specialist | Why |
 | --------------------------------------------------------------------------------------------- | ---------- | --- |
 | `vault_exists == false` OR `schema_version == ""`                                             | `llm-wiki` skill (init wizard) | Bootstrap before anything else. |
-| `raw_pending > 0`                                                                             | `llm-wiki-stack-ingest-agent`  | Process new sources first; later answers benefit from fresh state. |
-| `last_log_entry == "ingest"` and lint never ran since                                         | `llm-wiki-stack-curator-agent` | A pending ingest hasn't been audited yet; clean it before doing anything else. |
-| Prompt matches an analytical verb (`query`, `ask`, `summarize`, `report`, `compile`, `extract`, `compare`, `challenge`, `dashboard`, or starts with `?`/`what`/`why`/`how`) | `llm-wiki-stack-analyst-agent` | Read-mostly request. |
+| `raw_pending > 0`                                                                             | `claude-wiki-pages-ingest-agent`  | Process new sources first; later answers benefit from fresh state. |
+| `last_log_entry == "ingest"` and lint never ran since                                         | `claude-wiki-pages-curator-agent` | A pending ingest hasn't been audited yet; clean it before doing anything else. |
+| Prompt matches an analytical verb (`query`, `ask`, `summarize`, `report`, `compile`, `extract`, `compare`, `challenge`, `dashboard`, or starts with `?`/`what`/`why`/`how`) | `claude-wiki-pages-analyst-agent` | Read-mostly request. |
 | Anything else                                                                                 | Ask one clarifying question | Never fan out on ambiguity. |
 
-After a successful `ingest` or `curator` run, the orchestrator runs `llm-wiki-stack-polish-agent` once as a tail step — graph colors, vault MOC refresh, per-folder MOC consistency. Polish is idempotent; running it twice produces no diff. The wizard and analyst do **not** trigger polish.
+After a successful `ingest` or `curator` run, the orchestrator runs `claude-wiki-pages-polish-agent` once as a tail step — graph colors, vault MOC refresh, per-folder MOC consistency. Polish is idempotent; running it twice produces no diff. The wizard and analyst do **not** trigger polish.
 
 > **Lab.** Phrase the same goal three different ways. Watch the orchestrator's routing change.
 >
 > ```text
-> /llm-wiki-stack:wiki I added new papers to raw/
+> /claude-wiki-pages:wiki I added new papers to raw/
 > ```
 >
 > The orchestrator probes — `raw_pending > 0` → ingest agent runs.
 >
 > ```text
-> /llm-wiki-stack:wiki this page has bad wikilinks
+> /claude-wiki-pages:wiki this page has bad wikilinks
 > ```
 >
 > No raw pending; not an analytical verb. Orchestrator asks one clarifying question, then routes to curator.
 >
 > ```text
-> /llm-wiki-stack:wiki compare retrieval vs reranking in the wiki
+> /claude-wiki-pages:wiki compare retrieval vs reranking in the wiki
 > ```
 >
 > Analytical verb (`compare`). Routes to analyst. No polish runs after.
@@ -61,7 +61,7 @@ After a successful `ingest` or `curator` run, the orchestrator runs `llm-wiki-st
 <details>
 <summary>Q: I want to ask a question, but I have new files in <code>raw/</code>. What does the orchestrator do?</summary>
 
-It dispatches to ingest first — bootstrap before query. Your question is more useful answered against fresh state. After ingest (and polish), run `/llm-wiki-stack:wiki <question>` again to get the analyst.
+It dispatches to ingest first — bootstrap before query. Your question is more useful answered against fresh state. After ingest (and polish), run `/claude-wiki-pages:wiki <question>` again to get the analyst.
 </details>
 
 <details>
@@ -82,37 +82,37 @@ After the wizard (no wiki state to polish), after the analyst (read-mostly), and
 The orchestrator's routing decision adds latency. In scripted workflows or batch jobs where you already know the right specialist, you can call the agent directly:
 
 ```text
-/llm-wiki-stack:llm-wiki-stack-ingest-agent
-/llm-wiki-stack:llm-wiki-stack-curator-agent
-/llm-wiki-stack:llm-wiki-stack-analyst-agent compare retrieval vs reranking
+/claude-wiki-pages:claude-wiki-pages-ingest-agent
+/claude-wiki-pages:claude-wiki-pages-curator-agent
+/claude-wiki-pages:claude-wiki-pages-analyst-agent compare retrieval vs reranking
 ```
 
 **Don't bypass when:**
 
 - You're a human typing — the orchestrator is faster than your wrong guess.
 - The vault state is uncertain (a colleague might have ingested while you were away).
-- You want polish to run automatically. Direct agent calls do not trigger the polish tail-step. Run `/llm-wiki-stack:obsidian-graph-colors` and refresh the indexes by hand if you need it.
+- You want polish to run automatically. Direct agent calls do not trigger the polish tail-step. Run `/claude-wiki-pages:obsidian-graph-colors` and refresh the indexes by hand if you need it.
 
 > **Lab.** Compare the two paths against a fresh-ingest scenario.
 >
 > Path A — orchestrator:
 >
 > ```text
-> /llm-wiki-stack:wiki
+> /claude-wiki-pages:wiki
 > ```
 >
 > Logs:
 >
 > ```text
 > [orchestrator] probe: vault=docs/vault, raw_pending=3, last_log=lint
-> [orchestrator] dispatch: llm-wiki-stack-ingest-agent
-> [orchestrator] tail: llm-wiki-stack-polish-agent
+> [orchestrator] dispatch: claude-wiki-pages-ingest-agent
+> [orchestrator] tail: claude-wiki-pages-polish-agent
 > ```
 >
 > Path B — direct:
 >
 > ```text
-> /llm-wiki-stack:llm-wiki-stack-ingest-agent
+> /claude-wiki-pages:claude-wiki-pages-ingest-agent
 > ```
 >
 > No probe. No tail. Indexes may drift.
@@ -122,7 +122,7 @@ The orchestrator's routing decision adds latency. In scripted workflows or batch
 <details>
 <summary>Q: After a direct ingest-agent call, what do I need to remember?</summary>
 
-Polish does not run. Either run `/llm-wiki-stack:obsidian-graph-colors` and refresh indexes manually, or just use `/llm-wiki-stack:wiki` next time and let the orchestrator do it.
+Polish does not run. Either run `/claude-wiki-pages:obsidian-graph-colors` and refresh indexes manually, or just use `/claude-wiki-pages:wiki` next time and let the orchestrator do it.
 </details>
 
 ---
@@ -191,7 +191,7 @@ No. The `SubagentStop` hook chain runs `subagent-ingest-gate.sh`, which calls `v
 - Verify the change takes effect on the next write.
 - Understand what *not* to override.
 
-The vault schema lives at `docs/vault/CLAUDE.md` (or wherever your `LLM_WIKI_VAULT` points). It is read at the start of every operation. Skill defaults defer to it. The reference schema is [`docs/vault-example/CLAUDE.md`](../vault-example/CLAUDE.md); your per-vault `CLAUDE.md` may add to it but should not weaken its invariants (`schema_version`, the six allowed `type:` values, the `sources:` requirement on non-source pages).
+The vault schema lives at `docs/vault/CLAUDE.md` (or wherever your `CLAUDE_WIKI_PAGES_VAULT` points). It is read at the start of every operation. Skill defaults defer to it. The reference schema is [`docs/vault-example/CLAUDE.md`](../vault-example/CLAUDE.md); your per-vault `CLAUDE.md` may add to it but should not weaken its invariants (`schema_version`, the six allowed `type:` values, the `sources:` requirement on non-source pages).
 
 > **Lab.** Add a custom `entity_type` value for `protocol`. Open `docs/vault/CLAUDE.md` and locate the entity-type enum:
 >
@@ -212,7 +212,7 @@ The vault schema lives at `docs/vault/CLAUDE.md` (or wherever your `LLM_WIKI_VAU
 > ```
 >
 > ```text
-> /llm-wiki-stack:wiki
+> /claude-wiki-pages:wiki
 > ```
 >
 > The ingest agent reads your updated schema first, recognizes `entity_type: protocol` as valid, and produces an HTTP entity page with that value. The `validate-frontmatter.sh` hook accepts the write because the schema now allows it.
@@ -251,24 +251,24 @@ Not without forking. The six `type:` values are validated by `validate-frontmatt
 > One run handles all of them:
 >
 > ```text
-> /llm-wiki-stack:wiki
+> /claude-wiki-pages:wiki
 > ```
 >
 > Expected log:
 >
 > ```text
 > [orchestrator] probe: raw_pending=53
-> [orchestrator] dispatch: llm-wiki-stack-ingest-agent
+> [orchestrator] dispatch: claude-wiki-pages-ingest-agent
 > [ingest] processed 53 files: 12 new entities, 28 new concepts, 9 source-only updates
 > [ingest] subagent-ingest-gate: verify-ingest.sh OK
-> [orchestrator] tail: llm-wiki-stack-polish-agent
+> [orchestrator] tail: claude-wiki-pages-polish-agent
 > [polish] graph colors: 2 new top-level topics colored; index.md refreshed; 7 _index.md files updated
 > ```
 
 After every ~10 ingests (or any time `wiki/log.md` shows three consecutive `ingest` entries with no `lint`), run a curator pass:
 
 ```text
-/llm-wiki-stack:wiki check the wiki for drift
+/claude-wiki-pages:wiki check the wiki for drift
 ```
 
 The orchestrator routes to the curator agent (`last_log_entry == "ingest"` triggers the curator branch). It audits, auto-applies safe mechanical fixes, and reports judgment fixes (restructures, merges) for you to plan.
@@ -292,28 +292,28 @@ A merge or restructure that an LLM picks "in the moment" can quietly destroy pro
 
 The plugin resolves the vault path via [`scripts/resolve-vault.sh`](../../scripts/resolve-vault.sh) using a four-tier order (first match wins):
 
-1. **`LLM_WIKI_VAULT` env var** — explicit override. Wins over everything.
-2. **`.claude/llm-wiki-stack/settings.json`** — `current_vault_path` field.
+1. **`CLAUDE_WIKI_PAGES_VAULT` env var** — explicit override. Wins over everything.
+2. **`.claude/claude-wiki-pages/settings.json`** — `current_vault_path` field.
 3. **Auto-detect** — scan up to 4 levels for a directory with `CLAUDE.md` (containing `schema_version`) and a `wiki/` sibling.
 4. **Default** — `docs/vault`.
 
-> **Note.** Auto-detect only walks four levels deep. If your vault is nested deeper, set `LLM_WIKI_VAULT` explicitly or run `bash scripts/set-vault.sh <path>`.
+> **Note.** Auto-detect only walks four levels deep. If your vault is nested deeper, set `CLAUDE_WIKI_PAGES_VAULT` explicitly or run `bash scripts/set-vault.sh <path>`.
 
 The lab works against either the env-var or the settings.json path:
 
 > **Lab.** Switch to a second vault for one command:
 >
 > ```bash
-> > LLM_WIKI_VAULT=/path/to/projB/docs/vault claude
+> > CLAUDE_WIKI_PAGES_VAULT=/path/to/projB/docs/vault claude
 > ```
 >
 > In that session:
 >
 > ```text
-> /llm-wiki-stack:wiki-doctor
+> /claude-wiki-pages:wiki-doctor
 > ```
 >
-> Should report `[doctor] vault path resolved: /path/to/projB/docs/vault`. Run `/llm-wiki-stack:wiki` and it operates on projB. Exit; your default session is unchanged.
+> Should report `[doctor] vault path resolved: /path/to/projB/docs/vault`. Run `/claude-wiki-pages:wiki` and it operates on projB. Exit; your default session is unchanged.
 >
 > To make the switch persistent for this project (no env var needed):
 >
@@ -321,7 +321,7 @@ The lab works against either the env-var or the settings.json path:
 > > bash scripts/set-vault.sh /path/to/projB/docs/vault
 > ```
 >
-> This writes `current_vault_path` to `.claude/llm-wiki-stack/settings.json`. The default reset reference (`default_vault_path`) stays at `docs/vault`.
+> This writes `current_vault_path` to `.claude/claude-wiki-pages/settings.json`. The default reset reference (`default_vault_path`) stays at `docs/vault`.
 
 The full resolution contract lives in the [root `CLAUDE.md`](../../CLAUDE.md) "Vault location" section.
 
@@ -330,7 +330,7 @@ The full resolution contract lives in the [root `CLAUDE.md`](../../CLAUDE.md) "V
 <details>
 <summary>Q: I have two vaults open in two terminals. The plugin's settings.json is shared. How do they not collide?</summary>
 
-The env var (Tier 1) beats settings.json (Tier 2). Set `LLM_WIKI_VAULT` per terminal and each session resolves independently.
+The env var (Tier 1) beats settings.json (Tier 2). Set `CLAUDE_WIKI_PAGES_VAULT` per terminal and each session resolves independently.
 </details>
 
 ---
@@ -342,7 +342,7 @@ The env var (Tier 1) beats settings.json (Tier 2). Set `LLM_WIKI_VAULT` per term
 - Know what the polish-agent does and when it runs.
 - Decide when to invoke it manually.
 
-The polish-agent (`llm-wiki-stack-polish-agent`) is the tail-of-write step that keeps the Obsidian-side experience in sync. Three things, all idempotent:
+The polish-agent (`claude-wiki-pages-polish-agent`) is the tail-of-write step that keeps the Obsidian-side experience in sync. Three things, all idempotent:
 
 1. **Graph colors** — assigns a unique color to every top-level topic folder via `obsidian-graph-colors`. New topics get colors; existing topics are left alone.
 2. **Vault MOC** — refreshes `wiki/index.md` with any new pages added by the upstream specialist.
@@ -350,16 +350,16 @@ The polish-agent (`llm-wiki-stack-polish-agent`) is the tail-of-write step that 
 
 The orchestrator runs polish after every successful `ingest` or `curator`. Skipped after wizard, analyst, or any specialist failure (see Module 1).
 
-> **Lab.** You did a direct `/llm-wiki-stack:llm-wiki-stack-ingest-agent` call (bypassing the orchestrator). Polish didn't run. Trigger it manually:
+> **Lab.** You did a direct `/claude-wiki-pages:claude-wiki-pages-ingest-agent` call (bypassing the orchestrator). Polish didn't run. Trigger it manually:
 >
 > ```text
-> /llm-wiki-stack:llm-wiki-stack-polish-agent
+> /claude-wiki-pages:claude-wiki-pages-polish-agent
 > ```
 >
 > Or run just the graph-colors slice:
 >
 > ```text
-> /llm-wiki-stack:obsidian-graph-colors
+> /claude-wiki-pages:obsidian-graph-colors
 > ```
 
 The full polish-agent rationale is in [`docs/adr/ADR-0003`](../adr/ADR-0003-polish-agent-and-obsidian-side.md). The user-facing tour is [`docs/llm-wiki/obsidian-experience.md`](../llm-wiki/obsidian-experience.md).

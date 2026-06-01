@@ -1,12 +1,12 @@
 ---
-name: llm-wiki-stack-polish-agent
+name: claude-wiki-pages-polish-agent
 description: >
   Tail-of-write specialist that keeps the Obsidian-side experience in sync after
   every ingest or curator pass. Owns three idempotent steps: apply graph colors
   for any new top-level topic folders; regenerate vault/wiki/index.md from
   per-folder _index.md files with current page counts; reconcile every
   _index.md children/child_indexes against actual filesystem siblings
-  (append-only, never delete). Invoked by llm-wiki-stack-orchestrator-agent
+  (append-only, never delete). Invoked by claude-wiki-pages-orchestrator-agent
   after ingest or curator returns successfully. Not user-invocable.
 model: sonnet
 tools: Bash, Read, Write, Edit, Glob, Grep
@@ -80,4 +80,4 @@ POLISH:
 
 ## Specification anchor
 
-`/SPEC.md §11` (`llm-wiki-stack-polish-agent` contract). Decision rationale in [`docs/adr/ADR-0003-polish-agent-and-obsidian-side.md`](../docs/adr/ADR-0003-polish-agent-and-obsidian-side.md).
+`/SPEC.md §11` (`claude-wiki-pages-polish-agent` contract). Decision rationale in [`docs/adr/ADR-0003-polish-agent-and-obsidian-side.md`](../docs/adr/ADR-0003-polish-agent-and-obsidian-side.md).

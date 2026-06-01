@@ -1,6 +1,6 @@
 # Features
 
-What `llm-wiki-stack` actually gives you.
+What `claude-wiki-pages` actually gives you.
 
 ## Schema
 
@@ -23,9 +23,9 @@ Full contract in [`/SPEC.md` §10](../SPEC.md).
 
 ## DX
 
-- **One-command pipeline** — `/llm-wiki-stack:wiki` probes vault state and runs the right specialist (init / ingest / curator / analyst). Polish runs as a tail step.
+- **One-command pipeline** — `/claude-wiki-pages:wiki` probes vault state and runs the right specialist (init / ingest / curator / analyst). Polish runs as a tail step.
 - **Obsidian-native** — works with Dataview, Templater, Web Clipper, and the graph view out of the box.
-- **Vault-portable** — switch vaults with `LLM_WIKI_VAULT` or `bash scripts/set-vault.sh`. The plugin never assumes a single vault.
+- **Vault-portable** — switch vaults with `CLAUDE_WIKI_PAGES_VAULT` or `bash scripts/set-vault.sh`. The plugin never assumes a single vault.
 - **AWS-Skill-Builder-style playbooks** — three learning paths (200 Foundational, 300 Associate, 500 Expert) under [`docs/playbooks/`](./playbooks/index.md).
 
 ## Test harness
@@ -42,7 +42,7 @@ Full layout in [`tests/README.md`](../tests/README.md). Open follow-ups in [`doc
 
 ## How it compares
 
-| Question                             | Competitor stance                                                                                          | `llm-wiki-stack`                                                 |
+| Question                             | Competitor stance                                                                                          | `claude-wiki-pages`                                                 |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | Can I run this locally?              | [`obsidian-llm-wiki-local`](https://github.com/kytmanov/obsidian-llm-wiki-local): yes, local-LLM only      | Yes — provider-agnostic, via whichever model Claude Code uses    |
 | Can I install it as a Claude plugin? | [`rvk7895/llm-knowledge-bases`](https://github.com/rvk7895/llm-knowledge-bases): yes, as a bag of commands | Yes, **plus** a four-layer architecture with hook-enforced gates |

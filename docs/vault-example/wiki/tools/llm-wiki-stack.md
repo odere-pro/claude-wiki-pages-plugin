@@ -1,12 +1,12 @@
 ---
-title: "llm-wiki-stack"
+title: "claude-wiki-pages"
 type: entity
 entity_type: product
-aliases: ["llm-wiki-stack"]
+aliases: ["claude-wiki-pages"]
 parent: "[[Tools — Index]]"
 path: "tools"
 sources:
-  - "[[Using llm-wiki-stack]]"
+  - "[[Using claude-wiki-pages]]"
   - "[[Getting Started]]"
   - "[[Create a New Vault]]"
   - "[[Update an Existing Vault]]"
@@ -21,7 +21,7 @@ status: active
 confidence: 0.9
 ---
 
-# llm-wiki-stack
+# claude-wiki-pages
 
 ## Overview
 
@@ -29,10 +29,10 @@ The Claude Code plugin that implements the [[LLM Wiki Pattern]] on top of an [[O
 
 ## Key Facts
 
-- Default verb: `/llm-wiki-stack:wiki` — orchestrator entry; probes vault state and dispatches to init, ingest, curator, or analyst.
-- Power-user bypass: `/llm-wiki-stack:llm-wiki-stack-ingest-agent` — direct ingest-pipeline call (skip the routing decision).
-- Onboarding verb: `/llm-wiki-stack:llm-wiki` — scaffolds `vault/` and writes the per-project `vault/CLAUDE.md` schema. The orchestrator dispatches here automatically on a fresh install.
-- Health check: `/llm-wiki-stack:wiki-doctor` — exercises every hook path and reports green/red per path.
+- Default verb: `/claude-wiki-pages:wiki` — orchestrator entry; probes vault state and dispatches to init, ingest, curator, or analyst.
+- Power-user bypass: `/claude-wiki-pages:claude-wiki-pages-ingest-agent` — direct ingest-pipeline call (skip the routing decision).
+- Onboarding verb: `/claude-wiki-pages:llm-wiki` — scaffolds `vault/` and writes the per-project `vault/CLAUDE.md` schema. The orchestrator dispatches here automatically on a fresh install.
+- Health check: `/claude-wiki-pages:wiki-doctor` — exercises every hook path and reports green/red per path.
 - `vault/CLAUDE.md` is the authoritative schema; it wins over any skill default that conflicts.
 
 ## Related

@@ -4,7 +4,7 @@ description: >
   One-command health check. Exercises every hook path and reports pass/fail
   per hook — without writing to vault/. Trigger when the user says "status",
   "health check", "is everything wired up", "did the install work",
-  "dashboard", or invokes /llm-wiki-stack:llm-wiki-status directly. Strictly
+  "dashboard", or invokes /claude-wiki-pages:llm-wiki-status directly. Strictly
   read-only against vault content; any accidental write is the skill's own
   bug.
 allowed-tools: Read Bash Glob Grep

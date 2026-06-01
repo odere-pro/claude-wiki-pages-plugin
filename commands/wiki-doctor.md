@@ -1,9 +1,9 @@
 ---
-description: Environment health check for llm-wiki-stack. Verifies vault path, schema, raw/wiki layout, hook executability, and vocabulary gate.
+description: Environment health check for claude-wiki-pages. Verifies vault path, schema, raw/wiki layout, hook executability, and vocabulary gate.
 allowed-tools: Bash
 ---
 
-# /llm-wiki-stack:wiki-doctor
+# /claude-wiki-pages:wiki-doctor
 
 Run `scripts/doctor.sh` and surface its output verbatim. Exit codes:
 
@@ -28,7 +28,7 @@ Print stdout/stderr verbatim. Do not interpret. The exit code tells the user wha
 
 ## Companion command
 
-- `/llm-wiki-stack:wiki` — run the LLM Wiki itself once doctor reports healthy.
+- `/claude-wiki-pages:wiki` — run the LLM Wiki itself once doctor reports healthy.
 
 ## Specification anchor
 

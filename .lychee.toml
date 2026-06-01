@@ -13,7 +13,7 @@ exclude = [
   "^mailto:",
   # GitHub rate-limits anonymous link checks aggressively.
   # The repo is verified by hand during release; the checker handles internal links.
-  "^https?://github\\.com/odere-pro/llm-wiki-stack",
+  "^https?://github\\.com/odere-pro/claude-wiki-pages",
 ]
 
 # Internal link resolution

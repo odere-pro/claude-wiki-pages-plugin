@@ -1,22 +1,22 @@
 ---
 name: llm-wiki-fix
 description: >
-  Auto-repair what /llm-wiki-stack:llm-wiki-lint reports. Idempotent — running
+  Auto-repair what /claude-wiki-pages:llm-wiki-lint reports. Idempotent — running
   twice on a clean tree produces no diff. Trigger when the user says "fix the
   lint errors", "repair the wiki", "auto-fix", or invokes
-  /llm-wiki-stack:llm-wiki-fix directly. Expects a fresh lint report in
+  /claude-wiki-pages:llm-wiki-fix directly. Expects a fresh lint report in
   context, or runs its own lint pass internally.
 allowed-tools: Read Write Edit Glob Grep Bash
 ---
 
 # LLM Wiki — Fix
 
-Apply the repairs `/llm-wiki-stack:llm-wiki-lint` identified.
+Apply the repairs `/claude-wiki-pages:llm-wiki-lint` identified.
 
 ## When to invoke
 
 - The user has just run lint and asks to fix what it found.
-- The `llm-wiki-stack-curator-agent` agent is orchestrating the lint → fix → lint cycle.
+- The `claude-wiki-pages-curator-agent` agent is orchestrating the lint → fix → lint cycle.
 - The user is confident enough to fix without a prior lint pass (in which
   case this skill runs lint internally first).
 
@@ -47,7 +47,7 @@ Writes are confined to what the specific lint finding authorizes:
 | Missing `parent` / `path`         | Derive from file location under `wiki/`.                                               |
 | MOC missing member                | Add the page or subfolder to `children:` / `child_indexes:` of its per-folder MOC.     |
 | Banned legacy value               | Rewrite: `type: moc` → `type: index`; `_MOC.md` → `_index.md`; `child_mocs:` → `child_indexes:`. |
-| Vault MOC drift                   | Escalate to `/llm-wiki-stack:llm-wiki-index`; do not edit `wiki/index.md` directly.     |
+| Vault MOC drift                   | Escalate to `/claude-wiki-pages:llm-wiki-index`; do not edit `wiki/index.md` directly.     |
 
 Always append one log entry:
 
@@ -90,7 +90,7 @@ Every write passes through `PreToolUse`: frontmatter, wikilinks, raw
 immutability, attachments. A failing hook means the proposed repair is wrong;
 do not retry the same content — adjust it.
 
-When this skill is invoked inside the `llm-wiki-stack-curator-agent` agent, `SubagentStop`
+When this skill is invoked inside the `claude-wiki-pages-curator-agent` agent, `SubagentStop`
 runs a final lint gate. The agent blocks completion if that gate returns a
 non-zero exit.
 

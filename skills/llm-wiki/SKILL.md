@@ -5,7 +5,7 @@ description: >
   copying from the skill's own template/, stamp the schema version, and orient the user.
   Trigger when the user says "set up a wiki", "initialize the vault",
   "start a new LLM Wiki", "bootstrap the vault", or invokes
-  /llm-wiki-stack:llm-wiki directly.
+  /claude-wiki-pages:llm-wiki directly.
 allowed-tools: Bash Read Write Edit Glob Grep
 ---
 
@@ -19,8 +19,8 @@ reference scaffold without overwriting user content. Running it twice on a
 healthy vault is a no-op.
 
 This skill owns initialization. It does not ingest, lint, or query — those
-roles belong to `/llm-wiki-stack:llm-wiki-ingest`,
-`/llm-wiki-stack:llm-wiki-lint`, and `/llm-wiki-stack:llm-wiki-query`.
+roles belong to `/claude-wiki-pages:llm-wiki-ingest`,
+`/claude-wiki-pages:llm-wiki-lint`, and `/claude-wiki-pages:llm-wiki-query`.
 
 ## When to invoke
 
@@ -54,7 +54,7 @@ Two write targets, both scoped to the user's project:
 
 1. `<project>/<vault>/` — the scaffold tree. Only missing files and
    directories are written; existing user content is never overwritten.
-2. `<project>/.claude/llm-wiki-stack/settings.json` — written via
+2. `<project>/.claude/claude-wiki-pages/settings.json` — written via
    `scripts/set-vault.sh` so the chosen vault path persists across sessions.
 
 - Copy missing pieces from `${CLAUDE_PLUGIN_ROOT}/skills/llm-wiki/template/` into
@@ -63,15 +63,15 @@ Two write targets, both scoped to the user's project:
 - Do NOT populate `wiki/_sources/`, `wiki/_synthesis/`, or any topic folder
   beyond what the reference scaffold already contains.
 - Do NOT write to `<project>/` outside the new `vault/` subtree and the
-  `.claude/llm-wiki-stack/` settings path. In particular, do not touch the
+  `.claude/claude-wiki-pages/` settings path. In particular, do not touch the
   user's existing `README.md`, `.gitignore`, or any other top-level file.
 
 ## Vault location
 
 The vault root is resolved in this order (first match wins):
 
-1. **`LLM_WIKI_VAULT` env var** — explicit override; good for local dev and CI.
-2. **`.claude/llm-wiki-stack/settings.json` → `current_vault_path`** — the
+1. **`CLAUDE_WIKI_PAGES_VAULT` env var** — explicit override; good for local dev and CI.
+2. **`.claude/claude-wiki-pages/settings.json` → `current_vault_path`** — the
    persisted per-project vault path. Written by `scripts/set-vault.sh` and
    self-healed by any hook that resolves the vault.
 3. **Auto-detect** — scan the project (up to 4 levels deep) for a directory that
@@ -83,20 +83,20 @@ The shell scripts implement this via `scripts/resolve-vault.sh`. Claude should
 follow the same logic when deciding where to read or write vault files:
 
 ```
-IF LLM_WIKI_VAULT is set → use that path
-ELSE IF .claude/llm-wiki-stack/settings.json has current_vault_path → use that
+IF CLAUDE_WIKI_PAGES_VAULT is set → use that path
+ELSE IF .claude/claude-wiki-pages/settings.json has current_vault_path → use that
 ELSE run: find . -maxdepth 4 -name "CLAUDE.md" | xargs grep -l "schema_version"
      pick the first match whose parent also contains a wiki/ directory
 ELSE use: docs/vault
 ```
 
-`LLM_WIKI_VAULT` accepts relative paths (resolved from the project root) or
+`CLAUDE_WIKI_PAGES_VAULT` accepts relative paths (resolved from the project root) or
 absolute paths:
 
 ```sh
-export LLM_WIKI_VAULT=docs/vault   # explicit relative — same as default
-export LLM_WIKI_VAULT=my-wiki      # custom vault name
-export LLM_WIKI_VAULT=/abs/path    # absolute, e.g. shared / multi-project vault
+export CLAUDE_WIKI_PAGES_VAULT=docs/vault   # explicit relative — same as default
+export CLAUDE_WIKI_PAGES_VAULT=my-wiki      # custom vault name
+export CLAUDE_WIKI_PAGES_VAULT=/abs/path    # absolute, e.g. shared / multi-project vault
 ```
 
 ## Workflow
@@ -107,13 +107,13 @@ what is missing.
 
 1. **Resolve `<vault>`.** In priority order:
    1. Path named in the user's prompt (e.g. "my vault is docs/vault-example").
-   2. `LLM_WIKI_VAULT` env var.
-   3. `.claude/llm-wiki-stack/settings.json` → `current_vault_path`.
+   2. `CLAUDE_WIKI_PAGES_VAULT` env var.
+   3. `.claude/claude-wiki-pages/settings.json` → `current_vault_path`.
    4. Auto-detected directory (CLAUDE.md with `schema_version` + `wiki/` sibling).
    5. Default: `docs/vault`.
 2. **Persist path (always).** Run
    `bash ${CLAUDE_PLUGIN_ROOT}/scripts/set-vault.sh <vault>`.
-   This creates `<project>/.claude/llm-wiki-stack/settings.json` with defaults
+   This creates `<project>/.claude/claude-wiki-pages/settings.json` with defaults
    if it does not exist, then writes `current_vault_path: <vault>`. Do this
    before touching the vault directory so the configuration is correct even
    if a later step fails.
@@ -140,9 +140,9 @@ what is missing.
    - Whether settings were created fresh, updated, or already correct.
    - Three suggested next steps, in order of increasing commitment:
      1. Drop a source into `<vault>/raw/` and run
-        `/llm-wiki-stack:wiki` — the orchestrator detects the new source and
+        `/claude-wiki-pages:wiki` — the orchestrator detects the new source and
         chains the ingest pipeline automatically.
-     2. Run `/llm-wiki-stack:llm-wiki-status` to confirm every hook fires.
+     2. Run `/claude-wiki-pages:llm-wiki-status` to confirm every hook fires.
      3. Read `docs/llm-wiki/01-getting-started.md` for the long-form guide.
 
 ## Hook enforcement
@@ -166,23 +166,23 @@ Print exactly one of these shapes:
 settings (filesystem permission error) — every other condition must resolve
 to a `READY:` or `WARN:` outcome.
 
-The pipeline agent (`llm-wiki-stack-ingest-agent`) looks for the `READY:` prefix when
+The pipeline agent (`claude-wiki-pages-ingest-agent`) looks for the `READY:` prefix when
 chaining onboarding with an immediate first ingest.
 
 After the `READY:` or `WARN:` line, **always print exactly one trailing
 `NEXT_STEP:` line** with this shape:
 
 ```
-NEXT_STEP: ingest_pending=<true|false> raw_count=<N> recommended=<llm-wiki-stack-ingest-agent|none>
+NEXT_STEP: ingest_pending=<true|false> raw_count=<N> recommended=<claude-wiki-pages-ingest-agent|none>
 ```
 
 - `ingest_pending=true` when one or more files in `<vault>/raw/` are not yet
   referenced in `<vault>/wiki/log.md` ingest entries; otherwise `false`.
 - `raw_count` is the count of unreferenced raw files (0 when pending is false).
-- `recommended` is `llm-wiki-stack-ingest-agent` when pending is true, otherwise `none`.
+- `recommended` is `claude-wiki-pages-ingest-agent` when pending is true, otherwise `none`.
 
-The `llm-wiki-stack-orchestrator-agent` (Layer 4 dispatch for
-`/llm-wiki-stack:wiki`) parses this line to decide whether the user's session
+The `claude-wiki-pages-orchestrator-agent` (Layer 4 dispatch for
+`/claude-wiki-pages:wiki`) parses this line to decide whether the user's session
 should chain into an immediate ingest or end here. A missing or malformed
 `NEXT_STEP:` line breaks the orchestrator's chaining contract and is a Tier 1
 test failure.

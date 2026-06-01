@@ -2,7 +2,7 @@
 
 > **Audience.** Plugin extender or downstream maintainer. Comfortable reading [`/SPEC.md`](../../SPEC.md), shell scripts, and `hooks.json`. Comfortable forking a Claude Code plugin.
 >
-> **After this playbook.** You can author a custom skill, add a hook with matching tests, run all four test tiers locally, fork the plugin and rename safely, and integrate `/llm-wiki-stack:wiki` headlessly into a CI pipeline.
+> **After this playbook.** You can author a custom skill, add a hook with matching tests, run all four test tiers locally, fork the plugin and rename safely, and integrate `/claude-wiki-pages:wiki` headlessly into a CI pipeline.
 >
 > **Time.** ~half day.
 
@@ -28,7 +28,7 @@ The four-layer stack is not just an architecture diagram — it determines where
 | ----- | ------------------------------------ | ------------------------------ |
 | **Layer 1 — Data** | New `entity_type` values via `vault/CLAUDE.md` (the schema authority). New top-level topic folders with `_index.md`. | New `type:` values (validators are hard-coded — needs Layer 4 change too). Mutating `raw/` (blocked by hook). |
 | **Layer 2 — Skills** | New single-responsibility skill under `skills/`. New `obsidian-*` integrations. | Multi-step flows (those are Layer 3 agents). Direct write-without-validation paths. |
-| **Layer 3 — Agents** | New specialist for a missing flow (e.g. `llm-wiki-stack-export-agent`). Extending the orchestrator dispatch table. | Adding state probes to specialists (the orchestrator owns probing — re-probing breaks the contract per [SPEC §11](../../SPEC.md)). |
+| **Layer 3 — Agents** | New specialist for a missing flow (e.g. `claude-wiki-pages-export-agent`). Extending the orchestrator dispatch table. | Adding state probes to specialists (the orchestrator owns probing — re-probing breaks the contract per [SPEC §11](../../SPEC.md)). |
 | **Layer 4 — Orchestration** | New hook on existing trigger (`PreToolUse`, `PostToolUse`, `SubagentStop`). New rule under `rules/`. | A hook that writes to the vault (hooks are gates, not editors). A rule that mutates state (rules are declarative). |
 
 Walk extensions through the layers in order. A new capability that needs all four layers is a major change; one that fits in a single layer is incremental.
@@ -52,7 +52,7 @@ Layer 2 only — a new skill `llm-wiki-pdf-export` reading from `wiki/` and writ
 
 The canonical reference: [`skills/llm-wiki-lint/SKILL.md`](../../skills/llm-wiki-lint/SKILL.md). Read it before writing your own — it shows the description style, the When-to-invoke / Reading-contract / Writing-contract sections, and the spec anchors.
 
-> **Lab.** Build `llm-wiki-export-csv` — a skill that lists every entity in the vault as a CSV row with `title,path,sources_count,confidence`. (Slash-command examples below use `/your-plugin:` rather than `/llm-wiki-stack:` because the example skill doesn't ship with this plugin — drop in your own plugin namespace when you adapt it.)
+> **Lab.** Build `llm-wiki-export-csv` — a skill that lists every entity in the vault as a CSV row with `title,path,sources_count,confidence`. (Slash-command examples below use `/your-plugin:` rather than `/claude-wiki-pages:` because the example skill doesn't ship with this plugin — drop in your own plugin namespace when you adapt it.)
 >
 > **Step 1.** Create the skill directory:
 >
@@ -112,9 +112,9 @@ The canonical reference: [`skills/llm-wiki-lint/SKILL.md`](../../skills/llm-wiki
 >
 > The skill produces `vault/output/entities.csv`.
 >
-> **Step 5.** (Optional) Make it orchestrator-routable. The orchestrator dispatches the analyst on `compile` and `extract` verbs. The analyst's `compile` mode can be taught to call your new skill — that lives in [`agents/llm-wiki-stack-analyst-agent.md`](../../agents/llm-wiki-stack-analyst-agent.md). Add a row to its mode table.
+> **Step 5.** (Optional) Make it orchestrator-routable. The orchestrator dispatches the analyst on `compile` and `extract` verbs. The analyst's `compile` mode can be taught to call your new skill — that lives in [`agents/claude-wiki-pages-analyst-agent.md`](../../agents/claude-wiki-pages-analyst-agent.md). Add a row to its mode table.
 >
-> **Note.** Skills under `skills/` are loaded automatically by Claude Code on session start — no `hooks.json` change needed. The slash command is the directory name prefixed with `/llm-wiki-stack:`.
+> **Note.** Skills under `skills/` are loaded automatically by Claude Code on session start — no `hooks.json` change needed. The slash command is the directory name prefixed with `/claude-wiki-pages:`.
 
 ### Knowledge check
 
@@ -310,21 +310,21 @@ The plugin is Apache 2.0; forking is fine. Three categories of names:
 
 | Category | Safe to rename? | Why |
 | -------- | --------------- | --- |
-| Skills (`skills/llm-wiki-*/`) and agents (`agents/llm-wiki-stack-*-agent.md`) | Yes | They're slash-command identifiers. Rename the directory and update the cross-references. The renaming convention is documented in [`docs/adr/ADR-0002`](../adr/ADR-0002-agent-naming-convention.md). |
-| Plugin name (`.claude-plugin/plugin.json`, slash-command namespace `llm-wiki-stack:`) | Yes | This is the user-facing identity. Update consistently or `/your-plugin-name:wiki` won't resolve. |
+| Skills (`skills/llm-wiki-*/`) and agents (`agents/claude-wiki-pages-*-agent.md`) | Yes | They're slash-command identifiers. Rename the directory and update the cross-references. The renaming convention is documented in [`docs/adr/ADR-0002`](../adr/ADR-0002-agent-naming-convention.md). |
+| Plugin name (`.claude-plugin/plugin.json`, slash-command namespace `claude-wiki-pages:`) | Yes | This is the user-facing identity. Update consistently or `/your-plugin-name:wiki` won't resolve. |
 | **Schema authority chain** — `schema_version`, the six `type:` values, `sources:` requirement | **No** | These are validated by `validate-frontmatter.sh` against hard-coded lists. Renaming them silently breaks every existing vault. Editing them is a fork-defining change — write a migration. |
 
 > **Lab.** Pre-fork sweep:
 >
 > ```bash
-> > rg -l 'llm-wiki-stack' --type-add 'plugin:*.{md,json,sh,bats,yaml,yml}' -t plugin | wc -l
+> > rg -l 'claude-wiki-pages' --type-add 'plugin:*.{md,json,sh,bats,yaml,yml}' -t plugin | wc -l
 > 156
 > ```
 >
 > Most of those lines are either (a) the plugin namespace in slash commands, or (b) the `${CLAUDE_PLUGIN_ROOT}` references that are already plugin-relative. A rename to `my-research-wiki`:
 >
 > ```bash
-> > rg -l 'llm-wiki-stack' . | xargs sed -i.bak 's/llm-wiki-stack/my-research-wiki/g'
+> > rg -l 'claude-wiki-pages' . | xargs sed -i.bak 's/claude-wiki-pages/my-research-wiki/g'
 > > find . -name '*.bak' -delete
 > > bash scripts/validate-docs.sh    # vocabulary gate may need entries renamed too
 > > bash tests/run-tests.sh tier0    # confirm nothing else drifted
@@ -348,10 +348,10 @@ Yes, but it's a Layer 4 change too. Add the value to (1) `vault/CLAUDE.md` (sche
 
 ### Objectives
 
-- Run `/llm-wiki-stack:wiki` headlessly from CI.
+- Run `/claude-wiki-pages:wiki` headlessly from CI.
 - Point a CI job at a vault checked out per build.
 
-Claude Code can run non-interactively with `claude --print` (see [Claude Code CLI docs](https://docs.claude.com/en/docs/claude-code/cli-reference)). Combined with `LLM_WIKI_VAULT`, this lets you run the plugin against any vault path on every CI build.
+Claude Code can run non-interactively with `claude --print` (see [Claude Code CLI docs](https://docs.claude.com/en/docs/claude-code/cli-reference)). Combined with `CLAUDE_WIKI_PAGES_VAULT`, this lets you run the plugin against any vault path on every CI build.
 
 > **Lab.** A GitHub Actions workflow that ingests new docs added in a PR:
 >
@@ -371,14 +371,14 @@ Claude Code can run non-interactively with `claude --print` (see [Claude Code CL
 >       - name: Install Claude Code
 >         run: npm install -g @anthropic-ai/claude-code
 >       - name: Install plugin
->         run: claude --print '/plugin install llm-wiki-stack'
+>         run: claude --print '/plugin install claude-wiki-pages'
 >         env:
 >           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 >       - name: Run orchestrator
 >         env:
->           LLM_WIKI_VAULT: ${{ github.workspace }}/research
+>           CLAUDE_WIKI_PAGES_VAULT: ${{ github.workspace }}/research
 >           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
->         run: claude --print '/llm-wiki-stack:wiki'
+>         run: claude --print '/claude-wiki-pages:wiki'
 >       - name: Post log to PR
 >         uses: actions/github-script@v7
 >         with:
@@ -394,7 +394,7 @@ Claude Code can run non-interactively with `claude --print` (see [Claude Code CL
 >             });
 > ```
 >
-> **Note.** The workflow assumes the vault is checked out alongside the PR (your repo doubles as the vault). For a CI job that operates on a separate vault repo, check it out as a second action and point `LLM_WIKI_VAULT` at it.
+> **Note.** The workflow assumes the vault is checked out alongside the PR (your repo doubles as the vault). For a CI job that operates on a separate vault repo, check it out as a second action and point `CLAUDE_WIKI_PAGES_VAULT` at it.
 
 ### Knowledge check
 

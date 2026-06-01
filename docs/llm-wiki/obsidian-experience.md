@@ -1,14 +1,14 @@
 # Obsidian-side experience
 
-When you switch to Obsidian after running `/llm-wiki-stack:wiki`, the vault should already look right — graph view colored by topic, `wiki/index.md` reflecting current page counts, every per-folder `_index.md` matching its actual children. You should never have to type a second command to make Obsidian "catch up."
+When you switch to Obsidian after running `/claude-wiki-pages:wiki`, the vault should already look right — graph view colored by topic, `wiki/index.md` reflecting current page counts, every per-folder `_index.md` matching its actual children. You should never have to type a second command to make Obsidian "catch up."
 
 This page describes how that happens, what the polish-agent does for you, and what to check if something looks off.
 
 ## How it works
 
-`/llm-wiki-stack:wiki` invokes the orchestrator (`llm-wiki-stack-orchestrator-agent`). The orchestrator probes vault state and dispatches one specialist per turn — usually `llm-wiki-stack-ingest-agent` (when `raw/` has new files) or `llm-wiki-stack-curator-agent` (when lint drift is pending).
+`/claude-wiki-pages:wiki` invokes the orchestrator (`claude-wiki-pages-orchestrator-agent`). The orchestrator probes vault state and dispatches one specialist per turn — usually `claude-wiki-pages-ingest-agent` (when `raw/` has new files) or `claude-wiki-pages-curator-agent` (when lint drift is pending).
 
-After either of those returns successfully, the orchestrator fans out to **`llm-wiki-stack-polish-agent`** as the tail of the same turn. You never invoke polish directly; that is intentional. The agent only makes sense as a tail-of-write step, and pulling it into a separate slash command would split a single logical operation into two.
+After either of those returns successfully, the orchestrator fans out to **`claude-wiki-pages-polish-agent`** as the tail of the same turn. You never invoke polish directly; that is intentional. The agent only makes sense as a tail-of-write step, and pulling it into a separate slash command would split a single logical operation into two.
 
 The polish agent is **idempotent**: running it twice in a row against the same vault produces no diffs. That property is what makes it safe to run unconditionally after every successful ingest or curator pass.
 
@@ -67,7 +67,7 @@ POLISH:
 
 - Check that `obsidian-cli` is installed and on `PATH` (`which obsidian` should resolve). The bundled `obsidian-cli` reference skill provides the command; if it's missing, polish skips graph colors with the `[skip]` marker described above.
 - Open `.obsidian/graph.json` and confirm the new topic appears in `colorGroups`. If it does, restart Obsidian — the graph view caches the previous group list until reload.
-- Run `/llm-wiki-stack:wiki-doctor`. Exit code 4 (hooks not executable) suggests a deeper environment issue that polish itself cannot fix.
+- Run `/claude-wiki-pages:wiki-doctor`. Exit code 4 (hooks not executable) suggests a deeper environment issue that polish itself cannot fix.
 
 ### `wiki/index.md` page count looks wrong
 
@@ -76,10 +76,10 @@ POLISH:
 
 ### `_index.md` `children:` field has entries for pages that no longer exist
 
-- This is by design — polish is append-only. Run `/llm-wiki-stack:wiki <topic>` (or `/llm-wiki-stack:llm-wiki-fix` directly) to dispatch the curator agent, which owns explicit removal flows and will prune the stale entry with your approval.
+- This is by design — polish is append-only. Run `/claude-wiki-pages:wiki <topic>` (or `/claude-wiki-pages:llm-wiki-fix` directly) to dispatch the curator agent, which owns explicit removal flows and will prune the stale entry with your approval.
 
 ## Specification anchor
 
-[`/SPEC.md §11`](../../SPEC.md) — `llm-wiki-stack-polish-agent` contract.
+[`/SPEC.md §11`](../../SPEC.md) — `claude-wiki-pages-polish-agent` contract.
 
 [`docs/adr/ADR-0003-polish-agent-and-obsidian-side.md`](../adr/ADR-0003-polish-agent-and-obsidian-side.md) — the rationale for centralising graph colors, index refresh, and MOC consistency in a single specialist.

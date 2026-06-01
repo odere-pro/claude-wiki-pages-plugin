@@ -4,7 +4,7 @@ description: >
   Answer a natural-language question from the wiki with [[wikilink]] citations.
   Trigger when the user asks "what does the wiki say about X", "search the
   wiki for Y", "which sources cover Z", or invokes
-  /llm-wiki-stack:llm-wiki-query directly. Read-only against wiki content —
+  /claude-wiki-pages:llm-wiki-query directly. Read-only against wiki content —
   only log.md receives an append.
 allowed-tools: Read Glob Grep Edit
 ---
@@ -22,7 +22,7 @@ without a source.
 
 - The user asks a natural-language question about a topic that might be
   covered in the wiki.
-- An agent (`llm-wiki-stack-analyst-agent`) is chaining query as a step.
+- An agent (`claude-wiki-pages-analyst-agent`) is chaining query as a step.
 
 Do NOT invoke for questions about the *plugin itself* (how to install, which
 hooks fire, what a skill does) — those are answered from the docs, not the
@@ -46,7 +46,7 @@ wiki.
   `## [YYYY-MM-DD] query | <question summary>`
 - No other writes unless the user accepts the optional offer to file the
   answer as a synthesis note — in which case control is passed to
-  `/llm-wiki-stack:llm-wiki-synthesize` and the write happens there, not here.
+  `/claude-wiki-pages:llm-wiki-synthesize` and the write happens there, not here.
 
 This skill MUST NOT:
 
@@ -101,5 +101,5 @@ Logged: query | <truncated question>
 If the user accepted the synthesis offer, additionally print:
 
 ```
-Handing off to /llm-wiki-stack:llm-wiki-synthesize.
+Handing off to /claude-wiki-pages:llm-wiki-synthesize.
 ```
