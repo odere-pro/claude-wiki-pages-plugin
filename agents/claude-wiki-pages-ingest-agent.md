@@ -180,18 +180,26 @@ New concepts: ...
 
 ---
 
-## Step 2 — Lint & Fix
+## Step 2 — Auto-heal (git-checkpointed)
 
-Delegate to the `claude-wiki-pages-curator-agent` agent. Invoke the `Task` tool with
-`subagent_type: claude-wiki-pages-curator-agent` and the following prompt verbatim:
+Self-heal runs automatically after ingest — no approval prompt. Delegate to the
+`claude-wiki-pages-curator-agent` agent, which first runs the deterministic
+engine (`scripts/engine.sh heal`) to checkpoint the vault in git and clear the
+structural-error subset, then applies judgment fixes under the same checkpoint.
+Invoke the `Task` tool with `subagent_type: claude-wiki-pages-curator-agent` and
+the following prompt verbatim:
 
 ```
-Run a full lint and fix pass. The wiki was just updated by ingest.
-Diagnose all structural issues, fix what you can, and report what
-remains unresolved.
+The wiki was just updated by ingest. Run the git-checkpointed auto-heal:
+engine.sh heal first, then any judgment fixes. Apply everything
+automatically (safety is git revert) and report the heal commit plus
+anything that genuinely needs editorial intent.
 ```
 
-Capture the sub-agent's report. If it reports unresolved ERRORs, attempt manual fixes for the common post-ingest cases (title collisions, folders missing `_index.md`, orphan source summaries) and re-check by running `"$VERIFY" vault/` once (using the path resolved in Preflight step 3). Do not loop — if errors persist, report them in the final summary. If `$VERIFY` was unresolvable in Preflight, skip the re-check and record "verifier unavailable" in the final report.
+Capture the sub-agent's report (heal commit SHA, residual items). Do not loop or
+re-prompt — the curator's engine loop already bounds the work, and `git revert`
+is the rollback path. If errors genuinely persist past the loop, surface them in
+the final summary.
 
 ---
 

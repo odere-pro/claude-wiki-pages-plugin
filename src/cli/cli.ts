@@ -9,19 +9,12 @@
  */
 
 import { verify } from "../commands/verify/verify.ts";
+import { fix } from "../commands/fix/fix.ts";
+import { heal } from "../commands/heal/heal.ts";
 import { renderText, exitCode, type Report } from "../core/report.ts";
 
-const IMPLEMENTED = new Set(["verify"]);
-const PLANNED = [
-  "index",
-  "link-suggest",
-  "search",
-  "fix",
-  "doctor",
-  "config",
-  "checkpoint",
-  "heal",
-];
+const IMPLEMENTED = new Set(["verify", "fix", "heal"]);
+const PLANNED = ["index", "link-suggest", "search", "doctor", "config", "checkpoint"];
 const ALL = [...IMPLEMENTED, ...PLANNED];
 
 interface ParsedArgs {
@@ -59,7 +52,7 @@ function usage(): void {
       "",
       `Commands: ${ALL.join(", ")}`,
       "",
-      "Implemented: verify",
+      "Implemented: verify, fix, heal",
       "",
     ].join("\n"),
   );
@@ -77,6 +70,41 @@ function main(): number {
     const report = verify({ target });
     emit(report, json);
     return exitCode(report);
+  }
+
+  if (command === "fix") {
+    const report = fix({ target });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else
+      process.stdout.write(
+        report.changed === 0
+          ? "fix: nothing to repair\n"
+          : report.changes.map((c) => `FIXED [${c.action}] ${c.file}`).join("\n") +
+              `\nfixed ${report.changed} file(s)\n`,
+      );
+    return 0;
+  }
+
+  if (command === "heal") {
+    const report = heal({ target });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else
+      process.stdout.write(
+        [
+          `heal: errors ${report.errorsBefore} → ${report.errorsAfter} in ${report.iterations} iteration(s)`,
+          report.checkpoint ? `checkpoint: ${report.checkpoint}` : "",
+          report.healCommit
+            ? `healed: ${report.healCommit} (rollback: git revert ${report.healCommit})`
+            : "",
+          report.clean
+            ? "OK: vault is clean"
+            : `UNRESOLVED (needs curator/human):\n  - ${report.unresolved.join("\n  - ")}`,
+          "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+      );
+    return report.clean ? 0 : 1;
   }
 
   if (PLANNED.includes(command)) {
