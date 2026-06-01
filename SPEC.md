@@ -2,7 +2,7 @@
 
 Authoritative description of `claude-wiki-pages`, version `0.1.0`, schema version `1`. This document is reproducibility-grade — every contract an implementer needs is here. The example vault demonstrates the schema; this file defines it.
 
-Terminology follows `docs/VOCABULARY.md`. Where this file and `docs/vault-example/CLAUDE.md` diverge, **this file wins for schema intent** and the example vault is updated to match. Where a user guide and this file diverge, **this file wins** and the guide is corrected.
+Terminology follows `docs/GLOSSARY.md`. Where this file and `docs/vault-example/CLAUDE.md` diverge, **this file wins for schema intent** and the example vault is updated to match. Where a user guide and this file diverge, **this file wins** and the guide is corrected.
 
 ## 1. Identity
 
@@ -68,7 +68,7 @@ A Claude Code plugin that turns an Obsidian vault into a maintained, provenance-
 ### Inputs
 
 - **Sources** (`vault/raw/`) — immutable files the user drops in. Markdown, PDFs, images, transcripts. Mutation blocked by `scripts/protect-raw.sh`.
-- **Queries** (`/claude-wiki-pages:llm-wiki-query`) — natural-language questions answered from `vault/wiki/`.
+- **Queries** (`/claude-wiki-pages:query`) — natural-language questions answered from `vault/wiki/`.
 - **Schema overrides** (`vault/CLAUDE.md`) — per-vault schema with `schema_version` field.
 
 ### Outputs
@@ -93,7 +93,7 @@ A Claude Code plugin that turns an Obsidian vault into a maintained, provenance-
 
 ### Layer 2 — Skills
 
-Thirteen single-responsibility capabilities. Each skill reads `raw/` and writes only to `wiki/` (`llm-wiki-synthesize` writes only to `wiki/_synthesis/`; `llm-wiki-markdown` writes only to `vault/output/`; `obsidian-graph-colors` writes only to `.obsidian/graph.json`). No skill knows about any other skill.
+Thirteen single-responsibility capabilities. Each skill reads `raw/` and writes only to `wiki/` (`synthesize` writes only to `wiki/_synthesis/`; `markdown` writes only to `vault/output/`; `obsidian-graph-colors` writes only to `.obsidian/graph.json`). No skill knows about any other skill.
 
 Skills fall into three provenance groups, reflected in `NOTICE` and `THIRD_PARTY_LICENSES.md`:
 
@@ -103,14 +103,14 @@ Skills fall into three provenance groups, reflected in `NOTICE` and `THIRD_PARTY
 | Skill                   | Provenance      | Responsibility                                                           |
 | ----------------------- | --------------- | ------------------------------------------------------------------------ |
 | `llm-wiki`              | plugin-authored | Onboarding wizard. Scaffolds `vault/` from `docs/vault-example/` and orients. |
-| `llm-wiki-ingest`       | plugin-authored | Ingests one or more sources into the wiki.                               |
-| `llm-wiki-query`        | plugin-authored | Answers a query from the wiki with `[[wikilink]]` citations.             |
-| `llm-wiki-lint`         | plugin-authored | Audits the wiki for structural and provenance drift.                     |
-| `llm-wiki-fix`          | plugin-authored | Auto-repairs what lint reports.                                          |
-| `llm-wiki-status`       | plugin-authored | One-command health check; exercises every hook path.                     |
-| `llm-wiki-synthesize`   | plugin-authored | Writes a cross-topic synthesis note.                                     |
-| `llm-wiki-index`        | plugin-authored | Generates or refreshes the vault MOC at `wiki/index.md`.                 |
-| `llm-wiki-markdown`     | plugin-authored | Renders a wiki query as portable markdown into `vault/output/`.          |
+| `ingest`       | plugin-authored | Ingests one or more sources into the wiki.                               |
+| `query`        | plugin-authored | Answers a query from the wiki with `[[wikilink]]` citations.             |
+| `lint`         | plugin-authored | Audits the wiki for structural and provenance drift.                     |
+| `fix`          | plugin-authored | Auto-repairs what lint reports.                                          |
+| `status`       | plugin-authored | One-command health check; exercises every hook path.                     |
+| `synthesize`   | plugin-authored | Writes a cross-topic synthesis note.                                     |
+| `index`        | plugin-authored | Generates or refreshes the vault MOC at `wiki/index.md`.                 |
+| `markdown`     | plugin-authored | Renders a wiki query as portable markdown into `vault/output/`.          |
 | `obsidian-graph-colors` | plugin-authored | Applies per-topic colors to Obsidian's graph view.                       |
 | `obsidian-markdown`     | MIT, kepano     | Obsidian-flavored markdown reference.                                    |
 | `obsidian-bases`        | MIT, kepano     | Obsidian Bases (database) reference.                                     |
@@ -161,7 +161,7 @@ claude-wiki-pages/                         # plugin source (installed to the use
 ├── scripts/                            # Layer 4 hook implementations
 ├── rules/                              # Layer 4 path-scoped rules
 ├── docs/vault-example/                      # Layer 1 reference vault + authoritative schema
-└── docs/                               # spec, vocabulary, architecture, security, user guides
+└── docs/                               # spec, glossary, architecture, security, user guides
 
 <user-project>/                         # the user's own project after install
 └── vault/
@@ -190,7 +190,7 @@ claude-wiki-pages/                         # plugin source (installed to the use
     └── output/                         # optional, git-ignored scratch space; not part of the schema
 ```
 
-**Depth cap.** Folder nesting inside `wiki/` MUST NOT exceed four levels. `llm-wiki-lint` flags violations.
+**Depth cap.** Folder nesting inside `wiki/` MUST NOT exceed four levels. `lint` flags violations.
 
 ## 7. Frontmatter schema
 
@@ -401,7 +401,7 @@ The Layer 3 agent the orchestrator dispatches when `vault/raw/` has unprocessed 
 
 ### Role C — Power-user verbs (narrower scope than the pipeline)
 
-#### `llm-wiki-ingest`
+#### `ingest`
 
 The ingest-only portion of the pipeline. Skips lint-fix and synthesis.
 
@@ -410,16 +410,16 @@ The ingest-only portion of the pipeline. Skips lint-fix and synthesis.
 - **Exit state.** `verify-ingest.sh` exits 0; lint may or may not be clean depending on cross-page invariants the pipeline would otherwise repair.
 - **Enforced by.** Same `PreToolUse` hooks as the pipeline.
 
-#### `llm-wiki-query`
+#### `query`
 
 Answers a question from the wiki.
 
 - **Read.** `vault/wiki/` (all typed pages).
-- **Write.** An append-only entry to `wiki/log.md` recording the query. No other writes unless the user accepts the optional offer to file the answer as a synthesis note — in which case the write is delegated to `llm-wiki-synthesize`.
+- **Write.** An append-only entry to `wiki/log.md` recording the query. No other writes unless the user accepts the optional offer to file the answer as a synthesis note — in which case the write is delegated to `synthesize`.
 - **Exit state.** The caller receives a synthesized answer; every claim carries one or more `[[wikilink]]` citations; every cited page resolves.
 - **Enforced by.** `PreToolUse` rejects any write that uses a markdown link where a wikilink is required.
 
-#### `llm-wiki-lint`
+#### `lint`
 
 Read-only audit.
 
@@ -428,9 +428,9 @@ Read-only audit.
 - **Exit state.** A three-level report (Errors / Warnings / Info) enumerating every lint rule in §12 that fires. Exit code matches severity: 0 = clean or info-only, 1 = warnings, 2 = errors.
 - **Enforced by.** None — lint is itself the enforcement mechanism for §12. `PreToolUse` protects the wiki from accidental writes.
 
-#### `llm-wiki-fix`
+#### `fix`
 
-Applies the repairs `llm-wiki-lint` identified.
+Applies the repairs `lint` identified.
 
 - **Read.** Either a just-produced lint report in the conversation context, or a fresh lint pass the skill runs internally.
 - **Write.** Idempotent structural repairs: backfilled frontmatter fields, restored wikilink targets, reconciled per-folder MOC `children`/`child_indexes`, corrected `type:` drift.
@@ -439,7 +439,7 @@ Applies the repairs `llm-wiki-lint` identified.
 
 ### Role D — Composition
 
-#### `llm-wiki-synthesize`
+#### `synthesize`
 
 Produces a cross-topic synthesis note.
 
@@ -448,7 +448,7 @@ Produces a cross-topic synthesis note.
 - **Exit state.** The new file passes `verify-ingest.sh`. Every entry in its `scope:` resolves to an existing wiki page.
 - **Enforced by.** `PreToolUse` frontmatter validator rejects synthesis pages missing `synthesis_type` or `scope:`.
 
-#### `llm-wiki-index`
+#### `index`
 
 Refreshes the vault MOC.
 
@@ -457,11 +457,11 @@ Refreshes the vault MOC.
 - **Exit state.** `wiki/index.md` lists every top-level topic folder and every synthesis note. Ordering is stable across invocations (so repeated runs produce no diff unless the tree changed).
 - **Enforced by.** `PreToolUse` frontmatter validation on the single write.
 
-#### `llm-wiki-markdown`
+#### `markdown`
 
 Runs a query and renders the answer as portable, GitHub-flavored markdown.
 
-- **Read.** Same input set as `llm-wiki-query` — schema, vault MOC, per-folder MOCs, candidate typed pages, and pages reached by following `[[wikilinks]]` one hop.
+- **Read.** Same input set as `query` — schema, vault MOC, per-folder MOCs, candidate typed pages, and pages reached by following `[[wikilinks]]` one hop.
 - **Write.** A new file at `vault/output/<slug>.md` carrying the `generated_by`/`source_query`/`generated_at`/`sources` frontmatter, plus an append-only entry to `wiki/log.md` (`## [YYYY-MM-DD] markdown | <summary> → output/<slug>.md`). No writes to `wiki/` content.
 - **Exit state.** The output file contains no `[[wikilinks]]` in body prose, no Dataview blocks, and no Obsidian callouts. Every internal link resolves to a real wiki page; every entry in `sources:` resolves.
 - **Enforced by.** `verify-output.sh` (advisory) on the new file's frontmatter shape; `PreToolUse` raw-immutability and frontmatter checks on every write.
@@ -474,10 +474,10 @@ Environment health check. Implemented as `commands/wiki-doctor.md` wrapping `scr
 
 - **Read.** Plugin root, `.claude-plugin/plugin.json`, `vault/CLAUDE.md`, `vault/raw/`, `vault/wiki/`, `hooks/hooks.json`, every script referenced from it, `scripts/validate-docs.sh`.
 - **Write.** Nothing.
-- **Exit state.** Exit code 0–5 and per-check `OK:` / `FAIL[N]:` lines. Codes: `0` healthy; `1` vault path unresolvable; `2` schema_version absent or unsupported; `3` `raw/` unreadable or `wiki/` unwritable; `4` hook script not executable; `5` vocabulary drift.
+- **Exit state.** Exit code 0–5 and per-check `OK:` / `FAIL[N]:` lines. Codes: `0` healthy; `1` vault path unresolvable; `2` schema_version absent or unsupported; `3` `raw/` unreadable or `wiki/` unwritable; `4` hook script not executable; `5` glossary drift.
 - **Enforced by.** Read-only by contract; the script never mutates the vault. Tier 1 Bats coverage in `tests/scripts/doctor.bats`.
 
-#### `llm-wiki-status`
+#### `status`
 
 One-command health check. Must leave the vault unchanged.
 
@@ -508,7 +508,7 @@ Planned additions (Phase D):
 | Trigger                            | Script             | Mode     | Purpose                                                                |
 | ---------------------------------- | ------------------ | -------- | ---------------------------------------------------------------------- |
 | `SessionStart`                     | `check-deps.sh`    | blocking | Verifies `jq`, `bash >= 3.2`, hook files readable, scripts executable. |
-| `PostToolUse` Write/Edit on `*.md` | `validate-docs.sh` | advisory | Enforces vocabulary.                                                   |
+| `PostToolUse` Write/Edit on `*.md` | `validate-docs.sh` | advisory | Enforces glossary.                                                   |
 
 ## 11. Agent contracts
 
@@ -556,7 +556,7 @@ Older pre-versioning vaults are not migrated in place. The release notes documen
 
 ## 13. Lint rules
 
-`llm-wiki-lint` scans for:
+`lint` scans for:
 
 - **Orphan pages** — no inbound wikilinks. Warning.
 - **Dangling wikilinks** — links to non-existent pages. Error.
@@ -576,7 +576,7 @@ Older pre-versioning vaults are not migrated in place. The release notes documen
 
 ## 14. Test contracts
 
-Five tiers, per `docs/VOCABULARY.md` technical terminology.
+Five tiers, per `docs/GLOSSARY.md` technical terminology.
 
 - **Tier 0 — static checks.** JSON schema on manifests, `shellcheck`, `shfmt`, `markdownlint`, `lychee` (broken links), `gitleaks`, `yq` on skill/agent frontmatter, `scripts/validate-docs.sh`.
 - **Tier 1 — shell unit tests.** `bats-core` under `tests/scripts/*.bats`, one per script. Matrix `macos-latest` + `ubuntu-latest`. `kcov` coverage, uploaded to Codecov.

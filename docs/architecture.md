@@ -19,7 +19,7 @@ Sources go into `raw/` and are never rewritten — the `protect-raw.sh` hook enf
 
 ### 2. Skills
 
-Each skill is a single-responsibility capability: `llm-wiki-ingest` ingests sources, `llm-wiki-query` answers questions, `llm-wiki-lint` audits structure, `llm-wiki-fix` repairs what lint reports, `llm-wiki-synthesize` writes cross-topic analyses, `llm-wiki-index` generates a top-level overview index across the vault, `llm-wiki-markdown` exports a query answer as portable markdown into `vault/output/`, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 13.
+Each skill is a single-responsibility capability: `ingest` ingests sources, `query` answers questions, `lint` audits structure, `fix` repairs what lint reports, `synthesize` writes cross-topic analyses, `index` generates a top-level overview index across the vault, `markdown` exports a query answer as portable markdown into `vault/output/`, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 13.
 
 ### 3. Agents
 
@@ -51,13 +51,13 @@ claude-wiki-pages/
 ├── scripts/                 # Layer 4 — hook implementations
 ├── rules/                   # Layer 4 — scoped LLM guidance
 ├── docs/vault-example/           # Layer 1 — schema + small sticky reference vault
-└── docs/                    # SPECIFICATION, VOCABULARY, architecture, security, user guides
+└── docs/                    # SPECIFICATION, GLOSSARY, architecture, security, user guides
 ```
 
 ## Data flow: one ingest
 
 1. Human drops a source into `vault/raw/`.
-2. Human runs `/claude-wiki-pages:llm-wiki-ingest`.
+2. Human runs `/claude-wiki-pages:ingest`.
 3. Skill reads `docs/vault-example/CLAUDE.md` (the schema).
 4. Skill writes a source summary to `wiki/_sources/`.
 5. Layer 4 hooks fire: `validate-frontmatter.sh`, `check-wikilinks.sh`, `validate-attachments.sh`.

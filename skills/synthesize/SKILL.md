@@ -1,11 +1,11 @@
 ---
-name: llm-wiki-synthesize
+name: synthesize
 description: >
   Write a cross-topic synthesis note under vault/wiki/_synthesis/. Trigger
   when the user asks to "compare X and Y", "find themes across these pages",
   "identify contradictions", "do a gap analysis", "build a timeline of Z", or
-  invokes /claude-wiki-pages:llm-wiki-synthesize directly. Also used as the
-  follow-up when /claude-wiki-pages:llm-wiki-query offers to file an answer as a
+  invokes /claude-wiki-pages:synthesize directly. Also used as the
+  follow-up when /claude-wiki-pages:query offers to file an answer as a
   synthesis.
 allowed-tools: Read Write Edit Glob Grep
 ---
@@ -22,7 +22,7 @@ several synthesis notes, not one sprawling document.
 ## When to invoke
 
 - The user names an explicit scope and asks for cross-topic analysis.
-- `/claude-wiki-pages:llm-wiki-query` offered to file an answer as a synthesis
+- `/claude-wiki-pages:query` offered to file an answer as a synthesis
   and the user accepted.
 - The `claude-wiki-pages-ingest-agent` agent detects that a batch of new sources opens
   a synthesis opportunity — the agent passes the scope here.
@@ -69,7 +69,7 @@ This skill MUST NOT:
 - Edit an existing synthesis note — produce a new one and, if needed, mark
   the prior one `status: superseded` in a follow-up step (separate invocation).
 - Rebuild `wiki/index.md` directly. Instead, print a reminder that
-  `/claude-wiki-pages:llm-wiki-index` should be run after a new synthesis lands.
+  `/claude-wiki-pages:index` should be run after a new synthesis lands.
 
 ## Workflow
 
@@ -86,11 +86,11 @@ This skill MUST NOT:
    enforce the schema.
 7. **Log.** Append to `wiki/log.md`.
 8. **Handoff hint.** Remind the user (or the calling agent) that the vault
-   MOC is stale — offer `/claude-wiki-pages:llm-wiki-index`.
+   MOC is stale — offer `/claude-wiki-pages:index`.
 
 ## Completion signal
 
 ```
 READY: wrote <path>; synthesis_type=<type>, scope=<N> pages, sources=<M>.
-Remember to refresh the vault MOC: /claude-wiki-pages:llm-wiki-index.
+Remember to refresh the vault MOC: /claude-wiki-pages:index.
 ```

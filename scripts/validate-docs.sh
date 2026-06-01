@@ -1,10 +1,10 @@
 #!/bin/bash
-# scripts/validate-docs.sh — vocabulary gate per docs/VOCABULARY.md
+# scripts/validate-docs.sh — glossary gate per docs/GLOSSARY.md
 #
 # Checks:
 #   1. Banned strings (second-brain, second brain, vault-synthesize, vault-index)
 #      do not appear outside the explicit allowlist. These terms were retired
-#      from the vocabulary in schema version 1; their replacements are the
+#      from the glossary in schema version 1; their replacements are the
 #      `llm-wiki-*` skill names.
 #   2. Discoverability-register terms ("knowledge management", "agent harness",
 #      "LLM Wiki Stack", "raw material") do not leak into technical surfaces.
@@ -35,11 +35,12 @@ fi
 # sequence including `/`.
 BAN_EXEMPT=(
   "scripts/validate-docs.sh"
-  "docs/VOCABULARY.md"
+  "docs/GLOSSARY.md"
   "CHANGELOG.md"
   "docs/adr/*"
   "docs/plan/*"
   "docs/llm-wiki/migration-0.2.md"
+  "docs/migration-1.0.md"
   "tests/*"
 )
 
@@ -47,37 +48,42 @@ BAN_EXEMPT=(
 # Patterns are shell glob patterns — `*` matches any sequence including `/`.
 SEO_EXEMPT=(
   "README.md"
-  "docs/VOCABULARY.md"
+  "docs/GLOSSARY.md"
   "SPEC.md"
   "docs/SPECIFICATION.md"
   "scripts/validate-docs.sh"
   ".claude-plugin/plugin.json"
   ".claude-plugin/marketplace.json"
   # Immutable source material may legitimately contain PKM-register terms
-  # (external authors do not follow our vocabulary). raw/ is never our prose.
+  # (external authors do not follow our glossary). raw/ is never our prose.
   "*/raw/*"
 )
 
 # ─── Patterns ────────────────────────────────────────────────────────────────
 
-# Strings retired from the vocabulary in schema version 1. Banned in every
+# Strings retired from the glossary in schema version 1. Banned in every
 # tracked file except BAN_EXEMPT.
 # Agent names retired in 0.2.0 (replaced by {plugin}-{role}-agent convention,
 # see docs/adr/ADR-0002-agent-naming-convention.md): llm-wiki-ingest-pipeline,
-# llm-wiki-lint-fix, llm-wiki-analyst. Allowlisted only in CHANGELOG and the
-# migration doc; otherwise flagged as drift.
-BANNED_STRINGS='\bsecond-brain\b|\bsecond brain\b|\bvault-synthesize\b|\bvault-index\b|\bllm-wiki-ingest-pipeline\b|\bllm-wiki-lint-fix\b|\bllm-wiki-analyst\b'
+# llm-wiki-lint-fix, llm-wiki-analyst.
+# Identifiers retired in 1.0.0 (plugin rebrand llm-wiki-stack → claude-wiki-pages,
+# skills → short verbs; see docs/migration-1.0.md): the plugin id llm-wiki-stack
+# and the old llm-wiki-<verb> skill names. The bare `llm-wiki` is intentionally
+# NOT banned here (it collides with the kept `llm-wiki-pattern` and docs/llm-wiki/);
+# a stray `/claude-wiki-pages:llm-wiki` is caught by the slash-resolution check.
+# All allowlisted only in CHANGELOG, docs/adr/*, and the migration docs.
+BANNED_STRINGS='\bsecond-brain\b|\bsecond brain\b|\bvault-synthesize\b|\bvault-index\b|\bllm-wiki-stack\b|\bllm-wiki-ingest\b|\bllm-wiki-query\b|\bllm-wiki-lint\b|\bllm-wiki-fix\b|\bllm-wiki-status\b|\bllm-wiki-synthesize\b|\bllm-wiki-index\b|\bllm-wiki-markdown\b|\bllm-wiki-ingest-pipeline\b|\bllm-wiki-lint-fix\b|\bllm-wiki-analyst\b'
 
 # SEO-register terms that remain allowed in README/plugin.json but nowhere else.
 SEO_LEAK='\bknowledge base\b|\bknowledge management\b|\bagent harness\b|LLM Wiki Stack|\braw material\b'
 
-# Lowercase layer references — the vocabulary requires "Layer 1".."Layer 4"
+# Lowercase layer references — the glossary requires "Layer 1".."Layer 4"
 # and "Data / Skills / Agents / Orchestration" capitalized when naming the architecture.
 LAYER_DRIFT='\blayer [1-4]\b|\b(data|skills|agents|orchestration) layer\b'
 
 # Known skill and agent names — a bare /name reference (missing the
-# /claude-wiki-pages: prefix) signals a vocabulary violation.
-NAMESPACED_NAMES='wiki-doctor|wiki|claude-wiki-pages-orchestrator-agent|claude-wiki-pages-ingest-agent|claude-wiki-pages-curator-agent|claude-wiki-pages-analyst-agent|llm-wiki-ingest|llm-wiki-query|llm-wiki-lint|llm-wiki-fix|llm-wiki-status|llm-wiki-synthesize|llm-wiki-index|llm-wiki-markdown|llm-wiki|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
+# /claude-wiki-pages: prefix) signals a glossary violation.
+NAMESPACED_NAMES='wiki-doctor|wiki|claude-wiki-pages-orchestrator-agent|claude-wiki-pages-ingest-agent|claude-wiki-pages-curator-agent|claude-wiki-pages-analyst-agent|ingest|query|lint|fix|status|synthesize|index|markdown|init|obsidian-graph-colors|obsidian-markdown|obsidian-bases|obsidian-cli'
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -107,7 +113,7 @@ VIOLATIONS=0
 
 # ─── Check 0: retired banned strings ─────────────────────────────────────────
 
-header "Banned strings (retired vocabulary)"
+header "Banned strings (retired glossary)"
 
 BAN_HITS=0
 while IFS= read -r file; do
@@ -237,7 +243,7 @@ fi
 header "Summary"
 
 if [ "$VIOLATIONS" -eq 0 ]; then
-  printf '%sAll vocabulary checks passed.%s\n' "$GREEN" "$RESET"
+  printf '%sAll glossary checks passed.%s\n' "$GREEN" "$RESET"
   exit 0
 else
   printf '%s%d violation(s) found.%s Fix before committing.\n' "$RED" "$VIOLATIONS" "$RESET"

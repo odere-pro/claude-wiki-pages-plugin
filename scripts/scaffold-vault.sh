@@ -8,7 +8,7 @@
 # entries are left untouched (no-clobber). Safe to run repeatedly.
 #
 # If <source-scaffold> is omitted, defaults to
-#   ${CLAUDE_PLUGIN_ROOT:-<repo-root>}/skills/llm-wiki/template
+#   ${CLAUDE_PLUGIN_ROOT:-<repo-root>}/skills/init/template
 # — the empty starter vault that ships inside the onboarding skill so it is
 # guaranteed to be present in the runtime plugin install. (docs/vault-example/
 # is the populated demo; the onboarding skill copies from the skill's own
@@ -36,7 +36,7 @@ fi
 
 TARGET="${1%/}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DEFAULT_SOURCE="${CLAUDE_PLUGIN_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}/skills/llm-wiki/template"
+DEFAULT_SOURCE="${CLAUDE_PLUGIN_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}/skills/init/template"
 SOURCE="${2:-$DEFAULT_SOURCE}"
 SOURCE="${SOURCE%/}"
 

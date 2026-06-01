@@ -38,7 +38,7 @@ Schema invariants and safety properties that live in `PreToolUse` and `SubagentS
 
 - A user writes a new entity page but forgets `entity_type`; `validate-frontmatter.sh` blocks the write with the missing-field message.
 - An agent finishes ingest but leaves an `_index.md` referencing a missing child; `subagent-ingest-gate.sh` reruns `verify-ingest.sh`, finds the error, and aborts the agent's "done" signal.
-- The `llm-wiki-status` smoke test exercises every hook by issuing known-bad writes and confirming each one is blocked.
+- The `status` smoke test exercises every hook by issuing known-bad writes and confirming each one is blocked.
 
 ## Related Concepts
 

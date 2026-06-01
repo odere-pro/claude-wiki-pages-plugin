@@ -45,7 +45,7 @@ A bug report is actionable when it includes all of these:
 2. The **command sequence** that triggered the issue, including which `/claude-wiki-pages:*` slash command and any agent fan-out.
 3. A **minimal `vault/raw/` fixture** if the issue depends on input. Strip secrets; the fixture goes into a public issue.
 4. The **expected** versus **actual** behaviour, framed against a contract in [`/SPEC.md`](./SPEC.md) when possible (e.g. "§9 says ingest writes a `wiki/log.md` entry; this run did not").
-5. Output of `/claude-wiki-pages:llm-wiki-status` (the one-command health check) if the issue is reproducible.
+5. Output of `/claude-wiki-pages:status` (the one-command health check) if the issue is reproducible.
 
 ## Versioning and release cadence
 

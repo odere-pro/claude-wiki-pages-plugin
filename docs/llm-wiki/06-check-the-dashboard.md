@@ -51,7 +51,7 @@ Ask it to run a Dataview query and write the result to `vault/wiki/dashboard-sna
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Lots of rows with `confidence: 1.0`         | The `1.0` default was not honestly set. Run lint — the single-source-high-confidence check will flag them.             |
 | Orphan sources (not cited by any wiki page) | Find the right entity/concept page and add the source. If nothing fits, the source probably shouldn't be in the vault. |
-| Flat folder with > 12 direct children       | Run `/claude-wiki-pages:llm-wiki-fix` — the flat-folder phase restructures large folders into subtopic subfolders.    |
+| Flat folder with > 12 direct children       | Run `/claude-wiki-pages:fix` — the flat-folder phase restructures large folders into subtopic subfolders.    |
 | `update_count: 1` on a foundational page    | That page is under-evidenced. Either retire it or run the pipeline with new sources that cover the topic.              |
 | `status: stale` pages                       | Lint flagged them. Either refresh with new sources or set `status: superseded` and link to the replacement.            |
 

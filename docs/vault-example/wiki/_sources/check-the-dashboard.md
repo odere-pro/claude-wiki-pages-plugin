@@ -30,7 +30,7 @@ The Dataview dashboard at `vault/wiki/dashboard.md` surfaces all pages by type, 
 ## Key Claims
 
 - The dashboard is useful in Obsidian and empty everywhere else — Dataview does not render outside Obsidian.
-- A flat folder with >12 direct children is a restructure signal; the `llm-wiki-fix` flat-folder phase handles it.
+- A flat folder with >12 direct children is a restructure signal; the `fix` flat-folder phase handles it.
 - `confidence: 1.0` is a default abuse; lint's single-source-high-confidence check flags it.
 
 ## Entities Mentioned

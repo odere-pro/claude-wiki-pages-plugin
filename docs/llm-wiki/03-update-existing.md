@@ -58,7 +58,7 @@ Same downstream behaviour. Useful in scripted workflows where the routing decisi
 If you want strict ingest-only (to line up several batches before running a single lint pass), use the individual skill:
 
 ```
-/claude-wiki-pages:llm-wiki-ingest
+/claude-wiki-pages:ingest
 ```
 
 Same preconditions as the pipeline. No follow-on lint-fix, no synthesis. Run `/claude-wiki-pages:claude-wiki-pages-curator-agent` separately when you are ready.
@@ -104,7 +104,7 @@ Every 10 ingests, or anytime:
 
 - A batch ingest finishes with warnings.
 - Pages are showing up as orphans in the Obsidian graph.
-- `/claude-wiki-pages:llm-wiki-status` reports index drift.
+- `/claude-wiki-pages:status` reports index drift.
 
 The pipeline already lint-fixes on every run — reach for the standalone skill when you want a read-only audit between ingests. See [guide 4](./04-review-validate-fix.md).
 

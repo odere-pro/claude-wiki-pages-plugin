@@ -32,7 +32,7 @@ Full contract in [`/SPEC.md` §10](../SPEC.md).
 
 Five tiers, per [`/SPEC.md` §14](../SPEC.md):
 
-- Tier 0 — static (shellcheck, shfmt, markdownlint, lychee, gitleaks, vocabulary gate)
+- Tier 0 — static (shellcheck, shfmt, markdownlint, lychee, gitleaks, glossary gate)
 - Tier 1 — Bats unit (~108 tests)
 - Tier 2 — smoke
 - Tier 3 — release readiness

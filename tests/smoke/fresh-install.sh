@@ -51,8 +51,8 @@ echo "[smoke] (STUB) plugin install from $REPO_ROOT"
 
 # STUB: requires Claude Code CLI + non-interactive wizard mode.
 # Example:
-#   claude -p /claude-wiki-pages:llm-wiki --non-interactive --accept-defaults
-echo "[smoke] (STUB) run /claude-wiki-pages:llm-wiki"
+#   claude -p /claude-wiki-pages:init --non-interactive --accept-defaults
+echo "[smoke] (STUB) run /claude-wiki-pages:init"
 
 # -- Stage 4: drop a fixture source into vault/raw/. --------------------------
 
@@ -68,8 +68,8 @@ echo "[smoke] Seeded vault/ from minimal-vault fixture"
 
 # STUB: requires Claude Code CLI + ingest skill invocation.
 # Example:
-#   claude -p /claude-wiki-pages:llm-wiki-ingest --non-interactive
-echo "[smoke] (STUB) run /claude-wiki-pages:llm-wiki-ingest"
+#   claude -p /claude-wiki-pages:ingest --non-interactive
+echo "[smoke] (STUB) run /claude-wiki-pages:ingest"
 
 # -- Stage 6: verify the post-ingest state. -----------------------------------
 

@@ -1,11 +1,11 @@
 ---
-name: llm-wiki
+name: init
 description: >
   Onboarding entry point. Scaffold a new LLM Wiki vault in the user's project by
   copying from the skill's own template/, stamp the schema version, and orient the user.
   Trigger when the user says "set up a wiki", "initialize the vault",
   "start a new LLM Wiki", "bootstrap the vault", or invokes
-  /claude-wiki-pages:llm-wiki directly.
+  /claude-wiki-pages:init directly.
 allowed-tools: Bash Read Write Edit Glob Grep
 ---
 
@@ -19,8 +19,8 @@ reference scaffold without overwriting user content. Running it twice on a
 healthy vault is a no-op.
 
 This skill owns initialization. It does not ingest, lint, or query — those
-roles belong to `/claude-wiki-pages:llm-wiki-ingest`,
-`/claude-wiki-pages:llm-wiki-lint`, and `/claude-wiki-pages:llm-wiki-query`.
+roles belong to `/claude-wiki-pages:ingest`,
+`/claude-wiki-pages:lint`, and `/claude-wiki-pages:query`.
 
 ## When to invoke
 
@@ -142,7 +142,7 @@ what is missing.
      1. Drop a source into `<vault>/raw/` and run
         `/claude-wiki-pages:wiki` — the orchestrator detects the new source and
         chains the ingest pipeline automatically.
-     2. Run `/claude-wiki-pages:llm-wiki-status` to confirm every hook fires.
+     2. Run `/claude-wiki-pages:status` to confirm every hook fires.
      3. Read `docs/llm-wiki/01-getting-started.md` for the long-form guide.
 
 ## Hook enforcement

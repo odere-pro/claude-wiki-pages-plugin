@@ -21,13 +21,13 @@ At the Claude Code prompt:
 ## 3. Create a new vault
 
 ```
-/claude-wiki-pages:llm-wiki
+/claude-wiki-pages:init
 ```
 
 Or pick a path:
 
 ```
-/claude-wiki-pages:llm-wiki my vault is docs/vault
+/claude-wiki-pages:init my vault is docs/vault
 ```
 
 ## 4. Import raw files
@@ -55,19 +55,19 @@ Power users can still call individual specialists directly:
 ## 6. Status check
 
 ```
-/claude-wiki-pages:llm-wiki-status
+/claude-wiki-pages:status
 ```
 
 ## 7. Query the wiki
 
 ```
-/claude-wiki-pages:llm-wiki-query what does the wiki say about <topic>?
+/claude-wiki-pages:query what does the wiki say about <topic>?
 ```
 
 ## 8. Export an answer as portable markdown
 
 ```
-/claude-wiki-pages:llm-wiki-markdown what does the wiki say about <topic>?
+/claude-wiki-pages:markdown what does the wiki say about <topic>?
 ```
 
 Writes a portable markdown file (no `[[wikilinks]]`, no Dataview blocks) to

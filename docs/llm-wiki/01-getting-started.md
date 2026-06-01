@@ -38,14 +38,14 @@ claude
 
 On session start you should see a short preamble from the `SessionStart` hook reminding the LLM to read `vault/CLAUDE.md` before any wiki operation. If you see that line, the plugin is wired and the hook bus is working.
 
-If you do not see it yet, you have not scaffolded the vault — run `/claude-wiki-pages:llm-wiki` first (see below).
+If you do not see it yet, you have not scaffolded the vault — run `/claude-wiki-pages:init` first (see below).
 
 ## Scaffold the vault
 
 From the Claude Code session:
 
 ```
-/claude-wiki-pages:llm-wiki
+/claude-wiki-pages:init
 ```
 
 The onboarding wizard copies `docs/vault-example/` from the plugin cache into `vault/` in your project, writes a per-vault `vault/CLAUDE.md`, and prints a short orientation. You never need to touch files under `skills/`, `agents/`, `hooks/`, `scripts/`, or the plugin cache — those are plugin internals.
@@ -70,7 +70,7 @@ vault/
 ## Run the health check
 
 ```
-/claude-wiki-pages:llm-wiki-status
+/claude-wiki-pages:status
 ```
 
 This exercises every hook path — frontmatter validation, wikilink enforcement, `raw/` immutability, the ingest verifier — and prints a green/red report per path. Green everywhere means:

@@ -112,11 +112,11 @@ setup() {
   [[ "$output" == *"source scaffold not found"* ]]
 }
 
-@test "scaffold-vault: defaults source to CLAUDE_PLUGIN_ROOT/skills/llm-wiki/template" {
+@test "scaffold-vault: defaults source to CLAUDE_PLUGIN_ROOT/skills/init/template" {
   # Redirect plugin root at a minimal synthetic scaffold.
   local plugin_root="$BATS_TEST_TMPDIR/plugin-root"
-  mkdir -p "$plugin_root/skills/llm-wiki/template/wiki"
-  printf 'schema_version: 1\n' >"$plugin_root/skills/llm-wiki/template/CLAUDE.md"
+  mkdir -p "$plugin_root/skills/init/template/wiki"
+  printf 'schema_version: 1\n' >"$plugin_root/skills/init/template/CLAUDE.md"
 
   run bash -c "
     export CLAUDE_PLUGIN_ROOT='$plugin_root'
@@ -128,7 +128,7 @@ setup() {
   grep -q 'schema_version: 1' "$TARGET/CLAUDE.md"
 }
 
-@test "scaffold-vault: real skills/llm-wiki/template default scaffolds an empty vault" {
+@test "scaffold-vault: real skills/init/template default scaffolds an empty vault" {
   # Use the actual shipped template (no sample content) — proves first-time
   # users get a clean slate, not the demo vault's pages.
   run bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET"

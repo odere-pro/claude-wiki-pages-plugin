@@ -11,6 +11,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - **DX cleanup.** README version badge bumped to 0.2.0; skill count corrected (12 → 13); `llm-wiki-markdown` added to the Layer 2 list. Stale `/llm-wiki-stack:llm-wiki-stack-ingest-agent` references in `docs/llm-wiki/index.md`, `docs/llm-wiki/02-create-new-knowledge-base.md`, `docs/llm-wiki/03-update-existing.md`, and `docs/vault-example/wiki/tools/llm-wiki-stack.md` reframed — `/llm-wiki-stack:wiki` is the primary entry; the agent-direct form is now documented as a power-user bypass.
 - **Risk and gap report.** New `docs/risk-report-0.2.0.md` tracking deferred work (orchestrator/polish test coverage, Tier 4 corpus replay, edge cases in `resolve-vault.sh` / `session-start.sh` / `prompt-guard.sh`) so the audit findings have a single follow-up surface.
 
+## [1.0.0] — 2026-06-01
+
+Rebrand to **`claude-wiki-pages`** and the first cut of the deterministic **Bun engine**. Breaking: the plugin id, slash namespace, agent names, skill names, settings path, and env vars all change. Migration map: [`docs/migration-1.0.md`](docs/migration-1.0.md).
+
+### Added
+
+- **Deterministic engine (`@odere-pro/claude-wiki-pages`).** A Bun/TypeScript CLI under `src/` (bins `claude-wiki-pages` / `wiki-pages`) that the plugin calls for anything that must be exact. First command: `verify`, a faithful port of `scripts/verify-ingest.sh` CHECK 0–3 emitting structured `--json`. A parity test pins it to the bash verifier (equal error/warn sets on clean and dirty vaults). Tooling mirrors `claude-agentline`: `package.json`, `tsconfig.json`, `bunfig.toml`, prettier, plus staged `.eslintrc.cjs`/`knip.json`. 24 `bun test` cases.
+- **`docs/migration-1.0.md`** — search-and-replace map from the old identifiers, plus what does NOT change (vault schema/content).
+
+### Changed (breaking)
+
+- **Plugin renamed `llm-wiki-stack` → `claude-wiki-pages`** across the manifest, marketplace, slash namespace (`/claude-wiki-pages:`), settings path (`.claude/claude-wiki-pages/settings.json`, auto-migrated on `SessionStart`), and hook log prefixes.
+- **Agents** `llm-wiki-stack-{orchestrator,ingest,curator,analyst,polish}-agent` → `claude-wiki-pages-…-agent`.
+- **Skills** to bare short verbs (the namespace already scopes them): `llm-wiki`→`init`, `llm-wiki-ingest`→`ingest`, `-query`→`query`, `-lint`→`lint`, `-fix`→`fix`, `-status`→`status`, `-synthesize`→`synthesize`, `-index`→`index`, `-markdown`→`markdown`. The `obsidian-*` skills are unchanged.
+- **Env vars** `LLM_WIKI_*` → `CLAUDE_WIKI_PAGES_*`. `LLM_WIKI_VAULT` is still read as a deprecated fallback for one minor.
+- **`docs/VOCABULARY.md` → `docs/GLOSSARY.md`** (matches the `claude-agentline` convention); `validate-docs.sh` is now the "glossary gate" and bans the retired `1.0.0` identifiers outside `CHANGELOG.md`, `docs/adr/*`, and the migration docs.
+
 ## [0.2.0] — 2026-05-02
 
 Top-level orchestrator and four-layer DX retrofit. Single `/llm-wiki-stack:wiki` command replaces the per-skill chain users had to remember; vault state now drives dispatch automatically. ADRs in `docs/adr/` capture the rationale; the migration map is in `docs/llm-wiki/migration-0.2.md`.

@@ -1,12 +1,12 @@
 ---
-name: llm-wiki-lint
+name: lint
 description: >
   Read-only audit of vault/wiki/ for structural and provenance drift. Reports
   Errors, Warnings, and Info per the rules in /SPEC.md §13 and vault/CLAUDE.md.
   Trigger when the user says "lint the vault", "audit the
   wiki", "check for broken links", "run a health check on the wiki", or
-  invokes /claude-wiki-pages:llm-wiki-lint directly. Does not repair anything —
-  that is /claude-wiki-pages:llm-wiki-fix.
+  invokes /claude-wiki-pages:lint directly. Does not repair anything —
+  that is /claude-wiki-pages:fix.
 allowed-tools: Read Glob Grep Bash Edit
 ---
 
@@ -23,7 +23,7 @@ specification changes, update this skill.
 - The user asks for a health check on the wiki.
 - Periodic audit (recommended every 10 ingests, or monthly).
 - As the first half of a lint-fix cycle — the `claude-wiki-pages-curator-agent` agent invokes
-  this skill, consumes the report, invokes `/claude-wiki-pages:llm-wiki-fix`, and
+  this skill, consumes the report, invokes `/claude-wiki-pages:fix`, and
   reinvokes this skill to verify.
 
 ## Reading contract
@@ -117,4 +117,4 @@ Exit codes:
 - `2` — errors present.
 
 The `claude-wiki-pages-curator-agent` agent uses the exit code to decide whether to invoke
-`/claude-wiki-pages:llm-wiki-fix`.
+`/claude-wiki-pages:fix`.

@@ -9,7 +9,7 @@ You want to start a fresh vault — either because you are onboarding for the fi
 From your project directory, open Claude Code and run the onboarding wizard:
 
 ```
-/claude-wiki-pages:llm-wiki
+/claude-wiki-pages:init
 ```
 
 The wizard asks for the vault name, domain, and a few paths, then writes `vault/CLAUDE.md`, `_templates/`, and the bookkeeping files (`wiki/index.md`, `wiki/log.md`, `wiki/dashboard.md`). It does not overwrite existing content without asking.
@@ -28,7 +28,7 @@ Run the plugin install once (the install is global to your Claude Code setup):
 Then, from the second project directory, open Claude Code and run:
 
 ```
-/claude-wiki-pages:llm-wiki
+/claude-wiki-pages:init
 ```
 
 The wizard scaffolds a fresh vault in that project. The two vaults are independent — different `vault/CLAUDE.md` files, different `vault/raw/` contents, different `wiki/` trees. Both are maintained by the same plugin install.
@@ -86,7 +86,7 @@ For images, the source summary gets `source_format: image` and `attachment_path:
 ## Verify
 
 ```
-/claude-wiki-pages:llm-wiki-status
+/claude-wiki-pages:status
 ```
 
 Green across the board means the ingest is clean: frontmatter valid, wikilinks resolve, indexes in sync, `raw/` still immutable. If red on any path, see [guide 4](./04-review-validate-fix.md).

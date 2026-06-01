@@ -25,7 +25,7 @@ confidence: 1.0
 
 ## Summary
 
-Reference guide covering prerequisites (Claude Code, Obsidian 1.5+, jq), plugin install (remote marketplace or local path), session-start hook preamble confirmation, vault scaffolding via `/claude-wiki-pages:llm-wiki`, and the health check via `/claude-wiki-pages:llm-wiki-status`. Also lists the optional Obsidian setup (Dataview, Templater, Web Clipper) and graph coloring.
+Reference guide covering prerequisites (Claude Code, Obsidian 1.5+, jq), plugin install (remote marketplace or local path), session-start hook preamble confirmation, vault scaffolding via `/claude-wiki-pages:init`, and the health check via `/claude-wiki-pages:status`. Also lists the optional Obsidian setup (Dataview, Templater, Web Clipper) and graph coloring.
 
 ## Key Claims
 

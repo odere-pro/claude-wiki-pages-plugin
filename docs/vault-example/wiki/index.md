@@ -55,4 +55,4 @@ Master catalog of every page in the wiki.
 
 ## Synthesis
 
-None yet. Run `/claude-wiki-pages:llm-wiki-synthesize` when the wiki has enough content to warrant cross-topic analysis.
+None yet. Run `/claude-wiki-pages:synthesize` when the wiki has enough content to warrant cross-topic analysis.

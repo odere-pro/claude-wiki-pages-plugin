@@ -1,17 +1,17 @@
-# Vocabulary
+# Glossary
 
 Canonical term list for `claude-wiki-pages`. Every doc, every skill description, every user-visible string conforms to this file. `scripts/validate-docs.sh` enforces it on commit and in CI.
 
 ## Why this file exists
 
-Vocabulary is **input weight**, not a lexicon. An LLM reading this project already carries strong priors for established community terms — MOC, vault, wiki, frontmatter, provenance, ingest. Naming our artifacts with those terms activates those priors and lowers drift. Novel compounds ("folder map", "root catalog", bare path strings like `raw/`) waste weight: the model has to learn them from scratch every conversation, and prose drifts as it forgets.
+Glossary is **input weight**, not a lexicon. An LLM reading this project already carries strong priors for established community terms — MOC, vault, wiki, frontmatter, provenance, ingest. Naming our artifacts with those terms activates those priors and lowers drift. Novel compounds ("folder map", "root catalog", bare path strings like `raw/`) waste weight: the model has to learn them from scratch every conversation, and prose drifts as it forgets.
 
 Rules:
 
 - **Terms are concepts; descriptions map them to artifacts.** `raw content` is the term — its description says "lives in `raw/`".
 - **One term, one row. No alternates inside a row.** Every concept has a single canonical form.
-- **Prefer established community terms.** Align with PKM, Obsidian, and Karpathy-LLM-Wiki vocabulary where it exists. Invent only when nothing off-the-shelf fits.
-- **Vocabulary is living.** Terminology that fails to carry its weight gets renamed; terminology earning its weight stays. Every change bumps the schema and is logged.
+- **Prefer established community terms.** Align with PKM, Obsidian, and Karpathy-LLM-Wiki glossary where it exists. Invent only when nothing off-the-shelf fits.
+- **Glossary is living.** Terminology that fails to carry its weight gets renamed; terminology earning its weight stays. Every change bumps the schema and is logged.
 
 Two registers:
 
@@ -24,7 +24,7 @@ The registers do not mix. `vault` is the technical term for the directory; `LLM 
 
 The script treats this file as input:
 
-1. **Banned-string leaks** — flags `second-brain`, `second brain`, `vault-synthesize`, and `vault-index` outside the explicit allowlist (this file and `CHANGELOG.md` historical entries only). These strings are retired from the vocabulary as of schema version 1 and must not appear in new prose.
+1. **Banned-string leaks** — flags `second-brain`, `second brain`, `vault-synthesize`, and `vault-index` outside the explicit allowlist (this file and `CHANGELOG.md` historical entries only). These strings are retired from the glossary as of schema version 1 and must not appear in new prose.
 2. **Discoverability-in-technical-surface leaks** — flags `LLM Wiki Stack` (Title Case drift) and `agent harness` outside the SEO allowlist.
 3. **Exemptions** — content inside fenced code blocks (` ``` ` and `~~~`) and inline code spans is not scanned. Heading text is scanned; the canonical form must win.
 4. **Exit codes** — `0` clean; `1` any violation, with `path:line:column rule-id description` output.
@@ -37,11 +37,11 @@ scripts/validate-docs.sh
 
 Wired as a `PostToolUse` hook on markdown edits and as a `pre-commit` hook.
 
-## Updating the vocabulary
+## Updating the glossary
 
-This file is under semver along with the schema. Additions are a minor bump; renames or changes in meaning are a major bump. Every change is logged in `CHANGELOG.md` under a "Vocabulary changes" subsection so downstream users can update their local prose deliberately.
+This file is under semver along with the schema. Additions are a minor bump; renames or changes in meaning are a major bump. Every change is logged in `CHANGELOG.md` under a "Glossary changes" subsection so downstream users can update their local prose deliberately.
 
-## Technical vocabulary
+## Technical glossary
 
 ### Schema terms
 
@@ -63,7 +63,7 @@ Formal contracts. Defined in `docs/vault-example/CLAUDE.md`; enforced by `valida
 | topic folder   | A folder under `wiki/` holding pages on one subject. Max nesting: four levels.                                                                                                                           |
 | MOC            | Map of Content. Established PKM term for a navigation page over a scope. Frontmatter `type: index`. Per-folder MOC is `_index.md`; vault MOC is `wiki/index.md`. Scope differs; the concept is the same. |
 | synthesis note | A page under `wiki/_synthesis/` with `type: synthesis`. Cross-topic analysis.                                                                                                                            |
-| portable markdown | GitHub-flavored markdown without Obsidian-only syntax (`[[wikilinks]]`, Dataview, callouts, block IDs). The output format produced by `llm-wiki-markdown` into `vault/output/`. Distinct from wiki pages, which use Obsidian-flavored markdown.                  |
+| portable markdown | GitHub-flavored markdown without Obsidian-only syntax (`[[wikilinks]]`, Dataview, callouts, block IDs). The output format produced by `markdown` into `vault/output/`. Distinct from wiki pages, which use Obsidian-flavored markdown.                  |
 
 ### Architecture terms
 
@@ -92,25 +92,25 @@ The plugin's structure. Contracts in `/SPEC.md`.
 
 ### Skill and agent naming
 
-Plugin-authored skills and agents use the `llm-wiki-` prefix when the target is the wiki itself, and an `obsidian-` prefix when the target is Obsidian (e.g., `obsidian-graph-colors` writes to `.obsidian/graph.json`). The bare `llm-wiki` name is reserved for the onboarding entry-point skill. Three third-party reference skills — `obsidian-markdown`, `obsidian-bases`, `obsidian-cli` — are retained under their upstream MIT names; attribution lives in `NOTICE` and `THIRD_PARTY_LICENSES.md`. The `obsidian-` prefix is therefore a naming convention by target, not a provenance marker.
+Since `1.0.0`, plugin-authored **skills** are bare short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`) — the `/claude-wiki-pages:` namespace already scopes them, so a redundant brand prefix is dropped. Skills targeting Obsidian keep an `obsidian-` prefix (e.g., `obsidian-graph-colors` writes to `.obsidian/graph.json`). Three third-party reference skills — `obsidian-markdown`, `obsidian-bases`, `obsidian-cli` — are retained under their upstream MIT names; attribution lives in `NOTICE` and `THIRD_PARTY_LICENSES.md`. The `obsidian-` prefix is therefore a naming convention by target, not a provenance marker.
 
 Skills and agents share the same namespace (`/claude-wiki-pages:<name>`), so their names must be globally unique. The convention below ensures they never collide:
 
-- **Skills** — single verb or noun suffix: `llm-wiki-ingest`, `llm-wiki-query`, `llm-wiki-lint`, `llm-wiki-markdown`.
+- **Skills** — single verb or noun suffix: `ingest`, `query`, `lint`, `markdown`.
 - **Agents** — `{plugin-name}-{role}-agent` since `0.2.0`: `claude-wiki-pages-orchestrator-agent`, `claude-wiki-pages-ingest-agent`, `claude-wiki-pages-curator-agent`, `claude-wiki-pages-analyst-agent`. The plugin-prefix matches the plugin id exactly (not `llm-wiki-` substring) so future search-and-replace is unambiguous. The `-agent` suffix is mandatory; it disambiguates an agent from a skill on first read of a slash command.
 - **Commands** — short verb names under `commands/`: `wiki`, `wiki-doctor`. Surfaced as `/claude-wiki-pages:wiki` and `/claude-wiki-pages:wiki-doctor`.
 
 | Name                       | Kind            | Meaning                                                                                                                                                   |
 | -------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `llm-wiki`                 | Skill (Layer 2) | The onboarding entry-point skill. Disambiguate from the plugin identifier by always using the `/claude-wiki-pages:llm-wiki` command form in technical prose. |
-| `llm-wiki-ingest`          | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
-| `llm-wiki-query`           | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
-| `llm-wiki-lint`            | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
-| `llm-wiki-fix`             | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
-| `llm-wiki-status`          | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
-| `llm-wiki-synthesize`      | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
-| `llm-wiki-index`           | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
-| `llm-wiki-markdown`        | Skill (Layer 2) | Plugin-authored. Single-noun skill name; renders a query answer as portable markdown into `vault/output/`.                                                |
+| `init`                     | Skill (Layer 2) | The onboarding entry-point skill (renamed from `llm-wiki` in `1.0.0`). Scaffolds the vault. Always written as `/claude-wiki-pages:init` in technical prose. |
+| `ingest`          | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
+| `query`           | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
+| `lint`            | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
+| `fix`             | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
+| `status`          | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
+| `synthesize`      | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
+| `index`           | Skill (Layer 2) | Plugin-authored. Single-verb skill name.                                                                                                                  |
+| `markdown`        | Skill (Layer 2) | Plugin-authored. Single-noun skill name; renders a query answer as portable markdown into `vault/output/`.                                                |
 | `claude-wiki-pages-orchestrator-agent`    | Agent (Layer 3/4) | Plugin-authored. Top-level dispatch for `/claude-wiki-pages:wiki`. `user-invocable: true`. Probes vault state; routes to exactly one specialist per turn. |
 | `claude-wiki-pages-ingest-agent`          | Agent (Layer 3) | Plugin-authored. Renamed from `llm-wiki-ingest-pipeline` in `0.2.0`. Chains ingest → curator → optimize (opt-in) → synthesize.                            |
 | `claude-wiki-pages-curator-agent`         | Agent (Layer 3) | Plugin-authored. Renamed from `llm-wiki-lint-fix` in `0.2.0`. Audits, auto-applies safe mechanical fixes, gates judgment fixes (restructures, merges) behind plans. |
@@ -127,15 +127,15 @@ Canonical names for the plugin's single-responsibility capabilities. Every entry
 
 | Term                  | Description                                                                                                                      |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| llm-wiki              | Onboarding/init skill. Scaffolds `vault/` from `docs/vault-example/` and orients the user. Slash command: `/claude-wiki-pages:llm-wiki`. |
-| llm-wiki-ingest       | Processes one or more sources under `raw/` into wiki pages.                                                                      |
-| llm-wiki-query        | Answers a question from the wiki with `[[wikilink]]` citations.                                                                  |
-| llm-wiki-lint         | Audits the wiki for structural and provenance drift.                                                                             |
-| llm-wiki-fix          | Auto-repairs what lint reports. Idempotent.                                                                                      |
-| llm-wiki-status       | One-command health check. Exercises every hook path. Leaves the vault unchanged.                                                 |
-| llm-wiki-synthesize   | Writes a cross-topic synthesis note under `wiki/_synthesis/`.                                                                    |
-| llm-wiki-index        | Generates or refreshes the vault MOC at `wiki/index.md`.                                                                         |
-| llm-wiki-markdown     | Renders a query answer as portable markdown under `vault/output/`. Strips Obsidian-only syntax so the file is usable elsewhere.  |
+| init                  | Onboarding/init skill (renamed from `llm-wiki` in `1.0.0`). Scaffolds `vault/` from `docs/vault-example/` and orients the user. Slash command: `/claude-wiki-pages:init`. |
+| ingest       | Processes one or more sources under `raw/` into wiki pages.                                                                      |
+| query        | Answers a question from the wiki with `[[wikilink]]` citations.                                                                  |
+| lint         | Audits the wiki for structural and provenance drift.                                                                             |
+| fix          | Auto-repairs what lint reports. Idempotent.                                                                                      |
+| status       | One-command health check. Exercises every hook path. Leaves the vault unchanged.                                                 |
+| synthesize   | Writes a cross-topic synthesis note under `wiki/_synthesis/`.                                                                    |
+| index        | Generates or refreshes the vault MOC at `wiki/index.md`.                                                                         |
+| markdown     | Renders a query answer as portable markdown under `vault/output/`. Strips Obsidian-only syntax so the file is usable elsewhere.  |
 | obsidian-graph-colors | Applies per-topic colors to Obsidian's graph view. Plugin-authored.                                                              |
 | obsidian-markdown     | Obsidian-flavored markdown reference. MIT, kepano/obsidian-skills.                                                               |
 | obsidian-bases        | Obsidian Bases (database) reference. MIT, kepano/obsidian-skills.                                                                |
@@ -159,7 +159,7 @@ Lowercase in body prose; capitalize at the start of a heading. Each logs an entr
 
 | Term                     | Description                                                                                          |
 | ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| onboarding wizard        | The `/claude-wiki-pages:llm-wiki` flow. Scaffolds the vault and orients the user.                       |
+| onboarding wizard        | The `/claude-wiki-pages:init` flow. Scaffolds the vault and orients the user.                       |
 | default verb             | `/claude-wiki-pages:wiki`. The top-level entry — the plugin probes vault state and chooses what to run. |
 | power-user surface       | The individual skills users reach for when they want tighter scope than the pipeline.                |
 | post-install perspective | The voice user guides are written in. Assume `/plugin install`, not `git clone`.                     |
@@ -177,16 +177,28 @@ Lowercase in body prose; capitalize at the start of a heading. Each logs an entr
 
 ### Banned strings
 
-Retired from the vocabulary as of schema version 1. `validate-docs.sh` flags occurrences outside this file and `CHANGELOG.md` (which preserves historical record).
+Retired from the glossary as of schema version 1. `validate-docs.sh` flags occurrences outside this file and `CHANGELOG.md` (which preserves historical record).
 
 | Banned                                                  | Replacement                                                                                         |
 | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `second-brain` (hyphenated, in any skill name or prose) | `llm-wiki` for the onboarding skill; `llm-wiki-<verb>` for the others.                              |
+| `second-brain` (hyphenated, in any skill name or prose) | `init` for the onboarding skill; the specific verb (`ingest`, `lint`, …) for the others.           |
 | `second brain` (spaced, in any prose)                   | `LLM Wiki` in discoverability surfaces; the specific verb (`ingest`, `lint`, …) in technical prose. |
-| `vault-synthesize`                                      | `llm-wiki-synthesize`.                                                                              |
-| `vault-index`                                           | `llm-wiki-index`.                                                                                   |
+| `vault-synthesize`                                      | `synthesize`.                                                                              |
+| `vault-index`                                           | `index`.                                                                                   |
 
-## Discoverability vocabulary
+#### Renamed in `1.0.0` (plugin rebrand to `claude-wiki-pages`)
+
+Banned outside `CHANGELOG.md`, `docs/adr/*`, and `docs/migration-1.0.md`, which preserve the historical record.
+
+| Banned (pre-`1.0.0`)                                                                 | Replacement                                            |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| `llm-wiki-stack`                                                                      | `claude-wiki-pages`                                    |
+| `/llm-wiki-stack:`                                                                    | `/claude-wiki-pages:`                                  |
+| `llm-wiki-stack-{orchestrator,ingest,curator,analyst,polish}-agent`                  | `claude-wiki-pages-…-agent`                            |
+| `llm-wiki-{ingest,query,lint,fix,status,synthesize,index,markdown}` (skill names)    | the bare verb (`ingest`, `query`, …)                  |
+| `llm-wiki` (the onboarding skill name)                                                | `init`                                                 |
+
+## Discoverability glossary
 
 Permitted only in:
 

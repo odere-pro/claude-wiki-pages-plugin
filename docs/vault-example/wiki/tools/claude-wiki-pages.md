@@ -31,7 +31,7 @@ The Claude Code plugin that implements the [[LLM Wiki Pattern]] on top of an [[O
 
 - Default verb: `/claude-wiki-pages:wiki` — orchestrator entry; probes vault state and dispatches to init, ingest, curator, or analyst.
 - Power-user bypass: `/claude-wiki-pages:claude-wiki-pages-ingest-agent` — direct ingest-pipeline call (skip the routing decision).
-- Onboarding verb: `/claude-wiki-pages:llm-wiki` — scaffolds `vault/` and writes the per-project `vault/CLAUDE.md` schema. The orchestrator dispatches here automatically on a fresh install.
+- Onboarding verb: `/claude-wiki-pages:init` — scaffolds `vault/` and writes the per-project `vault/CLAUDE.md` schema. The orchestrator dispatches here automatically on a fresh install.
 - Health check: `/claude-wiki-pages:wiki-doctor` — exercises every hook path and reports green/red per path.
 - `vault/CLAUDE.md` is the authoritative schema; it wins over any skill default that conflicts.
 

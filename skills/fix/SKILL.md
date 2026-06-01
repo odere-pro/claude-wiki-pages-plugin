@@ -1,17 +1,17 @@
 ---
-name: llm-wiki-fix
+name: fix
 description: >
-  Auto-repair what /claude-wiki-pages:llm-wiki-lint reports. Idempotent — running
+  Auto-repair what /claude-wiki-pages:lint reports. Idempotent — running
   twice on a clean tree produces no diff. Trigger when the user says "fix the
   lint errors", "repair the wiki", "auto-fix", or invokes
-  /claude-wiki-pages:llm-wiki-fix directly. Expects a fresh lint report in
+  /claude-wiki-pages:fix directly. Expects a fresh lint report in
   context, or runs its own lint pass internally.
 allowed-tools: Read Write Edit Glob Grep Bash
 ---
 
 # LLM Wiki — Fix
 
-Apply the repairs `/claude-wiki-pages:llm-wiki-lint` identified.
+Apply the repairs `/claude-wiki-pages:lint` identified.
 
 ## When to invoke
 
@@ -47,7 +47,7 @@ Writes are confined to what the specific lint finding authorizes:
 | Missing `parent` / `path`         | Derive from file location under `wiki/`.                                               |
 | MOC missing member                | Add the page or subfolder to `children:` / `child_indexes:` of its per-folder MOC.     |
 | Banned legacy value               | Rewrite: `type: moc` → `type: index`; `_MOC.md` → `_index.md`; `child_mocs:` → `child_indexes:`. |
-| Vault MOC drift                   | Escalate to `/claude-wiki-pages:llm-wiki-index`; do not edit `wiki/index.md` directly.     |
+| Vault MOC drift                   | Escalate to `/claude-wiki-pages:index`; do not edit `wiki/index.md` directly.     |
 
 Always append one log entry:
 

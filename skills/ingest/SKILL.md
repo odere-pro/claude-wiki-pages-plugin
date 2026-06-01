@@ -1,10 +1,10 @@
 ---
-name: llm-wiki-ingest
+name: ingest
 description: >
   Ingest one or more sources from vault/raw/ into typed wiki pages under
   vault/wiki/. Trigger when the user says "ingest this source", "process the
   file I just dropped in raw/", "add this to the wiki", or invokes
-  /claude-wiki-pages:llm-wiki-ingest directly. Prefer the pipeline
+  /claude-wiki-pages:ingest directly. Prefer the pipeline
   (/claude-wiki-pages:claude-wiki-pages-ingest-agent) unless the user has asked to skip
   lint-fix and synthesis.
 allowed-tools: Bash Read Write Edit Glob Grep
@@ -53,7 +53,7 @@ This skill MUST NOT:
 - Write to `vault/raw/`.
 - Write synthesis notes under `vault/wiki/_synthesis/`.
 - Delete any existing page.
-- Renumber, reorder, or rebuild `wiki/index.md` (that is `llm-wiki-index`'s
+- Renumber, reorder, or rebuild `wiki/index.md` (that is `index`'s
   role; this skill only appends).
 
 ## Workflow

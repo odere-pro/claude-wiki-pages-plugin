@@ -1,5 +1,5 @@
 ---
-name: llm-wiki-index
+name: index
 description: >
   Generate or refresh the vault MOC at vault/wiki/index.md — the top-level
   catalog of every topic folder and synthesis note in the vault. Trigger when
@@ -14,14 +14,14 @@ allowed-tools: Read Write Edit Glob Grep
 Refresh `vault/wiki/index.md` — the vault MOC.
 
 Per-folder `_index.md` files (inside topic folders) are maintained by
-`/claude-wiki-pages:llm-wiki-ingest` during ingest. This skill does not touch
+`/claude-wiki-pages:ingest` during ingest. This skill does not touch
 them.
 
 ## When to invoke
 
 - A new top-level topic folder has been created.
 - A synthesis note has been added under `wiki/_synthesis/`.
-- `/claude-wiki-pages:llm-wiki-lint` reports vault-MOC drift.
+- `/claude-wiki-pages:lint` reports vault-MOC drift.
 - The user asks for an index refresh.
 
 ## Reading contract

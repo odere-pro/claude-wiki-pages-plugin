@@ -3,12 +3,12 @@
 > Karpathy's LLM Wiki, shipped as a Claude Code plugin — four layers, hook-enforced.
 
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-0.2.0-green.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](./CHANGELOG.md)
 [![Claude Code plugin](https://img.shields.io/badge/claude%20code-plugin-8A2BE2.svg)](https://docs.claude.com/en/docs/claude-code/plugins)
 
 A Claude Code plugin that turns an **Obsidian vault** into a maintained, provenance-tracked **knowledge base** following [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). The human curates sources; the plugin maintains the wiki; **hooks enforce the schema at every tool-call boundary**.
 
-The system is spec-driven: the contract lives in [`SPEC.md`](./SPEC.md), the schema in [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md), the canonical terms in [`docs/VOCABULARY.md`](./docs/VOCABULARY.md). Every skill, agent, and hook binds to them.
+The system is spec-driven: the contract lives in [`SPEC.md`](./SPEC.md), the schema in [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md), the canonical terms in [`docs/GLOSSARY.md`](./docs/GLOSSARY.md). Every skill, agent, and hook binds to them.
 
 ---
 
@@ -17,7 +17,7 @@ The system is spec-driven: the contract lives in [`SPEC.md`](./SPEC.md), the sch
 | Layer        | Surface                                                                                                                       | Count |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------- | :---: |
 | **Data**     | `docs/vault-example/` — immutable `raw/`, LLM-maintained `wiki/`, schema in `vault/CLAUDE.md`                                 |   1   |
-| **Skills**   | 9 plugin-authored `llm-wiki-*` + `obsidian-graph-colors` + 3 third-party `obsidian-*` (MIT, kepano)                           |  13   |
+| **Skills**   | 9 plugin-authored short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`) + `obsidian-graph-colors` + 3 third-party `obsidian-*` (MIT, kepano) |  13   |
 | **Agents**   | Orchestrator (entry) + ingest, curator, analyst, polish — see [docs/operations.md](./docs/operations.md)                      |   5   |
 | **Commands** | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:wiki-doctor`                                                                         |   2   |
 | **Hooks**    | `SessionStart` + `UserPromptSubmit` + 4 `PreToolUse` + 2 `PostToolUse` + 2 `SubagentStop`                                     |  10   |
@@ -25,6 +25,35 @@ The system is spec-driven: the contract lives in [`SPEC.md`](./SPEC.md), the sch
 | **Tests**    | Five tiers — Tier 0 static, Tier 1 Bats unit, Tier 2 smoke, Tier 3 release, Tier 4 adversarial                                |   5   |
 
 Long-form architecture: [docs/architecture.md](./docs/architecture.md). Feature list and competitor comparison: [docs/features.md](./docs/features.md).
+
+## How it works
+
+You type one verb; the orchestrator routes it through the right skill, the **Bun engine** does the exact work (verify / fix), and a git checkpoint makes every auto-heal reversible. Hooks enforce the schema at each write.
+
+```mermaid
+flowchart TD
+    U([You]) -->|/claude-wiki-pages:wiki| O[orchestrator agent]
+    O -->|fresh vault| INIT[init]
+    O -->|raw/ pending| ING[ingest agent]
+    O -->|question| ANA[analyst agent]
+    O -->|drift| CUR[curator agent]
+
+    subgraph L2["Layer 2 — Skills (thin orchestrators)"]
+      INIT & ING & ANA & CUR
+    end
+
+    ING & CUR -->|call| ENG[["Bun engine<br/>index · link-suggest · search · verify · fix"]]
+    ENG -->|checkpoint then auto-heal| HEAL{{"verify → fix → re-verify<br/>(git-checkpointed)"}}
+    HEAL -->|clean| VAULT[("Vault<br/>raw/ → wiki/")]
+    HEAL -.->|rollback| GIT[(git revert)]
+
+    PreHook[/"hooks: frontmatter · wikilinks · raw-immutable"/] -.->|gate every write| VAULT
+
+    classDef eng fill:#1c2c3c,stroke:#4aa3ff,color:#eaf2ff;
+    classDef vault fill:#10261a,stroke:#3ddc84,color:#eafff2;
+    class ENG,HEAL eng;
+    class VAULT vault;
+```
 
 ---
 
@@ -79,7 +108,7 @@ First-time walkthrough (~30 minutes): [docs/playbooks/200-foundational.md](./doc
 | Features and comparison        | [docs/features.md](./docs/features.md)                                      |
 | Architecture (four layers)     | [docs/architecture.md](./docs/architecture.md)                              |
 | Spec (every contract)          | [SPEC.md](./SPEC.md)                                                        |
-| Vocabulary                     | [docs/VOCABULARY.md](./docs/VOCABULARY.md)                                  |
+| Glossary                     | [docs/GLOSSARY.md](./docs/GLOSSARY.md)                                  |
 | Security and threat model      | [docs/security.md](./docs/security.md)                                      |
 | Step-by-step user guides       | [docs/llm-wiki/](./docs/llm-wiki/index.md)                                  |
 | Playbooks (200 / 300 / 500)    | [docs/playbooks/](./docs/playbooks/index.md)                                |

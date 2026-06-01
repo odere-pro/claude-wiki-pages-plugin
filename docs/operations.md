@@ -8,8 +8,8 @@ The one verb you need to know is `/claude-wiki-pages:wiki`. The orchestrator pro
 | --------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
 | **Wiki**        | `/claude-wiki-pages:wiki`         | Top-level entry. One verb does the right thing — init, ingest, curator, or analyst depending on vault state.         |
 | **Doctor**      | `/claude-wiki-pages:wiki-doctor`  | Environment health check. Run after install and any time something feels wrong.                                      |
-| **Query**       | `/claude-wiki-pages:llm-wiki-query`  | Direct query skill. Traverses MOCs; every answer cites `[[wikilinks]]` back to wiki pages.                       |
-| **Status**      | `/claude-wiki-pages:llm-wiki-status` | One-command status read of the last operations.                                                                   |
+| **Query**       | `/claude-wiki-pages:query`  | Direct query skill. Traverses MOCs; every answer cites `[[wikilinks]]` back to wiki pages.                       |
+| **Status**      | `/claude-wiki-pages:status` | One-command status read of the last operations.                                                                   |
 
 ## Power-user bypasses
 
@@ -30,12 +30,12 @@ For surgical operations on one slice of the pipeline:
 
 | Skill | Purpose |
 | ----- | ------- |
-| `/claude-wiki-pages:llm-wiki-ingest`     | Process raw sources into wiki pages. No follow-on lint or synthesis. |
-| `/claude-wiki-pages:llm-wiki-lint`       | Read-only audit. Reports drift; does not repair.                     |
-| `/claude-wiki-pages:llm-wiki-fix`        | Auto-repairs what `llm-wiki-lint` reports. Idempotent.               |
-| `/claude-wiki-pages:llm-wiki-synthesize` | Write a cross-topic synthesis note.                                  |
-| `/claude-wiki-pages:llm-wiki-index`      | Generate or refresh the vault MOC at `wiki/index.md`.                |
-| `/claude-wiki-pages:llm-wiki-markdown`   | Render a wiki query as portable markdown into `vault/output/`.       |
+| `/claude-wiki-pages:ingest`     | Process raw sources into wiki pages. No follow-on lint or synthesis. |
+| `/claude-wiki-pages:lint`       | Read-only audit. Reports drift; does not repair.                     |
+| `/claude-wiki-pages:fix`        | Auto-repairs what `lint` reports. Idempotent.               |
+| `/claude-wiki-pages:synthesize` | Write a cross-topic synthesis note.                                  |
+| `/claude-wiki-pages:index`      | Generate or refresh the vault MOC at `wiki/index.md`.                |
+| `/claude-wiki-pages:markdown`   | Render a wiki query as portable markdown into `vault/output/`.       |
 | `/claude-wiki-pages:obsidian-graph-colors` | Apply per-topic colors to Obsidian's graph view.                   |
 
 Contracts for each live in [`/SPEC.md` §5](../SPEC.md).

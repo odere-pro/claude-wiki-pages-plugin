@@ -50,7 +50,7 @@ Layer 2 only — a new skill `llm-wiki-pdf-export` reading from `wiki/` and writ
 - Write a `SKILL.md` matching the canonical anatomy.
 - Wire the new skill so the orchestrator (or a user) can invoke it.
 
-The canonical reference: [`skills/llm-wiki-lint/SKILL.md`](../../skills/llm-wiki-lint/SKILL.md). Read it before writing your own — it shows the description style, the When-to-invoke / Reading-contract / Writing-contract sections, and the spec anchors.
+The canonical reference: [`skills/lint/SKILL.md`](../../skills/lint/SKILL.md). Read it before writing your own — it shows the description style, the When-to-invoke / Reading-contract / Writing-contract sections, and the spec anchors.
 
 > **Lab.** Build `llm-wiki-export-csv` — a skill that lists every entity in the vault as a CSV row with `title,path,sources_count,confidence`. (Slash-command examples below use `/your-plugin:` rather than `/claude-wiki-pages:` because the example skill doesn't ship with this plugin — drop in your own plugin namespace when you adapt it.)
 >
@@ -102,7 +102,7 @@ The canonical reference: [`skills/llm-wiki-lint/SKILL.md`](../../skills/llm-wiki
 > /SPEC.md §5 (skill contract). vault/CLAUDE.md (entity frontmatter).
 > ```
 >
-> **Step 3.** Add the skill name to [`docs/VOCABULARY.md`](../VOCABULARY.md) under the Layer 2 skills table. Run `bash scripts/validate-docs.sh` — vocabulary gate must exit 0.
+> **Step 3.** Add the skill name to [`docs/GLOSSARY.md`](../GLOSSARY.md) under the Layer 2 skills table. Run `bash scripts/validate-docs.sh` — glossary gate must exit 0.
 >
 > **Step 4.** Use the skill:
 >
@@ -249,7 +249,7 @@ The test pyramid (per [`/SPEC.md` §14](../../SPEC.md)):
 
 | Tier | Tools | What it covers |
 | ---- | ----- | -------------- |
-| **0 — Static** | shellcheck, shfmt, markdownlint, lychee, gitleaks, validate-docs | Lint, link-check, secrets, vocabulary gate. Free signal. |
+| **0 — Static** | shellcheck, shfmt, markdownlint, lychee, gitleaks, validate-docs | Lint, link-check, secrets, glossary gate. Free signal. |
 | **1 — Bats unit** | bats-core, jq | Per-script behavior. ~108 tests across `tests/scripts/`. |
 | **2 — Smoke** | bash | End-to-end fresh-install + skill-schema scripts. CLI integration stubbed pending Phase E. |
 | **3 — Release** | gh, jq | Pre-release readiness checks. Run from CI. |
@@ -326,13 +326,13 @@ The plugin is Apache 2.0; forking is fine. Three categories of names:
 > ```bash
 > > rg -l 'claude-wiki-pages' . | xargs sed -i.bak 's/claude-wiki-pages/my-research-wiki/g'
 > > find . -name '*.bak' -delete
-> > bash scripts/validate-docs.sh    # vocabulary gate may need entries renamed too
+> > bash scripts/validate-docs.sh    # glossary gate may need entries renamed too
 > > bash tests/run-tests.sh tier0    # confirm nothing else drifted
 > ```
 >
-> Then update `docs/VOCABULARY.md` to register your new identifiers — the gate will block otherwise.
+> Then update `docs/GLOSSARY.md` to register your new identifiers — the gate will block otherwise.
 
-The vocabulary gate is your friend in a fork: it surfaces every term that needs to move together. See [`scripts/validate-docs.sh`](../../scripts/validate-docs.sh) and [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
+The glossary gate is your friend in a fork: it surfaces every term that needs to move together. See [`scripts/validate-docs.sh`](../../scripts/validate-docs.sh) and [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
 
 ### Knowledge check
 
@@ -414,7 +414,7 @@ Slash command stdout is conversational and varies by run. `wiki/log.md` is the s
 
 The contribution gates, in order:
 
-1. **Vocabulary** — every new term registered in `docs/VOCABULARY.md`. `bash scripts/validate-docs.sh` exits 0.
+1. **Glossary** — every new term registered in `docs/GLOSSARY.md`. `bash scripts/validate-docs.sh` exits 0.
 2. **Tier 0** — `bash tests/run-tests.sh tier0` clean.
 3. **Tier 1** — every new script has a `tests/scripts/<name>.bats`. `bash tests/run-tests.sh tier1` clean.
 4. **CHANGELOG** — append your change under the unreleased section. Format follows [Keep a Changelog](https://keepachangelog.com).

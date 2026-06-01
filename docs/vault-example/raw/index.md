@@ -19,9 +19,9 @@ Run this every time you want to pull new sources into the wiki. Everything else 
 Read in order. Each guide is self-contained.
 
 1. **[Install and verify](./01-getting-started.md).** Get the plugin wired up. Confirm every hook fires.
-2. **[Create your vault](./02-create-new-knowledge-base.md).** Run `/claude-wiki-pages:llm-wiki` once per project. It scaffolds `vault/` and writes the authoritative schema at `vault/CLAUDE.md`.
+2. **[Create your vault](./02-create-new-knowledge-base.md).** Run `/claude-wiki-pages:init` once per project. It scaffolds `vault/` and writes the authoritative schema at `vault/CLAUDE.md`.
 3. **[Add sources and ingest](./03-update-existing.md).** Drop files into `vault/raw/`. Run the pipeline. Read `wiki/log.md` to see what the LLM did.
-4. **[Validate and repair](./04-review-validate-fix.md).** Three levels: `llm-wiki-status` (hooks green/red), `llm-wiki-lint` (read-only audit), `claude-wiki-pages-curator-agent` (repair). Run the last one weekly.
+4. **[Validate and repair](./04-review-validate-fix.md).** Three levels: `status` (hooks green/red), `lint` (read-only audit), `claude-wiki-pages-curator-agent` (repair). Run the last one weekly.
 5. **[Query the wiki](./07-query-the-wiki.md).** Ask questions. Use the analyst for cross-topic work and challenge mode.
 6. **[Check the dashboard](./06-check-the-dashboard.md).** The Dataview dashboard surfaces orphans, stale pages, and contradictions at a glance.
 7. **[Produce outputs](./05-export-outputs.md).** Reports, ADRs, briefs. Written to `vault/output/` (git-ignored, plain markdown).
@@ -32,15 +32,15 @@ That's the whole workflow.
 
 | Command | Purpose | Guide |
 | ------- | ------- | ----- |
-| `/claude-wiki-pages:llm-wiki` | Scaffold a vault (once per project) | [2](./02-create-new-knowledge-base.md) |
+| `/claude-wiki-pages:init` | Scaffold a vault (once per project) | [2](./02-create-new-knowledge-base.md) |
 | `/claude-wiki-pages:claude-wiki-pages-ingest-agent` | Default: ingest → lint-fix → synthesize | [3](./03-update-existing.md) |
-| `/claude-wiki-pages:llm-wiki-status` | Health check — every hook green? | [1](./01-getting-started.md) |
+| `/claude-wiki-pages:status` | Health check — every hook green? | [1](./01-getting-started.md) |
 | `/claude-wiki-pages:claude-wiki-pages-curator-agent` | Audit and repair the wiki | [4](./04-review-validate-fix.md) |
-| `/claude-wiki-pages:llm-wiki-query` | Answer one question with citations | [7](./07-query-the-wiki.md) |
+| `/claude-wiki-pages:query` | Answer one question with citations | [7](./07-query-the-wiki.md) |
 | `/claude-wiki-pages:claude-wiki-pages-analyst-agent` | Cross-topic analysis, reports, challenge | [5](./05-export-outputs.md), [7](./07-query-the-wiki.md) |
-| `/claude-wiki-pages:llm-wiki-synthesize` | Write a cross-topic synthesis note | [3](./03-update-existing.md) |
+| `/claude-wiki-pages:synthesize` | Write a cross-topic synthesis note | [3](./03-update-existing.md) |
 
-Power-user verbs — `llm-wiki-ingest`, `llm-wiki-lint`, `llm-wiki-fix`, `llm-wiki-index`, `obsidian-graph-colors` — are documented in the guide that owns their domain. Reach for them only when the pipeline's scope is wrong.
+Power-user verbs — `ingest`, `lint`, `fix`, `index`, `obsidian-graph-colors` — are documented in the guide that owns their domain. Reach for them only when the pipeline's scope is wrong.
 
 ## Two things to keep in mind
 

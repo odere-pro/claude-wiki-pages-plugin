@@ -1,5 +1,5 @@
 ---
-description: Environment health check for claude-wiki-pages. Verifies vault path, schema, raw/wiki layout, hook executability, and vocabulary gate.
+description: Environment health check for claude-wiki-pages. Verifies vault path, schema, raw/wiki layout, hook executability, and glossary gate.
 allowed-tools: Bash
 ---
 
@@ -14,7 +14,7 @@ Run `scripts/doctor.sh` and surface its output verbatim. Exit codes:
 | 2    | `schema_version` absent in `vault/CLAUDE.md` or not in the supported list.    |
 | 3    | `raw/` not readable, or `wiki/` not writable.                                 |
 | 4    | One or more scripts referenced from `hooks/hooks.json` is not executable.    |
-| 5    | `validate-docs.sh` reports vocabulary drift in plugin prose.                  |
+| 5    | `validate-docs.sh` reports glossary drift in plugin prose.                  |
 
 ## Action
 

@@ -7,13 +7,13 @@ The wiki exists to be asked questions. Answers come back with `[[wikilink]]` cit
 ## Basic query
 
 ```
-/claude-wiki-pages:llm-wiki-query what does the wiki say about the [[LLM Wiki Pattern]]?
+/claude-wiki-pages:query what does the wiki say about the [[LLM Wiki Pattern]]?
 ```
 
 Or without the argument:
 
 ```
-/claude-wiki-pages:llm-wiki-query
+/claude-wiki-pages:query
 ```
 
 …then type your question when prompted.
@@ -71,7 +71,7 @@ Options:
 If a query produces a genuinely novel insight (not restating existing pages), offer to file it:
 
 ```
-/claude-wiki-pages:llm-wiki-query ... and save as synthesis
+/claude-wiki-pages:query ... and save as synthesis
 ```
 
 The skill creates `wiki/_synthesis/<slug>.md` with `type: synthesis`, the right `synthesis_type`, `scope:` covering the pages referenced, and `sources:` reflecting the provenance chain.

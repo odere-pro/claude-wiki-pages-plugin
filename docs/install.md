@@ -15,7 +15,7 @@ The default path. Pulls the published release.
 ```text
 /plugin marketplace add odere-pro/claude-wiki-pages
 /plugin install claude-wiki-pages
-/claude-wiki-pages:llm-wiki
+/claude-wiki-pages:init
 ```
 
 The third command runs the **onboarding wizard**, which scaffolds a vault by copying [`docs/vault-example/`](./vault-example/), smoke-tests the install, and prints the next three things to do. Walkthrough: [`docs/llm-wiki/01-getting-started.md`](./llm-wiki/01-getting-started.md).
@@ -33,7 +33,7 @@ Then in a Claude Code session:
 ```text
 /plugin marketplace add /path/to/claude-wiki-pages
 /plugin install claude-wiki-pages
-/claude-wiki-pages:llm-wiki
+/claude-wiki-pages:init
 ```
 
 Local source changes take effect on the next Claude Code session — no reinstall needed.

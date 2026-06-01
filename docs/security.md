@@ -17,7 +17,7 @@ See `/SPEC.md §14` for the full tier contract and `tests/README.md` for how to 
 **What the four-layer model prevents.**
 
 - Layer 1 (Data): sources are immutable after ingestion (`protect-raw.sh`), so a malicious source cannot be rewritten to become more convincing over time.
-- Layer 2 (Skills): `llm-wiki-ingest` reads the schema (`CLAUDE.md`) before reading the source. The schema is not a source — the LLM treats the schema as authority. Attacker-controlled text in `raw/` cannot redefine the schema.
+- Layer 2 (Skills): `ingest` reads the schema (`CLAUDE.md`) before reading the source. The schema is not a source — the LLM treats the schema as authority. Attacker-controlled text in `raw/` cannot redefine the schema.
 - Layer 4 (Orchestration): `validate-frontmatter.sh` blocks writes that lack a valid `type` or `sources` field. Output that would slip secrets into a wiki page as prose still requires valid provenance, which the attacker cannot forge.
 
 **What it does not prevent.** The LLM can still be persuaded to summarise a source incorrectly, or to attribute a quote to the wrong author. Defense: confidence discipline. Every claim decays from 1.0, and single-source claims above 0.8 are flagged by lint.
@@ -34,7 +34,7 @@ See `/SPEC.md §14` for the full tier contract and `tests/README.md` for how to 
 
 **Threat.** Claims in wiki pages drift from their sources. Over time the human cannot tell which claim came from which source, or whether a claim was inferred by the LLM rather than stated.
 
-**What the model enforces.** Every non-source page has a `sources` frontmatter field with `[[wikilinks]]` to at least one page in `wiki/_sources/`. The `llm-wiki-lint` skill and the `claude-wiki-pages-curator-agent` check this structurally. `confidence` scores are lower-bounded for inference-only claims: the schema specifies `≥ 0.8 requires two sources` and `≥ 1.0 requires a direct quote`.
+**What the model enforces.** Every non-source page has a `sources` frontmatter field with `[[wikilinks]]` to at least one page in `wiki/_sources/`. The `lint` skill and the `claude-wiki-pages-curator-agent` check this structurally. `confidence` scores are lower-bounded for inference-only claims: the schema specifies `≥ 0.8 requires two sources` and `≥ 1.0 requires a direct quote`.
 
 **What it does not enforce.** Claim-level provenance. The `sources` field proves a page has _some_ source lineage, not that the specific paragraph you are reading came from the specific source you think it did.
 

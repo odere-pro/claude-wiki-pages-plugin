@@ -76,7 +76,7 @@ POLISH:
 
 ### `_index.md` `children:` field has entries for pages that no longer exist
 
-- This is by design — polish is append-only. Run `/claude-wiki-pages:wiki <topic>` (or `/claude-wiki-pages:llm-wiki-fix` directly) to dispatch the curator agent, which owns explicit removal flows and will prune the stale entry with your approval.
+- This is by design — polish is append-only. Run `/claude-wiki-pages:wiki <topic>` (or `/claude-wiki-pages:fix` directly) to dispatch the curator agent, which owns explicit removal flows and will prune the stale entry with your approval.
 
 ## Specification anchor
 

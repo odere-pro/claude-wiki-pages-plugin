@@ -1,10 +1,10 @@
 ---
-name: llm-wiki-query
+name: query
 description: >
   Answer a natural-language question from the wiki with [[wikilink]] citations.
   Trigger when the user asks "what does the wiki say about X", "search the
   wiki for Y", "which sources cover Z", or invokes
-  /claude-wiki-pages:llm-wiki-query directly. Read-only against wiki content —
+  /claude-wiki-pages:query directly. Read-only against wiki content —
   only log.md receives an append.
 allowed-tools: Read Glob Grep Edit
 ---
@@ -46,7 +46,7 @@ wiki.
   `## [YYYY-MM-DD] query | <question summary>`
 - No other writes unless the user accepts the optional offer to file the
   answer as a synthesis note — in which case control is passed to
-  `/claude-wiki-pages:llm-wiki-synthesize` and the write happens there, not here.
+  `/claude-wiki-pages:synthesize` and the write happens there, not here.
 
 This skill MUST NOT:
 
@@ -101,5 +101,5 @@ Logged: query | <truncated question>
 If the user accepted the synthesis offer, additionally print:
 
 ```
-Handing off to /claude-wiki-pages:llm-wiki-synthesize.
+Handing off to /claude-wiki-pages:synthesize.
 ```
