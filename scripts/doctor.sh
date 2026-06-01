@@ -124,5 +124,12 @@ if [ -x "$VALIDATE" ]; then
   green "validate-docs.sh clean"
 fi
 
+# ─── 6. Bun engine (advisory; non-fatal — the plugin degrades without it) ──
+if command -v bun >/dev/null 2>&1; then
+  green "bun present — deterministic engine available (scripts/engine.sh doctor)"
+else
+  printf '\033[0;33mNOTE:\033[0m bun not installed — engine commands (verify/fix/heal/doctor/config) and git-checkpointed self-heal are disabled; hooks still work. Install: curl -fsSL https://bun.sh/install | bash\n'
+fi
+
 printf '\n\033[0;32mhealthy.\033[0m vault=%s schema=%s\n' "$VAULT" "$SCHEMA_VERSION"
 exit 0

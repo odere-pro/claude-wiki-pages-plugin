@@ -64,7 +64,11 @@ flowchart TD
 | Claude Code | `>= 2.0`                                                 | [docs.claude.com/code](https://docs.claude.com/en/docs/claude-code) |
 | `bash`, `git`, `find` | Hook scripts and file walking                  | Pre-installed on macOS / Linux                           |
 | `jq`        | JSON parsing in hooks and resolvers                      | `brew install jq` / `apt-get install jq`                 |
+| **Bun** `>= 1.2` | **Recommended** — runs the deterministic engine (verify/fix/heal/doctor/config) and git-checkpointed self-heal. Without it the plugin still works, but those commands are disabled. | `curl -fsSL https://bun.sh/install \| bash` |
+| `git` repo for the vault | So self-heal can checkpoint and `git revert`        | `git init` in the vault (or `/claude-wiki-pages:doctor --fix`) |
 | Obsidian    | Optional — for graph view, Dataview, Web Clipper         | [obsidian.md](https://obsidian.md/)                      |
+
+`/claude-wiki-pages:doctor` checks all of these and tells you exactly what to install. The `SessionStart` hook prints a one-line notice if Bun is missing.
 
 **OS:** macOS or Linux verified. Windows/WSL unverified for hook scripts; markdown-only paths should work.
 

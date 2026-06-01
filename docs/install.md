@@ -7,6 +7,13 @@ Three ways to install `claude-wiki-pages`. Pick the one that matches your situat
 - [Claude Code](https://docs.claude.com/en/docs/claude-code) `>= 2.0`, signed in.
 - macOS or Linux shell. Windows/WSL is unverified but should work for the markdown-only paths.
 - `bash`, `git`, `jq`, `find` on `PATH`. The plugin's `/claude-wiki-pages:doctor` enumerates anything missing.
+- **[Bun](https://bun.sh) `>= 1.2` (recommended).** Runs the deterministic engine (`verify`/`fix`/`heal`/`doctor`/`config`) and git-checkpointed self-heal. The plugin **degrades gracefully without it** — bash hooks still enforce the schema — but those commands are disabled until Bun is installed. Install:
+
+  ```sh
+  curl -fsSL https://bun.sh/install | bash   # then restart the Claude Code session
+  ```
+
+  > Plugin installation cannot auto-install system software like Bun (Claude Code loads a plugin as context — skills, agents, hooks — it does not run an installer). So Bun is a manual one-time step. The `SessionStart` hook prints a notice if it is missing, and `/claude-wiki-pages:doctor` flags it (D06).
 
 ## Remote — marketplace
 
