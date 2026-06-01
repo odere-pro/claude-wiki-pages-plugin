@@ -6,8 +6,9 @@ Terminology follows `docs/GLOSSARY.md`. Where this file and `docs/vault-example/
 
 ## 1. Identity
 
-- **Name.** `claude-wiki-pages`.
-- **Distribution.** Standalone Claude Code plugin. Installed via same-repo marketplace.
+- **Name.** `claude-wiki-pages` (rebranded in `1.0.0`; the prior name and the full rename map are in `docs/migration-1.0.md`).
+- **Distribution.** Standalone Claude Code plugin (primary), installed via same-repo marketplace. The deterministic engine is additionally published to npm as `@odere-pro/claude-wiki-pages` with the `claude-wiki-pages` / `wiki-pages` CLI binaries.
+- **Engine.** A Bun/TypeScript engine under `src/` is the source of truth for anything exact (the wikilink graph, frontmatter, MOC integrity). Bash drives the hot-path hooks; Bun drives the deterministic commands (`verify`, `fix`, `heal`, `doctor`, `config`). The plugin calls the engine through `scripts/engine.sh`, which degrades to a warning (exit 0) when Bun is absent.
 - **License.** Apache 2.0. See `LICENSE` and `NOTICE`.
 - **Versioning.** Semantic versioning. `plugin.json` `version` is the product version. `schema_version` in `docs/vault-example/CLAUDE.md` is the vault schema version, independent of product version.
 - **Homepage.** `https://github.com/odere-pro/claude-wiki-pages`.
@@ -93,7 +94,7 @@ A Claude Code plugin that turns an Obsidian vault into a maintained, provenance-
 
 ### Layer 2 — Skills
 
-Thirteen single-responsibility capabilities. Each skill reads `raw/` and writes only to `wiki/` (`synthesize` writes only to `wiki/_synthesis/`; `markdown` writes only to `vault/output/`; `obsidian-graph-colors` writes only to `.obsidian/graph.json`). No skill knows about any other skill.
+Sixteen single-responsibility capabilities. The nine plugin verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`) each read `raw/` and write only to `wiki/` (`synthesize` writes only to `wiki/_synthesis/`; `markdown` writes only to `vault/output/`; `obsidian-graph-colors` writes only to `.obsidian/graph.json`). Three more are user/agent-facing reference skills that do not write to the vault: `onboarding` (guided first run) and the agent-teaching skills `engine-api` (the engine's `--json` tool contract) and `maintain-contract` (the safe ingest/retrieve/maintain ordering). No skill knows about any other skill's internals.
 
 Skills fall into three provenance groups, reflected in `NOTICE` and `THIRD_PARTY_LICENSES.md`:
 
@@ -123,7 +124,7 @@ Skills fall into three provenance groups, reflected in `NOTICE` and `THIRD_PARTY
 
 ### Layer 3 — Agents
 
-Five multi-step executors that compose Layer 2 skills.
+Six multi-step executors that compose Layer 2 skills: orchestrator, onboarding, ingest, curator, analyst, polish.
 
 | Agent                                  | Chains                                                                                              |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -154,7 +155,7 @@ claude-wiki-pages/                         # plugin source (installed to the use
 ├── .claude-plugin/
 │   ├── plugin.json                     # product version, description, keywords
 │   └── marketplace.json                # same-repo marketplace definition
-├── skills/                             # Layer 2 (13 skills)
+├── skills/                             # Layer 2 (16 skills)
 ├── agents/                             # Layer 3 (5 agents)
 ├── hooks/
 │   └── hooks.json                      # Layer 4 hook wiring
@@ -516,19 +517,19 @@ Planned additions (Phase D):
 
 - **Invocation.** Entry point for `/claude-wiki-pages:wiki`. `user-invocable: true`. Single-pass; never recurses.
 - **Probes.** `vault_exists`, `schema_version`, `raw_pending` (count of files in `raw/` not referenced in `wiki/log.md`), `last_log_entry` (most recent verb in `wiki/log.md`).
-- **Dispatch.** First-match-wins on the table in `agents/claude-wiki-pages-orchestrator-agent.md` Step 2. Routes to: the `llm-wiki` skill (init wizard), `claude-wiki-pages-ingest-agent`, `claude-wiki-pages-curator-agent`, or `claude-wiki-pages-analyst-agent`. Falls through to one clarifying question.
+- **Dispatch.** First-match-wins on the table in `agents/claude-wiki-pages-orchestrator-agent.md` Step 2. Routes to: `claude-wiki-pages-onboarding-agent` (guided scaffold for a fresh vault; uses the `init` skill), `claude-wiki-pages-ingest-agent`, `claude-wiki-pages-curator-agent`, or `claude-wiki-pages-analyst-agent`. Falls through to one clarifying question.
 - **Guarantees.** Calls exactly one specialist per invocation. Specialists must not re-probe state; the orchestrator passes `vault_path` explicitly. Never writes to `vault/`.
 
 ### `claude-wiki-pages-ingest-agent`
 
-- **Chains.** ingest → curator (wraps verify) → _optimize (opt-in, destructive)_ → synthesize. Optimize is gated behind explicit user confirmation and skipped if no folder exceeds the ≤ 12-children target.
-- **Guarantees.** On clean return: every source has a summary; every touched page carries valid frontmatter and updated `sources`; every affected `_index.md` is up to date; `wiki/index.md` and `wiki/log.md` advanced; synthesis note filed if the run warrants one; `verify-ingest.sh` exits 0.
+- **Chains.** ingest → curator (git-checkpointed auto-heal) → synthesize. Self-heal is automatic, not approval-gated: the curator runs `engine.sh heal` (checkpoint commit → verify → fix → re-verify) and applies judgment fixes under the same checkpoint. Safety is `git revert <healCommit>`.
+- **Guarantees.** On clean return: every source has a summary; every touched page carries valid frontmatter and updated `sources`; every affected `_index.md` is up to date; `wiki/index.md` and `wiki/log.md` advanced; synthesis note filed if the run warrants one; the engine `verify` (and its bash fallback `verify-ingest.sh`) exits 0.
 - **Failure policy.** On any `SubagentStop` gate failure, the agent halts and surfaces the unresolved items. It does not retry silently.
 
 ### `claude-wiki-pages-curator-agent`
 
-- **Chains.** lint → fix → lint (revalidation).
-- **Guarantees.** On clean return: no errors; warnings reported to the user; info items documented. Fix passes are idempotent — running twice does not change the tree. Judgment fixes (restructures, merges) require explicit user approval before any write.
+- **Chains.** `engine.sh heal` (checkpoint → verify → fix → re-verify, bounded by `maxIterations`) → judgment fixes under the same checkpoint → re-verify.
+- **Guarantees.** Fully automatic and git-controlled — **no approval prompts**. A checkpoint commit precedes every change; the auto-fixes land in one `heal:` commit; rollback is `git revert <healCommit>`. Fix passes are idempotent — running twice does not change the tree. On clean return: no errors; warnings reported; residual items that genuinely need editorial intent (deletions, ambiguous merges) are surfaced, never guessed.
 
 ### `claude-wiki-pages-analyst-agent`
 
@@ -578,8 +579,9 @@ Older pre-versioning vaults are not migrated in place. The release notes documen
 
 Five tiers, per `docs/GLOSSARY.md` technical terminology.
 
-- **Tier 0 — static checks.** JSON schema on manifests, `shellcheck`, `shfmt`, `markdownlint`, `lychee` (broken links), `gitleaks`, `yq` on skill/agent frontmatter, `scripts/validate-docs.sh`.
+- **Tier 0 — static checks.** JSON schema on manifests, `shellcheck`, `shfmt`, `markdownlint`, `lychee` (broken links), `gitleaks`, `yq` on skill/agent frontmatter, `scripts/validate-docs.sh` (the glossary gate).
 - **Tier 1 — shell unit tests.** `bats-core` under `tests/scripts/*.bats`, one per script. Matrix `macos-latest` + `ubuntu-latest`. `kcov` coverage, uploaded to Codecov.
+- **Tier 1.5 — engine + quality gates.** `bun test` (engine unit tests, colocated `src/**/*.test.ts`, coverage thresholds in `bunfig.toml`), `tsc --noEmit`, and the `tests/gates/gate-NN-*.sh` suite (`run-all.sh`): shellcheck, glossary, the engine↔bash `verify` parity gate, no-absolute-paths, config-schema round-trip, prettier, and npm-pack contents. Run by the CI `gates` job.
 - **Tier 2 — skill and agent smoke tests.** `claude -p` in headless mode. `tests/smoke/fresh-install.sh` asserts a fresh install ingests a fixture source and passes `verify-ingest.sh`. `tests/smoke/skill-schema.sh` asserts each skill's output conforms to the schema (`promptfoo` or `inspect-ai`). Runs on PR and nightly.
 - **Tier 3 — release.** `release-please` + `release-drafter` drive conventional-commit-based releases.
 - **Tier 4 — adversarial.** Weekly. Prompt-injection corpus replay; `garak` red-team; `osv-scanner` dependency vulnerabilities.

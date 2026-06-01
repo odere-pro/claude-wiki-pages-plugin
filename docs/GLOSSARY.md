@@ -74,8 +74,8 @@ The plugin's structure. Contracts in `/SPEC.md`.
 | claude-wiki-pages          | The plugin identifier. Lowercase, hyphenated. Used in headings and slash-command namespaces.   |
 | four-layer stack        | The architecture. Four layers, each catching a different class of failure.                     |
 | Layer 1 — Data          | The vault: raw content, wiki, vault schema. Passive — holds the material.                      |
-| Layer 2 — Skills        | Single-responsibility slash commands. Thirteen ship.                                           |
-| Layer 3 — Agents        | Multi-step executors composing skills. Five ship: orchestrator, ingest, curator, analyst, polish. |
+| Layer 2 — Skills        | Single-responsibility slash commands. Sixteen ship (9 verbs + onboarding + 2 agent-teaching + obsidian-graph-colors + 3 third-party obsidian-*). |
+| Layer 3 — Agents        | Multi-step executors composing skills. Six ship: orchestrator, onboarding, ingest, curator, analyst, polish. |
 | Layer 4 — Orchestration | Hooks, scripts, rules. Enforce the schema at every tool call.                                  |
 | skill                   | A capability under `skills/`. Entry point is `/claude-wiki-pages:<name>`.                         |
 | agent                   | A multi-step executor under `agents/`. Chains skills; owns completion gates.                   |
