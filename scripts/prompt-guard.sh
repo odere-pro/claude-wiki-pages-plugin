@@ -1,6 +1,6 @@
 #!/bin/bash
 # UserPromptSubmit: warn about common mistakes in user prompts
-# Vault resolved via LLM_WIKI_VAULT, auto-detection, or default (docs/vault)
+# Vault resolved via CLAUDE_WIKI_PAGES_VAULT, auto-detection, or default (docs/vault)
 # Non-blocking — outputs warnings but never blocks the prompt
 
 # shellcheck source=resolve-vault.sh

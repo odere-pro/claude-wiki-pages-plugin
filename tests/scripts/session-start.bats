@@ -10,20 +10,20 @@ load '../test_helper/common'
 
 setup() {
   _load_helpers
-  SETTINGS_TMP="$BATS_TEST_TMPDIR/llm-wiki-stack/settings.json"
-  export LLM_WIKI_SETTINGS_FILE="$SETTINGS_TMP"
-  unset LLM_WIKI_VAULT
+  SETTINGS_TMP="$BATS_TEST_TMPDIR/claude-wiki-pages/settings.json"
+  export CLAUDE_WIKI_PAGES_SETTINGS_FILE="$SETTINGS_TMP"
+  unset CLAUDE_WIKI_PAGES_VAULT
 }
 
 teardown() {
-  unset LLM_WIKI_SETTINGS_FILE
-  unset LLM_WIKI_VAULT
+  unset CLAUDE_WIKI_PAGES_SETTINGS_FILE
+  unset CLAUDE_WIKI_PAGES_VAULT
 }
 
 @test "session-start: prints SETUP when vault dir does not exist" {
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
-    export LLM_WIKI_VAULT='/nonexistent/vault/does-not-exist'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='/nonexistent/vault/does-not-exist'
     bash '$REPO_ROOT/scripts/session-start.sh'
   "
 
@@ -37,8 +37,8 @@ teardown() {
   mkdir -p "$vault_dir"
 
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
-    export LLM_WIKI_VAULT='$vault_dir'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
     bash '$REPO_ROOT/scripts/session-start.sh'
   "
 
@@ -49,8 +49,8 @@ teardown() {
 
 @test "session-start: creates settings.json on first run" {
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
-    export LLM_WIKI_VAULT='/nonexistent/vault/does-not-exist'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='/nonexistent/vault/does-not-exist'
     bash '$REPO_ROOT/scripts/session-start.sh'
   "
 

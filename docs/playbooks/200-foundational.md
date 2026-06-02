@@ -27,7 +27,7 @@ A four-layer mental model in one paragraph: the plugin is a stack of **Data → 
 The plugin exposes one verb you need to know:
 
 ```
-/llm-wiki-stack:wiki
+/claude-wiki-pages:wiki
 ```
 
 That's it. Type it after install — the orchestrator runs the wizard. Type it after dropping a source — the orchestrator runs ingest. Type it with a question — the orchestrator runs the analyst. You don't pick the specialist; the orchestrator does.
@@ -39,7 +39,7 @@ That's it. Type it after install — the orchestrator runs the wizard. Type it a
 <details>
 <summary>Q: How many slash commands do I need to memorize for daily use?</summary>
 
-One: `/llm-wiki-stack:wiki`. A second one — `/llm-wiki-stack:wiki-doctor` — is for diagnostics. Everything else is a power-user bypass.
+One: `/claude-wiki-pages:wiki`. A second one — `/claude-wiki-pages:doctor` — is for diagnostics. Everything else is a power-user bypass.
 </details>
 
 ---
@@ -48,20 +48,20 @@ One: `/llm-wiki-stack:wiki`. A second one — `/llm-wiki-stack:wiki-doctor` — 
 
 ### Objectives
 
-- Install `llm-wiki-stack` from the marketplace.
+- Install `claude-wiki-pages` from the marketplace.
 - Verify every hook fires green.
 
 > **Lab.** From a Claude Code session, run:
 >
 > ```text
-> /plugin marketplace add odere-pro/llm-wiki-stack
-> /plugin install llm-wiki-stack
+> /plugin marketplace add odere-pro/claude-wiki-pages
+> /plugin install claude-wiki-pages
 > ```
 >
 > Then verify the install:
 >
 > ```text
-> /llm-wiki-stack:wiki-doctor
+> /claude-wiki-pages:doctor
 > ```
 >
 > Expected first lines:
@@ -78,12 +78,12 @@ One: `/llm-wiki-stack:wiki`. A second one — `/llm-wiki-stack:wiki-doctor` — 
 >
 > Exit code: `0`. Any non-zero, see the `FAIL[N]` line and the printed remedy.
 
-If `wiki-doctor` reports a missing tool (`jq`, `bash`, `find`), install it via your package manager and re-run.
+If `doctor` reports a missing tool (`jq`, `bash`, `find`), install it via your package manager and re-run.
 
 ### Knowledge check
 
 <details>
-<summary>Q: What does <code>wiki-doctor</code> not do?</summary>
+<summary>Q: What does <code>doctor</code> not do?</summary>
 
 It does not write anything. It is read-only by contract — exit codes 0–5 with a printed remedy per failure. Use it any time something feels wrong.
 </details>
@@ -100,7 +100,7 @@ It does not write anything. It is read-only by contract — exit codes 0–5 wit
 > **Lab.** From the same Claude Code session:
 >
 > ```text
-> /llm-wiki-stack:wiki
+> /claude-wiki-pages:wiki
 > ```
 >
 > The orchestrator probes state. It sees no `vault/CLAUDE.md`. It dispatches to the `llm-wiki` wizard. The wizard:
@@ -140,7 +140,7 @@ Two directories matter most:
 <details>
 <summary>Q: Can I edit a file under <code>vault/raw/</code>?</summary>
 
-No. The `protect-raw.sh` PreToolUse hook returns exit code 2 on any Edit to a file under `raw/`. To change a source, replace the original file (the hook allows new Writes, just not modifications) and re-run `/llm-wiki-stack:wiki`.
+No. The `protect-raw.sh` PreToolUse hook returns exit code 2 on any Edit to a file under `raw/`. To change a source, replace the original file (the hook allows new Writes, just not modifications) and re-run `/claude-wiki-pages:wiki`.
 </details>
 
 ---
@@ -169,10 +169,10 @@ No. The `protect-raw.sh` PreToolUse hook returns exit code 2 on any Edit to a fi
 > Now run the orchestrator:
 >
 > ```text
-> /llm-wiki-stack:wiki
+> /claude-wiki-pages:wiki
 > ```
 >
-> The orchestrator probes: it sees one new file in `raw/blog/` not yet recorded in `wiki/log.md`. It dispatches to `llm-wiki-stack-ingest-agent`. After the ingest agent returns, the orchestrator runs `llm-wiki-stack-polish-agent` to refresh graph colors and indexes.
+> The orchestrator probes: it sees one new file in `raw/blog/` not yet recorded in `wiki/log.md`. It dispatches to `claude-wiki-pages-ingest-agent`. After the ingest agent returns, the orchestrator runs `claude-wiki-pages-polish-agent` to refresh graph colors and indexes.
 >
 > Inspect the output:
 >
@@ -208,13 +208,13 @@ It also created the topic folder `wiki/patterns/` with a `_index.md`, and append
 <details>
 <summary>Q: I dropped two files into <code>raw/</code>. Will the orchestrator handle both in one run?</summary>
 
-Yes. The ingest agent batches every unprocessed file (anything not yet recorded in `wiki/log.md`). One `/llm-wiki-stack:wiki` invocation handles the batch.
+Yes. The ingest agent batches every unprocessed file (anything not yet recorded in `wiki/log.md`). One `/claude-wiki-pages:wiki` invocation handles the batch.
 </details>
 
 <details>
 <summary>Q: What runs after the ingest agent finishes?</summary>
 
-The orchestrator dispatches `llm-wiki-stack-polish-agent` as a tail step — graph colors for any new top-level topics, vault MOC refresh, per-folder MOC consistency. Polish is idempotent: a second run produces no diff.
+The orchestrator dispatches `claude-wiki-pages-polish-agent` as a tail step — graph colors for any new top-level topics, vault MOC refresh, per-folder MOC consistency. Polish is idempotent: a second run produces no diff.
 </details>
 
 ---
@@ -258,10 +258,10 @@ For the dashboard walkthrough, see [`docs/llm-wiki/06-check-the-dashboard.md`](.
 > **Lab.** Ask:
 >
 > ```text
-> /llm-wiki-stack:wiki what does the wiki say about the LLM Wiki Pattern?
+> /claude-wiki-pages:wiki what does the wiki say about the LLM Wiki Pattern?
 > ```
 >
-> The orchestrator detects an analytical verb (`what`) and dispatches to `llm-wiki-stack-analyst-agent`. The analyst traverses from `wiki/index.md` into `wiki/patterns/_index.md`, reads `llm-wiki-pattern.md`, follows the wikilink to the source summary, and returns an answer that looks like:
+> The orchestrator detects an analytical verb (`what`) and dispatches to `claude-wiki-pages-analyst-agent`. The analyst traverses from `wiki/index.md` into `wiki/patterns/_index.md`, reads `llm-wiki-pattern.md`, follows the wikilink to the source summary, and returns an answer that looks like:
 >
 > ```text
 > The wiki describes the LLM Wiki Pattern (see [[LLM Wiki Pattern]]) as
@@ -293,12 +293,12 @@ At a file under `vault/raw/`. Every wiki citation eventually resolves to immutab
 | Stage | What to do | What to read |
 | ----- | ---------- | ------------ |
 | **Day 1** (today) | Install. Scaffold. Ingest one source. Ask one question. | This playbook. |
-| **Day 2-7** | Add 5–10 more sources. Use `/llm-wiki-stack:wiki` after each batch. Skim `wiki/log.md` daily to confirm what the plugin did. | [`03-update-existing.md`](../llm-wiki/03-update-existing.md) |
-| **Week 2** | Run a curator pass: `/llm-wiki-stack:wiki check the wiki for drift`. The orchestrator dispatches the curator. | [`04-review-validate-fix.md`](../llm-wiki/04-review-validate-fix.md) |
+| **Day 2-7** | Add 5–10 more sources. Use `/claude-wiki-pages:wiki` after each batch. Skim `wiki/log.md` daily to confirm what the plugin did. | [`03-update-existing.md`](../llm-wiki/03-update-existing.md) |
+| **Week 2** | Run a curator pass: `/claude-wiki-pages:wiki check the wiki for drift`. The orchestrator dispatches the curator. | [`04-review-validate-fix.md`](../llm-wiki/04-review-validate-fix.md) |
 | **Week 3** | Ask a synthesis question that crosses topics. The analyst will offer to file a synthesis note. | [`07-query-the-wiki.md`](../llm-wiki/07-query-the-wiki.md) |
 | **Month 1** | Compile your first deliverable into `vault/output/` — a brief, an ADR, a report. | [`05-export-outputs.md`](../llm-wiki/05-export-outputs.md) |
 
-If you skip steps and your vault gets weird, run `/llm-wiki-stack:wiki-doctor` first. Then run the curator (`/llm-wiki-stack:wiki check for drift`) to repair what's repairable.
+If you skip steps and your vault gets weird, run `/claude-wiki-pages:doctor` first. Then run the curator (`/claude-wiki-pages:wiki check for drift`) to repair what's repairable.
 
 ---
 

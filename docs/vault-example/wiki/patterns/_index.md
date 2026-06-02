@@ -16,7 +16,7 @@ updated: 2026-04-24
 
 # Patterns — Index
 
-Reusable design patterns applied by the `llm-wiki-stack` plugin.
+Reusable design patterns applied by the `claude-wiki-pages` plugin.
 
 ## Pages
 

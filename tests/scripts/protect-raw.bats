@@ -50,7 +50,7 @@ setup() {
 {"tool_name":"Write","tool_input":{"file_path":"$existing","content":"overwrite"}}
 EOF
 )
-  run bash -c "export LLM_WIKI_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
 
   assert_success
   assert_output_contains '"decision":"block"'
@@ -71,7 +71,7 @@ EOF
 {"tool_name":"Write","tool_input":{"file_path":"$new_path","content":"new"}}
 EOF
 )
-  run bash -c "export LLM_WIKI_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
 
   assert_success
   assert_output_empty

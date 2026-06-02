@@ -7,7 +7,7 @@ parent: "[[Tools — Index]]"
 path: "tools"
 sources:
   - "[[Export Outputs]]"
-related: ["[[llm-wiki-stack]]", "[[Output Compilation Workflow]]"]
+related: ["[[claude-wiki-pages]]", "[[Output Compilation Workflow]]"]
 tags: ["tool", "converter"]
 created: 2026-04-24
 updated: 2026-04-24
@@ -31,4 +31,4 @@ External command-line converter used to turn the plugin's markdown outputs into 
 ## Related
 
 - [[Output Compilation Workflow]] — where Pandoc fits.
-- [[llm-wiki-stack]] — produces the markdown Pandoc converts.
+- [[claude-wiki-pages]] — produces the markdown Pandoc converts.

@@ -1,6 +1,6 @@
 #!/bin/bash
-# scripts/doctor.sh — Health check for llm-wiki-stack.
-# Wrapped by the /llm-wiki-stack:wiki-doctor slash command.
+# scripts/doctor.sh — Health check for claude-wiki-pages.
+# Wrapped by the /claude-wiki-pages:doctor slash command.
 #
 # Exit codes (catch first failure; do not mask later ones):
 #   0  healthy
@@ -8,7 +8,7 @@
 #   2  vault schema_version absent or unsupported
 #   3  raw/ unreadable or wiki/ unwritable
 #   4  hooks not executable (hooks/hooks.json references missing/non-+x scripts)
-#   5  validate-docs.sh fails (vocabulary drift in plugin prose)
+#   5  validate-docs.sh fails (glossary drift in plugin prose)
 
 set -uo pipefail
 
@@ -33,7 +33,7 @@ fi
 if [ ! -d "$VAULT" ]; then
   # Tier 4 (default) is `docs/vault`. If it doesn't exist either, the user
   # hasn't run the wizard yet — that's a recoverable state, not a failure.
-  red 1 "vault path" "$VAULT does not exist (run /llm-wiki-stack:llm-wiki to scaffold)"
+  red 1 "vault path" "$VAULT does not exist (run /claude-wiki-pages:init to scaffold)"
   exit 1
 fi
 green "vault path resolves to $VAULT"
@@ -114,14 +114,21 @@ if [ "$HOOK_FAIL" -eq 1 ]; then
 fi
 green "hooks/hooks.json — every referenced script is +x"
 
-# ─── 5. Vocabulary gate ────────────────────────────────────────────────────
+# ─── 5. Glossary gate ────────────────────────────────────────────────────
 VALIDATE="$PLUGIN_ROOT/scripts/validate-docs.sh"
 if [ -x "$VALIDATE" ]; then
   if ! "$VALIDATE" >/dev/null 2>&1; then
-    red 5 "validate-docs" "vocabulary drift; run $VALIDATE for details"
+    red 5 "validate-docs" "glossary drift; run $VALIDATE for details"
     exit 5
   fi
   green "validate-docs.sh clean"
+fi
+
+# ─── 6. Bun engine (advisory; non-fatal — the plugin degrades without it) ──
+if command -v bun >/dev/null 2>&1; then
+  green "bun present — deterministic engine available (scripts/engine.sh doctor)"
+else
+  printf '\033[0;33mNOTE:\033[0m bun not installed — engine commands (verify/fix/heal/doctor/config) and git-checkpointed self-heal are disabled; hooks still work. Install: curl -fsSL https://bun.sh/install | bash\n'
 fi
 
 printf '\n\033[0;32mhealthy.\033[0m vault=%s schema=%s\n' "$VAULT" "$SCHEMA_VERSION"

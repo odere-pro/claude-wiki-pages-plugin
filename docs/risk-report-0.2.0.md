@@ -16,7 +16,7 @@
 
 ### P0.1 — Orchestrator dispatch logic is untested
 
-**Where.** `agents/llm-wiki-stack-orchestrator-agent.md` Steps 1–2 (state probe and the dispatch table). No corresponding `tests/scripts/orchestrator-agent.bats` exists.
+**Where.** `agents/claude-wiki-pages-orchestrator-agent.md` Steps 1–2 (state probe and the dispatch table). No corresponding `tests/scripts/orchestrator-agent.bats` exists.
 
 **Risk.** A change to the dispatch table — for example, swapping the order of "raw_pending > 0" and "last_log_entry == ingest" rows — could misroute every user prompt and ship through CI green. The orchestrator is the entry point users now type by default; a misroute is the highest-blast-radius regression possible.
 
@@ -24,7 +24,7 @@
 
 ### P0.2 — Polish-agent idempotency contract is untested
 
-**Where.** `agents/llm-wiki-stack-polish-agent.md` claims idempotency ("two runs produce zero diffs"). No `tests/scripts/polish-agent.bats` exists.
+**Where.** `agents/claude-wiki-pages-polish-agent.md` claims idempotency ("two runs produce zero diffs"). No `tests/scripts/polish-agent.bats` exists.
 
 **Risk.** A regression in graph-color assignment (e.g. duplicating color entries on rerun) or in MOC consistency (e.g. re-appending children) could pass type-checking but break the contract. Idempotency is the single most testable property of polish; the absence of that test is the one most-likely-to-rot guarantee in v0.2.0.
 
@@ -52,7 +52,7 @@
 
 ### P1.2 — `session-start.sh` does not surface `mkdir` failure
 
-**Where.** `scripts/session-start.sh` calls `init_vault_settings`. If `.claude/llm-wiki-stack/` cannot be created (read-only filesystem, permission denied, encrypted-volume edge cases), the function warns to stderr and returns 0.
+**Where.** `scripts/session-start.sh` calls `init_vault_settings`. If `.claude/claude-wiki-pages/` cannot be created (read-only filesystem, permission denied, encrypted-volume edge cases), the function warns to stderr and returns 0.
 
 **Risk.** Subsequent operations may behave inconsistently because settings did not persist. The user does not see a fatal error — only a warning that scrolls past on session start.
 
@@ -70,9 +70,9 @@
 
 ## P2 — Cosmetic / ergonomic
 
-### P2.1 — `/llm-wiki-stack:wiki-doctor` slash command has no test
+### P2.1 — `/claude-wiki-pages:doctor` slash command has no test
 
-**Where.** `commands/wiki-doctor.md` wraps `scripts/doctor.sh`. The script is tested via `tests/scripts/doctor.bats`; the command-level wrapping is not.
+**Where.** `commands/doctor.md` wraps `scripts/doctor.sh`. The script is tested via `tests/scripts/doctor.bats`; the command-level wrapping is not.
 
 **Risk.** Trivial. The command is a thin pass-through. CLI-integration tests are deferred to Phase E anyway.
 

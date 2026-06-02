@@ -1,14 +1,14 @@
 ---
 title: "Ingest Pipeline"
 type: concept
-aliases: ["Ingest Pipeline", "ingest-pipeline", "llm-wiki-stack-ingest-agent"]
+aliases: ["Ingest Pipeline", "ingest-pipeline", "claude-wiki-pages-ingest-agent"]
 parent: "[[Workflows — Index]]"
 path: "workflows"
 sources:
-  - "[[Using llm-wiki-stack]]"
+  - "[[Using claude-wiki-pages]]"
   - "[[Create a New Vault]]"
   - "[[Update an Existing Vault]]"
-related: ["[[Entity Distribution Model]]", "[[Hook-Enforced Guarantees]]", "[[Lint-Fix Workflow]]", "[[llm-wiki-stack]]"]
+related: ["[[Entity Distribution Model]]", "[[Hook-Enforced Guarantees]]", "[[Lint-Fix Workflow]]", "[[claude-wiki-pages]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Vault Scaffolding]]"]
@@ -24,7 +24,7 @@ confidence: 0.9
 
 ## Definition
 
-The default, single-command workflow for pulling new sources into the wiki. Invoked as `/llm-wiki-stack:llm-wiki-stack-ingest-agent`. Composes three steps: ingest → lint-fix → optional synthesis.
+The default, single-command workflow for pulling new sources into the wiki. Invoked as `/claude-wiki-pages:claude-wiki-pages-ingest-agent`. Composes three steps: ingest → lint-fix → optional synthesis.
 
 ## Key Principles
 
@@ -35,8 +35,8 @@ The default, single-command workflow for pulling new sources into the wiki. Invo
 
 ## Examples
 
-- Text source: `cp article.md vault/raw/ && /llm-wiki-stack:llm-wiki-stack-ingest-agent`. Pipeline writes summary, extracts mentions, updates indexes.
-- Image source: `cp screenshot.png vault/raw/assets/ && /llm-wiki-stack:llm-wiki-stack-ingest-agent`. Source summary gets `source_format: image` and an `attachment_path:`; `validate-attachments.sh` blocks the write if the file is missing.
+- Text source: `cp article.md vault/raw/ && /claude-wiki-pages:claude-wiki-pages-ingest-agent`. Pipeline writes summary, extracts mentions, updates indexes.
+- Image source: `cp screenshot.png vault/raw/assets/ && /claude-wiki-pages:claude-wiki-pages-ingest-agent`. Source summary gets `source_format: image` and an `attachment_path:`; `validate-attachments.sh` blocks the write if the file is missing.
 - Batch: drop several text and image files together; the pipeline handles them in one pass.
 
 ## Related Concepts

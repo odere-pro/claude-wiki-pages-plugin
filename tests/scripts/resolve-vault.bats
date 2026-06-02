@@ -3,7 +3,7 @@
 #
 # Behavior under test:
 #   - resolve_vault() reads current_vault_path from settings.json (Tier 2).
-#   - LLM_WIKI_VAULT env var overrides settings file (Tier 1 > Tier 2).
+#   - CLAUDE_WIKI_PAGES_VAULT env var overrides settings file (Tier 1 > Tier 2).
 #   - Falls back to default "docs/vault" when settings file is absent.
 #   - init_vault_settings() creates the file with default values when absent.
 #   - init_vault_settings() is a no-op when the file already exists.
@@ -12,21 +12,21 @@
 #   - scripts/set-vault.sh exits 1 with no argument.
 #   - scripts/set-vault.sh delegates to set_vault_path correctly.
 #
-# All tests redirect the settings file via LLM_WIKI_SETTINGS_FILE so they
-# never touch the real project .claude/llm-wiki-stack/settings.json.
+# All tests redirect the settings file via CLAUDE_WIKI_PAGES_SETTINGS_FILE so they
+# never touch the real project .claude/claude-wiki-pages/settings.json.
 
 load '../test_helper/common'
 
 setup() {
   _load_helpers
-  SETTINGS_TMP="$BATS_TEST_TMPDIR/llm-wiki-stack/settings.json"
-  export LLM_WIKI_SETTINGS_FILE="$SETTINGS_TMP"
-  unset LLM_WIKI_VAULT
+  SETTINGS_TMP="$BATS_TEST_TMPDIR/claude-wiki-pages/settings.json"
+  export CLAUDE_WIKI_PAGES_SETTINGS_FILE="$SETTINGS_TMP"
+  unset CLAUDE_WIKI_PAGES_VAULT
 }
 
 teardown() {
-  unset LLM_WIKI_SETTINGS_FILE
-  unset LLM_WIKI_VAULT
+  unset CLAUDE_WIKI_PAGES_SETTINGS_FILE
+  unset CLAUDE_WIKI_PAGES_VAULT
 }
 
 @test "resolve_vault: returns current_vault_path from settings file" {
@@ -34,8 +34,8 @@ teardown() {
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "my/custom/vault"\n}\n' >"$SETTINGS_TMP"
 
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
-    unset LLM_WIKI_VAULT
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
     source '$REPO_ROOT/scripts/resolve-vault.sh'
     resolve_vault
   "
@@ -44,13 +44,13 @@ teardown() {
   [ "$output" = "my/custom/vault" ]
 }
 
-@test "resolve_vault: LLM_WIKI_VAULT env var overrides settings file" {
+@test "resolve_vault: CLAUDE_WIKI_PAGES_VAULT env var overrides settings file" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "my/custom/vault"\n}\n' >"$SETTINGS_TMP"
 
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
-    export LLM_WIKI_VAULT='env-override'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='env-override'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
     resolve_vault
   "
@@ -63,10 +63,10 @@ teardown() {
   # SETTINGS_TMP does not exist — no mkdir here. Auto-detect may fire if the
   # repo CLAUDE.md is found, so we can't pin an exact path, but resolve_vault
   # must always echo *some* non-empty path. Catches a mutation that drops the
-  # final fallback `echo "$LLM_WIKI_DEFAULT_VAULT"`.
+  # final fallback `echo "$CLAUDE_WIKI_PAGES_DEFAULT_VAULT"`.
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
-    unset LLM_WIKI_VAULT
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
     source '$REPO_ROOT/scripts/resolve-vault.sh'
     resolve_vault
   "
@@ -78,7 +78,7 @@ teardown() {
 
 @test "init_vault_settings: creates settings.json with default values" {
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
     init_vault_settings
   "
@@ -94,7 +94,7 @@ teardown() {
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "already/set"\n}\n' >"$SETTINGS_TMP"
 
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
     init_vault_settings
   "
@@ -108,7 +108,7 @@ teardown() {
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
 
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
     set_vault_path 'user/projects/my-vault'
   "
@@ -120,7 +120,7 @@ teardown() {
 
 @test "set_vault_path: creates settings.json when absent then sets path" {
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
     set_vault_path 'brand/new/vault'
   "
@@ -143,7 +143,7 @@ teardown() {
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
 
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     bash '$REPO_ROOT/scripts/set-vault.sh' 'cli/vault/path'
   "
 
@@ -160,7 +160,7 @@ teardown() {
   printf 'not-a-dir\n' >"$blocker"
 
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='${blocker}/settings.json'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='${blocker}/settings.json'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
     init_vault_settings 2>&1
   "
@@ -176,7 +176,7 @@ teardown() {
   printf 'not-a-dir\n' >"$blocker"
 
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='${blocker}/settings.json'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='${blocker}/settings.json'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
     set_vault_path 'any/path' 2>&1
   "
@@ -190,7 +190,7 @@ teardown() {
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
 
   run bash -c "
-    export LLM_WIKI_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     bash '$REPO_ROOT/scripts/set-vault.sh' '/nonexistent/vault' 2>&1
   "
 

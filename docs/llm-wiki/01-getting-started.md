@@ -12,15 +12,15 @@ Everything you need to go from a fresh plugin install to a verified-green vault.
   **Remote (marketplace):**
 
   ```
-  /plugin marketplace add odere-pro/llm-wiki-stack
-  /plugin install llm-wiki-stack
+  /plugin marketplace add odere-pro/claude-wiki-pages
+  /plugin install claude-wiki-pages
   ```
 
   **Local (contributors / forks):**
 
   ```
-  /plugin marketplace add /path/to/llm-wiki-stack
-  /plugin install llm-wiki-stack
+  /plugin marketplace add /path/to/claude-wiki-pages
+  /plugin install claude-wiki-pages
   ```
 
   For update, reinstall, and uninstall steps see [README § Installation](../../README.md#installation).
@@ -38,14 +38,14 @@ claude
 
 On session start you should see a short preamble from the `SessionStart` hook reminding the LLM to read `vault/CLAUDE.md` before any wiki operation. If you see that line, the plugin is wired and the hook bus is working.
 
-If you do not see it yet, you have not scaffolded the vault — run `/llm-wiki-stack:llm-wiki` first (see below).
+If you do not see it yet, you have not scaffolded the vault — run `/claude-wiki-pages:init` first (see below).
 
 ## Scaffold the vault
 
 From the Claude Code session:
 
 ```
-/llm-wiki-stack:llm-wiki
+/claude-wiki-pages:init
 ```
 
 The onboarding wizard copies `docs/vault-example/` from the plugin cache into `vault/` in your project, writes a per-vault `vault/CLAUDE.md`, and prints a short orientation. You never need to touch files under `skills/`, `agents/`, `hooks/`, `scripts/`, or the plugin cache — those are plugin internals.
@@ -70,7 +70,7 @@ vault/
 ## Run the health check
 
 ```
-/llm-wiki-stack:llm-wiki-status
+/claude-wiki-pages:status
 ```
 
 This exercises every hook path — frontmatter validation, wikilink enforcement, `raw/` immutability, the ingest verifier — and prints a green/red report per path. Green everywhere means:
@@ -88,7 +88,7 @@ Red on any line means the corresponding hook is not firing or reports drift. The
 2. Install community plugins: **Dataview**, **Templater**, **Web Clipper**.
 3. Templater → template folder: `_templates`.
 4. Web Clipper → save location: `vault/raw/`.
-5. From a Claude session, run `/llm-wiki-stack:obsidian-graph-colors` once to apply per-topic colors to the graph view.
+5. From a Claude session, run `/claude-wiki-pages:obsidian-graph-colors` once to apply per-topic colors to the graph view.
 
 ## What the vault is for
 

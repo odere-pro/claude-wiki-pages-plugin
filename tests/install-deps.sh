@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tests/install-deps.sh — install dev and test dependencies for llm-wiki-stack.
+# tests/install-deps.sh — install dev and test dependencies for claude-wiki-pages.
 #
 # Idempotent. Detects macOS (brew) and Linux (apt).
 #

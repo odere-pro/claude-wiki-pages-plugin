@@ -1,6 +1,6 @@
 #!/bin/bash
 # PreToolUse: blocks edits to existing files in <vault>/raw/ (sources are immutable)
-# Vault resolved via LLM_WIKI_VAULT, auto-detection, or default (docs/vault)
+# Vault resolved via CLAUDE_WIKI_PAGES_VAULT, auto-detection, or default (docs/vault)
 # Allows Write to NEW files (adding sources), blocks Edit to existing files
 
 # shellcheck source=resolve-vault.sh

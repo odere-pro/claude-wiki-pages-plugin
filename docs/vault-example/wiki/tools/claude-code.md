@@ -6,11 +6,11 @@ aliases: ["Claude Code", "claude-code"]
 parent: "[[Tools — Index]]"
 path: "tools"
 sources:
-  - "[[Using llm-wiki-stack]]"
+  - "[[Using claude-wiki-pages]]"
   - "[[Getting Started]]"
   - "[[Create a New Vault]]"
   - "[[Update an Existing Vault]]"
-related: ["[[llm-wiki-stack]]", "[[Obsidian]]", "[[LLM Wiki Pattern]]"]
+related: ["[[claude-wiki-pages]]", "[[Obsidian]]", "[[LLM Wiki Pattern]]"]
 tags: ["tool", "cli"]
 created: 2026-04-24
 updated: 2026-04-24
@@ -23,7 +23,7 @@ confidence: 0.9
 
 ## Overview
 
-Anthropic's CLI harness for running skills, agents, and hook-driven workflows. The host environment for the `llm-wiki-stack` plugin — all slash commands, hooks, and agents execute inside a Claude Code session.
+Anthropic's CLI harness for running skills, agents, and hook-driven workflows. The host environment for the `claude-wiki-pages` plugin — all slash commands, hooks, and agents execute inside a Claude Code session.
 
 ## Key Facts
 
@@ -33,5 +33,5 @@ Anthropic's CLI harness for running skills, agents, and hook-driven workflows. T
 
 ## Related
 
-- [[llm-wiki-stack]] — the plugin that runs inside Claude Code.
+- [[claude-wiki-pages]] — the plugin that runs inside Claude Code.
 - [[Obsidian]] — the editor Claude Code's wiki output is designed to be read in.

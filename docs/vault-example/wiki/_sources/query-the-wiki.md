@@ -4,8 +4,8 @@ type: source
 source_type: manual
 source_format: text
 url: ""
-author: "llm-wiki-stack maintainers"
-publisher: "llm-wiki-stack plugin"
+author: "claude-wiki-pages maintainers"
+publisher: "claude-wiki-pages plugin"
 date_published: 2026-04-24
 date_ingested: 2026-04-24
 tags: ["documentation", "query"]
@@ -25,7 +25,7 @@ confidence: 1.0
 
 ## Summary
 
-Query workflow: `llm-wiki-query` for single questions with citations, `llm-wiki-stack-analyst-agent` for cross-topic analysis, challenge mode, and document compilation. The query skill reads `wiki/index.md`, traverses topic MOCs, synthesizes an answer with `[[wikilinks]]` citations, and appends the question to `wiki/log.md`. Covers citation auditing (check `sources:`, `confidence:`, `updated:` on every cited page), gap handling, and saving high-value answers as synthesis notes.
+Query workflow: `query` for single questions with citations, `claude-wiki-pages-analyst-agent` for cross-topic analysis, challenge mode, and document compilation. The query skill reads `wiki/index.md`, traverses topic MOCs, synthesizes an answer with `[[wikilinks]]` citations, and appends the question to `wiki/log.md`. Covers citation auditing (check `sources:`, `confidence:`, `updated:` on every cited page), gap handling, and saving high-value answers as synthesis notes.
 
 ## Key Claims
 

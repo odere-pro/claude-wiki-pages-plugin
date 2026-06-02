@@ -14,20 +14,20 @@ claude
 At the Claude Code prompt:
 
 ```
-/plugin marketplace add odere-pro/llm-wiki-stack
-/plugin install llm-wiki-stack
+/plugin marketplace add odere-pro/claude-wiki-pages
+/plugin install claude-wiki-pages
 ```
 
 ## 3. Create a new vault
 
 ```
-/llm-wiki-stack:llm-wiki
+/claude-wiki-pages:init
 ```
 
 Or pick a path:
 
 ```
-/llm-wiki-stack:llm-wiki my vault is docs/vault
+/claude-wiki-pages:init my vault is docs/vault
 ```
 
 ## 4. Import raw files
@@ -42,32 +42,32 @@ Or pick a path:
 The recommended entry. Probes vault state and chains the right next step automatically — ingest if `raw/` has new files, curator if lint drift is pending, analyst if the prompt is a question.
 
 ```
-/llm-wiki-stack:wiki
+/claude-wiki-pages:wiki
 ```
 
 Power users can still call individual specialists directly:
 
 ```
-/llm-wiki-stack:llm-wiki-stack-ingest-agent
-/llm-wiki-stack:llm-wiki-stack-curator-agent
+/claude-wiki-pages:claude-wiki-pages-ingest-agent
+/claude-wiki-pages:claude-wiki-pages-curator-agent
 ```
 
 ## 6. Status check
 
 ```
-/llm-wiki-stack:llm-wiki-status
+/claude-wiki-pages:status
 ```
 
 ## 7. Query the wiki
 
 ```
-/llm-wiki-stack:llm-wiki-query what does the wiki say about <topic>?
+/claude-wiki-pages:query what does the wiki say about <topic>?
 ```
 
 ## 8. Export an answer as portable markdown
 
 ```
-/llm-wiki-stack:llm-wiki-markdown what does the wiki say about <topic>?
+/claude-wiki-pages:markdown what does the wiki say about <topic>?
 ```
 
 Writes a portable markdown file (no `[[wikilinks]]`, no Dataview blocks) to

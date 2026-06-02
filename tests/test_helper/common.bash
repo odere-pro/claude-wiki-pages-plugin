@@ -235,9 +235,9 @@ run_hook_with_json() {
     *) script="$REPO_ROOT/$script" ;;
   esac
 
-  # Pin LLM_WIKI_VAULT=vault so scripts resolve the vault name to "vault",
+  # Pin CLAUDE_WIKI_PAGES_VAULT=vault so scripts resolve the vault name to "vault",
   # matching the /tmp/test-project/vault/… paths used in JSON fixtures.
-  run bash -c "export LLM_WIKI_VAULT=vault; cat '$json_file' | bash '$script'"
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; cat '$json_file' | bash '$script'"
 }
 
 # Like run_hook_with_json but takes a JSON string instead of a file path.
@@ -250,5 +250,5 @@ run_hook_with_json_string() {
     *) script="$REPO_ROOT/$script" ;;
   esac
 
-  run bash -c "export LLM_WIKI_VAULT=vault; printf '%s' \"\$json\" | bash '$script'" json="$json"
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; printf '%s' \"\$json\" | bash '$script'" json="$json"
 }

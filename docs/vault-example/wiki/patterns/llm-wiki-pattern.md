@@ -5,7 +5,7 @@ aliases: ["LLM Wiki Pattern", "llm-wiki-pattern", "Karpathy's LLM Wiki Pattern"]
 parent: "[[Patterns — Index]]"
 path: "patterns"
 sources:
-  - "[[Using llm-wiki-stack]]"
+  - "[[Using claude-wiki-pages]]"
   - "[[Getting Started]]"
 related: ["[[Hook-Enforced Guarantees]]", "[[Entity Distribution Model]]", "[[Obsidian]]", "[[Claude Code]]"]
 contradicts: []

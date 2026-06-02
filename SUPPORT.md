@@ -1,6 +1,6 @@
 # Support
 
-`llm-wiki-stack` is a community plugin maintained best-effort by the project owner. This document describes what kind of support to expect and where to get it.
+`claude-wiki-pages` is a community plugin maintained best-effort by the project owner. This document describes what kind of support to expect and where to get it.
 
 ## Posture
 
@@ -12,9 +12,9 @@
 
 | What you need          | Where to go                                                                                                                            |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Bug reports            | [GitHub Issues](https://github.com/odere-pro/llm-wiki-stack/issues/new) — include vault `schema_version`, plugin version, and a minimal `vault/raw/` repro |
-| Feature requests       | [GitHub Issues](https://github.com/odere-pro/llm-wiki-stack/issues/new) — describe the workflow, not just the feature                  |
-| How-to / discussion    | [GitHub Discussions](https://github.com/odere-pro/llm-wiki-stack/discussions)                                                          |
+| Bug reports            | [GitHub Issues](https://github.com/odere-pro/claude-wiki-pages/issues/new) — include vault `schema_version`, plugin version, and a minimal `vault/raw/` repro |
+| Feature requests       | [GitHub Issues](https://github.com/odere-pro/claude-wiki-pages/issues/new) — describe the workflow, not just the feature                  |
+| How-to / discussion    | [GitHub Discussions](https://github.com/odere-pro/claude-wiki-pages/discussions)                                                          |
 | Security vulnerability | See [SECURITY.md](./SECURITY.md) — **not** a public issue                                                                              |
 
 ## What gets fixed
@@ -42,10 +42,10 @@ See the **Out of scope** section in [SECURITY.md](./SECURITY.md) for the securit
 A bug report is actionable when it includes all of these:
 
 1. The **plugin version** (`/.claude-plugin/plugin.json#version`) and the **vault `schema_version`** (`docs/vault-example/CLAUDE.md` if you're using the example vault, otherwise your own).
-2. The **command sequence** that triggered the issue, including which `/llm-wiki-stack:*` slash command and any agent fan-out.
+2. The **command sequence** that triggered the issue, including which `/claude-wiki-pages:*` slash command and any agent fan-out.
 3. A **minimal `vault/raw/` fixture** if the issue depends on input. Strip secrets; the fixture goes into a public issue.
 4. The **expected** versus **actual** behaviour, framed against a contract in [`/SPEC.md`](./SPEC.md) when possible (e.g. "§9 says ingest writes a `wiki/log.md` entry; this run did not").
-5. Output of `/llm-wiki-stack:llm-wiki-status` (the one-command health check) if the issue is reproducible.
+5. Output of `/claude-wiki-pages:status` (the one-command health check) if the issue is reproducible.
 
 ## Versioning and release cadence
 

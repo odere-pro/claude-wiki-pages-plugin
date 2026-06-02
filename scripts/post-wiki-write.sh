@@ -1,6 +1,6 @@
 #!/bin/bash
 # PostToolUse: after writing a wiki file, check if index.md and _index.md need updating
-# Vault resolved via LLM_WIKI_VAULT, auto-detection, or default (docs/vault)
+# Vault resolved via CLAUDE_WIKI_PAGES_VAULT, auto-detection, or default (docs/vault)
 # Outputs a reminder to stdout which Claude sees as hook feedback
 
 # shellcheck source=resolve-vault.sh
