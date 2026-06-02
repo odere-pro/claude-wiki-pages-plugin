@@ -4,8 +4,8 @@ type: source
 source_type: manual
 source_format: text
 url: ""
-author: "llm-wiki-stack maintainers"
-publisher: "llm-wiki-stack plugin"
+author: "claude-wiki-pages maintainers"
+publisher: "claude-wiki-pages plugin"
 date_published: 2026-04-24
 date_ingested: 2026-04-24
 tags: ["documentation", "workflow"]

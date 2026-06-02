@@ -1,6 +1,6 @@
 #!/bin/bash
 # PostToolUse: after writing a source note in _sources/, remind to log the ingest
-# Vault resolved via LLM_WIKI_VAULT, auto-detection, or default (docs/vault)
+# Vault resolved via CLAUDE_WIKI_PAGES_VAULT, auto-detection, or default (docs/vault)
 # and count how many sources exist for progress tracking
 
 # shellcheck source=resolve-vault.sh

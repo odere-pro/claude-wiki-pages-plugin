@@ -1,6 +1,6 @@
 #!/bin/bash
 # scripts/check-deps.sh — runtime dependency check.
-# Used by the SessionStart hook and by /llm-wiki-stack:llm-wiki-status.
+# Used by the SessionStart hook and by /claude-wiki-pages:status.
 #
 # Exit 0 = all deps present. Exit 1 = one or more missing.
 

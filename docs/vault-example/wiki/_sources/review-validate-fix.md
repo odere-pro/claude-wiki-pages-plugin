@@ -4,8 +4,8 @@ type: source
 source_type: manual
 source_format: text
 url: ""
-author: "llm-wiki-stack maintainers"
-publisher: "llm-wiki-stack plugin"
+author: "claude-wiki-pages maintainers"
+publisher: "claude-wiki-pages plugin"
 date_published: 2026-04-24
 date_ingested: 2026-04-24
 tags: ["documentation", "validation"]
@@ -25,7 +25,7 @@ confidence: 1.0
 
 ## Summary
 
-Three levels of validation: `llm-wiki-status` (one-command smoke test), `llm-wiki-lint` (read-only audit), `llm-wiki-stack-curator-agent` (auto-repair). Lint reports; fix applies staged phases (sources, vault MOC, per-folder MOCs, parent/path, broken links, orphans, aliases, graph colors, flat-folder splits, body densification). Lists what the repair agent will NOT do: delete content, merge near-duplicates, create unresolvable wikilinks, lower confidence. Manual-review table covers near-duplicates, single-source high confidence, repeated blocks, orphan sources, and contradictions.
+Three levels of validation: `status` (one-command smoke test), `lint` (read-only audit), `claude-wiki-pages-curator-agent` (auto-repair). Lint reports; fix applies staged phases (sources, vault MOC, per-folder MOCs, parent/path, broken links, orphans, aliases, graph colors, flat-folder splits, body densification). Lists what the repair agent will NOT do: delete content, merge near-duplicates, create unresolvable wikilinks, lower confidence. Manual-review table covers near-duplicates, single-source high confidence, repeated blocks, orphan sources, and contradictions.
 
 ## Key Claims
 
@@ -35,7 +35,7 @@ Three levels of validation: `llm-wiki-status` (one-command smoke test), `llm-wik
 
 ## Entities Mentioned
 
-- [[llm-wiki-stack]]
+- [[claude-wiki-pages]]
 
 ## Concepts Mentioned
 

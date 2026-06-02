@@ -8,7 +8,7 @@ children:
   - "[[Claude Code]]"
   - "[[Obsidian]]"
   - "[[Dataview]]"
-  - "[[llm-wiki-stack]]"
+  - "[[claude-wiki-pages]]"
   - "[[Pandoc]]"
 child_indexes: []
 tags: ["tools"]
@@ -25,5 +25,5 @@ External tools and plugins used in the workflow.
 - [[Claude Code]] — CLI harness for skills, agents, and hooks.
 - [[Obsidian]] — local-first markdown editor that treats a folder as a vault.
 - [[Dataview]] — Obsidian community plugin for frontmatter-scoped table queries.
-- [[llm-wiki-stack]] — the Claude Code plugin itself.
+- [[claude-wiki-pages]] — the Claude Code plugin itself.
 - [[Pandoc]] — markdown → PDF / DOCX conversion for deliverables.

@@ -6,7 +6,7 @@ Thumbs.db
 .claude/settings.local.json
 .claude/worktrees/
 .claude/memory/
-.claude/llm-wiki-stack/
+.claude/claude-wiki-pages/
 
 # Local scratch space (plans, drafts)
 tmp/
@@ -18,8 +18,12 @@ tmp/
 **/.smart-connections/
 **/.copilot/
 
-# Node
+# Node / Bun
 node_modules/
+
+# Bun engine build output (rebuilt by `doctor` D06 / prepublish)
+dist/
+*.tsbuildinfo
 
 # Bats test helpers (cloned at test time; do not commit)
 tests/test_helper/bats-assert/

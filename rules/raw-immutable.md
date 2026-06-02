@@ -10,5 +10,5 @@ Files in `vault/raw/` must never be modified after they are placed here. This di
 
 - Do not edit, rename, or delete files in `vault/raw/`.
 - To add a new source, create/copy the file into `vault/raw/`.
-- To process a source, run `/llm-wiki-stack:llm-wiki-ingest` — it reads from `raw/` and writes to `wiki/`.
+- To process a source, run `/claude-wiki-pages:ingest` — it reads from `raw/` and writes to `wiki/`.
 - If a source contains errors, note the corrections in the wiki page, not in the raw file.

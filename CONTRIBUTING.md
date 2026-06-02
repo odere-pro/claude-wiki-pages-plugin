@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for your interest in `llm-wiki-stack`. This document is short because the project is small.
+Thanks for your interest in `claude-wiki-pages`. This document is short because the project is small.
 
 ## Ground rules
 
@@ -21,8 +21,8 @@ Thanks for your interest in `llm-wiki-stack`. This document is short because the
 Test the plugin from a fresh project:
 
 ```text
-/plugin marketplace add /absolute/path/to/llm-wiki-stack
-/plugin install llm-wiki-stack@llm-wiki-stack
+/plugin marketplace add /absolute/path/to/claude-wiki-pages
+/plugin install claude-wiki-pages@claude-wiki-pages
 ```
 
 Validate the manifest and hook config:

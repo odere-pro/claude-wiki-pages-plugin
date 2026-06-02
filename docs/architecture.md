@@ -1,6 +1,6 @@
 # Architecture
 
-`llm-wiki-stack` is a four-layer implementation of [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), packaged as a Claude Code plugin.
+`claude-wiki-pages` is a four-layer implementation of [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f), packaged as a Claude Code plugin.
 
 Most LLM-wiki implementations are one layer: a prompt and a folder convention. This one is four, because each layer has a different failure mode and deserves a different tool.
 
@@ -19,15 +19,15 @@ Sources go into `raw/` and are never rewritten — the `protect-raw.sh` hook enf
 
 ### 2. Skills
 
-Each skill is a single-responsibility capability: `llm-wiki-ingest` ingests sources, `llm-wiki-query` answers questions, `llm-wiki-lint` audits structure, `llm-wiki-fix` repairs what lint reports, `llm-wiki-synthesize` writes cross-topic analyses, `llm-wiki-index` generates a top-level overview index across the vault, `llm-wiki-markdown` exports a query answer as portable markdown into `vault/output/`, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 13.
+Each skill is a single-responsibility capability: `ingest` ingests sources, `query` answers questions, `lint` audits structure, `fix` repairs what lint reports, `synthesize` writes cross-topic analyses, `index` generates a top-level overview index across the vault, `markdown` exports a query answer as portable markdown into `vault/output/`, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 13.
 
 ### 3. Agents
 
-Agents chain skills and tools. `llm-wiki-stack-orchestrator-agent` is the user-facing entry — it probes vault state and dispatches to one of three specialists per invocation. `llm-wiki-stack-ingest-agent` runs the full ingest-then-verify-then-curate-then-synthesize cycle. `llm-wiki-stack-curator-agent` audits, auto-repairs, and gates judgment fixes (restructures, merges) behind explicit user approval. `llm-wiki-stack-analyst-agent` answers analytical questions that require traversing the topic tree. Agents are where multi-step reliability lives — they own sequencing, retries, and quality gates.
+Agents chain skills and tools. `claude-wiki-pages-orchestrator-agent` is the user-facing entry — it probes vault state and dispatches to one of three specialists per invocation. `claude-wiki-pages-ingest-agent` runs the full ingest-then-verify-then-curate-then-synthesize cycle. `claude-wiki-pages-curator-agent` audits, auto-repairs, and gates judgment fixes (restructures, merges) behind explicit user approval. `claude-wiki-pages-analyst-agent` answers analytical questions that require traversing the topic tree. Agents are where multi-step reliability lives — they own sequencing, retries, and quality gates.
 
 ### 4. Orchestration
 
-Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/llm-wiki-stack:wiki`); it delegates to the orchestrator agent. `commands/wiki-doctor.md` wraps `scripts/doctor.sh` for environment health (`/llm-wiki-stack:wiki-doctor`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update `_index.md` and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
+Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/claude-wiki-pages:wiki`); it delegates to the orchestrator agent. `commands/doctor.md` wraps `scripts/doctor.sh` for environment health (`/claude-wiki-pages:doctor`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update `_index.md` and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
 
 ## Why four layers
 
@@ -43,7 +43,7 @@ The layering is not academic. Each gate is in the only place the failure can be 
 ## Mapping to plugin file structure
 
 ```
-llm-wiki-stack/
+claude-wiki-pages/
 ├── .claude-plugin/          # plugin manifest + marketplace (distribution)
 ├── skills/                  # Layer 2
 ├── agents/                  # Layer 3
@@ -51,13 +51,13 @@ llm-wiki-stack/
 ├── scripts/                 # Layer 4 — hook implementations
 ├── rules/                   # Layer 4 — scoped LLM guidance
 ├── docs/vault-example/           # Layer 1 — schema + small sticky reference vault
-└── docs/                    # SPECIFICATION, VOCABULARY, architecture, security, user guides
+└── docs/                    # SPECIFICATION, GLOSSARY, architecture, security, user guides
 ```
 
 ## Data flow: one ingest
 
 1. Human drops a source into `vault/raw/`.
-2. Human runs `/llm-wiki-stack:llm-wiki-ingest`.
+2. Human runs `/claude-wiki-pages:ingest`.
 3. Skill reads `docs/vault-example/CLAUDE.md` (the schema).
 4. Skill writes a source summary to `wiki/_sources/`.
 5. Layer 4 hooks fire: `validate-frontmatter.sh`, `check-wikilinks.sh`, `validate-attachments.sh`.

@@ -14,15 +14,15 @@ Chronological record of every wiki operation. The onboarding skill stamps the in
 
 Empty vault created from `skills/llm-wiki/template/`. No sources ingested yet.
 
-## [2026-04-24] ingest | Using llm-wiki-stack
+## [2026-04-24] ingest | Using claude-wiki-pages
 
 Processed `raw/index.md`. Created 1 source summary. Introduced topic folders `patterns/`, `tools/`, `workflows/` with their `_index.md`.
 
-- New source: [[Using llm-wiki-stack]]
+- New source: [[Using claude-wiki-pages]]
 
 ## [2026-04-24] ingest | Getting Started
 
-Processed `raw/01-getting-started.md`. Created 1 source summary. Extended [[Claude Code]], [[Obsidian]], [[Dataview]], [[llm-wiki-stack]], [[Hook-Enforced Guarantees]] with this source.
+Processed `raw/01-getting-started.md`. Created 1 source summary. Extended [[Claude Code]], [[Obsidian]], [[Dataview]], [[claude-wiki-pages]], [[Hook-Enforced Guarantees]] with this source.
 
 - New source: [[Getting Started]]
 

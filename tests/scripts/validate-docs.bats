@@ -3,12 +3,12 @@
 #
 # Behavior under test:
 #   - Pass on a clean tree (the current repo, which must stay green).
-#   - Fail when retired vocabulary (`second-brain`, `second brain`,
+#   - Fail when retired glossary (`second-brain`, `second brain`,
 #     `vault-synthesize`, `vault-index`) leaks outside BAN_EXEMPT.
-#   - Allow retired vocabulary inside BAN_EXEMPT (VOCABULARY.md, CHANGELOG.md).
+#   - Allow retired glossary inside BAN_EXEMPT (GLOSSARY.md, CHANGELOG.md).
 #   - Fail on SEO-register leaks ("knowledge management") outside SEO_EXEMPT.
 #   - Allow SEO-register leaks inside the exempt set (e.g. README.md).
-#   - Fail on /llm-wiki-stack:<name> references that do not resolve to a
+#   - Fail on /claude-wiki-pages:<name> references that do not resolve to a
 #     skill directory or agent .md file.
 #
 # validate-docs.sh uses `git ls-files` to enumerate files, so every test that
@@ -28,15 +28,15 @@ setup() {
 
 @test "validate-docs: passes on clean tree" {
   # Run against the real repo root. If this fails, the repo itself has a
-  # vocabulary violation and the tests should surface that before CI does.
+  # glossary violation and the tests should surface that before CI does.
   run bash "$SCRIPTS_DIR/validate-docs.sh" "$REPO_ROOT"
 
   assert_success
-  assert_output_contains "All vocabulary checks passed"
+  assert_output_contains "All glossary checks passed"
 }
 
 # -----------------------------------------------------------------------------
-# Banned strings (retired vocabulary)
+# Banned strings (retired glossary)
 # -----------------------------------------------------------------------------
 
 @test "validate-docs: flags retired 'second-brain' outside exempt set" {
@@ -72,7 +72,7 @@ setup() {
   assert_contains "$out" "banned string"
 }
 
-@test "validate-docs: allows retired vocabulary in CHANGELOG.md" {
+@test "validate-docs: allows retired glossary in CHANGELOG.md" {
   setup_isolated_repo
   # CHANGELOG.md IS in BAN_EXEMPT — historical record is preserved.
   rm -f "$ISOLATED_REPO/CHANGELOG.md"
@@ -116,7 +116,7 @@ setup() {
   # README.md IS in SEO_EXEMPT.
   rm -f "$ISOLATED_REPO/README.md"
   commit_file_in_isolated_repo "README.md" \
-    "# llm-wiki-stack\n\nA knowledge management stack for Claude Code.\n"
+    "# claude-wiki-pages\n\nA knowledge management stack for Claude Code.\n"
 
   run bash "$SCRIPTS_DIR/validate-docs.sh" "$ISOLATED_REPO"
   local rc=$status
@@ -135,7 +135,7 @@ setup() {
 @test "validate-docs: flags unresolved slash command" {
   setup_isolated_repo
   commit_file_in_isolated_repo "docs/broken-ref.md" \
-    "# Broken\n\nSee /llm-wiki-stack:nonexistent-skill for details.\n"
+    "# Broken\n\nSee /claude-wiki-pages:nonexistent-skill for details.\n"
 
   run bash "$SCRIPTS_DIR/validate-docs.sh" "$ISOLATED_REPO"
   local rc=$status
@@ -144,15 +144,15 @@ setup() {
   teardown_isolated_repo
 
   assert_eq "$rc" 1
-  assert_contains "$out" "/llm-wiki-stack:nonexistent-skill"
+  assert_contains "$out" "/claude-wiki-pages:nonexistent-skill"
   assert_contains "$out" "does not resolve"
 }
 
 @test "validate-docs: allows existing slash command reference" {
   setup_isolated_repo
-  # /llm-wiki-stack:llm-wiki resolves to skills/llm-wiki/ (after rename).
+  # /claude-wiki-pages:init resolves to skills/llm-wiki/ (after rename).
   commit_file_in_isolated_repo "docs/valid-ref.md" \
-    "# Valid\n\nRun /llm-wiki-stack:llm-wiki to start.\n"
+    "# Valid\n\nRun /claude-wiki-pages:init to start.\n"
 
   run bash "$SCRIPTS_DIR/validate-docs.sh" "$ISOLATED_REPO"
   local rc=$status

@@ -53,7 +53,7 @@ jobs:
           # The intended flow:
           #   1. Download a curated slice of the HuggingFace prompt-injection-eval dataset.
           #   2. For each injection payload, drop it into a temp vault/raw/ source.
-          #   3. Run /llm-wiki-stack:llm-wiki-ingest.
+          #   3. Run /claude-wiki-pages:ingest.
           #   4. Assert the hooks blocked any frontmatter violation or
           #      cross-schema-boundary write; no secrets ever land in wiki/.
           echo "[SKIP] prompt-injection corpus not yet fixtured."

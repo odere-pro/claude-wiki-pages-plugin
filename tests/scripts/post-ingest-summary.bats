@@ -63,7 +63,7 @@ MD
     --arg path "$proj/vault/wiki/_sources/empty.md" \
     '{tool_name:"Write", tool_input:{file_path:$path, content:""}}')
 
-  run bash -c "export LLM_WIKI_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-ingest-summary.sh'"
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-ingest-summary.sh'"
 
   assert_success
   assert_output_contains "Total sources"

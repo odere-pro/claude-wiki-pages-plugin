@@ -190,9 +190,9 @@ updated: 2026-04-16
 
 ### Graph coloring
 
-Topic branches are color-coded in Obsidian's graph view via the internal graph plugin API. The `/llm-wiki-stack:obsidian-graph-colors` skill manages this programmatically using `obsidian eval`. Each topic folder gets a `path:` query mapped to a unique color. No frontmatter field needed — colors are applied at the Obsidian graph engine level.
+Topic branches are color-coded in Obsidian's graph view via the internal graph plugin API. The `/claude-wiki-pages:obsidian-graph-colors` skill manages this programmatically using `obsidian eval`. Each topic folder gets a `path:` query mapped to a unique color. No frontmatter field needed — colors are applied at the Obsidian graph engine level.
 
-When creating a new top-level topic folder, run `/llm-wiki-stack:obsidian-graph-colors` (or the ingest pipeline handles it automatically in step 1.7). The `llm-wiki-stack-curator-agent` agent also checks for missing color groups and applies them.
+When creating a new top-level topic folder, run `/claude-wiki-pages:obsidian-graph-colors` (or the ingest pipeline handles it automatically in step 1.7). The `claude-wiki-pages-curator-agent` agent also checks for missing color groups and applies them.
 
 ### Field: `parent` placeholder form
 
@@ -336,7 +336,7 @@ Before writing an ADR, proposal, or making a decision, query the wiki with a cha
 ## Scaling milestones
 
 - **0–50 pages**: `index.md` plus `_index.md` per folder is sufficient. Focus on frontmatter consistency.
-- **50–200 pages**: Install obsidian-wikilink-types for typed links. Run llm-wiki-synthesize for cross-branch connections.
+- **50–200 pages**: Install obsidian-wikilink-types for typed links. Run synthesize for cross-branch connections.
 - **200–500 pages**: Install qmd for local search. Confidence decay and stale detection become essential. Prune folders with 30+ notes.
 - **500+ pages**: Consider splitting into multiple vaults by research domain.
 
@@ -361,16 +361,16 @@ These skills were written for a **flat** directory layout: `wiki/sources/`, `wik
 | No `_index.md` files                                          | Required in every topic folder               | Create `_index.md` when creating a topic folder                                  |
 | No `aliases` on indexes                                       | Required on every `_index.md`                | Add topic name variants (slug, title case, abbreviations)                        |
 
-When running `/llm-wiki-stack:llm-wiki-ingest`: follow the 13-step ingest rules in this document, not the skill's simpler defaults. The skill provides the workflow structure; this document provides the schema.
+When running `/claude-wiki-pages:ingest`: follow the 13-step ingest rules in this document, not the skill's simpler defaults. The skill provides the workflow structure; this document provides the schema.
 
-When running `/llm-wiki-stack:llm-wiki-lint`: check everything the skill checks PLUS the additional rules in this document (index consistency, parent/path validation, confidence thresholds, type field validation, nesting depth).
+When running `/claude-wiki-pages:lint`: check everything the skill checks PLUS the additional rules in this document (index consistency, parent/path validation, confidence thresholds, type field validation, nesting depth).
 
-### llm-wiki-synthesize and llm-wiki-index
+### synthesize and index
 
 These skills were written for **project-folder vaults** (folders with `README.md` files), not wiki-structured vaults. Use them with these overrides:
 
-- **llm-wiki-synthesize**: Write output to `wiki/_synthesis/`, not the vault root. Use the synthesis frontmatter schema from this document, not the skill's default frontmatter.
-- **llm-wiki-index**: Use only for generating an overview of the full topic tree. Write output to `wiki/`, not the vault root. The per-folder `_index.md` files are maintained by the ingest workflow, not by this skill.
+- **synthesize**: Write output to `wiki/_synthesis/`, not the vault root. Use the synthesis frontmatter schema from this document, not the skill's default frontmatter.
+- **index**: Use only for generating an overview of the full topic tree. Write output to `wiki/`, not the vault root. The per-folder `_index.md` files are maintained by the ingest workflow, not by this skill.
 
 ### obsidian-markdown, obsidian-bases, obsidian-cli
 

@@ -9,7 +9,7 @@ sources:
   - "[[Getting Started]]"
   - "[[Check the Dashboard]]"
   - "[[Query the Wiki]]"
-related: ["[[Obsidian]]", "[[llm-wiki-stack]]"]
+related: ["[[Obsidian]]", "[[claude-wiki-pages]]"]
 tags: ["tool", "obsidian-plugin"]
 created: 2026-04-24
 updated: 2026-04-24
@@ -28,9 +28,9 @@ Obsidian community plugin that treats frontmatter as a queryable database. Power
 
 - Uses a SQL-like query language (DQL) plus a JavaScript API.
 - Renders live inside Obsidian; does not render in plain markdown viewers or CLI.
-- For a static snapshot, the `/llm-wiki-stack:obsidian-cli` skill can render a Dataview query to a markdown file.
+- For a static snapshot, the `/claude-wiki-pages:obsidian-cli` skill can render a Dataview query to a markdown file.
 
 ## Related
 
 - [[Obsidian]] — the host editor.
-- [[llm-wiki-stack]] — produces the frontmatter Dataview queries against.
+- [[claude-wiki-pages]] — produces the frontmatter Dataview queries against.

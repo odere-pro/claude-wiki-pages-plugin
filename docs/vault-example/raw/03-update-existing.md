@@ -11,7 +11,7 @@ cp ~/Downloads/new-article.md vault/raw/
 ```
 
 ```
-/llm-wiki-stack:llm-wiki-stack-ingest-agent
+/claude-wiki-pages:claude-wiki-pages-ingest-agent
 ```
 
 The pipeline auto-detects unprocessed files by diffing `vault/raw/` against `wiki/log.md` ingest entries. No argument needed.
@@ -23,7 +23,7 @@ cp ~/Desktop/diagram.png vault/raw/assets/
 ```
 
 ```
-/llm-wiki-stack:llm-wiki-stack-ingest-agent
+/claude-wiki-pages:claude-wiki-pages-ingest-agent
 ```
 
 Claude's vision reads the image natively and extracts on-image text, entities shown in diagrams, and visible concepts. The source summary gets `source_format: image` and `attachment_path: raw/assets/diagram.png`.
@@ -38,7 +38,7 @@ cp screenshots/*.png  vault/raw/assets/
 ```
 
 ```
-/llm-wiki-stack:llm-wiki-stack-ingest-agent
+/claude-wiki-pages:claude-wiki-pages-ingest-agent
 ```
 
 The pipeline handles ingest → verify → lint-fix → synthesize in one pass. After the agent stops, the `subagent-ingest-gate.sh` hook automatically runs `verify-ingest.sh` and aborts the completion if the wiki is left in a half-written state. You see the failure immediately rather than discovering it days later.
@@ -48,10 +48,10 @@ The pipeline handles ingest → verify → lint-fix → synthesize in one pass. 
 If you want strict ingest-only (to line up several batches before running a single lint pass), use the individual skill:
 
 ```
-/llm-wiki-stack:llm-wiki-ingest
+/claude-wiki-pages:ingest
 ```
 
-Same preconditions as the pipeline. No follow-on lint-fix, no synthesis. Run `/llm-wiki-stack:llm-wiki-stack-curator-agent` separately when you are ready.
+Same preconditions as the pipeline. No follow-on lint-fix, no synthesis. Run `/claude-wiki-pages:claude-wiki-pages-curator-agent` separately when you are ready.
 
 ## Why you should NOT just write pages by hand
 
@@ -94,7 +94,7 @@ Every 10 ingests, or anytime:
 
 - A batch ingest finishes with warnings.
 - Pages are showing up as orphans in the Obsidian graph.
-- `/llm-wiki-stack:llm-wiki-status` reports index drift.
+- `/claude-wiki-pages:status` reports index drift.
 
 The pipeline already lint-fixes on every run — reach for the standalone skill when you want a read-only audit between ingests. See [guide 4](./04-review-validate-fix.md).
 

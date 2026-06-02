@@ -1,10 +1,10 @@
 #!/bin/bash
 # scripts/verify-output.sh — verify the portable-markdown contract for files
-# produced by the `llm-wiki-markdown` skill.
+# produced by the `markdown` skill.
 #
 # Every file under <vault>/output/ MUST:
 #   - have YAML frontmatter that opens and closes with `---`
-#   - declare `generated_by: llm-wiki-markdown`
+#   - declare `generated_by: markdown`
 #   - declare a `source_query:` field
 #   - declare a `generated_at: YYYY-MM-DD` field
 #   - declare a `sources:` field (inline `[]` or block list of `[[wikilinks]]`)
@@ -69,8 +69,8 @@ while IFS= read -r f; do
   fm_block=$(awk -v end="$fm_end" 'NR<=end' "$f")
 
   case "$fm_block" in
-    *$'\ngenerated_by: llm-wiki-markdown'*) ;;
-    *$'\ngenerated_by: "llm-wiki-markdown"'*) ;;
+    *$'\ngenerated_by: markdown'*) ;;
+    *$'\ngenerated_by: "markdown"'*) ;;
     *) errors+=("missing or wrong generated_by field") ;;
   esac
 

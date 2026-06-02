@@ -3,19 +3,20 @@
 # Do NOT execute directly; source it from other scripts.
 #
 # Resolution order (first match wins):
-#   1. LLM_WIKI_VAULT env var                    — explicit override; good for local dev & CI.
-#   2. .claude/llm-wiki-stack/settings.json      — persistent per-project vault path.
+#   1. CLAUDE_WIKI_PAGES_VAULT env var           — explicit override; good for local dev & CI.
+#      (LLM_WIKI_VAULT is honoured as a deprecated fallback for one minor.)
+#   2. .claude/claude-wiki-pages/settings.json      — persistent per-project vault path.
 #   3. Auto-detect                               — find a dir with CLAUDE.md (schema_version) + wiki/
 #   4. Default                                   — docs/vault
 #
 # All hook scripts source this file so vault resolution is consistent
 # and can be tested in one place.
 #
-# Test override: export LLM_WIKI_SETTINGS_FILE=<path> before sourcing to redirect
+# Test override: export CLAUDE_WIKI_PAGES_SETTINGS_FILE=<path> before sourcing to redirect
 # the settings file (prevents tests from touching the real project .claude/ dir).
 
-LLM_WIKI_DEFAULT_VAULT="docs/vault"
-LLM_WIKI_SETTINGS="${LLM_WIKI_SETTINGS_FILE:-.claude/llm-wiki-stack/settings.json}"
+CLAUDE_WIKI_PAGES_DEFAULT_VAULT="docs/vault"
+CLAUDE_WIKI_PAGES_SETTINGS="${CLAUDE_WIKI_PAGES_SETTINGS_FILE:-.claude/claude-wiki-pages/settings.json}"
 
 resolve_vault() {
   # Self-heal: ensure settings.json exists on every resolution. SessionStart
@@ -23,16 +24,18 @@ resolve_vault() {
   # resumed sessions). Any hook that resolves the vault also reifies settings.
   init_vault_settings
 
-  # 1. Explicit env var — used as-is (relative or absolute)
-  if [ -n "${LLM_WIKI_VAULT:-}" ]; then
-    echo "$LLM_WIKI_VAULT"
+  # 1. Explicit env var — used as-is (relative or absolute).
+  #    LLM_WIKI_VAULT is the deprecated pre-1.0 name, still read as a fallback.
+  local env_vault="${CLAUDE_WIKI_PAGES_VAULT:-${LLM_WIKI_VAULT:-}}"
+  if [ -n "$env_vault" ]; then
+    echo "$env_vault"
     return
   fi
 
   # 2. Settings file current_vault_path
-  if [ -f "$LLM_WIKI_SETTINGS" ]; then
+  if [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ]; then
     local path
-    path=$(awk -F'"' '/"current_vault_path"/{print $4}' "$LLM_WIKI_SETTINGS")
+    path=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
     if [ -n "$path" ]; then
       echo "$path"
       return
@@ -53,23 +56,23 @@ resolve_vault() {
   done < <(find . -maxdepth 4 -name "CLAUDE.md" 2>/dev/null | sort)
 
   # 4. Default
-  echo "$LLM_WIKI_DEFAULT_VAULT"
+  echo "$CLAUDE_WIKI_PAGES_DEFAULT_VAULT"
 }
 
 # Create settings.json with default values if it does not yet exist.
 # Fails gracefully: warns to stderr and returns without crashing if the
 # directory cannot be created or the file cannot be written.
 init_vault_settings() {
-  [ -f "$LLM_WIKI_SETTINGS" ] && return
-  if ! mkdir -p "$(dirname "$LLM_WIKI_SETTINGS")" 2>/dev/null; then
-    printf '[llm-wiki-stack] WARN: cannot create settings directory — vault path will not persist across sessions\n' >&2
+  [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] && return
+  if ! mkdir -p "$(dirname "$CLAUDE_WIKI_PAGES_SETTINGS")" 2>/dev/null; then
+    printf '[claude-wiki-pages] WARN: cannot create settings directory — vault path will not persist across sessions\n' >&2
     return
   fi
   local content
   content=$(printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s"\n}\n' \
-    "$LLM_WIKI_DEFAULT_VAULT" "$LLM_WIKI_DEFAULT_VAULT")
-  if ! printf '%s' "$content" >"$LLM_WIKI_SETTINGS" 2>/dev/null; then
-    printf '[llm-wiki-stack] WARN: cannot write settings.json — vault path will not persist across sessions\n' >&2
+    "$CLAUDE_WIKI_PAGES_DEFAULT_VAULT" "$CLAUDE_WIKI_PAGES_DEFAULT_VAULT")
+  if ! printf '%s' "$content" >"$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null; then
+    printf '[claude-wiki-pages] WARN: cannot write settings.json — vault path will not persist across sessions\n' >&2
   fi
 }
 
@@ -79,17 +82,17 @@ init_vault_settings() {
 set_vault_path() {
   local new_path="$1"
   init_vault_settings
-  local tmp="${LLM_WIKI_SETTINGS}.tmp"
+  local tmp="${CLAUDE_WIKI_PAGES_SETTINGS}.tmp"
   if ! awk -v path="$new_path" '
     /"current_vault_path"/ { sub(/"current_vault_path"[[:space:]]*:[[:space:]]*"[^"]*"/, "\"current_vault_path\": \"" path "\"") }
     { print }
-  ' "$LLM_WIKI_SETTINGS" >"$tmp" 2>/dev/null; then
-    printf '[llm-wiki-stack] WARN: cannot update settings.json\n' >&2
+  ' "$CLAUDE_WIKI_PAGES_SETTINGS" >"$tmp" 2>/dev/null; then
+    printf '[claude-wiki-pages] WARN: cannot update settings.json\n' >&2
     rm -f "$tmp" 2>/dev/null
     return 0
   fi
-  if ! mv "$tmp" "$LLM_WIKI_SETTINGS" 2>/dev/null; then
-    printf '[llm-wiki-stack] WARN: cannot save settings.json\n' >&2
+  if ! mv "$tmp" "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null; then
+    printf '[claude-wiki-pages] WARN: cannot save settings.json\n' >&2
     rm -f "$tmp" 2>/dev/null
     return 0
   fi

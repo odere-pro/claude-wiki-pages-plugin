@@ -4,8 +4,8 @@ type: source
 source_type: manual
 source_format: text
 url: ""
-author: "llm-wiki-stack maintainers"
-publisher: "llm-wiki-stack plugin"
+author: "claude-wiki-pages maintainers"
+publisher: "claude-wiki-pages plugin"
 date_published: 2026-04-24
 date_ingested: 2026-04-24
 tags: ["documentation", "output"]
@@ -25,7 +25,7 @@ confidence: 1.0
 
 ## Summary
 
-How deliverables (reports, ADRs, briefs, memos) are compiled from the wiki into `vault/output/` — git-ignored scratch space with no frontmatter, no schema, no validation. The `llm-wiki-stack-analyst-agent` agent is the right tool; it cites every claim with `[[wikilinks]]` back to wiki pages. Explains two healthy patterns (narrative output vs navigation index), the rule against two narrative outputs on the same topic, and the export path to PDF/DOCX via pandoc.
+How deliverables (reports, ADRs, briefs, memos) are compiled from the wiki into `vault/output/` — git-ignored scratch space with no frontmatter, no schema, no validation. The `claude-wiki-pages-analyst-agent` agent is the right tool; it cites every claim with `[[wikilinks]]` back to wiki pages. Explains two healthy patterns (narrative output vs navigation index), the rule against two narrative outputs on the same topic, and the export path to PDF/DOCX via pandoc.
 
 ## Key Claims
 
@@ -35,7 +35,7 @@ How deliverables (reports, ADRs, briefs, memos) are compiled from the wiki into 
 
 ## Entities Mentioned
 
-- [[llm-wiki-stack]]
+- [[claude-wiki-pages]]
 - [[Pandoc]]
 
 ## Concepts Mentioned

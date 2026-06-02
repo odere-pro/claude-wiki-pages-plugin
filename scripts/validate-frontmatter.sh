@@ -1,7 +1,7 @@
 #!/bin/bash
 # PreToolUse: blocks writes to vault/wiki/ missing required frontmatter
 # Usage (CLI): scripts/validate-frontmatter.sh [--target <vault-path>]
-# Default target: $LLM_WIKI_VAULT (fallback: docs/vault)
+# Default target: $CLAUDE_WIKI_PAGES_VAULT (fallback: docs/vault)
 # Runs on macOS (BSD) and Linux (GNU)
 
 # shellcheck source=resolve-vault.sh
