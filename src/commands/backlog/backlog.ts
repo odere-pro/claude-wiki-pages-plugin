@@ -51,7 +51,9 @@ function pendingFromManifest(manifest: string): string[] | null {
     .split("\n")
     .filter((l) => l.trim().startsWith("|") && l.includes("|"))
     .map((l) => l.split("|").map((c) => c.trim()))
-    .filter((cells) => cells.length >= 4 && cells[1] && cells[1] !== "raw_file" && cells[1] !== "---");
+    .filter(
+      (cells) => cells.length >= 4 && cells[1] && cells[1] !== "raw_file" && cells[1] !== "---",
+    );
   if (rows.length === 0) return null;
   return rows.filter((c) => c[2] === "pending").map((c) => c[1] as string);
 }

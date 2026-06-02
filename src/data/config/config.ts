@@ -17,7 +17,10 @@ export interface Config {
     readonly aggressiveness: "mechanical" | "structural" | "aggressive";
     readonly maxIterations: number;
   };
-  readonly gitCheckpoint: { readonly mode: "commit" | "branch" | "both" | "off" };
+  readonly gitCheckpoint: {
+    readonly mode: "commit" | "branch" | "both" | "off";
+    readonly push: "off" | "auto";
+  };
   readonly firewall: {
     readonly enabled: boolean;
     readonly mode: "enforce" | "warn" | "off";
@@ -44,7 +47,7 @@ export interface Config {
 export const DEFAULT_CONFIG: Config = {
   vault: {},
   autoHeal: { enabled: true, aggressiveness: "structural", maxIterations: 5 },
-  gitCheckpoint: { mode: "commit" },
+  gitCheckpoint: { mode: "commit", push: "off" },
   firewall: {
     enabled: true,
     mode: "enforce",

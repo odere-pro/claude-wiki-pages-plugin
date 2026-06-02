@@ -6,7 +6,8 @@ import { makeVault } from "../test-helpers/sandbox/vault.ts";
 
 const VAULT = {
   "wiki/index.md": "---\ntitle: index\n---\n",
-  "wiki/log.md": '---\ntitle: "Operations Log"\ntype: log\ncreated: 2026-06-01\nupdated: 2026-06-01\n---\n\n# Operations Log\n',
+  "wiki/log.md":
+    '---\ntitle: "Operations Log"\ntype: log\ncreated: 2026-06-01\nupdated: 2026-06-01\n---\n\n# Operations Log\n',
 };
 
 describe("appendLog", () => {
@@ -27,7 +28,11 @@ describe("appendLog", () => {
 
   test("is idempotent for an identical header", () => {
     const sb = makeVault(VAULT);
-    const e = { verb: "migrate", summary: "schema_version 1 → 2 (3 change(s))", today: "2026-06-02" };
+    const e = {
+      verb: "migrate",
+      summary: "schema_version 1 → 2 (3 change(s))",
+      today: "2026-06-02",
+    };
     expect(appendLog(sb.vault, e)).toBe(true);
     expect(appendLog(sb.vault, e)).toBe(false); // no duplicate
     const log = readFileSync(join(sb.vault, "wiki/log.md"), "utf8");

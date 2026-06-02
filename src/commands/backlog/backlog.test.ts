@@ -6,7 +6,7 @@ describe("backlog", () => {
   test("fallback: raw files without a _sources summary are pending", () => {
     const sb = makeVault({
       "wiki/log.md":
-        '---\ntitle: log\n---\n\n## [2026-05-20] ingest | Foo\n\n## [2026-05-21] lint | Health check\n',
+        "---\ntitle: log\n---\n\n## [2026-05-20] ingest | Foo\n\n## [2026-05-21] lint | Health check\n",
       "wiki/_sources/foo.md": "---\ntitle: Foo\ntype: source\n---\n", // foo processed
       "raw/foo.md": "x",
       "raw/bar.md": "y", // no summary → pending

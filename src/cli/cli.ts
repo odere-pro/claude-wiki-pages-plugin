@@ -194,7 +194,9 @@ function main(): number {
     const report = migrate({ target, write });
     if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
     else {
-      const lines = report.changes.map((c) => `${report.applied ? "MIGRATED" : "PLAN"} [${c.action}] ${c.file}`);
+      const lines = report.changes.map(
+        (c) => `${report.applied ? "MIGRATED" : "PLAN"} [${c.action}] ${c.file}`,
+      );
       process.stdout.write((lines.length ? lines.join("\n") + "\n" : "") + report.message + "\n");
     }
     return report.message.startsWith("Vault not found") || report.message.startsWith("No CLAUDE.md")
@@ -225,9 +227,14 @@ function main(): number {
       process.stdout.write(
         (report.drafts.length
           ? report.drafts
-              .map((d) => `${d.ready ? "[ready]" : "[hold] "} ${d.target}${d.issues.length ? `  (${d.issues.join(", ")})` : ""}`)
+              .map(
+                (d) =>
+                  `${d.ready ? "[ready]" : "[hold] "} ${d.target}${d.issues.length ? `  (${d.issues.join(", ")})` : ""}`,
+              )
               .join("\n") + "\n"
-          : "") + report.message + "\n",
+          : "") +
+          report.message +
+          "\n",
       );
     else process.stdout.write(report.message + "\n");
     return report.message.includes("not found") || report.message.includes("requires --file")

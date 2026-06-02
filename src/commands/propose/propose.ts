@@ -20,8 +20,9 @@ import { dirname, join, relative, basename } from "node:path";
 import { existsSync, readFileSafe, listMarkdownRecursive } from "../../core/fs.ts";
 import { splitFrontmatter, parseFrontmatter, stringList } from "../../core/frontmatter.ts";
 import { resolveVault } from "../../core/vault.ts";
-import { ensureRepo, checkpoint, commit } from "../../core/git.ts";
+import { ensureRepo, checkpoint, commit, push } from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
+import { loadConfig } from "../../data/config/config.ts";
 
 export const PROPOSED_DIR = "_proposed";
 
@@ -146,6 +147,7 @@ export function propose(opts: ProposeOptions): ProposeReport {
 
   const now = opts.isoTime ?? new Date().toISOString();
   const opId = opts.opId ?? `propose-${now.replace(/[^0-9]/g, "").slice(0, 14)}`;
+  const pushAuto = loadConfig({ cwd: opts.cwd }).config.gitCheckpoint.push === "auto";
   ensureRepo(vault);
   const checkpointSha = checkpoint(vault, opId, now, false);
 
@@ -153,6 +155,7 @@ export function propose(opts: ProposeOptions): ProposeReport {
     rmSync(draftFull, { force: true });
     appendLog(vault, { verb: "propose", summary: `reject ${relative(vault, draftFull)}`, today });
     commit(vault, `propose: reject ${relative(vault, draftFull)} ${opId}`);
+    if (pushAuto) push(vault);
     return {
       ...base,
       checkpoint: checkpointSha,
@@ -164,7 +167,10 @@ export function propose(opts: ProposeOptions): ProposeReport {
   // approve
   const info = inspectDraft(vault, draftFull);
   if (!info.target.startsWith("wiki/")) {
-    return { ...base, message: `cannot promote: draft is not under ${PROPOSED_DIR}/wiki/ (${info.file})` };
+    return {
+      ...base,
+      message: `cannot promote: draft is not under ${PROPOSED_DIR}/wiki/ (${info.file})`,
+    };
   }
   const targetFull = join(vault, info.target);
   const promoted = promoteFrontmatter(readFileSafe(draftFull) ?? "", today);
@@ -178,6 +184,7 @@ export function propose(opts: ProposeOptions): ProposeReport {
     today,
   });
   const c = commit(vault, `propose: approve ${info.target} ${opId}`);
+  if (pushAuto) push(vault);
   return {
     ...base,
     checkpoint: checkpointSha,

@@ -12,8 +12,9 @@
 import { verify } from "../verify/verify.ts";
 import { fix, type FixChange } from "../fix/fix.ts";
 import { resolveVault } from "../../core/vault.ts";
-import { ensureRepo, checkpoint, commitHeal } from "../../core/git.ts";
+import { ensureRepo, checkpoint, commitHeal, push } from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
+import { loadConfig } from "../../data/config/config.ts";
 
 const DEFAULT_MAX_ITERATIONS = 5;
 
@@ -82,6 +83,7 @@ export function heal(opts: HealOptions = {}): HealReport {
     });
   }
   const healSha = clean ? commitHeal(vault, opId, iterations) : null;
+  if (healSha && loadConfig({ cwd: opts.cwd }).config.gitCheckpoint.push === "auto") push(vault);
   const unresolved = clean
     ? []
     : last.findings.filter((x) => x.severity === "error").map((x) => x.message);

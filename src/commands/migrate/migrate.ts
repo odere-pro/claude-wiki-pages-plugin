@@ -19,8 +19,9 @@ import { readFileSafe, existsSync } from "../../core/fs.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { declaredSchemaVersion, CURRENT_SCHEMA_VERSION } from "../../core/schema.ts";
 import { buildManifest, MANIFEST_RELATIVE } from "../../core/manifest.ts";
-import { ensureRepo, checkpoint, commit } from "../../core/git.ts";
+import { ensureRepo, checkpoint, commit, push } from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
+import { loadConfig } from "../../data/config/config.ts";
 import { TOPIC_TEMPLATE, PROJECT_TEMPLATE } from "../../data/templates.ts";
 
 export interface MigrateChange {
@@ -109,7 +110,15 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
   const changes = planned.map((p) => p.change);
 
   if (changes.length === 0) {
-    return report(vault, from, to, false, [], null, `Already at schema_version ${to}; nothing to do`);
+    return report(
+      vault,
+      from,
+      to,
+      false,
+      [],
+      null,
+      `Already at schema_version ${to}; nothing to do`,
+    );
   }
 
   if (!opts.write) {
@@ -142,7 +151,11 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
     details: ["rollback: git revert the migrate commit below"],
     today,
   });
-  const migrateCommit = commit(vault, `migrate: claude-wiki-pages schema_version ${from ?? "?"} → ${to} ${opId}`);
+  const migrateCommit = commit(
+    vault,
+    `migrate: claude-wiki-pages schema_version ${from ?? "?"} → ${to} ${opId}`,
+  );
+  if (loadConfig({ cwd: opts.cwd }).config.gitCheckpoint.push === "auto") push(vault);
 
   return report(
     vault,

@@ -32,6 +32,11 @@ function isExecError(error: unknown): error is { stdout?: unknown } {
   return typeof error === "object" && error !== null && "stdout" in error;
 }
 
+// Internal machine commits must never GPG-sign — a user with commit.gpgsign=true
+// would otherwise hang the engine on a passphrase prompt. Prepended to every
+// commit the engine makes (these commits are bookkeeping, never user-attributed).
+const NOSIGN = ["-c", "commit.gpgsign=false"] as const;
+
 /** True when `dir` is inside a git work tree. */
 export function isRepo(dir: string): boolean {
   return git(dir, ["rev-parse", "--is-inside-work-tree"]).stdout === "true";
@@ -47,7 +52,13 @@ export function ensureRepo(dir: string): void {
   if (isRepo(dir)) return;
   git(dir, ["init"]);
   git(dir, ["add", "-A"]);
-  git(dir, ["commit", "--no-verify", "-m", "chore(claude-wiki-pages): initial vault commit"]);
+  git(dir, [
+    ...NOSIGN,
+    "commit",
+    "--no-verify",
+    "-m",
+    "chore(claude-wiki-pages): initial vault commit",
+  ]);
 }
 
 /** The current HEAD short SHA, or null when unavailable. */
@@ -81,6 +92,7 @@ export function checkpoint(
   if (branch) git(dir, ["branch", `cwp/checkpoint/${opId}`]);
   git(dir, ["add", "-A"]);
   git(dir, [
+    ...NOSIGN,
     "commit",
     "--no-verify",
     "--allow-empty",
@@ -90,10 +102,19 @@ export function checkpoint(
   return head(dir);
 }
 
+/**
+ * Push to the configured upstream. Best-effort and opt-in: returns ok:false
+ * (never throws) when there is no upstream or the push fails, so an engine op is
+ * never blocked by a push problem. Callers gate this on `gitCheckpoint.push`.
+ */
+export function push(dir: string): GitResult {
+  return git(dir, ["push"]);
+}
+
 /** Commit the current state with an arbitrary message. Returns the commit SHA. */
 export function commit(dir: string, message: string): string | null {
   git(dir, ["add", "-A"]);
-  git(dir, ["commit", "--no-verify", "--allow-empty", "-m", message]);
+  git(dir, [...NOSIGN, "commit", "--no-verify", "--allow-empty", "-m", message]);
   return head(dir);
 }
 
@@ -101,6 +122,7 @@ export function commit(dir: string, message: string): string | null {
 export function commitHeal(dir: string, opId: string, iterations: number): string | null {
   git(dir, ["add", "-A"]);
   git(dir, [
+    ...NOSIGN,
     "commit",
     "--no-verify",
     "--allow-empty",

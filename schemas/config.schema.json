@@ -41,6 +41,12 @@
           "enum": ["commit", "branch", "both", "off"],
           "default": "commit",
           "description": "How auto-heal snapshots the vault before changing it. Rollback is git revert / branch checkout."
+        },
+        "push": {
+          "type": "string",
+          "enum": ["off", "auto"],
+          "default": "off",
+          "description": "auto = push to the configured upstream after each git-checkpointed engine op (heal/migrate/propose). Off by default — the plugin is not a hosted service."
         }
       }
     },

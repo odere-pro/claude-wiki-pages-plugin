@@ -80,7 +80,7 @@ The plugin's structure. Contracts in `/SPEC.md`.
 | claude-wiki-pages          | The plugin identifier. Lowercase, hyphenated. Used in headings and slash-command namespaces.   |
 | four-layer stack        | The architecture. Four layers, each catching a different class of failure.                     |
 | Layer 1 — Data          | The vault: raw content, wiki, vault schema. Passive — holds the material.                      |
-| Layer 2 — Skills        | Single-responsibility slash commands. Sixteen ship (9 verbs + onboarding + 2 agent-teaching + obsidian-graph-colors + 3 third-party obsidian-*). |
+| Layer 2 — Skills        | Single-responsibility slash commands. Twenty ship (12 verbs + onboarding + 2 agent-teaching + obsidian-graph-colors + obsidian-vault + 3 third-party obsidian-*). |
 | Layer 3 — Agents        | Multi-step executors composing skills. Seven ship: orchestrator, onboarding, ingest, curator, analyst, polish, maintenance. |
 | Layer 4 — Orchestration | Hooks, scripts, rules. Enforce the schema at every tool call.                                  |
 | skill                   | A capability under `skills/`. Entry point is `/claude-wiki-pages:<name>`.                         |
@@ -104,6 +104,7 @@ The plugin's structure. Contracts in `/SPEC.md`.
 | proposed draft          | A page under `vault/_proposed/` with `status: draft` and `proposed_by`. Mirrors its eventual `wiki/` path; outside every wiki-scoped check until promoted. |
 | review                  | The promote/reject gate (`/claude-wiki-pages:review` + engine `propose`). The only sanctioned path from a draft to the wiki; runs under a git checkpoint. |
 | local model             | Optional Ollama/LM Studio drafting into `_proposed/` (`/claude-wiki-pages:draft`, `localModel` config). Off by default — Claude Code stays primary. |
+| layer coloring          | An optional graph-color pass (raw→green, wiki→blue, schema→orange) layered after per-topic colors, so the three-layer structure is visible at a glance. Applied by the polish agent via `obsidian-graph-colors`. |
 
 ### Skill and agent naming
 
@@ -155,7 +156,10 @@ Canonical names for the plugin's single-responsibility capabilities. Every entry
 | onboarding   | Guided first-run flow (new in `1.0.0`): health → scaffold → add source → ingest → first cited answer. Idempotent; resumes in place. |
 | engine-api   | Agent-teaching skill (new in `1.0.0`): the LLM-facing contract for the Bun engine — subcommands, `--json` shapes, exit codes.    |
 | maintain-contract | Agent-teaching skill (new in `1.0.0`): the safe ingest/retrieve/maintain ordering (ground → judge → verify) for any agent.   |
-| obsidian-graph-colors | Applies per-topic colors to Obsidian's graph view. Plugin-authored.                                                              |
+| review       | Promote/reject drafted pages under `_proposed/` (the human-in-the-loop gate). Backed by the engine `propose` command. |
+| draft        | Local-model (Ollama/LM Studio) drafting into `_proposed/`. Off unless `localModel.enabled`. Plugin-authored.                     |
+| obsidian-graph-colors | Applies per-topic and layer colors to Obsidian's graph view. Plugin-authored.                                                    |
+| obsidian-vault        | Guard skill: scope every Obsidian CLI call to the resolved vault. Plugin-authored; complements the firewall hook.                |
 | obsidian-markdown     | Obsidian-flavored markdown reference. MIT, kepano/obsidian-skills.                                                               |
 | obsidian-bases        | Obsidian Bases (database) reference. MIT, kepano/obsidian-skills.                                                                |
 | obsidian-cli          | Obsidian CLI reference. MIT, kepano/obsidian-skills.                                                                             |
