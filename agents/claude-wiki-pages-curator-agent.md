@@ -43,7 +43,7 @@ prompt. Safety is git: every run is reversible with `git revert <heal-commit>`.
    3. `scripts/verify-ingest.sh` (in-repo contributor path).
 
    Cache the resolved path as `$VERIFY`. Abort with a pointer to the plugin cache if none is executable.
-3. Read `vault/CLAUDE.md` for the authoritative schema.
+4. Read `vault/CLAUDE.md` for the authoritative schema.
 
 ---
 

@@ -14,6 +14,9 @@ exclude = [
   # GitHub rate-limits anonymous link checks aggressively.
   # The repo is verified by hand during release; the checker handles internal links.
   "^https?://github\\.com/odere-pro/claude-wiki-pages",
+  # The Pages site's own canonical / og:url — self-referential, only live after
+  # the pages.yml deploy; not a broken link in the doc sense.
+  "^https?://odere-pro\\.github\\.io/claude-wiki-pages",
 ]
 
 # Internal link resolution

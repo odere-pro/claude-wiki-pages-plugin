@@ -26,7 +26,7 @@ what just happened, so the user learns the model by doing it once.
 
 ## Steps
 
-1. **Health check.** Run `/claude-wiki-pages:doctor` (or `bash scripts/doctor.sh`). If anything is red, run it with `--fix` and explain what was repaired. Confirm Bun is present (the engine) — if not, note that hooks still work and point to https://bun.sh.
+1. **Health check.** Run `/claude-wiki-pages:doctor` (or `bash scripts/doctor.sh`). If anything is red, run it with `--fix` and explain what was repaired. Confirm Bun is present (the engine) — if not, note that hooks still work and point to <https://bun.sh>.
 2. **Scaffold the vault.** If no vault exists, run the `init` skill to create `vault/` (immutable `raw/`, maintained `wiki/`, schema in `vault/CLAUDE.md`). Tell the user where it is and that `raw/` is for *their* sources.
 3. **Add a first source.** Ask the user to drop one file (a note, a PDF, a markdown doc) into `vault/raw/` — or offer to use the bundled sample. Confirm it landed.
 4. **Ingest.** Run the ingest flow (`/claude-wiki-pages:wiki "ingest the new source"`). Explain that the plugin reads the source, writes cited wiki pages, and **auto-heals the wiki under a git checkpoint** (so it is always reversible with `git revert`). Show the new pages.

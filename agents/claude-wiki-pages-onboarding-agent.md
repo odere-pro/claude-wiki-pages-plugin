@@ -30,7 +30,7 @@ loop well enough to repeat it. Teach by doing, not by lecturing.
 
 ## Flow
 
-1. **Probe + health.** Resolve the vault (`scripts/resolve-vault.sh`). Run `bash scripts/doctor.sh`; if red, run `--fix` and say what was repaired. Note whether Bun (the engine) is present; if not, reassure that hooks still work and link https://bun.sh. Report state in one line.
+1. **Probe + health.** Resolve the vault (`scripts/resolve-vault.sh`). Run `bash scripts/doctor.sh`; if red, run `--fix` and say what was repaired. Note whether Bun (the engine) is present; if not, reassure that hooks still work and link <https://bun.sh>. Report state in one line.
 2. **Scaffold (if needed).** If `vault/CLAUDE.md` is absent, dispatch the `init` skill to create the vault. Explain: `raw/` holds the user's immutable sources, `wiki/` is what the plugin maintains, `vault/CLAUDE.md` is the schema.
 3. **First source.** Ask the user to drop one file into `vault/raw/`, or — if `$ARGUMENTS` says "use the sample" or no source appears — copy the bundled sample. Confirm it landed; do not proceed without a source.
 4. **Ingest.** Run `/claude-wiki-pages:wiki "ingest the new source"` (or dispatch `claude-wiki-pages-ingest-agent`). Explain that pages are written with citations and the wiki **auto-heals under a git checkpoint** (reversible with `git revert`). Show the new pages and the heal commit.
