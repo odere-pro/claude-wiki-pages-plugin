@@ -44,6 +44,7 @@ Run, in this order:
 | `raw_pending`                   | Files in `$VAULT/raw/` whose name does not appear in `$VAULT/wiki/log.md` ingest entries  | int (count)       |
 | `last_log_entry`                | The most recent `## [date] <verb>` line in `$VAULT/wiki/log.md`                           | "ingest", "lint", "fix", or "" |
 | `autonomous`                    | `maintenance.enabled` from config (`bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh config --json \| jq -r .config.maintenance.enabled`). Only when true, also probe `needs_catchup` via `engine.sh backlog --target "$VAULT" --json`. | bool (+ needs_catchup) |
+| `pending_drafts`                | Count of `*.md` under `$VAULT/_proposed/` (`find "$VAULT/_proposed" -name '*.md' 2>/dev/null \| wc -l`)                | int (count)       |
 
 If `vault_exists` is false, `schema_version` is empty, and `raw_pending` is therefore unknown — that's the wizard branch in Step 2.
 
@@ -57,6 +58,7 @@ Walk this table top-to-bottom. The first matching row wins. Stop walking after t
 | -------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------- |
 | `vault_exists == false` OR `schema_version == ""`                                | Agent `claude-wiki-pages-onboarding-agent` (guided scaffold → orient → first steps; uses the `init` skill for the bare scaffold) | `{vault_path: "$VAULT", goal: "scaffold or repair"}`    |
 | `autonomous == true` AND `needs_catchup == true`                                 | Agent `claude-wiki-pages-maintenance-agent` (full catch-up loop in one pass: ingest → curator → polish → lint) | `{vault_path: "$VAULT", max_per_run: <maintenance.maxPerRun>}` |
+| `pending_drafts > 0`                                                             | Skill `/claude-wiki-pages:review` (list drafts; the human approves/rejects, then curator+polish) | `{vault_path: "$VAULT"}` |
 | `raw_pending > 0`                                                                | Agent `claude-wiki-pages-ingest-agent`   | `{vault_path: "$VAULT", scope: "<N> new sources"}`      |
 | `last_log_entry == "ingest"` (lint never ran after a previous ingest)            | Agent `claude-wiki-pages-curator-agent`  | `{vault_path: "$VAULT", mode: "audit-and-fix"}`         |
 | User prompt matches an analytical verb: `query`, `ask`, `summarize`, `report`, `compile`, `extract`, `compare`, `challenge`, `dashboard`, or starts with `?`/`what`/`why`/`how` | Agent `claude-wiki-pages-analyst-agent`  | `{vault_path: "$VAULT", question: "$ARGUMENTS"}`        |

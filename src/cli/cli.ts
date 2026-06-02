@@ -17,6 +17,7 @@ import { migrate } from "../commands/migrate/migrate.ts";
 import { search } from "../commands/search/search.ts";
 import { firewallCheck } from "../commands/firewall/firewall.ts";
 import { backlog } from "../commands/backlog/backlog.ts";
+import { propose, type ProposeSub } from "../commands/propose/propose.ts";
 import { renderText, exitCode, type Report } from "../core/report.ts";
 
 const IMPLEMENTED = new Set([
@@ -29,6 +30,7 @@ const IMPLEMENTED = new Set([
   "search",
   "firewall",
   "backlog",
+  "propose",
 ]);
 const PLANNED = ["index", "link-suggest", "checkpoint"];
 const ALL = [...IMPLEMENTED, ...PLANNED];
@@ -83,7 +85,7 @@ function usage(): void {
       "",
       `Commands: ${ALL.join(", ")}`,
       "",
-      "Implemented: verify, fix, heal, doctor, config, migrate, search, firewall, backlog",
+      "Implemented: verify, fix, heal, doctor, config, migrate, search, firewall, backlog, propose",
       "",
     ].join("\n"),
   );
@@ -212,6 +214,25 @@ function main(): number {
         `${report.allowed ? "ALLOW" : "BLOCK"} [${report.matchedRule}] ${report.file} (mode=${report.mode})\n`,
       );
     return report.allowed ? 0 : 1;
+  }
+
+  if (command === "propose") {
+    const allowed: ProposeSub[] = ["review", "approve", "reject"];
+    const chosen = (allowed.includes(sub as ProposeSub) ? sub : "review") as ProposeSub;
+    const report = propose({ target, sub: chosen, file });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else if (chosen === "review")
+      process.stdout.write(
+        (report.drafts.length
+          ? report.drafts
+              .map((d) => `${d.ready ? "[ready]" : "[hold] "} ${d.target}${d.issues.length ? `  (${d.issues.join(", ")})` : ""}`)
+              .join("\n") + "\n"
+          : "") + report.message + "\n",
+      );
+    else process.stdout.write(report.message + "\n");
+    return report.message.includes("not found") || report.message.includes("requires --file")
+      ? 1
+      : 0;
   }
 
   if (command === "backlog") {

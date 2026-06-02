@@ -101,6 +101,9 @@ The plugin's structure. Contracts in `/SPEC.md`.
 | heartbeat               | `scripts/heartbeat.sh` — surfaces a one-line catch-up recommendation at SessionStart when `maintenance.enabled` and a backlog exists. Recommends only; never mutates the vault. |
 | catch-up                | Acting on a backlog: the ingest → curator → polish → lint loop that clears pending sources and refreshes lint. |
 | maintenance             | Autonomous upkeep: the `maintenance` config block + `claude-wiki-pages-maintenance-agent` that runs the catch-up loop in one pass. Off by default. |
+| proposed draft          | A page under `vault/_proposed/` with `status: draft` and `proposed_by`. Mirrors its eventual `wiki/` path; outside every wiki-scoped check until promoted. |
+| review                  | The promote/reject gate (`/claude-wiki-pages:review` + engine `propose`). The only sanctioned path from a draft to the wiki; runs under a git checkpoint. |
+| local model             | Optional Ollama/LM Studio drafting into `_proposed/` (`/claude-wiki-pages:draft`, `localModel` config). Off by default — Claude Code stays primary. |
 
 ### Skill and agent naming
 

@@ -99,6 +99,31 @@ A candidate set, not a cited answer (use `query` for that).
               "type": "concept", "score": 18, "snippet": "…" } ] }
 ```
 
+### `backlog` — outstanding-maintenance probe
+
+`backlog` reports pending raw sources (no `_sources/` summary, or manifest
+`pending`) and overdue lint. The deterministic input to the heartbeat and the
+maintenance agent.
+
+```json
+{ "command": "backlog", "vault": "…", "pendingRaw": ["raw/x.md"],
+  "lastIngest": "2026-05-20", "lastLint": "2026-05-21", "daysSinceLint": 9,
+  "needsCatchup": true }
+```
+
+### `propose` — human-in-the-loop draft review
+
+Drafts live under `_proposed/` (outside `wiki/`, so unvalidated until promoted).
+`propose review` lists them with a readiness check; `propose approve --file <p>`
+promotes a draft into `wiki/` (status→active, drops `proposed_by`, git
+checkpoint); `propose reject --file <p>` deletes it under a checkpoint.
+
+```json
+{ "command": "propose", "sub": "approve", "vault": "…",
+  "promoted": ["wiki/topics/x.md"], "checkpoint": "<sha>",
+  "message": "promoted … Next: curator heal + polish. Rollback: git revert <sha>" }
+```
+
 ### Planned (return `{status:"not-implemented"}` until shipped)
 
 `index` (deterministic page/entity index), `link-suggest <page>` (exact auto-link

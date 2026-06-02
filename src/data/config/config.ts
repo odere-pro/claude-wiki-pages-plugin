@@ -31,6 +31,13 @@ export interface Config {
     readonly maxPerRun: number;
     readonly cooldownMinutes: number;
   };
+  readonly localModel: {
+    readonly enabled: boolean;
+    readonly provider: "ollama" | "lmstudio";
+    readonly endpoint: string;
+    readonly model: string;
+    readonly draftTarget: string;
+  };
   readonly modelHints: Readonly<Record<string, string>>;
 }
 
@@ -51,6 +58,13 @@ export const DEFAULT_CONFIG: Config = {
     maxPerRun: 10,
     cooldownMinutes: 60,
   },
+  localModel: {
+    enabled: false,
+    provider: "ollama",
+    endpoint: "http://localhost:11434",
+    model: "",
+    draftTarget: "_proposed",
+  },
   modelHints: {},
 };
 
@@ -65,6 +79,8 @@ const ENV_MAP: Record<string, Leaf> = {
   CLAUDE_WIKI_PAGES_FIREWALL_MODE: ["firewall", "mode"],
   CLAUDE_WIKI_PAGES_MAINTENANCE_ENABLED: ["maintenance", "enabled"],
   CLAUDE_WIKI_PAGES_MAINTENANCE_LINTEVERYDAYS: ["maintenance", "lintEveryDays"],
+  CLAUDE_WIKI_PAGES_LOCALMODEL_ENABLED: ["localModel", "enabled"],
+  CLAUDE_WIKI_PAGES_LOCALMODEL_MODEL: ["localModel", "model"],
 };
 
 export interface ConfigPaths {
@@ -111,7 +127,12 @@ function deepMerge<T>(base: T, over: Record<string, unknown> | null): T {
 }
 
 function coerce(path: string, value: string): unknown {
-  if (path === "autoHeal.enabled" || path === "firewall.enabled" || path === "maintenance.enabled")
+  if (
+    path === "autoHeal.enabled" ||
+    path === "firewall.enabled" ||
+    path === "maintenance.enabled" ||
+    path === "localModel.enabled"
+  )
     return value === "true" || value === "1";
   if (path === "autoHeal.maxIterations" || path === "maintenance.lintEveryDays")
     return Number(value);

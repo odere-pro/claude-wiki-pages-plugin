@@ -70,6 +70,18 @@
         }
       }
     },
+    "localModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional local-model (Ollama/LM Studio) drafting into _proposed/ for human review. Off by default — Claude Code stays primary.",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "provider": { "type": "string", "enum": ["ollama", "lmstudio"], "default": "ollama" },
+        "endpoint": { "type": "string", "default": "http://localhost:11434" },
+        "model": { "type": "string", "default": "" },
+        "draftTarget": { "type": "string", "default": "_proposed" }
+      }
+    },
     "maintenance": {
       "type": "object",
       "additionalProperties": false,

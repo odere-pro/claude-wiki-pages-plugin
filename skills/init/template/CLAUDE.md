@@ -41,6 +41,7 @@ vault/
 │   └── <topic-b>/
 │       ├── _index.md
 │       └── ...
+├── _proposed/                   # optional staging for drafts awaiting review (schema v2)
 ├── output/                      # optional scratch space for deliverables (git-ignored)
 ├── _templates/                  # frontmatter templates per type
 └── CLAUDE.md                    # this file
@@ -258,6 +259,14 @@ updated: 2026-04-16
 ```
 
 The body holds one row per raw source: `raw_file`, `ingested_at`, `source_page` (`[[wikilink]]`), `status` (`processed | pending | skipped`), and `checksum`. The manifest is bookkeeping (like `index.md` and `log.md`): it is exempt from the `sources`-required and index-membership checks.
+
+### Drafts and review (`_proposed/`) — schema v2
+
+`vault/_proposed/` is an optional staging area for drafted pages awaiting human review (e.g. produced by a local model via `/claude-wiki-pages:draft`). Drafts mirror their eventual wiki path — `_proposed/wiki/<topic>/<page>.md` — and carry `status: draft` plus `proposed_by: "<source>"` (e.g. `"ollama:llama3"`, `"claude"`).
+
+Because `_proposed/` is a sibling of `wiki/`, drafts are **outside every wiki-scoped check** (frontmatter validation, wikilinks, lint, index) until promoted — they cannot pollute the wiki. `/claude-wiki-pages:review` promotes a draft into `wiki/` (clearing `proposed_by`, setting `status: active`, stamping `updated`) under a git checkpoint, or rejects it. Never hand-copy a draft into `wiki/`; promotion via `propose approve` is the only sanctioned path.
+
+**`proposed_by`** _(schema v2, optional)_ — present only on drafts under `_proposed/`. Records what produced the draft. Removed on promotion.
 
 ### Graph coloring
 
