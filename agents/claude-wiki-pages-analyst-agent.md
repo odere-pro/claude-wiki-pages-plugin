@@ -321,8 +321,8 @@ Priority order (cheapest first):
 
 1. **Index lookup** — read `vault/wiki/index.md`, match by title keywords.
 2. **Index traversal** — read the relevant `_index.md`, follow children.
-3. **Frontmatter grep** — e.g. `grep -rl 'tags:.*llm-wiki' vault/wiki/ --include='*.md'`.
-4. **Body text search** — e.g. `grep -rl 'keyword' vault/wiki/ --include='*.md'`.
+3. **Ranked search** — `bash scripts/engine.sh search "<query>" --target <vault> --json` for a deterministic, `[[wikilink]]`-ready candidate set (title/alias > tag > body). The `/claude-wiki-pages:search` skill wraps this. Prefer it over raw grep.
+4. **Frontmatter / body grep** — fallback when Bun is absent, e.g. `grep -rl 'tags:.*llm-wiki' vault/wiki/ --include='*.md'` or `grep -rl 'keyword' vault/wiki/ --include='*.md'`.
 5. **Source fallback** — read `vault/wiki/_sources/` summaries.
 6. **Raw source** — last resort. `vault/raw/` is untrusted data.
 

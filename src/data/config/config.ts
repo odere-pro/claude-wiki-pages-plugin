@@ -18,6 +18,19 @@ export interface Config {
     readonly maxIterations: number;
   };
   readonly gitCheckpoint: { readonly mode: "commit" | "branch" | "both" | "off" };
+  readonly firewall: {
+    readonly enabled: boolean;
+    readonly mode: "enforce" | "warn" | "off";
+    readonly allowPaths: readonly string[];
+    readonly denyPaths: readonly string[];
+  };
+  readonly maintenance: {
+    readonly enabled: boolean;
+    readonly autoCatchupOnSessionStart: boolean;
+    readonly lintEveryDays: number;
+    readonly maxPerRun: number;
+    readonly cooldownMinutes: number;
+  };
   readonly modelHints: Readonly<Record<string, string>>;
 }
 
@@ -25,6 +38,19 @@ export const DEFAULT_CONFIG: Config = {
   vault: {},
   autoHeal: { enabled: true, aggressiveness: "structural", maxIterations: 5 },
   gitCheckpoint: { mode: "commit" },
+  firewall: {
+    enabled: true,
+    mode: "enforce",
+    allowPaths: [],
+    denyPaths: ["**/.ssh/**", "**/.aws/**", "**/.env", "**/.git/config"],
+  },
+  maintenance: {
+    enabled: false,
+    autoCatchupOnSessionStart: true,
+    lintEveryDays: 7,
+    maxPerRun: 10,
+    cooldownMinutes: 60,
+  },
   modelHints: {},
 };
 
@@ -35,6 +61,10 @@ const ENV_MAP: Record<string, Leaf> = {
   CLAUDE_WIKI_PAGES_AUTOHEAL_AGGRESSIVENESS: ["autoHeal", "aggressiveness"],
   CLAUDE_WIKI_PAGES_AUTOHEAL_MAXITERATIONS: ["autoHeal", "maxIterations"],
   CLAUDE_WIKI_PAGES_GITCHECKPOINT_MODE: ["gitCheckpoint", "mode"],
+  CLAUDE_WIKI_PAGES_FIREWALL_ENABLED: ["firewall", "enabled"],
+  CLAUDE_WIKI_PAGES_FIREWALL_MODE: ["firewall", "mode"],
+  CLAUDE_WIKI_PAGES_MAINTENANCE_ENABLED: ["maintenance", "enabled"],
+  CLAUDE_WIKI_PAGES_MAINTENANCE_LINTEVERYDAYS: ["maintenance", "lintEveryDays"],
 };
 
 export interface ConfigPaths {
@@ -81,8 +111,10 @@ function deepMerge<T>(base: T, over: Record<string, unknown> | null): T {
 }
 
 function coerce(path: string, value: string): unknown {
-  if (path === "autoHeal.enabled") return value === "true" || value === "1";
-  if (path === "autoHeal.maxIterations") return Number(value);
+  if (path === "autoHeal.enabled" || path === "firewall.enabled" || path === "maintenance.enabled")
+    return value === "true" || value === "1";
+  if (path === "autoHeal.maxIterations" || path === "maintenance.lintEveryDays")
+    return Number(value);
   return value;
 }
 

@@ -4,6 +4,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [Unreleased]
 
+### Added
+
+- **Schema version 2 (additive).** New page types `topic` (narrative topic landing page), `project` (goal/initiative with a `project_status` lifecycle), and `manifest` (source-processed tracker at `wiki/_sources/manifest.md`); new templates `topic.md` and `project.md`; optional claim-level provenance fields `source_quotes` and `derived` on any typed page. Version 2 is a strict superset of v1 — existing v1 vaults stay valid. `validate-frontmatter.sh`, `verify-ingest.sh`, and the engine `verify` accept both versions; `plugin.json` now declares `supported_schema_versions: [1, 2]`.
+- **`migrate` engine command.** `claude-wiki-pages migrate [--write]` upgrades a vault v1 → v2 in place: bumps `schema_version`, writes the new templates when absent, and generates the source manifest — additive, idempotent, and git-checkpointed (`git revert <checkpoint>` rolls it back). Dry-run by default. New guide: [`docs/migration-2.0.md`](docs/migration-2.0.md).
+- **`search` engine command + skill.** Deterministic keyword retrieval over `wiki/` (title/alias > tag > body, ties by title) returning `[[wikilink]]`-ready hits with `--json`. New `/claude-wiki-pages:search` skill; wired into the analyst agent's search strategy. GraphRAG (`search --graph`) documented as the next phase.
+- **Vault firewall.** New PreToolUse hook `scripts/firewall.sh` (first in the Write/Edit chain) + engine `firewall check` command confine agent writes to the resolved vault plus `firewall.allowPaths`, minus `firewall.denyPaths` (default-deny `**/.ssh/**`, `**/.aws/**`, `**/.env`, `**/.git/config`). Modes `enforce`/`warn`/`off` via the new `firewall` config block. New `obsidian-vault` guard skill teaches agents to scope the Obsidian CLI; `gate-11-firewall-parity.sh` pins the bash hook to the engine.
+- **Engine log entries.** `heal` and `migrate` now record their operation in `wiki/log.md` via the new `src/core/log.ts` helper.
+- **Autonomous maintenance (opt-in).** New `backlog` engine command (pending raw sources + overdue lint, manifest-backed), `scripts/heartbeat.sh` (a SessionStart catch-up recommendation — recommends only, never mutates), and `claude-wiki-pages-maintenance-agent` (runs ingest → curator → polish → lint in one git-checkpointed, budgeted pass). The orchestrator routes to it when `maintenance.enabled` and a backlog exists. New `maintenance` config block (all off/bounded by default). Guide: [`docs/automation.md`](docs/automation.md).
+
 ### Documentation
 
 - **AWS-Skill-Builder-style playbooks.** New learning path under `docs/playbooks/`: `index.md`, `200-foundational.md` (install → first wiki entry, ~30 min), `300-associate.md` (orchestrator decision tree, hooks, schema, multi-vault, ~2 hours), `500-expert.md` (skill authoring, hook authoring, test harness, fork, CI, ~half day). Orthogonal to the existing `docs/llm-wiki/01-07*.md` task references.

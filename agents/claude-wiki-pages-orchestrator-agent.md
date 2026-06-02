@@ -43,6 +43,7 @@ Run, in this order:
 | `schema_version`                | `grep -oE '` + "`?schema_version`?:[[:space:]]*`?[0-9]+`?" + `' "$VAULT/CLAUDE.md" \| head -1` | int or empty      |
 | `raw_pending`                   | Files in `$VAULT/raw/` whose name does not appear in `$VAULT/wiki/log.md` ingest entries  | int (count)       |
 | `last_log_entry`                | The most recent `## [date] <verb>` line in `$VAULT/wiki/log.md`                           | "ingest", "lint", "fix", or "" |
+| `autonomous`                    | `maintenance.enabled` from config (`bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh config --json \| jq -r .config.maintenance.enabled`). Only when true, also probe `needs_catchup` via `engine.sh backlog --target "$VAULT" --json`. | bool (+ needs_catchup) |
 
 If `vault_exists` is false, `schema_version` is empty, and `raw_pending` is therefore unknown — that's the wizard branch in Step 2.
 
@@ -55,6 +56,7 @@ Walk this table top-to-bottom. The first matching row wins. Stop walking after t
 | If…                                                                              | Then `Task →`                       | With payload                                            |
 | -------------------------------------------------------------------------------- | ----------------------------------- | ------------------------------------------------------- |
 | `vault_exists == false` OR `schema_version == ""`                                | Agent `claude-wiki-pages-onboarding-agent` (guided scaffold → orient → first steps; uses the `init` skill for the bare scaffold) | `{vault_path: "$VAULT", goal: "scaffold or repair"}`    |
+| `autonomous == true` AND `needs_catchup == true`                                 | Agent `claude-wiki-pages-maintenance-agent` (full catch-up loop in one pass: ingest → curator → polish → lint) | `{vault_path: "$VAULT", max_per_run: <maintenance.maxPerRun>}` |
 | `raw_pending > 0`                                                                | Agent `claude-wiki-pages-ingest-agent`   | `{vault_path: "$VAULT", scope: "<N> new sources"}`      |
 | `last_log_entry == "ingest"` (lint never ran after a previous ingest)            | Agent `claude-wiki-pages-curator-agent`  | `{vault_path: "$VAULT", mode: "audit-and-fix"}`         |
 | User prompt matches an analytical verb: `query`, `ask`, `summarize`, `report`, `compile`, `extract`, `compare`, `challenge`, `dashboard`, or starts with `?`/`what`/`why`/`how` | Agent `claude-wiki-pages-analyst-agent`  | `{vault_path: "$VAULT", question: "$ARGUMENTS"}`        |
@@ -73,7 +75,8 @@ After `claude-wiki-pages-ingest-agent` or `claude-wiki-pages-curator-agent` retu
 **Skip polish** when:
 
 - The wizard ran (row 1) — it already produced the scaffold; polish would no-op against an empty wiki.
-- The analyst ran (row 4) — analyst is read-mostly; polish runs are wasted work after a query.
+- The maintenance agent ran (autonomous row) — it already runs polish internally as part of its loop; a second pass would be wasted work.
+- The analyst ran (last row) — analyst is read-mostly; polish runs are wasted work after a query.
 - The selected specialist returned an error — fix the error first; polish has no useful state to operate on.
 
 If polish itself fails, surface its error in the final report but **do not block** the upstream specialist's success. A polish miss is a presentation issue, not a correctness one.

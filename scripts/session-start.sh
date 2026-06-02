@@ -17,3 +17,7 @@ fi
 if ! command -v bun >/dev/null 2>&1; then
   echo "NOTICE: Bun is not installed — the deterministic engine (verify/fix/heal/doctor/config) and git-checkpointed self-heal are disabled; hooks still enforce the schema. Install: curl -fsSL https://bun.sh/install | bash  (then restart the session). See /claude-wiki-pages:doctor."
 fi
+
+# Surface a maintenance catch-up recommendation when enabled (maintenance.enabled).
+# Silent no-op by default; never mutates the vault.
+bash "$(dirname "$0")/heartbeat.sh" || true
