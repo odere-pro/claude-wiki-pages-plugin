@@ -4,7 +4,7 @@ import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 /** Bookkeeping basenames (without extension) that the verifiers skip. */
-export const BOOKKEEPING = new Set(["index", "log", "dashboard", "_index", ".gitkeep"]);
+export const BOOKKEEPING = new Set(["index", "log", "dashboard", "manifest", "_index", ".gitkeep"]);
 
 /** Recursively list `*.md` files under `dir`, sorted. Returns [] if dir is absent. */
 export function listMarkdownRecursive(dir: string): string[] {

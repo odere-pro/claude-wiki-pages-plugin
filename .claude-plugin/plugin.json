@@ -11,7 +11,8 @@
   "license": "Apache-2.0",
   "hooks": "./hooks/hooks.json",
   "supported_schema_versions": [
-    1
+    1,
+    2
   ],
   "keywords": [
     "claude-code",

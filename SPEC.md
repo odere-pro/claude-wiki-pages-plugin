@@ -197,9 +197,12 @@ claude-wiki-pages/                         # plugin source (installed to the use
 
 Every wiki page carries YAML frontmatter. The `type` field drives every operation — read it first.
 
-### Allowed `type` values (schema_version 1)
+### Allowed `type` values
 
-`source`, `entity`, `concept`, `synthesis`, `index`, `log`.
+- **schema_version 1:** `source`, `entity`, `concept`, `synthesis`, `index`, `log`.
+- **schema_version 2 adds:** `topic` (narrative topic landing page), `project` (goal/initiative with a lifecycle), `manifest` (the source-processed tracker at `wiki/_sources/manifest.md`).
+
+Version 2 is a strict superset of version 1: every v1 vault remains valid, and the new optional fields (`source_quotes`, `derived`) never break an untouched page. `verify`/`verify-ingest.sh` accept both versions; `migrate` upgrades v1 → v2 (§9, §12).
 
 Files in `vault/output/` are plain markdown and carry no frontmatter.
 
@@ -208,7 +211,7 @@ Files in `vault/output/` are plain markdown and carry no frontmatter.
 | Field             | Type             | Required on                        | Constraints                                                                                                              |
 | ----------------- | ---------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `title`           | string           | all                                | Title Case. First entry of `aliases` must match.                                                                         |
-| `type`            | enum             | all                                | One of the six allowed values.                                                                                           |
+| `type`            | enum             | all                                | One of the allowed values for the vault's `schema_version` (six in v1; +`topic`, `project`, `manifest` in v2).           |
 | `aliases`         | list\<string\>   | all                                | Must include `title` as the first entry. Add display variants for wikilink resolution.                                   |
 | `parent`          | wikilink         | all except vault MOC               | `"[[Parent Map Title]]"`.                                                                                                |
 | `path`            | string           | all wiki pages                     | Folder path relative to `wiki/`. Empty string for root.                                                                  |
@@ -237,6 +240,13 @@ Files in `vault/output/` are plain markdown and carry no frontmatter.
 | `update_count`    | integer          | entity, concept                    | Incremented on every ingest pass that touches the page.                                                                  |
 | `status`          | enum             | all                                | `active`, `stale`, `superseded`, `draft`. Logs also use `active`.                                                        |
 | `confidence`      | float            | entity, concept, synthesis, source | `[0.0, 1.0]`. Confidence discipline rules in §14.                                                                        |
+| `summary`         | string           | topic (v2)                         | One- or two-sentence orientation for the topic.                                                                          |
+| `key_pages`       | list\<wikilink\> | topic (v2)                         | The most important pages under this topic.                                                                              |
+| `objective`       | string           | project (v2)                       | What the project aims to achieve.                                                                                       |
+| `project_status`  | enum             | project (v2)                       | `planned`, `active`, `paused`, `done`, `abandoned`.                                                                     |
+| `members`         | list\<wikilink\> | project (v2)                       | Entities/concepts the project aggregates.                                                                              |
+| `source_quotes`   | list\<object\>   | optional, any typed page (v2)      | Claim-level provenance: `{ source: "[[note]]", quote: "verbatim text" }`. Optional; complements page-level `sources`.   |
+| `derived`         | boolean          | optional, any typed page (v2)      | `true` when the page is LLM inference, not stated in a source. Keep `confidence` < 0.8 unless multi-source.              |
 
 ### Canonical examples per `type`
 
@@ -552,6 +562,8 @@ Planned additions (Phase D):
   - **Minor** — added optional fields, new `type` enum values that older tools ignore gracefully.
   - **Major** — renamed fields, removed fields, changed required-field semantics.
 - **Version 1 changes from pre-versioning.** `type: moc` → `type: index`; file `_MOC.md` → `_index.md`; field `child_mocs:` → `child_indexes:`; template `moc.md` → `index.md`.
+- **Version 2 changes from version 1 (minor — additive).** New `type` values `topic`, `project`, `manifest`; new templates `topic.md`, `project.md`; new optional fields `source_quotes`, `derived`; the source manifest at `wiki/_sources/manifest.md`. No fields renamed or removed, so v1 vaults stay valid.
+- **In-place migration (v1 → v2).** `claude-wiki-pages migrate [--write]` (engine; bash fallback documented in `docs/migration-2.0.md`) bumps the declared `schema_version`, writes the new templates when absent, and generates the manifest — all under a git checkpoint (`git revert <checkpoint>` rolls it back). Dry-run by default. Existing optional fields are not backfilled; they are added lazily by `ingest`.
 
 Older pre-versioning vaults are not migrated in place. The release notes document the manual rename.
 

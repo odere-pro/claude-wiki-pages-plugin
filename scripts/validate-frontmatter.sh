@@ -47,11 +47,14 @@ validate_content() {
     source) required="source_type sources created updated status confidence" ;;
     entity) required="entity_type parent path sources created updated status confidence" ;;
     concept) required="parent path sources created updated status confidence" ;;
+    topic) required="summary parent path sources created updated status confidence" ;;
+    project) required="objective project_status parent path sources created updated status confidence" ;;
     synthesis) required="synthesis_type sources created updated status confidence" ;;
     index) required="aliases created updated" ;;
+    manifest) required="created updated" ;;
     log) required="created updated" ;;
     *)
-      echo "Unknown type: ${type}. Allowed: source, entity, concept, synthesis, index, log"
+      echo "Unknown type: ${type}. Allowed: source, entity, concept, topic, project, synthesis, index, manifest, log"
       return
       ;;
   esac
@@ -64,7 +67,7 @@ validate_content() {
   done
 
   case "$type" in
-    entity | concept | synthesis | index)
+    entity | concept | topic | project | synthesis | index)
       local declared_path wiki_relative expected_path
       declared_path=$(echo "$frontmatter" | grep '^path:' | sed 's/^path: *//' | tr -d '"'"'" | xargs)
       if [ -n "$declared_path" ]; then
