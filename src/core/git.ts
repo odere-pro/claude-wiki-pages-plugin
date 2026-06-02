@@ -90,6 +90,13 @@ export function checkpoint(
   return head(dir);
 }
 
+/** Commit the current state with an arbitrary message. Returns the commit SHA. */
+export function commit(dir: string, message: string): string | null {
+  git(dir, ["add", "-A"]);
+  git(dir, ["commit", "--no-verify", "--allow-empty", "-m", message]);
+  return head(dir);
+}
+
 /** Commit the healed state with a descriptive message. Returns the commit SHA. */
 export function commitHeal(dir: string, opId: string, iterations: number): string | null {
   git(dir, ["add", "-A"]);
