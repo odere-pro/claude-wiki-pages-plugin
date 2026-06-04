@@ -6,7 +6,8 @@ description: >
   Trigger when the user says "set up a wiki", "initialize the vault",
   "start a new LLM Wiki", "bootstrap the vault", or invokes
   /claude-wiki-pages:init directly.
-allowed-tools: Bash Read Write Edit Glob Grep
+disable-model-invocation: true
+allowed-tools: Bash(bash *) Read Write Edit Glob Grep
 ---
 
 # LLM Wiki — Onboarding
