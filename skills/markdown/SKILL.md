@@ -8,7 +8,7 @@ description: >
   /claude-wiki-pages:markdown directly. Reuses the query
   reading contract, then strips Obsidian-only syntax so the file is usable
   outside the vault.
-allowed-tools: Read Glob Grep Write Edit
+allowed-tools: Read Glob Grep Write(vault/output/*) Write(vault/wiki/log.md) Edit(vault/wiki/log.md)
 ---
 
 # LLM Wiki — Markdown export

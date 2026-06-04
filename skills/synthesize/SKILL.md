@@ -7,7 +7,8 @@ description: >
   invokes /claude-wiki-pages:synthesize directly. Also used as the
   follow-up when /claude-wiki-pages:query offers to file an answer as a
   synthesis.
-allowed-tools: Read Write Edit Glob Grep
+disable-model-invocation: true
+allowed-tools: Read Write(vault/wiki/_synthesis/*) Write(vault/wiki/log.md) Edit(vault/wiki/log.md) Glob Grep
 ---
 
 # LLM Wiki — Synthesize
