@@ -15,6 +15,28 @@ const VAULT = {
 };
 
 /**
+ * R1 filter vault — pages across types, folders, and tags.
+ *
+ * wiki/ai/retrieval.md   type:concept   folder:wiki/ai   tags:[retrieval]
+ * wiki/ai/graph-rag.md   type:concept   folder:wiki/ai   tags:[]
+ * wiki/systems/cache.md  type:entity    folder:wiki/systems  tags:[retrieval,cache]
+ * wiki/systems/index.md  type:index     folder:wiki/systems  tags:[]
+ */
+const FILTER_VAULT = {
+  "CLAUDE.md": "---\nschema_version: 2\n---\n",
+  "wiki/index.md": "---\ntitle: index\n---\n",
+  "wiki/log.md": "---\ntitle: log\n---\n",
+  "wiki/ai/retrieval.md":
+    '---\ntitle: "Retrieval Augmented Generation"\ntype: concept\ntags: ["retrieval"]\n---\n# Retrieval Augmented Generation\n\nRetrieval is important.\n',
+  "wiki/ai/graph-rag.md":
+    '---\ntitle: "Graph RAG"\ntype: concept\ntags: []\n---\n# Graph RAG\n\nGraph RAG uses retrieval.\n',
+  "wiki/systems/cache.md":
+    '---\ntitle: "Cache"\ntype: entity\ntags: ["retrieval","cache"]\n---\n# Cache\n\nA cache improves retrieval speed.\n',
+  "wiki/systems/_index.md":
+    '---\ntitle: "systems index"\ntype: index\ntags: []\n---\n# Systems\n\nSystems retrieval overview.\n',
+};
+
+/**
  * Worked example vault for R4.
  * Title "Graph RAG", tags [], body "graph"×3 + "retrieval"×1
  * query "graph retrieval" →
@@ -162,6 +184,133 @@ describe("search", () => {
       const sum = hit.matched.reduce((acc, m) => acc + m.points, 0);
       expect(hit.score).toBe(sum);
     }
+    sb.cleanup();
+  });
+
+  // ── R1: candidate filters ──
+
+  test("--type concept returns only concept pages", () => {
+    const sb = makeVault(FILTER_VAULT);
+    const r = search({ target: sb.vault, query: "retrieval", type: "concept" });
+    expect(r.hits.length).toBeGreaterThan(0);
+    for (const hit of r.hits) {
+      expect(hit.type).toBe("concept");
+    }
+    // entity and index pages are excluded
+    const titles = r.hits.map((h) => h.title);
+    expect(titles).not.toContain("Cache");
+    expect(titles).not.toContain("systems index");
+    sb.cleanup();
+  });
+
+  test("--type entity returns only entity pages", () => {
+    const sb = makeVault(FILTER_VAULT);
+    const r = search({ target: sb.vault, query: "retrieval", type: "entity" });
+    expect(r.hits.length).toBeGreaterThan(0);
+    for (const hit of r.hits) {
+      expect(hit.type).toBe("entity");
+    }
+    sb.cleanup();
+  });
+
+  test("--folder wiki/ai returns only pages under wiki/ai/", () => {
+    const sb = makeVault(FILTER_VAULT);
+    const r = search({ target: sb.vault, query: "retrieval", folder: "wiki/ai" });
+    expect(r.hits.length).toBeGreaterThan(0);
+    for (const hit of r.hits) {
+      expect(hit.file.startsWith("wiki/ai/")).toBe(true);
+    }
+    // systems pages are excluded
+    const titles = r.hits.map((h) => h.title);
+    expect(titles).not.toContain("Cache");
+    expect(titles).not.toContain("systems index");
+    sb.cleanup();
+  });
+
+  test("--folder with trailing slash normalised correctly", () => {
+    const sb = makeVault(FILTER_VAULT);
+    const r = search({ target: sb.vault, query: "retrieval", folder: "wiki/ai/" });
+    expect(r.hits.length).toBeGreaterThan(0);
+    for (const hit of r.hits) {
+      expect(hit.file.startsWith("wiki/ai/")).toBe(true);
+    }
+    sb.cleanup();
+  });
+
+  test("--tag retrieval returns only pages with that tag", () => {
+    const sb = makeVault(FILTER_VAULT);
+    const r = search({ target: sb.vault, query: "retrieval", tag: "retrieval" });
+    expect(r.hits.length).toBeGreaterThan(0);
+    for (const hit of r.hits) {
+      // all returned hits must score > 0 (already guaranteed) and come from tagged pages
+      // we verify by checking the titles known to carry the tag
+      expect(["Retrieval Augmented Generation", "Cache"]).toContain(hit.title);
+    }
+    // Graph RAG (no retrieval tag) is excluded
+    const titles = r.hits.map((h) => h.title);
+    expect(titles).not.toContain("Graph RAG");
+    sb.cleanup();
+  });
+
+  test("combined --type and --folder filter with AND semantics", () => {
+    const sb = makeVault(FILTER_VAULT);
+    // concept pages in wiki/ai only → Graph RAG and Retrieval Augmented Generation qualify
+    const r = search({ target: sb.vault, query: "retrieval", type: "concept", folder: "wiki/ai" });
+    expect(r.hits.length).toBeGreaterThan(0);
+    for (const hit of r.hits) {
+      expect(hit.type).toBe("concept");
+      expect(hit.file.startsWith("wiki/ai/")).toBe(true);
+    }
+    // cache (entity in systems) is excluded even though it matches the query
+    const titles = r.hits.map((h) => h.title);
+    expect(titles).not.toContain("Cache");
+    sb.cleanup();
+  });
+
+  test("combined --type, --folder, and --tag all AND correctly", () => {
+    const sb = makeVault(FILTER_VAULT);
+    // concept + wiki/ai + tag:retrieval → only Retrieval Augmented Generation qualifies
+    const r = search({
+      target: sb.vault,
+      query: "retrieval",
+      type: "concept",
+      folder: "wiki/ai",
+      tag: "retrieval",
+    });
+    expect(r.hits.length).toBe(1);
+    expect(r.hits[0]?.title).toBe("Retrieval Augmented Generation");
+    sb.cleanup();
+  });
+
+  test("out-of-enum --type returns empty hits (filter-only, no validation)", () => {
+    const sb = makeVault(FILTER_VAULT);
+    // "bogustype" is not in the page-type enum; no page will have it → empty
+    const r = search({ target: sb.vault, query: "retrieval", type: "bogustype" });
+    expect(r.hits).toHaveLength(0);
+    sb.cleanup();
+  });
+
+  test("filters do not alter score or matched[] invariants on surviving hits", () => {
+    const sb = makeVault(FILTER_VAULT);
+    const r = search({ target: sb.vault, query: "retrieval", type: "concept" });
+    for (const hit of r.hits) {
+      const sum = hit.matched.reduce((acc, m) => acc + m.points, 0);
+      expect(hit.score).toBe(sum);
+    }
+    sb.cleanup();
+  });
+
+  test("no filters applied → same result as unfiltered search", () => {
+    const sb = makeVault(FILTER_VAULT);
+    const unfiltered = search({ target: sb.vault, query: "retrieval" });
+    const filtered = search({
+      target: sb.vault,
+      query: "retrieval",
+      type: undefined,
+      folder: undefined,
+      tag: undefined,
+    });
+    expect(filtered.hits).toEqual(unfiltered.hits);
     sb.cleanup();
   });
 });

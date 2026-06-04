@@ -69,6 +69,26 @@ export interface SearchOptions {
   readonly query: string;
   /** Max hits returned. Default 20. */
   readonly limit?: number;
+  /**
+   * R1 candidate filter — restrict to pages whose frontmatter `type` equals
+   * this value. Applied BEFORE scoring; does not affect the scoring weights.
+   * Validation strategy (filter-only): the page-type enum is single-sourced in
+   * `ontology-profile-v1` (docs/vault-example/CLAUDE.md §"Enum list"); no copy
+   * exists in the engine. An unknown type simply matches no pages → empty hits.
+   */
+  readonly type?: string;
+  /**
+   * R1 candidate filter — restrict to pages whose vault-relative path starts
+   * with this prefix (path-prefix match, trailing slash normalised). Applied
+   * BEFORE scoring.
+   */
+  readonly folder?: string;
+  /**
+   * R1 candidate filter (best-effort) — restrict to pages whose frontmatter
+   * `tags` list contains this exact value. Applied BEFORE scoring. Precision
+   * only; no tag-vocabulary validation (governed taxonomy is a later item).
+   */
+  readonly tag?: string;
 }
 
 const DEFAULT_LIMIT = 20;
@@ -123,6 +143,13 @@ export function search(opts: SearchOptions): SearchReport {
   const limit = opts.limit ?? DEFAULT_LIMIT;
   const wiki = join(vault, "wiki");
 
+  // R1: normalise candidate filter values once.
+  const filterType = opts.type !== undefined ? opts.type : undefined;
+  // Normalise folder prefix: strip leading separator variants and trailing slashes
+  // so "wiki/ai", "wiki/ai/" both match vault-relative paths like "wiki/ai/foo.md".
+  const filterFolder = opts.folder !== undefined ? opts.folder.replace(/\/+$/, "") : undefined;
+  const filterTag = opts.tag !== undefined ? opts.tag : undefined;
+
   const qTerms = terms(query);
   const phrase = query.toLowerCase();
   if (qTerms.length === 0) {
@@ -136,6 +163,24 @@ export function search(opts: SearchOptions): SearchReport {
     if (content === null) continue;
 
     const fm = parseFrontmatter(content);
+
+    // R1: candidate filters — prune BEFORE scoring (AND composition).
+    // --type: exact match on frontmatter `type`.
+    if (filterType !== undefined) {
+      const pageType = typeof fm["type"] === "string" ? (fm["type"] as string) : "";
+      if (pageType !== filterType) continue;
+    }
+    // --folder: path-prefix match on the vault-relative file path.
+    if (filterFolder !== undefined) {
+      const rel = relative(vault, file);
+      // Accept "wiki/ai/foo.md" when folder is "wiki/ai"
+      if (!rel.startsWith(filterFolder + "/") && rel !== filterFolder) continue;
+    }
+    // --tag: best-effort exact member test on the `tags` list.
+    if (filterTag !== undefined) {
+      const pageTags = stringList(fm["tags"]);
+      if (!pageTags.includes(filterTag)) continue;
+    }
     const title = titleOf(content, file);
     const titleHay = [title, ...stringList(fm["aliases"])].join(" ").toLowerCase();
     const tagHay = stringList(fm["tags"]).join(" ").toLowerCase();

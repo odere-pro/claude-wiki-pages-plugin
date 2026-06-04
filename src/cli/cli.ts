@@ -45,6 +45,12 @@ interface ParsedArgs {
   readonly strict: boolean;
   readonly write: boolean;
   readonly file: string | undefined;
+  /** R1 candidate filter: frontmatter `type` exact match. */
+  readonly type: string | undefined;
+  /** R1 candidate filter: vault-relative path prefix. */
+  readonly folder: string | undefined;
+  /** R1 candidate filter (best-effort): `tags` membership. */
+  readonly tag: string | undefined;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -57,6 +63,9 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   let strict = false;
   let write = false;
   let file: string | undefined;
+  let type: string | undefined;
+  let folder: string | undefined;
+  let tag: string | undefined;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--json") json = true;
@@ -66,10 +75,13 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (a === "--write") write = true;
     else if (a === "--target") target = argv[++i];
     else if (a === "--file") file = argv[++i];
+    else if (a === "--type") type = argv[++i];
+    else if (a === "--folder") folder = argv[++i];
+    else if (a === "--tag") tag = argv[++i];
     else if (a && !a.startsWith("-") && command === undefined) command = a;
     else if (a && !a.startsWith("-") && sub === undefined) sub = a;
   }
-  return { command, sub, json, target, help, fix: fixFlag, strict, write, file };
+  return { command, sub, json, target, help, fix: fixFlag, strict, write, file, type, folder, tag };
 }
 
 function emit(report: Report, json: boolean): void {
@@ -102,6 +114,9 @@ function main(): number {
     strict,
     write,
     file,
+    type,
+    folder,
+    tag,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -260,7 +275,7 @@ function main(): number {
   }
 
   if (command === "search") {
-    const report = search({ target, query: sub ?? "" });
+    const report = search({ target, query: sub ?? "", type, folder, tag });
     if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
     else if (report.hits.length === 0)
       process.stdout.write(`search: no matches for "${report.query}"\n`);

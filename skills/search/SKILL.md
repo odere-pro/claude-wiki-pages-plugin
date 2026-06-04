@@ -33,6 +33,30 @@ The engine owns the ranking so results are reproducible:
 bash scripts/engine.sh search "<query>" --target <vault> --json
 ```
 
+### R1 candidate filters
+
+Three optional flags prune the candidate page set **before** scoring. They compose with AND; absent flags match everything.
+
+| Flag | Behaviour |
+| --- | --- |
+| `--type <T>` | Keep only pages whose frontmatter `type` equals `T` exactly. Validation strategy: **filter-only** — the page-type enum is single-sourced in `ontology-profile-v1` (`docs/vault-example/CLAUDE.md §Enum list`); the engine carries no copy. An unknown `T` simply returns zero hits. |
+| `--folder <path>` | Keep only pages whose vault-relative file path starts with `<path>/` (path-prefix match; trailing slash normalised). Example: `--folder wiki/ai` restricts to `wiki/ai/*`. |
+| `--tag <tag>` | Best-effort filter: keep only pages whose frontmatter `tags` list contains `<tag>` as an exact member. Precision only; tag-vocabulary validation is a later item (governed taxonomy). |
+
+```sh
+# Only concept pages mentioning "retrieval":
+bash scripts/engine.sh search "retrieval" --type concept --target <vault> --json
+
+# Pages under wiki/ai/ only:
+bash scripts/engine.sh search "retrieval" --folder wiki/ai --target <vault> --json
+
+# Pages tagged "retrieval":
+bash scripts/engine.sh search "retrieval" --tag retrieval --target <vault> --json
+
+# Combined (AND): concept pages in wiki/ai/ tagged "retrieval":
+bash scripts/engine.sh search "retrieval" --type concept --folder wiki/ai --tag retrieval --target <vault> --json
+```
+
 `--json` returns:
 
 ```json

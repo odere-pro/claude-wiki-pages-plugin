@@ -74,3 +74,65 @@ describe("verify routing", () => {
     expect(report.clean).toBe(true);
   });
 });
+
+/**
+ * Vault for CLI R1 filter tests.
+ * concept pages in wiki/ai/, entity page in wiki/systems/.
+ */
+const R1_CLI_VAULT = {
+  "CLAUDE.md": "---\nschema_version: 2\n---\n",
+  "wiki/index.md": "---\ntitle: index\n---\n",
+  "wiki/log.md": "---\ntitle: log\n---\n",
+  "wiki/ai/retrieval.md":
+    '---\ntitle: "Retrieval"\ntype: concept\ntags: ["retrieval"]\n---\n# Retrieval\n\nRetrieval is key.\n',
+  "wiki/systems/cache.md":
+    '---\ntitle: "Cache"\ntype: entity\ntags: []\n---\n# Cache\n\nCache aids retrieval.\n',
+};
+
+describe("search routing — R1 candidate filters", () => {
+  test("search --type concept --json returns only concept hits", () => {
+    const sb = makeVault(R1_CLI_VAULT);
+    sandboxes.push(sb);
+    const r = run("search", "retrieval", "--target", sb.vault, "--type", "concept", "--json");
+    expect(r.code).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report.command).toBe("search");
+    expect(report.hits.length).toBeGreaterThan(0);
+    for (const hit of report.hits as Array<{ type: string }>) {
+      expect(hit.type).toBe("concept");
+    }
+  });
+
+  test("search --folder wiki/ai --json returns only wiki/ai pages", () => {
+    const sb = makeVault(R1_CLI_VAULT);
+    sandboxes.push(sb);
+    const r = run("search", "retrieval", "--target", sb.vault, "--folder", "wiki/ai", "--json");
+    expect(r.code).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report.hits.length).toBeGreaterThan(0);
+    for (const hit of report.hits as Array<{ file: string }>) {
+      expect(hit.file.startsWith("wiki/ai/")).toBe(true);
+    }
+  });
+
+  test("search --tag retrieval --json returns only tagged pages", () => {
+    const sb = makeVault(R1_CLI_VAULT);
+    sandboxes.push(sb);
+    const r = run("search", "retrieval", "--target", sb.vault, "--tag", "retrieval", "--json");
+    expect(r.code).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report.hits.length).toBeGreaterThan(0);
+    // Cache has no retrieval tag and must not appear
+    const titles = (report.hits as Array<{ title: string }>).map((h) => h.title);
+    expect(titles).not.toContain("Cache");
+  });
+
+  test("search --type bogustype --json returns empty hits (filter-only)", () => {
+    const sb = makeVault(R1_CLI_VAULT);
+    sandboxes.push(sb);
+    const r = run("search", "retrieval", "--target", sb.vault, "--type", "bogustype", "--json");
+    expect(r.code).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report.hits).toHaveLength(0);
+  });
+});
