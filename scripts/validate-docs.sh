@@ -42,6 +42,8 @@ BAN_EXEMPT=(
   "docs/llm-wiki/migration-0.2.md"
   "docs/migration-1.0.md"
   "tests/*"
+  # Calibration-flow fixtures are test corpora, not project prose.
+  ".claude/fixtures/*"
 )
 
 # Files that legitimately contain discoverability-register terms (SEO surfaces).
@@ -57,6 +59,8 @@ SEO_EXEMPT=(
   # Immutable source material may legitimately contain PKM-register terms
   # (external authors do not follow our glossary). raw/ is never our prose.
   "*/raw/*"
+  # Calibration-flow fixtures are test corpora, not project prose.
+  ".claude/fixtures/*"
 )
 
 # ─── Patterns ────────────────────────────────────────────────────────────────
