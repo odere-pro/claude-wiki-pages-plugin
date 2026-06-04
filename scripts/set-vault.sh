@@ -5,7 +5,8 @@
 # Sets only current_vault_path — default_vault_path is never changed.
 # Creates settings.json with defaults if it does not yet exist.
 # Warns (non-fatal) if the given path does not exist on disk yet.
-#
+set -euo pipefail
+
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
 

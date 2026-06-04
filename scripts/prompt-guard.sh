@@ -2,6 +2,7 @@
 # UserPromptSubmit: warn about common mistakes in user prompts
 # Vault resolved via CLAUDE_WIKI_PAGES_VAULT, auto-detection, or default (docs/vault)
 # Non-blocking — outputs warnings but never blocks the prompt
+set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
@@ -11,7 +12,7 @@ VAULT_NAME=$(basename "$VAULT")
 INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty')
 
-[ -z "$PROMPT" ] && exit 0
+if [ -z "$PROMPT" ]; then exit 0; fi
 
 WARNINGS=""
 

@@ -27,7 +27,7 @@
 # Required entries are derived from the source tree — the authoritative
 # scaffold is whatever the plugin ships.
 
-set -uo pipefail
+set -euo pipefail
 
 if [ "$#" -lt 1 ] || [ -z "${1:-}" ]; then
   printf 'Usage: %s <target-vault> [<source-scaffold>]\n' "$(basename "$0")" >&2
@@ -56,7 +56,7 @@ PRESERVED=0
 # Iterate every top-level entry in source (files and directories, including
 # dotfiles). `find -mindepth 1 -maxdepth 1` is portable on BSD and GNU.
 while IFS= read -r entry; do
-  [ -z "$entry" ] && continue
+  [ -z "$entry" ] && continue || true
   name="$(basename "$entry")"
   # Skip common filesystem noise so it doesn't land in user vaults.
   case "$name" in
