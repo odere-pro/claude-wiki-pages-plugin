@@ -491,6 +491,120 @@ if [ "$STALE_SOURCE_FOUND" -eq 0 ]; then
 fi
 
 # ──────────────────────────────────────────────
+# CHECK 5: I3 — provenance-completeness
+#
+# 5a. source-presence: a page whose type: is one of entity / concept / topic /
+#     project / synthesis MUST have at least one entry in sources:.  An empty
+#     or absent sources: list is an ERROR.  Pages whose sources: list is
+#     non-empty but contains malformed entries are already caught by CHECK 2;
+#     this check counts only the presence of at least one entry and must NOT
+#     double-flag those pages.
+#
+# 5b. derived/confidence consistency: a page with derived: true must keep
+#     confidence < 0.8.  Any violation is a WARN.
+# ──────────────────────────────────────────────
+header "Provenance completeness (I3)"
+
+SOURCE_REQUIRING_TYPES="entity concept topic project synthesis"
+PROVENANCE_ERRORS=0
+DERIVED_WARNS=0
+
+while IFS= read -r filepath; do
+  BASENAME=$(basename "$filepath" .md)
+  # Skip bookkeeping files.
+  case "$BASENAME" in
+    index | log | dashboard | manifest | _index | .gitkeep) continue ;;
+  esac
+  # Skip _sources/ and _synthesis/ directories.
+  case "$filepath" in
+    */_sources/*) continue ;;
+    */_synthesis/*) continue ;;
+  esac
+
+  # Read the type: field from frontmatter.
+  PAGE_TYPE=$(sed -n '/^---$/,/^---$/p' "$filepath" |
+    grep -m1 -E '^type:[[:space:]]' | sed 's/^type:[[:space:]]*//' | tr -d "\"'" || true)
+
+  # ── 5a: source-presence ──────────────────────────────────────────────────
+  # Only check source-requiring types.
+  IS_REQUIRING=0
+  for t in $SOURCE_REQUIRING_TYPES; do
+    if [ "$PAGE_TYPE" = "$t" ]; then
+      IS_REQUIRING=1
+      break
+    fi
+  done
+
+  if [ "$IS_REQUIRING" -eq 1 ]; then
+    # Count entries in sources:. We need the raw count regardless of format
+    # so that malformed-but-present entries are not double-flagged.
+    ENTRY_COUNT=$(sed -n '/^---$/,/^---$/p' "$filepath" | awk '
+      /^sources:/ {
+        if ($0 ~ /\[/) {
+          # Inline array: count comma-separated tokens inside the brackets.
+          line = $0
+          sub(/^sources:[[:space:]]*\[/, "", line)
+          sub(/\][[:space:]]*$/, "", line)
+          # Empty inline array: "[]"
+          if (line == "") { print 0; exit }
+          n = split(line, items, ",")
+          count = 0
+          for (i = 1; i <= n; i++) {
+            gsub(/^[[:space:]"'\'']+|[[:space:]"'\'']+$/, "", items[i])
+            if (items[i] != "") count++
+          }
+          print count; exit
+        }
+        # Multi-line array: count "- " lines.
+        count = 0
+        while ((getline line) > 0) {
+          if (line !~ /^[[:space:]]*-/) break
+          gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
+          gsub(/"?[[:space:]]*$/, "", line)
+          if (line != "") count++
+        }
+        print count; exit
+      }
+    ')
+    # If awk printed nothing, sources: is absent — treat as 0.
+    ENTRY_COUNT="${ENTRY_COUNT:-0}"
+
+    if [ "$ENTRY_COUNT" -eq 0 ]; then
+      PAGE_TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$filepath")
+      [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
+      red "no-sources: \"${PAGE_TITLE}\" ($(basename "$filepath")) has type \"${PAGE_TYPE}\" but no sources entries"
+      PROVENANCE_ERRORS=$((PROVENANCE_ERRORS + 1))
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+
+  # ── 5b: derived/confidence consistency ────────────────────────────────────
+  DERIVED_VAL=$(sed -n '/^---$/,/^---$/p' "$filepath" |
+    grep -m1 -E '^derived:[[:space:]]' | sed 's/^derived:[[:space:]]*//' | tr -d "\"'" || true)
+
+  if [ "$DERIVED_VAL" = "true" ]; then
+    CONF_VAL=$(sed -n '/^---$/,/^---$/p' "$filepath" |
+      grep -m1 -E '^confidence:[[:space:]]' | sed 's/^confidence:[[:space:]]*//' | tr -d "\"'" || true)
+    if [ -n "$CONF_VAL" ]; then
+      # Use awk for floating-point comparison (bash arithmetic is integer-only).
+      IS_HIGH=$(awk -v c="$CONF_VAL" 'BEGIN { print (c + 0 >= 0.8) ? "1" : "0" }')
+      if [ "$IS_HIGH" = "1" ]; then
+        PAGE_TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$filepath")
+        [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
+        yellow "derived-high-confidence: \"${PAGE_TITLE}\" ($(basename "$filepath")) has derived: true but confidence ${CONF_VAL} >= 0.8 — lower confidence to reflect inferred status"
+        DERIVED_WARNS=$((DERIVED_WARNS + 1))
+        WARNINGS=$((WARNINGS + 1))
+      fi
+    fi
+  fi
+
+done < <(find "$WIKI" -name '*.md' -type f | sort)
+
+if [ "$PROVENANCE_ERRORS" -eq 0 ] && [ "$DERIVED_WARNS" -eq 0 ]; then
+  green "All provenance checks passed"
+fi
+
+# ──────────────────────────────────────────────
 # SUMMARY
 # ──────────────────────────────────────────────
 header "Summary"

@@ -13,6 +13,7 @@ import { checkSchema } from "../../core/schema.ts";
 import { checkIndex, checkSourcesFormat } from "../../core/index-check.ts";
 import { checkIndexConsistency, checkOrphanSources, checkTopicFolders } from "../../core/moc.ts";
 import { checkCitedSourceStaleness } from "../../core/staleness.ts";
+import { checkProvenance } from "../../core/provenance.ts";
 import { resolveVault } from "../../core/vault.ts";
 
 export interface VerifyOptions {
@@ -44,6 +45,7 @@ export function verify(opts: VerifyOptions = {}): Report {
     ...checkOrphanSources(wiki),
     ...checkTopicFolders(wiki),
     ...checkCitedSourceStaleness(wiki),
+    ...checkProvenance(wiki),
   ];
 
   return buildReport("verify", vault, findings);

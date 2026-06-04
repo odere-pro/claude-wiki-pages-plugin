@@ -192,3 +192,75 @@ MD
   # No crash: must have printed at least the Summary header.
   assert_output_contains "Summary"
 }
+
+# ──────────────────────────────────────────────────────────────────────────────
+# I3: provenance-completeness checks (CHECK 5)
+# ──────────────────────────────────────────────────────────────────────────────
+
+@test "verify-ingest I3: entity with no sources is an ERROR" {
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # Remove all sources entries — replace the sources list with an empty array.
+  sed -i.bak 's|sources: \["\[\[Sample\]\]"\]|sources: []|' "$entity_file"
+  rm -f "${entity_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_status 1
+  assert_output_contains "no-sources"
+  assert_output_contains "Sample Entity"
+}
+
+@test "verify-ingest I3: malformed source entry counts as present — no double-flag" {
+  # A plain-string source entry is already caught by CHECK 2 (sources-format).
+  # The presence check (I3) must NOT also fire, because there IS 1 entry present.
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  sed -i.bak 's|sources: \["\[\[Sample\]\]"\]|sources: ["not-a-link"]|' "$entity_file"
+  rm -f "${entity_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # CHECK 2 fires for the malformed source — exit 1.
+  assert_status 1
+  assert_output_contains "Plain string in sources"
+  # But provenance-completeness must NOT also fire for this page.
+  refute_output_contains "no-sources"
+}
+
+@test "verify-ingest I3: derived:true with confidence >= 0.8 is a WARN" {
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # Set derived: true and confidence: 0.85 on the page (keeping the source entry so
+  # provenance-completeness does not fire — this test isolates the consistency check).
+  sed -i.bak 's/^confidence: 0\.9/confidence: 0.85/' "$entity_file"
+  rm -f "${entity_file}.bak"
+  # Append derived: true to the frontmatter (before the closing ---).
+  # Use awk to insert the field safely.
+  awk '
+    /^---$/ && count++ == 1 { print "derived: true"; print; next }
+    { print }
+  ' "$entity_file" >"${entity_file}.new"
+  mv "${entity_file}.new" "$entity_file"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # WARN-level: script exits 0 (no errors), but warning text is present.
+  assert_success
+  assert_output_contains "derived-high-confidence"
+  assert_output_contains "Sample Entity"
+}
+
+@test "verify-ingest I3: derived:true with confidence < 0.8 is clean" {
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # Set derived: true and confidence: 0.7 — below the threshold, so no warning.
+  sed -i.bak 's/^confidence: 0\.9/confidence: 0.7/' "$entity_file"
+  rm -f "${entity_file}.bak"
+  awk '
+    /^---$/ && count++ == 1 { print "derived: true"; print; next }
+    { print }
+  ' "$entity_file" >"${entity_file}.new"
+  mv "${entity_file}.new" "$entity_file"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  refute_output_contains "derived-high-confidence"
+}

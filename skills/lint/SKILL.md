@@ -57,6 +57,16 @@ verify, the rule is out of scope for lint and belongs in fix.
   appear in `child_indexes:`.
 - **Banned legacy values.** `type: moc`, references to `_MOC.md`, field name
   `child_mocs:` — all retired in schema version 1.
+- **Missing sources (provenance-completeness).** A page whose `type:` is
+  `entity`, `concept`, `topic`, `project`, or `synthesis` must carry at least
+  one entry in `sources:`. An empty or absent `sources:` list is an error.
+  `source`, `index`, `manifest`, and `log` pages are exempt. Pages with a
+  non-empty but malformed `sources:` list (already caught by the plain-string
+  check above) are NOT double-flagged here — presence is counted in entries,
+  not format. Implemented in `scripts/verify-ingest.sh` CHECK 5a and
+  `src/core/provenance.ts` (`checkProvenance`, `provenance-completeness`
+  check); covered by `tests/scripts/verify-ingest.bats` (I3 cases) and
+  `src/commands/verify/verify.test.ts` (I3 cases).
 
 ### Warnings (structural drift; wiki still usable)
 
@@ -70,6 +80,14 @@ verify, the rule is out of scope for lint and belongs in fix.
 - **MOC missing aliases.** Per-folder `_index.md` lacks `aliases:` covering
   the folder topic's common display variants.
 - **Excessive nesting.** A folder more than four levels deep under `wiki/`.
+- **Derived high confidence (provenance-consistency).** A page with
+  `derived: true` signals LLM inference synthesised across sources rather than
+  a direct statement in any single source. Granting it `confidence ≥ 0.8`
+  misrepresents its evidentiary weight. Emit a warning when both conditions
+  hold simultaneously. Implemented in `scripts/verify-ingest.sh` CHECK 5b and
+  `src/core/provenance.ts` (`checkProvenance`, `provenance-consistency` check);
+  covered by `tests/scripts/verify-ingest.bats` (I3 cases) and
+  `src/commands/verify/verify.test.ts` (I3 cases).
 
 ### Info (candidate for review, not drift)
 
