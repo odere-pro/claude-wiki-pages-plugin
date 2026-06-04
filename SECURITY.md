@@ -7,7 +7,7 @@
 **Please do not file public GitHub issues for security vulnerabilities.** Use one of the following private channels:
 
 - **Email**: `odere.pub@gmail.com` with subject prefix `[security][claude-wiki-pages]`.
-- **GitHub Security Advisory**: open a draft at <https://github.com/odere-pro/claude-wiki-pages/security/advisories/new>.
+- **GitHub Security Advisory**: open a draft at <https://github.com/odere-pro/claude-wiki-pages-plugin/security/advisories/new>.
 
 Include in the report:
 

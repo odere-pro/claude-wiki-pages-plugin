@@ -77,7 +77,7 @@ flowchart TD
 ## Install
 
 ```text
-/plugin marketplace add odere-pro/claude-wiki-pages
+/plugin marketplace add odere-pro/claude-wiki-pages-plugin
 /plugin install claude-wiki-pages
 /claude-wiki-pages:doctor
 ```
@@ -94,7 +94,7 @@ flowchart TD
 
 The orchestrator probes vault state and dispatches:
 
-- **No vault yet** → runs the `llm-wiki` wizard. Scaffolds `docs/vault/` from the example, writes the schema, prints the next three things to do.
+- **No vault yet** → runs the `init` wizard. Scaffolds `docs/vault/` from the example, writes the schema, prints the next three things to do.
 - **New files in `raw/`** → runs `claude-wiki-pages-ingest-agent`. Produces typed wiki pages with citations and a `wiki/log.md` entry, then runs `claude-wiki-pages-polish-agent` to refresh graph colors and indexes.
 - **Pending lint after an ingest** → runs `claude-wiki-pages-curator-agent` to audit and repair.
 - **Analytical prompt** (`what`, `why`, `compare`, `summarize`, …) → runs `claude-wiki-pages-analyst-agent`. Every answer cites `[[wikilinks]]` back to source.

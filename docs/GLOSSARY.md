@@ -222,6 +222,8 @@ Banned outside `CHANGELOG.md`, `docs/adr/*`, and `docs/migration-1.0.md`, which 
 | `llm-wiki-{ingest,query,lint,fix,status,synthesize,index,markdown}` (skill names)    | the bare verb (`ingest`, `query`, …)                  |
 | `llm-wiki` (the onboarding skill name)                                                | `init`                                                 |
 
+> `validate-docs.sh` enforces the last row narrowly: it flags `llm-wiki` only in *skill* context — the backtick form `` `llm-wiki` `` and the `/claude-wiki-pages:` namespaced form — so the kept `llm-wiki-pattern` (Karpathy's pattern), the `docs/llm-wiki/` guide directory, and the `plugin.json` keywords are never affected.
+
 ## Discoverability glossary
 
 Permitted only in:

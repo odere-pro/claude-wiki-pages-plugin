@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://odere-pro.github.io/claude-wiki-pages/sitemap.xml
+Sitemap: https://odere-pro.github.io/claude-wiki-pages-plugin/sitemap.xml

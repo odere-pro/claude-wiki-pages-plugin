@@ -54,7 +54,7 @@ One: `/claude-wiki-pages:wiki`. A second one — `/claude-wiki-pages:doctor` —
 > **Lab.** From a Claude Code session, run:
 >
 > ```text
-> /plugin marketplace add odere-pro/claude-wiki-pages
+> /plugin marketplace add odere-pro/claude-wiki-pages-plugin
 > /plugin install claude-wiki-pages
 > ```
 >
@@ -103,7 +103,7 @@ It does not write anything. It is read-only by contract — exit codes 0–5 wit
 > /claude-wiki-pages:wiki
 > ```
 >
-> The orchestrator probes state. It sees no `vault/CLAUDE.md`. It dispatches to the `llm-wiki` wizard. The wizard:
+> The orchestrator probes state. It sees no `vault/CLAUDE.md`. It dispatches to the `init` wizard. The wizard:
 >
 > 1. Copies `docs/vault-example/` into your project as `docs/vault/`.
 > 2. Writes the authoritative schema at `docs/vault/CLAUDE.md` (declares `schema_version: 1`).

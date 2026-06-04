@@ -28,7 +28,7 @@ The full contract is in [`agents/claude-wiki-pages-orchestrator-agent.md`](../..
 
 | Probe result                                                                                  | Specialist | Why |
 | --------------------------------------------------------------------------------------------- | ---------- | --- |
-| `vault_exists == false` OR `schema_version == ""`                                             | `llm-wiki` skill (init wizard) | Bootstrap before anything else. |
+| `vault_exists == false` OR `schema_version == ""`                                             | `init` skill (onboarding wizard) | Bootstrap before anything else. |
 | `raw_pending > 0`                                                                             | `claude-wiki-pages-ingest-agent`  | Process new sources first; later answers benefit from fresh state. |
 | `last_log_entry == "ingest"` and lint never ran since                                         | `claude-wiki-pages-curator-agent` | A pending ingest hasn't been audited yet; clean it before doing anything else. |
 | Prompt matches an analytical verb (`query`, `ask`, `summarize`, `report`, `compile`, `extract`, `compare`, `challenge`, `dashboard`, or starts with `?`/`what`/`why`/`how`) | `claude-wiki-pages-analyst-agent` | Read-mostly request. |

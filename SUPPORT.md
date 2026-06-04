@@ -12,9 +12,9 @@
 
 | What you need          | Where to go                                                                                                                            |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Bug reports            | [GitHub Issues](https://github.com/odere-pro/claude-wiki-pages/issues/new) — include vault `schema_version`, plugin version, and a minimal `vault/raw/` repro |
-| Feature requests       | [GitHub Issues](https://github.com/odere-pro/claude-wiki-pages/issues/new) — describe the workflow, not just the feature                  |
-| How-to / discussion    | [GitHub Discussions](https://github.com/odere-pro/claude-wiki-pages/discussions)                                                          |
+| Bug reports            | [GitHub Issues](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/new) — include vault `schema_version`, plugin version, and a minimal `vault/raw/` repro |
+| Feature requests       | [GitHub Issues](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/new) — describe the workflow, not just the feature                  |
+| How-to / discussion    | [GitHub Discussions](https://github.com/odere-pro/claude-wiki-pages-plugin/discussions)                                                          |
 | Security vulnerability | See [SECURITY.md](./SECURITY.md) — **not** a public issue                                                                              |
 
 ## What gets fixed

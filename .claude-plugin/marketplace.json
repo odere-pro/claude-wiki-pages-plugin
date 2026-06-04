@@ -11,7 +11,7 @@
       "description": "A Claude Code plugin for Obsidian — Karpathy's LLM Wiki shipped as a four-layer, hook-enforced agent stack with multi-agent orchestration.",
       "version": "1.0.0",
       "license": "Apache-2.0",
-      "homepage": "https://github.com/odere-pro/claude-wiki-pages"
+      "homepage": "https://github.com/odere-pro/claude-wiki-pages-plugin"
     }
   ]
 }

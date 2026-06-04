@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/odere-pro/claude-wiki-pages/schemas/marketplace-json.schema.json",
+  "$id": "https://github.com/odere-pro/claude-wiki-pages-plugin/schemas/marketplace-json.schema.json",
   "title": "claude-wiki-pages marketplace manifest",
   "description": "Minimal shape check for .claude-plugin/marketplace.json. Replace with Anthropic's published schema once available.",
   "type": "object",

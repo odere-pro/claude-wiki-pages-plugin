@@ -14,7 +14,7 @@ claude
 At the Claude Code prompt:
 
 ```
-/plugin marketplace add odere-pro/claude-wiki-pages
+/plugin marketplace add odere-pro/claude-wiki-pages-plugin
 /plugin install claude-wiki-pages
 ```
 

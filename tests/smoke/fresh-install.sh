@@ -33,7 +33,7 @@ echo "[smoke] Claude Code CLI detected at: $(command -v claude)"
 
 # -- Stage 1: scaffold a throwaway project directory. -------------------------
 
-TMP_PROJECT="$(mktemp -d -t llm-wiki-smoke.XXXXXX)"
+TMP_PROJECT="$(mktemp -d -t claude-wiki-pages-smoke.XXXXXX)"
 trap 'rm -rf "$TMP_PROJECT"' EXIT
 echo "[smoke] Scratch project: $TMP_PROJECT"
 
