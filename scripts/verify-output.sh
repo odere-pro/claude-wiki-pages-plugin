@@ -22,7 +22,7 @@
 # The vault root is the directory that contains `output/`. The skill writes
 # to `<vault>/output/<slug>.md`; this script audits that subtree only.
 
-set -uo pipefail
+set -euo pipefail
 
 if [ "$#" -ne 1 ]; then
   echo "usage: $0 <vault-root>" >&2

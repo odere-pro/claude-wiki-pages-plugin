@@ -7,6 +7,7 @@ description: >
   /claude-wiki-pages:fix directly. Expects a fresh lint report in
   context, or runs its own lint pass internally.
 allowed-tools: Read Write Edit Glob Grep Bash
+disable-model-invocation: true
 ---
 
 # LLM Wiki — Fix

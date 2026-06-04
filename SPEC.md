@@ -94,7 +94,7 @@ A Claude Code plugin that turns an Obsidian vault into a maintained, provenance-
 
 ### Layer 2 — Skills
 
-Sixteen single-responsibility capabilities. The nine plugin verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`) each read `raw/` and write only to `wiki/` (`synthesize` writes only to `wiki/_synthesis/`; `markdown` writes only to `vault/output/`; `obsidian-graph-colors` writes only to `.obsidian/graph.json`). Three more are user/agent-facing reference skills that do not write to the vault: `onboarding` (guided first run) and the agent-teaching skills `engine-api` (the engine's `--json` tool contract) and `maintain-contract` (the safe ingest/retrieve/maintain ordering). No skill knows about any other skill's internals.
+Nineteen single-responsibility capabilities. The nine plugin verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`) each read `raw/` and write only to `wiki/` (`synthesize` writes only to `wiki/_synthesis/`; `markdown` writes only to `vault/output/`; `obsidian-graph-colors` writes only to `.obsidian/graph.json`). Six more are user/agent-facing reference skills that do not write to the vault: `onboarding` (guided first run) and the agent-teaching skills `engine-api` (the engine's `--json` tool contract), `maintain-contract` (the safe ingest/retrieve/maintain ordering), `analyst-modes` (the analyst's five operating modes and write-gates), `curator-fixes` (the curator's check set and fix catalog), and `ingest-pipeline` (the ingest plan/optimize procedures). No skill knows about any other skill's internals.
 
 Skills fall into three provenance groups, reflected in `NOTICE` and `THIRD_PARTY_LICENSES.md`:
 
@@ -155,7 +155,7 @@ claude-wiki-pages/                         # plugin source (installed to the use
 ├── .claude-plugin/
 │   ├── plugin.json                     # product version, description, keywords
 │   └── marketplace.json                # same-repo marketplace definition
-├── skills/                             # Layer 2 (16 skills)
+├── skills/                             # Layer 2 (19 skills)
 ├── agents/                             # Layer 3 (5 agents)
 ├── hooks/
 │   └── hooks.json                      # Layer 4 hook wiring

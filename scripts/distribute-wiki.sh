@@ -26,7 +26,7 @@
 #   0 — output produced.
 #   1 — usage error or vault not found.
 
-set -uo pipefail
+set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
@@ -104,7 +104,9 @@ strip_frontmatter() {
 if [ "$TREE" -eq 1 ]; then
   # ── Mirror-tree mode ────────────────────────────────────────────────────
   DIST="$VAULT/output/wiki"
-  [ "$CLEAN" -eq 1 ] && [ -d "$DIST" ] && rm -rf "$DIST"
+  if [ "$CLEAN" -eq 1 ] && [ -d "$DIST" ]; then
+    rm -rf "$DIST"
+  fi
   mkdir -p "$DIST"
 
   COUNT=0
@@ -123,27 +125,29 @@ fi
 # ── Default: single-file mode ──────────────────────────────────────────────
 OUT="$VAULT/output/wiki.md"
 mkdir -p "$(dirname "$OUT")"
-[ "$CLEAN" -eq 1 ] && [ -f "$OUT" ] && rm -f "$OUT"
+if [ "$CLEAN" -eq 1 ] && [ -f "$OUT" ]; then
+  rm -f "$OUT"
+fi
 
 # Section order: index.md, log.md, topic folders (sorted) with _index.md
 # first then children (sorted), then _sources/, then _synthesis/.
 collect_paths() {
   local top="$WIKI"
   # Always-first files.
-  [ -f "$top/index.md" ] && printf '%s\n' "$top/index.md"
-  [ -f "$top/log.md" ] && printf '%s\n' "$top/log.md"
+  [ -f "$top/index.md" ] && printf '%s\n' "$top/index.md" || true
+  [ -f "$top/log.md" ] && printf '%s\n' "$top/log.md" || true
   # Topic folders (excluding _sources, _synthesis, and any dotfile/meta).
   local dir
   while IFS= read -r dir; do
     local name
     name="$(basename "$dir")"
     case "$name" in _sources | _synthesis | _*) continue ;; esac
-    [ -f "$dir/_index.md" ] && printf '%s\n' "$dir/_index.md"
+    [ -f "$dir/_index.md" ] && printf '%s\n' "$dir/_index.md" || true
     find "$dir" -type f -name '*.md' ! -name '_index.md' 2>/dev/null | sort
   done < <(find "$top" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
   # Meta folders last.
-  [ -d "$top/_sources" ] && find "$top/_sources" -type f -name '*.md' 2>/dev/null | sort
-  [ -d "$top/_synthesis" ] && find "$top/_synthesis" -type f -name '*.md' 2>/dev/null | sort
+  [ -d "$top/_sources" ] && find "$top/_sources" -type f -name '*.md' 2>/dev/null | sort || true
+  [ -d "$top/_synthesis" ] && find "$top/_synthesis" -type f -name '*.md' 2>/dev/null | sort || true
 }
 
 {

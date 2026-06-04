@@ -1,6 +1,7 @@
 #!/bin/bash
 # PreToolUse: blocks writes to vault/wiki/_sources/ when source_format != text
 # but attachment_path is missing or the referenced file does not exist.
+set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
@@ -46,20 +47,20 @@ else
   exit 0
 fi
 
-[ -z "$CONTENT" ] && exit 0
+[ -z "$CONTENT" ] && exit 0 || true
 
 # Extract frontmatter (between first pair of ---)
 FRONTMATTER=$(echo "$CONTENT" | awk 'NR==1 && /^---$/{n++; next} /^---$/{exit} n{print}')
-[ -z "$FRONTMATTER" ] && exit 0
+[ -z "$FRONTMATTER" ] && exit 0 || true
 
-SOURCE_FORMAT=$(echo "$FRONTMATTER" | grep '^source_format:' | sed 's/^source_format: *//' | tr -d '"'"'" | xargs)
+SOURCE_FORMAT=$(echo "$FRONTMATTER" | grep '^source_format:' | sed 's/^source_format: *//' | tr -d '"'"'" | xargs || true)
 
 # Default is text — nothing to enforce.
 if [ -z "$SOURCE_FORMAT" ] || [ "$SOURCE_FORMAT" = "text" ]; then
   exit 0
 fi
 
-ATTACHMENT_PATH=$(echo "$FRONTMATTER" | grep '^attachment_path:' | sed 's/^attachment_path: *//' | tr -d '"'"'" | xargs)
+ATTACHMENT_PATH=$(echo "$FRONTMATTER" | grep '^attachment_path:' | sed 's/^attachment_path: *//' | tr -d '"'"'" | xargs || true)
 
 if [ -z "$ATTACHMENT_PATH" ]; then
   echo "{\"decision\":\"block\",\"reason\":\"source note has source_format: ${SOURCE_FORMAT} but no attachment_path. Add attachment_path pointing to the file under raw/assets/.\"}"

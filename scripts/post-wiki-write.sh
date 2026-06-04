@@ -2,6 +2,7 @@
 # PostToolUse: after writing a wiki file, check if index.md and _index.md need updating
 # Vault resolved via CLAUDE_WIKI_PAGES_VAULT, auto-detection, or default (docs/vault)
 # Outputs a reminder to stdout which Claude sees as hook feedback
+set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
@@ -41,7 +42,7 @@ esac
 
 # Check if the title appears in index.md
 # For Write: extract from content. For Edit: read from the file on disk.
-TITLE=$(echo "$INPUT" | jq -r '.tool_input.content // empty' | grep '^title:' | head -1 | sed 's/^title: *//' | tr -d '"'"'")
+TITLE=$(echo "$INPUT" | jq -r '.tool_input.content // empty' | grep '^title:' | head -1 | sed 's/^title: *//' | tr -d '"'"'") || true
 if [ -z "$TITLE" ] && [ -f "$FILE_PATH" ]; then
   TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$FILE_PATH")
 fi

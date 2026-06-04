@@ -24,7 +24,7 @@ This tree is the plugin source — contributor view. Users never see it. On inst
 | Layer                   | Directory                                | Responsibility                                                                                                                                                                                | Spec §         |
 | ----------------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
 | Layer 1 — Data          | `docs/vault-example/`                         | Immutable `raw/`, LLM-maintained `wiki/`, schema in `docs/vault-example/CLAUDE.md`. Passive.                                                                                                       | §4, §6, §7, §8 |
-| Layer 2 — Skills        | `skills/`                                | 16 single-responsibility capabilities: 9 plugin-authored short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`), `onboarding`, 2 agent-teaching skills (`engine-api`, `maintain-contract`), `obsidian-graph-colors`, plus 3 MIT-licensed `obsidian-*` reference skills (`kepano/obsidian-skills`). | §5, §9         |
+| Layer 2 — Skills        | `skills/`                                | 19 single-responsibility capabilities: 9 plugin-authored short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`), `onboarding`, 5 agent-teaching skills (`engine-api`, `maintain-contract`, `analyst-modes`, `curator-fixes`, `ingest-pipeline`), `obsidian-graph-colors`, plus 3 MIT-licensed `obsidian-*` reference skills (`kepano/obsidian-skills`). | §5, §9         |
 | Layer 3 — Agents        | `agents/`                                | 6 multi-step executors: `claude-wiki-pages-orchestrator-agent` (top-level entry), `claude-wiki-pages-onboarding-agent`, `claude-wiki-pages-ingest-agent`, `claude-wiki-pages-curator-agent`, `claude-wiki-pages-analyst-agent`, `claude-wiki-pages-polish-agent`. | §5, §11        |
 | Layer 4 — Orchestration | `commands/`, `hooks/hooks.json`, `scripts/`, `rules/` | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:onboarding`, and `/claude-wiki-pages:doctor` slash commands; `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop` hooks; script implementations; path-scoped rules. | §5, §9, §10  |
 
@@ -41,11 +41,11 @@ Long-form model: [`docs/architecture.md`](./docs/architecture.md).
 | Security          | `docs/security.md` (threat model with per-threat test mapping); spec §15; Tier 4 CI at `.github/workflows/adversarial.yml` (corpus replay stubbed) |
 | Tests (Tier 0–4)  | `tests/README.md`; spec §14; hook tests in `tests/scripts/*.bats`                                                                                  |
 
-If an edit introduces a new concept, add the term to `docs/GLOSSARY.md` with a rationale first.
+If an edit introduces a new concept, add the term to `docs/GLOSSARY.md` with a rationale first — enforced by `scripts/validate-docs.sh` (the glossary gate, run in CI Tier 0).
 
 ## Local workflows
 
 - `bash tests/install-deps.sh` — install every dev/test tool (brew on macOS, apt on Linux). Idempotent. `--check` reports status, `--dry-run` previews.
 - `bash tests/run-tests.sh` — run Tier 0 + Tier 1 locally. Also accepts `tier0`, `tier1`, `tier2`, or `all`; `--list` prints the commands without running.
-- `scripts/validate-docs.sh` — glossary gate. Run before every commit.
+- `scripts/validate-docs.sh` — glossary gate, enforced in CI Tier 0. Run it locally before committing to catch violations early.
 - `scripts/verify-ingest.sh docs/vault-example/` — verify the reference vault against the schema.
