@@ -127,6 +127,130 @@ MD
   assert_output_empty
 }
 
+@test "validate-frontmatter: allows schema-v2 topic page" {
+  local content
+  content=$(cat <<'MD'
+---
+title: "Retrieval"
+type: topic
+aliases: ["Retrieval"]
+parent: "[[Topics — Index]]"
+path: "topics"
+summary: "How agents fetch grounded context."
+key_pages: []
+sources: ["[[Sample]]"]
+related: []
+created: 2026-06-02
+updated: 2026-06-02
+status: active
+confidence: 0.8
+---
+
+# Retrieval
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/topics/retrieval.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_empty
+}
+
+@test "validate-frontmatter: blocks topic missing summary" {
+  local content
+  content=$(cat <<'MD'
+---
+title: "No Summary"
+type: topic
+parent: "[[Topics — Index]]"
+path: "topics"
+sources: ["[[Sample]]"]
+created: 2026-06-02
+updated: 2026-06-02
+status: active
+confidence: 0.8
+---
+
+# No Summary
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/topics/no-summary.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "summary"
+}
+
+@test "validate-frontmatter: allows schema-v2 project page" {
+  local content
+  content=$(cat <<'MD'
+---
+title: "Vault Rollout"
+type: project
+aliases: ["Vault Rollout"]
+parent: "[[Topics — Index]]"
+path: "topics"
+objective: "Ship the v2 schema."
+project_status: active
+members: []
+sources: ["[[Sample]]"]
+created: 2026-06-02
+updated: 2026-06-02
+status: active
+confidence: 0.8
+---
+
+# Vault Rollout
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/topics/vault-rollout.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_empty
+}
+
+@test "validate-frontmatter: allows schema-v2 manifest page" {
+  local content
+  content=$(cat <<'MD'
+---
+title: "Source Manifest"
+type: manifest
+created: 2026-06-02
+updated: 2026-06-02
+---
+
+# Source Manifest
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/_sources/manifest.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_empty
+}
+
 @test "validate-frontmatter: blocks path mismatch on entity" {
   # Declared path is wrong-folder but actual file is under topics/
   local content

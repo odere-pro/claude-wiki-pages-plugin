@@ -1,12 +1,12 @@
 ---
-description: "Template schema rules — 6 note-type skeletons that must match vault/CLAUDE.md exactly"
+description: "Template schema rules — note-type skeletons that must match vault/CLAUDE.md exactly"
 paths:
   - "vault/_templates/**"
 ---
 
 # Template rules
 
-Templates in `vault/_templates/` define the YAML frontmatter skeleton for each wiki page type. There are 5 templates: `source.md`, `entity.md`, `concept.md`, `synthesis.md`, `index.md`. The 6th type (`log`) has no template — it is used only for `wiki/log.md` with minimal frontmatter (`title`, `type`, `created`, `updated`). Files in `vault/output/` are plain markdown and have no template.
+Templates in `vault/_templates/` define the YAML frontmatter skeleton for each wiki page type. There are 7 templates: `source.md`, `entity.md`, `concept.md`, `topic.md`, `project.md`, `synthesis.md`, `index.md`. Two types have no template — `log` (used only for `wiki/log.md`) and `manifest` (used only for `wiki/_sources/manifest.md`), both with minimal frontmatter (`title`, `type`, `created`, `updated`). Files in `vault/output/` are plain markdown and have no template. (`topic`, `project`, and `manifest` were added in schema_version 2.)
 
 - Template fields must match the schema in `vault/CLAUDE.md` exactly.
 - Use `{{placeholder}}` syntax for values that get filled during note creation.

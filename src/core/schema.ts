@@ -4,7 +4,10 @@ import { join } from "node:path";
 import { readFileSafe, existsSync } from "./fs.ts";
 import type { Finding } from "./report.ts";
 
-export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1];
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2];
+
+/** The version `migrate` upgrades a vault to, and the version new vaults declare. */
+export const CURRENT_SCHEMA_VERSION = 2;
 
 /** Extract the first declared schema_version, tolerating backtick-wrapped forms. */
 export function declaredSchemaVersion(vaultClaudeMd: string): number | null {
@@ -33,7 +36,7 @@ export function checkSchema(vault: string): Finding[] {
       {
         severity: "error",
         check: "schema",
-        message: `${claudeMd} declares no schema_version. Add \`schema_version: 1\` near the top.`,
+        message: `${claudeMd} declares no schema_version. Add \`schema_version: ${CURRENT_SCHEMA_VERSION}\` near the top.`,
         file: claudeMd,
       },
     ];

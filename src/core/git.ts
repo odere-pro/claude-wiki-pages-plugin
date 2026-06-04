@@ -35,7 +35,9 @@ function isExecError(error: unknown): error is { stdout?: unknown } {
 /**
  * Per-invocation commit identity. Passed as `-c` overrides so commits succeed
  * even where git's user.name/user.email are unset (e.g. CI runners), without
- * mutating global config. GPG signing is disabled for the same reason.
+ * mutating global config. GPG signing is disabled too: these are internal
+ * bookkeeping commits (never user-attributed), and a user with
+ * commit.gpgsign=true would otherwise hang the engine on a passphrase prompt.
  */
 const COMMIT_IDENTITY: readonly string[] = [
   "-c",
@@ -108,6 +110,22 @@ export function checkpoint(
     "-m",
     `checkpoint: claude-wiki-pages pre-heal ${isoTime} ${opId}`,
   ]);
+  return head(dir);
+}
+
+/**
+ * Push to the configured upstream. Best-effort and opt-in: returns ok:false
+ * (never throws) when there is no upstream or the push fails, so an engine op is
+ * never blocked by a push problem. Callers gate this on `gitCheckpoint.push`.
+ */
+export function push(dir: string): GitResult {
+  return git(dir, ["push"]);
+}
+
+/** Commit the current state with an arbitrary message. Returns the commit SHA. */
+export function commit(dir: string, message: string): string | null {
+  git(dir, ["add", "-A"]);
+  git(dir, [...COMMIT_IDENTITY, "commit", "--no-verify", "--allow-empty", "-m", message]);
   return head(dir);
 }
 

@@ -50,10 +50,16 @@ Formal contracts. Defined in `docs/vault-example/CLAUDE.md`; enforced by `valida
 | Term           | Description                                                                                                                                                                                              |
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | schema         | The rules that define a valid vault. Lives in `vault/CLAUDE.md`. Skill defaults defer to it.                                                                                                             |
-| schema version | Integer version of the schema. Frontmatter field `schema_version`. Current: 1. Mismatch blocks `verify-ingest.sh`.                                                                                       |
+| schema version | Integer version of the schema. Frontmatter field `schema_version`. Current: 2 (v1 still supported). Mismatch blocks `verify-ingest.sh`. Upgrade in place with `migrate`.                                  |
+| migrate        | The engine command that upgrades a vault's `schema_version` in place (v1 → v2). Additive, idempotent, git-checkpointed. `bash scripts/engine.sh migrate [--write]`. See `docs/migration-2.0.md`.         |
 | frontmatter    | YAML block between `---` fences at the top of every wiki page.                                                                                                                                           |
-| type           | Frontmatter field naming a page's category. One of `source`, `entity`, `concept`, `synthesis`, `index`, `log`. The primary filter.                                                                       |
+| type           | Frontmatter field naming a page's category. One of `source`, `entity`, `concept`, `synthesis`, `index`, `log` (v1); v2 adds `topic`, `project`, `manifest`. The primary filter.                          |
 | sources        | Frontmatter field listing a page's citations. Required on every non-source page. List of `[[wikilinks]]` into the sources folder (`_sources/`). Plain strings are a lint error.                          |
+| topic page     | A page with `type: topic` (schema v2): a narrative landing page for a topic, distinct from the folder's `_index.md` Map of Content.                                                                       |
+| project page   | A page with `type: project` (schema v2): a goal/initiative with a `project_status` lifecycle that aggregates related pages.                                                                               |
+| source manifest | The page at `wiki/_sources/manifest.md` with `type: manifest` (schema v2). Tracks each raw source's processed state and content checksum. Bookkeeping — exempt from the `sources` and index checks.      |
+| claim-level provenance | The optional `source_quotes` field (schema v2): pins individual claims to the verbatim source sentence behind them, complementing page-level `sources`.                                            |
+| derived claim  | A page (or claim) marked `derived: true` (schema v2): LLM inference synthesised across sources rather than stated in one. Carries less direct evidentiary weight; keep `confidence` < 0.8 unless multi-source. |
 | vault          | The user's knowledge directory. Holds raw content, wiki, and the vault schema. On disk: project root.                                                                                                    |
 | example vault  | The populated reference vault in this repo, at `docs/vault-example/`. The wizard copies it into the user's project.                                                                                           |
 | raw content    | Immutable source material. On disk: `raw/`. Writes blocked by `protect-raw.sh`.                                                                                                                          |
@@ -74,8 +80,8 @@ The plugin's structure. Contracts in `/SPEC.md`.
 | claude-wiki-pages          | The plugin identifier. Lowercase, hyphenated. Used in headings and slash-command namespaces.   |
 | four-layer stack        | The architecture. Four layers, each catching a different class of failure.                     |
 | Layer 1 — Data          | The vault: raw content, wiki, vault schema. Passive — holds the material.                      |
-| Layer 2 — Skills        | Single-responsibility slash commands. Nineteen ship (9 verbs + onboarding + 5 agent-teaching + obsidian-graph-colors + 3 third-party obsidian-*). |
-| Layer 3 — Agents        | Multi-step executors composing skills. Six ship: orchestrator, onboarding, ingest, curator, analyst, polish. |
+| Layer 2 — Skills        | Single-responsibility slash commands. Twenty-three ship (12 verbs + onboarding + 5 agent-teaching + obsidian-graph-colors + obsidian-vault + 3 third-party obsidian-*). |
+| Layer 3 — Agents        | Multi-step executors composing skills. Seven ship: orchestrator, onboarding, ingest, curator, analyst, polish, maintenance. |
 | Layer 4 — Orchestration | Hooks, scripts, rules. Enforce the schema at every tool call.                                  |
 | skill                   | A capability under `skills/`. Entry point is `/claude-wiki-pages:<name>`.                         |
 | agent                   | A multi-step executor under `agents/`. Chains skills; owns completion gates.                   |
@@ -89,6 +95,16 @@ The plugin's structure. Contracts in `/SPEC.md`.
 | doctor                  | The environment health check (`/claude-wiki-pages:doctor`, `scripts/doctor.sh`). Read-only by contract; exit codes 0–5. |
 | pipeline                | Shorthand for the `claude-wiki-pages-ingest-agent`. (Was `llm-wiki-ingest-pipeline` before `0.2.0`.)                          |
 | provenance              | The traceable chain from a wiki page's `sources` through `_sources/` to raw content.           |
+| firewall                | Vault isolation: the PreToolUse boundary (`scripts/firewall.sh` + the engine `firewall` command) that confines agent writes to the resolved vault plus `allowPaths`, minus `denyPaths`. Modes: `enforce`/`warn`/`off`. |
+| allow-list              | `firewall.allowPaths` — extra write roots permitted beyond the resolved vault. The resolved vault is always implicitly allowed; `denyPaths` globs override both. |
+| backlog                 | Outstanding maintenance: raw sources with no `_sources/` summary (pending) plus an overdue lint. Reported deterministically by the engine `backlog` command. |
+| heartbeat               | `scripts/heartbeat.sh` — surfaces a one-line catch-up recommendation at SessionStart when `maintenance.enabled` and a backlog exists. Recommends only; never mutates the vault. |
+| catch-up                | Acting on a backlog: the ingest → curator → polish → lint loop that clears pending sources and refreshes lint. |
+| maintenance             | Autonomous upkeep: the `maintenance` config block + `claude-wiki-pages-maintenance-agent` that runs the catch-up loop in one pass. Off by default. |
+| proposed draft          | A page under `vault/_proposed/` with `status: draft` and `proposed_by`. Mirrors its eventual `wiki/` path; outside every wiki-scoped check until promoted. |
+| review                  | The promote/reject gate (`/claude-wiki-pages:review` + engine `propose`). The only sanctioned path from a draft to the wiki; runs under a git checkpoint. |
+| local model             | Optional Ollama/LM Studio drafting into `_proposed/` (`/claude-wiki-pages:draft`, `localModel` config). Off by default — Claude Code stays primary. |
+| layer coloring          | An optional graph-color pass (raw→green, wiki→blue, schema→orange) layered after per-topic colors, so the three-layer structure is visible at a glance. Applied by the polish agent via `obsidian-graph-colors`. |
 
 ### Skill and agent naming
 
@@ -136,10 +152,14 @@ Canonical names for the plugin's single-responsibility capabilities. Every entry
 | synthesize   | Writes a cross-topic synthesis note under `wiki/_synthesis/`.                                                                    |
 | index        | Generates or refreshes the vault MOC at `wiki/index.md`.                                                                         |
 | markdown     | Renders a query answer as portable markdown under `vault/output/`. Strips Obsidian-only syntax so the file is usable elsewhere.  |
+| search       | Deterministic keyword retrieval over `wiki/`: ranks pages (title/alias > tag > body) and returns `[[wikilink]]`-ready hits. A candidate set, not a cited answer. Backed by the engine `search` command.  |
 | onboarding   | Guided first-run flow (new in `1.0.0`): health → scaffold → add source → ingest → first cited answer. Idempotent; resumes in place. |
 | engine-api   | Agent-teaching skill (new in `1.0.0`): the LLM-facing contract for the Bun engine — subcommands, `--json` shapes, exit codes.    |
 | maintain-contract | Agent-teaching skill (new in `1.0.0`): the safe ingest/retrieve/maintain ordering (ground → judge → verify) for any agent.   |
-| obsidian-graph-colors | Applies per-topic colors to Obsidian's graph view. Plugin-authored.                                                              |
+| review       | Promote/reject drafted pages under `_proposed/` (the human-in-the-loop gate). Backed by the engine `propose` command. |
+| draft        | Local-model (Ollama/LM Studio) drafting into `_proposed/`. Off unless `localModel.enabled`. Plugin-authored.                     |
+| obsidian-graph-colors | Applies per-topic and layer colors to Obsidian's graph view. Plugin-authored.                                                    |
+| obsidian-vault        | Guard skill: scope every Obsidian CLI call to the resolved vault. Plugin-authored; complements the firewall hook.                |
 | obsidian-markdown     | Obsidian-flavored markdown reference. MIT, kepano/obsidian-skills.                                                               |
 | obsidian-bases        | Obsidian Bases (database) reference. MIT, kepano/obsidian-skills.                                                                |
 | obsidian-cli          | Obsidian CLI reference. MIT, kepano/obsidian-skills.                                                                             |
@@ -167,6 +187,7 @@ Lowercase in body prose; capitalize at the start of a heading. Each logs an entr
 | power-user surface       | The individual skills users reach for when they want tighter scope than the pipeline.                |
 | post-install perspective | The voice user guides are written in. Assume `/plugin install`, not `git clone`.                     |
 | marketplace              | Same-repo marketplace: `.claude-plugin/marketplace.json` points at `.`; the repo is the marketplace. |
+| GraphRAG                 | Graph-aware retrieval: expand a `search` hit along the wikilink graph (`sources`, `related`, `depends_on`) to its N-hop neighbourhood. Documented direction for a future `search --graph`; traversal over the existing graph, not a new index. |
 
 ### Authoritative files
 
