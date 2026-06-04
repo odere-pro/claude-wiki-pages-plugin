@@ -32,6 +32,20 @@ function isExecError(error: unknown): error is { stdout?: unknown } {
   return typeof error === "object" && error !== null && "stdout" in error;
 }
 
+/**
+ * Per-invocation commit identity. Passed as `-c` overrides so commits succeed
+ * even where git's user.name/user.email are unset (e.g. CI runners), without
+ * mutating global config. GPG signing is disabled for the same reason.
+ */
+const COMMIT_IDENTITY: readonly string[] = [
+  "-c",
+  "user.name=claude-wiki-pages",
+  "-c",
+  "user.email=claude-wiki-pages@users.noreply.github.com",
+  "-c",
+  "commit.gpgsign=false",
+];
+
 /** True when `dir` is inside a git work tree. */
 export function isRepo(dir: string): boolean {
   return git(dir, ["rev-parse", "--is-inside-work-tree"]).stdout === "true";
@@ -47,7 +61,13 @@ export function ensureRepo(dir: string): void {
   if (isRepo(dir)) return;
   git(dir, ["init"]);
   git(dir, ["add", "-A"]);
-  git(dir, ["commit", "--no-verify", "-m", "chore(claude-wiki-pages): initial vault commit"]);
+  git(dir, [
+    ...COMMIT_IDENTITY,
+    "commit",
+    "--no-verify",
+    "-m",
+    "chore(claude-wiki-pages): initial vault commit",
+  ]);
 }
 
 /** The current HEAD short SHA, or null when unavailable. */
@@ -81,6 +101,7 @@ export function checkpoint(
   if (branch) git(dir, ["branch", `cwp/checkpoint/${opId}`]);
   git(dir, ["add", "-A"]);
   git(dir, [
+    ...COMMIT_IDENTITY,
     "commit",
     "--no-verify",
     "--allow-empty",
@@ -94,6 +115,7 @@ export function checkpoint(
 export function commitHeal(dir: string, opId: string, iterations: number): string | null {
   git(dir, ["add", "-A"]);
   git(dir, [
+    ...COMMIT_IDENTITY,
     "commit",
     "--no-verify",
     "--allow-empty",
