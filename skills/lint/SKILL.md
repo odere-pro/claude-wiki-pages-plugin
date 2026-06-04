@@ -79,6 +79,36 @@ verify, the rule is out of scope for lint and belongs in fix.
   more pages but has no dedicated page of its own.
 - **Low confidence.** `confidence < 0.5` on any page.
 
+### Staleness rules — detailed
+
+Two distinct staleness mechanisms exist; do not conflate them:
+
+**S4 — source-relative staleness (WARN, `scripts/verify-ingest.sh` CHECK 4).**
+For each wiki page with a `sources:` list, resolve every `[[wikilink]]` to its
+corresponding file in `wiki/_sources/`. Find the newest date on that source
+file (field priority: `updated:` → `date_ingested:` → `date_published:`). If
+that date is strictly greater than the wiki page's own `updated:` field, emit a
+WARN-level `stale-source` finding. Rationale: a cited source moved on (was
+updated after ingest) but the wiki page did not follow — the page may contain
+claims the source has since superseded.
+
+- The comparison is **source-relative**, not calendar-relative — no fixed
+  30-day window applies here.
+- Detection only: the check emits a WARN and may recommend `status: stale`, but
+  does **not** auto-rewrite `status`. Mutation is the curator/`fix` path.
+- A `[[wikilink]]` in `sources:` that cannot be resolved to any file in
+  `_sources/` (by `title:` or `aliases:` match) is reported as a separate
+  `dangling-source` WARN. A dangling link is never silently treated as fresh.
+- The check is deterministic: same vault + same dates → identical findings.
+- Implemented in `scripts/verify-ingest.sh` (CHECK 4, `_fm_field`,
+  `_resolve_source_wikilink`, `_source_best_date` helpers). Covered by
+  `tests/scripts/verify-ingest.bats` (S4 cases).
+
+**30-day calendar staleness (Info, `skills/lint/SKILL.md` "Stale pages" rule).**
+A wiki page that has not had its `updated:` field advanced in 30 or more days
+despite newer related sources appearing in `raw/` is a calendar-relative Info
+finding. This is a separate, independent mechanism from S4.
+
 ## Workflow
 
 1. Read the schema.

@@ -344,6 +344,153 @@ while IFS= read -r dir; do
 done < <(find "$WIKI" -mindepth 1 -maxdepth 1 -type d | sort)
 
 # ──────────────────────────────────────────────
+# CHECK 4: S4-derivation — staleness from updated vs newest cited-source date
+#
+# For each wiki page (excluding bookkeeping) that carries a sources: list,
+# resolve each [[wikilink]] to the matching file in wiki/_sources/ (by title:
+# or aliases: match). Find the newest date on the cited source (updated: first,
+# then date_ingested:, then date_published:). If that source date is strictly
+# newer than the wiki page's own updated:, emit a WARN-level "stale-source"
+# finding. An unresolvable wikilink emits a separate "dangling-source" WARN and
+# is NOT counted as fresh (source-relative, not calendar-relative; no auto-
+# mutation of status:).
+# ──────────────────────────────────────────────
+header "Cited-source staleness (S4)"
+
+# Helper: extract the first occurrence of a scalar frontmatter field.
+# Usage: _fm_field <file> <field-name>
+# Returns the trimmed value or empty string.
+# `grep -m1` avoids piping into `head` (which would SIGPIPE grep under
+# `set -o pipefail`); the trailing `|| true` absorbs grep's exit-1 on no match
+# so a missing field yields "" instead of killing the script under `set -e`.
+_fm_field() {
+  local file="$1" field="$2"
+  local line
+  line=$(sed -n '/^---$/,/^---$/p' "$file" | grep -m1 -E "^${field}:[[:space:]]" || true)
+  [ -z "$line" ] && return 0
+  printf '%s' "$line" | sed "s/^${field}:[[:space:]]*//" | tr -d "\"'"
+}
+
+# Helper: given a wikilink target name (without [[ ]]), find the source file in
+# _sources/ whose title: or aliases: contains that name.
+# Prints the absolute filepath or nothing.
+_resolve_source_wikilink() {
+  local target="$1"
+  local sources_dir="$2"
+  [ -d "$sources_dir" ] || return 0
+  while IFS= read -r candidate; do
+    # Match against title:
+    local title
+    title=$(_fm_field "$candidate" "title")
+    if [ "$title" = "$target" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+    # Match against aliases: (inline list, e.g. aliases: ["Foo", "foo"])
+    local aliases_line
+    aliases_line=$(sed -n '/^---$/,/^---$/p' "$candidate" |
+      grep -m1 -E "^aliases:" || true)
+    if [ -n "$aliases_line" ] && echo "$aliases_line" | grep -qF "\"${target}\""; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done < <(find "$sources_dir" -name '*.md' -not -name '.gitkeep' -type f | sort)
+  # Not found
+  return 0
+}
+
+# Helper: return the best available date from a source file (YYYY-MM-DD string).
+# Priority: updated: > date_ingested: > date_published:
+_source_best_date() {
+  local file="$1"
+  local d
+  d=$(_fm_field "$file" "updated")
+  [ -n "$d" ] && printf '%s\n' "$d" && return
+  d=$(_fm_field "$file" "date_ingested")
+  [ -n "$d" ] && printf '%s\n' "$d" && return
+  d=$(_fm_field "$file" "date_published")
+  [ -n "$d" ] && printf '%s\n' "$d" && return
+  printf ''
+}
+
+STALE_SOURCE_FOUND=0
+
+while IFS= read -r filepath; do
+  BASENAME=$(basename "$filepath" .md)
+  # Skip bookkeeping files; _sources/ pages are the targets, not the checkers.
+  case "$BASENAME" in
+    index | log | dashboard | manifest | _index | .gitkeep) continue ;;
+  esac
+  # Skip the _sources/ directory itself and _synthesis/.
+  case "$filepath" in
+    */_sources/*) continue ;;
+    */_synthesis/*) continue ;;
+  esac
+
+  # Extract the wiki page's own updated: date.
+  PAGE_UPDATED=$(_fm_field "$filepath" "updated")
+  [ -z "$PAGE_UPDATED" ] && continue # no updated: field — skip staleness check
+
+  # Extract sources: wikilink entries from frontmatter.
+  PAGE_SOURCES=$(sed -n '/^---$/,/^---$/p' "$filepath" | awk '
+    /^sources:/ {
+      if ($0 ~ /\[/) {
+        line = $0
+        sub(/^sources:[[:space:]]*\[/, "", line)
+        sub(/\][[:space:]]*$/, "", line)
+        n = split(line, items, ",")
+        for (i = 1; i <= n; i++) {
+          gsub(/^[[:space:]"'\'']+|[[:space:]"'\'']+$/, "", items[i])
+          if (items[i] != "") print items[i]
+        }
+        next
+      }
+      while ((getline line) > 0) {
+        if (line !~ /^[[:space:]]*-/) break
+        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
+        gsub(/"?[[:space:]]*$/, "", line)
+        if (line != "") print line
+      }
+    }
+  ')
+  [ -z "$PAGE_SOURCES" ] && continue
+
+  while IFS= read -r entry; do
+    [ -z "$entry" ] && continue
+    # Only process [[wikilink]] entries (plain-string check is CHECK 2).
+    if echo "$entry" | grep -qE '^\[\[.+\]\]$'; then
+      # Strip [[ and ]] to get target name; also strip alias suffix after |.
+      TARGET=$(echo "$entry" | sed 's/^\[\[//' | sed 's/\]\]$//' | cut -d'|' -f1)
+      # Resolve to a file in _sources/.
+      SOURCE_FILE=$(_resolve_source_wikilink "$TARGET" "$WIKI/_sources")
+      if [ -z "$SOURCE_FILE" ]; then
+        yellow "dangling-source: \"${TARGET}\" cited by $(basename "$filepath") could not be resolved in _sources/"
+        WARNINGS=$((WARNINGS + 1))
+        STALE_SOURCE_FOUND=$((STALE_SOURCE_FOUND + 1))
+        continue
+      fi
+      SOURCE_DATE=$(_source_best_date "$SOURCE_FILE")
+      if [ -z "$SOURCE_DATE" ]; then
+        continue # source has no date field — cannot evaluate staleness
+      fi
+      # Compare YYYY-MM-DD strings lexicographically (valid for ISO dates).
+      # Stale when source_date is strictly greater than page_updated.
+      if [[ "$SOURCE_DATE" > "$PAGE_UPDATED" ]]; then
+        PAGE_TITLE=$(_fm_field "$filepath" "title")
+        [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
+        yellow "stale-source: \"${PAGE_TITLE}\" ($(basename "$filepath")) updated ${PAGE_UPDATED} but cited source \"${TARGET}\" has date ${SOURCE_DATE}"
+        WARNINGS=$((WARNINGS + 1))
+        STALE_SOURCE_FOUND=$((STALE_SOURCE_FOUND + 1))
+      fi
+    fi
+  done <<<"$PAGE_SOURCES"
+done < <(find "$WIKI" -name '*.md' -type f | sort)
+
+if [ "$STALE_SOURCE_FOUND" -eq 0 ]; then
+  green "All cited sources are current (no staleness findings)"
+fi
+
+# ──────────────────────────────────────────────
 # SUMMARY
 # ──────────────────────────────────────────────
 header "Summary"

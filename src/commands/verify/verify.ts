@@ -1,7 +1,7 @@
 /**
  * `verify` — deterministic vault integrity check.
  *
- * Composes the ported CHECK 0–3 from scripts/verify-ingest.sh into one Report.
+ * Composes the ported CHECK 0–4 from scripts/verify-ingest.sh into one Report.
  * The parity gate asserts this yields the same error/warn set as the bash
  * script on the shared fixtures, so the command contract (docs/architecture.md) keeps holding under the port.
  */
@@ -12,6 +12,7 @@ import { buildReport, type Report } from "../../core/report.ts";
 import { checkSchema } from "../../core/schema.ts";
 import { checkIndex, checkSourcesFormat } from "../../core/index-check.ts";
 import { checkIndexConsistency, checkOrphanSources, checkTopicFolders } from "../../core/moc.ts";
+import { checkCitedSourceStaleness } from "../../core/staleness.ts";
 import { resolveVault } from "../../core/vault.ts";
 
 export interface VerifyOptions {
@@ -42,6 +43,7 @@ export function verify(opts: VerifyOptions = {}): Report {
     ...checkIndexConsistency(wiki),
     ...checkOrphanSources(wiki),
     ...checkTopicFolders(wiki),
+    ...checkCitedSourceStaleness(wiki),
   ];
 
   return buildReport("verify", vault, findings);

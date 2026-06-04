@@ -141,3 +141,54 @@ MD
   assert_output_contains "not found"
   assert_output_contains "/nonexistent/vault/does-not-exist"
 }
+
+# ──────────────────────────────────────────────────────────────────────────────
+# S4-derivation: staleness from updated vs newest cited-source date (CHECK 4)
+# ──────────────────────────────────────────────────────────────────────────────
+
+@test "verify-ingest S4: warns when wiki page predates a cited source" {
+  # Give the source a newer updated: date than the wiki page that cites it.
+  # sample-entity.md has updated: 2026-04-18; set sample.md updated: 2026-05-01.
+  local source_file="$FIXTURE_VAULT/wiki/_sources/sample.md"
+  sed -i.bak 's/^updated: 2026-04-18/updated: 2026-05-01/' "$source_file"
+  rm -f "${source_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # WARN-level: exit 0 (no errors), but warning text present.
+  assert_success
+  assert_output_contains "stale-source"
+  assert_output_contains "Sample Entity"
+}
+
+@test "verify-ingest S4: clean when wiki page is newer than all cited sources" {
+  # sample-entity.md updated: 2026-04-18, sample.md updated: 2026-04-18 — same
+  # date is not stale (not strictly newer). Set wiki page to be clearly newer.
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  sed -i.bak 's/^updated: 2026-04-18/updated: 2026-06-01/' "$entity_file"
+  rm -f "${entity_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  refute_output_contains "stale-source"
+}
+
+@test "verify-ingest S4: dangling cited source is labelled, not treated as fresh" {
+  # Replace the sources entry in sample-entity.md with a wikilink that does not
+  # resolve to any file in _sources/.
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  sed -i.bak 's|sources: \["\[\[Sample\]\]"\]|sources: ["[[Nonexistent Source]]"]|' "$entity_file"
+  rm -f "${entity_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # Must not crash (exit 0 or exit 1 for other errors, but the dangling-source
+  # condition itself is a WARN, not an error). The key requirement is that the
+  # dangling case is labelled and does NOT suppress a "stale-source" warning
+  # (i.e., it never silently counts as "fresh").
+  assert_output_contains "dangling-source"
+  assert_output_contains "Nonexistent Source"
+  # No crash: must have printed at least the Summary header.
+  assert_output_contains "Summary"
+}
