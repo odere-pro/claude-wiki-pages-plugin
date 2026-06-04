@@ -1,0 +1,1 @@
+Extract all entities of type `tool` as a table.
