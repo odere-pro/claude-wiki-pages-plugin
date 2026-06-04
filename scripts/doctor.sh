@@ -10,7 +10,7 @@
 #   4  hooks not executable (hooks/hooks.json references missing/non-+x scripts)
 #   5  validate-docs.sh fails (glossary drift in plugin prose)
 
-set -uo pipefail
+set -euo pipefail
 
 red() { printf '\033[0;31mFAIL[%s]:\033[0m %s — %s\n' "$1" "$2" "$3"; }
 green() { printf '\033[0;32mOK:\033[0m %s\n' "$1"; }
@@ -47,7 +47,7 @@ fi
 
 # Extract schema_version. Matches both `schema_version: 1` (frontmatter form)
 # and backticked body-text forms like the example vault uses.
-SCHEMA_VERSION="$(grep -oE '`?schema_version`?:[[:space:]]*`?[0-9]+`?' "$SCHEMA_FILE" | head -1 | grep -oE '[0-9]+')"
+SCHEMA_VERSION="$(grep -oE '`?schema_version`?:[[:space:]]*`?[0-9]+`?' "$SCHEMA_FILE" | head -1 | grep -oE '[0-9]+' || true)"
 if [ -z "$SCHEMA_VERSION" ]; then
   red 2 "schema" "schema_version missing in $SCHEMA_FILE"
   exit 2
@@ -97,7 +97,7 @@ if [ ! -r "$HOOKS_JSON" ]; then
 fi
 
 # Extract every script path referenced by hooks.json.
-HOOK_SCRIPTS="$(grep -oE 'scripts/[a-zA-Z0-9_-]+\.sh' "$HOOKS_JSON" | sort -u)"
+HOOK_SCRIPTS="$(grep -oE 'scripts/[a-zA-Z0-9_-]+\.sh' "$HOOKS_JSON" | sort -u || true)"
 HOOK_FAIL=0
 HOOK_FAIL_NAME=""
 for rel in $HOOK_SCRIPTS; do

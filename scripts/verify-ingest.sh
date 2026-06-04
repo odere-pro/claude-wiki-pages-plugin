@@ -3,6 +3,7 @@
 # Checks: duplicate index entries, sources field format, index consistency
 # Usage: scripts/verify-ingest.sh [--target <vault-path>]
 # Exit 0 = all clean, Exit 1 = issues found
+set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
@@ -43,7 +44,7 @@ header "Schema version"
 if [ -f "$VAULT_CLAUDE_MD" ]; then
   # Match both `schema_version: 1` and backtick forms like `schema_version: 1`.
   DECLARED=$(grep -oE '`?schema_version`?:[[:space:]]*`?[0-9]+`?' "$VAULT_CLAUDE_MD" | head -1 |
-    grep -oE '[0-9]+' | head -1)
+    grep -oE '[0-9]+' | head -1 || true)
   if [ -z "$DECLARED" ]; then
     red "$VAULT_CLAUDE_MD declares no schema_version. Add \`schema_version: 1\` near the top."
     ERRORS=$((ERRORS + 1))
@@ -78,7 +79,7 @@ if [ ! -f "$INDEX" ]; then
 else
   # Extract all [[Page Title]] wikilinks from the body (skip frontmatter)
   BODY=$(sed -n '/^---$/,/^---$/d; p' "$INDEX")
-  LINKS=$(echo "$BODY" | grep -oE '\[\[[^]|]+' | sed 's/\[\[//' | sort)
+  LINKS=$(echo "$BODY" | grep -oE '\[\[[^]|]+' | sed 's/\[\[//' | sort || true)
   DUPES=$(echo "$LINKS" | uniq -d)
 
   if [ -n "$DUPES" ]; then
@@ -88,7 +89,7 @@ else
       ERRORS=$((ERRORS + 1))
     done <<<"$DUPES"
   else
-    LINK_COUNT=$(echo "$LINKS" | grep -c .)
+    LINK_COUNT=$(echo "$LINKS" | grep -c . || true)
     green "No duplicates in index.md ($LINK_COUNT unique entries)"
   fi
 
@@ -166,7 +167,7 @@ while IFS= read -r filepath; do
 
   while IFS= read -r entry; do
     # Skip empty entries
-    [ -z "$entry" ] && continue
+    [ -z "$entry" ] && continue || true
     # Check for [[wikilink]] format
     if echo "$entry" | grep -qE '^\[\[.+\]\]$'; then
       SOURCES_OK=$((SOURCES_OK + 1))
@@ -256,13 +257,13 @@ while IFS= read -r index_file; do
   # Get actual subdirectories
   ACTUAL_SUBDIRS=""
   while IFS= read -r d; do
-    [ -z "$d" ] && continue
+    [ -z "$d" ] && continue || true
     ACTUAL_SUBDIRS="${ACTUAL_SUBDIRS}$(basename "$d")"$'\n'
   done < <(find "$FOLDER" -mindepth 1 -maxdepth 1 -type d | sort)
 
   # Check: pages in folder but missing from index children
   while IFS= read -r title; do
-    [ -z "$title" ] && continue
+    [ -z "$title" ] && continue || true
     if [ -n "$INDEX_CHILDREN" ]; then
       if ! echo "$INDEX_CHILDREN" | grep -qxF "$title"; then
         yellow "Page \"$title\" in $FOLDER_NAME/ but not in $FOLDER_NAME/_index.md children"
@@ -276,7 +277,7 @@ while IFS= read -r index_file; do
 
   # Check: entries in index children but no matching file
   while IFS= read -r child; do
-    [ -z "$child" ] && continue
+    [ -z "$child" ] && continue || true
     if [ -n "$ACTUAL_FILES" ]; then
       if ! echo "$ACTUAL_FILES" | grep -qxF "$child"; then
         red "Index lists \"$child\" but no matching page found in $FOLDER_NAME/"
@@ -290,7 +291,7 @@ while IFS= read -r index_file; do
 
   # Check: subdirectories should have corresponding child_indexes entries
   while IFS= read -r subdir; do
-    [ -z "$subdir" ] && continue
+    [ -z "$subdir" ] && continue || true
     if [ ! -f "$FOLDER/$subdir/_index.md" ]; then
       red "Subfolder $FOLDER_NAME/$subdir/ has no _index.md"
       ERRORS=$((ERRORS + 1))
@@ -313,7 +314,7 @@ if [ -d "$SOURCES_DIR" ]; then
       SOURCE_TITLE=$(basename "$source_file" .md)
     fi
     # Search all wiki pages (excluding _sources/) for this source in their sources: field
-    REFS=$(grep -rl "\[\[${SOURCE_TITLE}\]\]" "$WIKI" --include='*.md' 2>/dev/null | grep -v '/_sources/' | grep -v '/index\.md$' | grep -v '/log\.md$' | head -1)
+    REFS=$(grep -rl "\[\[${SOURCE_TITLE}\]\]" "$WIKI" --include='*.md' 2>/dev/null | grep -v '/_sources/' | grep -v '/index\.md$' | grep -v '/log\.md$' | head -1 || true)
     if [ -z "$REFS" ]; then
       yellow "Orphan source: \"$SOURCE_TITLE\" ($(basename "$source_file")) — not referenced by any wiki page"
       WARNINGS=$((WARNINGS + 1))
@@ -330,7 +331,7 @@ fi
 
 # Also check for topic folders that lack an _index.md entirely
 while IFS= read -r dir; do
-  [ -z "$dir" ] && continue
+  [ -z "$dir" ] && continue || true
   DIRNAME=$(basename "$dir")
   # Skip special folders
   case "$DIRNAME" in

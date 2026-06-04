@@ -16,6 +16,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - **Opt-in git push.** New `gitCheckpoint.push` (`off` default / `auto`) pushes to the configured upstream after each git-checkpointed engine op (`heal`, `migrate`, `propose`). Best-effort — a push failure never blocks the op.
 - **Layer graph coloring.** The `obsidian-graph-colors` skill + polish agent now apply an optional layer pass (raw→green, wiki→blue, schema→orange), ordered after per-topic colors so topic colors still win first-match.
 
+### Changed
+
+- **Calibration audit remediation.** Slimmed the analyst, curator, and ingest agent bodies under 200 lines by extracting their per-mode / per-phase procedures into three new agent-teaching skills — `analyst-modes`, `curator-fixes`, `ingest-pipeline` (skill count 16 → 19; agent-teaching skills 2 → 5). Marked the side-effecting `ingest`/`fix`/`index` skills `disable-model-invocation: true` (slash-command-only). Reworded the `CLAUDE.md` glossary / `validate-docs` rules to reference their CI Tier 0 enforcement. `.gitignore` now ignores `CLAUDE.local.md` and `.claude/calibration/`.
+
 ### Documentation
 
 - **AWS-Skill-Builder-style playbooks.** New learning path under `docs/playbooks/`: `index.md`, `200-foundational.md` (install → first wiki entry, ~30 min), `300-associate.md` (orchestrator decision tree, hooks, schema, multi-vault, ~2 hours), `500-expert.md` (skill authoring, hook authoring, test harness, fork, CI, ~half day). Orthogonal to the existing `docs/llm-wiki/01-07*.md` task references.

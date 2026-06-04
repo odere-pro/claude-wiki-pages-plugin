@@ -32,10 +32,21 @@ function isExecError(error: unknown): error is { stdout?: unknown } {
   return typeof error === "object" && error !== null && "stdout" in error;
 }
 
-// Internal machine commits must never GPG-sign — a user with commit.gpgsign=true
-// would otherwise hang the engine on a passphrase prompt. Prepended to every
-// commit the engine makes (these commits are bookkeeping, never user-attributed).
-const NOSIGN = ["-c", "commit.gpgsign=false"] as const;
+/**
+ * Per-invocation commit identity. Passed as `-c` overrides so commits succeed
+ * even where git's user.name/user.email are unset (e.g. CI runners), without
+ * mutating global config. GPG signing is disabled too: these are internal
+ * bookkeeping commits (never user-attributed), and a user with
+ * commit.gpgsign=true would otherwise hang the engine on a passphrase prompt.
+ */
+const COMMIT_IDENTITY: readonly string[] = [
+  "-c",
+  "user.name=claude-wiki-pages",
+  "-c",
+  "user.email=claude-wiki-pages@users.noreply.github.com",
+  "-c",
+  "commit.gpgsign=false",
+];
 
 /** True when `dir` is inside a git work tree. */
 export function isRepo(dir: string): boolean {
@@ -53,7 +64,7 @@ export function ensureRepo(dir: string): void {
   git(dir, ["init"]);
   git(dir, ["add", "-A"]);
   git(dir, [
-    ...NOSIGN,
+    ...COMMIT_IDENTITY,
     "commit",
     "--no-verify",
     "-m",
@@ -92,7 +103,7 @@ export function checkpoint(
   if (branch) git(dir, ["branch", `cwp/checkpoint/${opId}`]);
   git(dir, ["add", "-A"]);
   git(dir, [
-    ...NOSIGN,
+    ...COMMIT_IDENTITY,
     "commit",
     "--no-verify",
     "--allow-empty",
@@ -114,7 +125,7 @@ export function push(dir: string): GitResult {
 /** Commit the current state with an arbitrary message. Returns the commit SHA. */
 export function commit(dir: string, message: string): string | null {
   git(dir, ["add", "-A"]);
-  git(dir, [...NOSIGN, "commit", "--no-verify", "--allow-empty", "-m", message]);
+  git(dir, [...COMMIT_IDENTITY, "commit", "--no-verify", "--allow-empty", "-m", message]);
   return head(dir);
 }
 
@@ -122,7 +133,7 @@ export function commit(dir: string, message: string): string | null {
 export function commitHeal(dir: string, opId: string, iterations: number): string | null {
   git(dir, ["add", "-A"]);
   git(dir, [
-    ...NOSIGN,
+    ...COMMIT_IDENTITY,
     "commit",
     "--no-verify",
     "--allow-empty",

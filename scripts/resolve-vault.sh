@@ -14,6 +14,12 @@
 #
 # Test override: export CLAUDE_WIKI_PAGES_SETTINGS_FILE=<path> before sourcing to redirect
 # the settings file (prevents tests from touching the real project .claude/ dir).
+#
+# NOTE on strict mode: this file is *sourced*, not executed, so it deliberately does
+# NOT run `set -euo pipefail` — doing so would mutate the calling shell's options and
+# could abort unrelated callers on their first non-zero command. The functions below
+# fail closed on their own (guarded writes, `2>/dev/null`, explicit returns); callers
+# that need strict mode set it themselves before sourcing.
 
 CLAUDE_WIKI_PAGES_DEFAULT_VAULT="docs/vault"
 CLAUDE_WIKI_PAGES_SETTINGS="${CLAUDE_WIKI_PAGES_SETTINGS_FILE:-.claude/claude-wiki-pages/settings.json}"

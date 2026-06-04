@@ -7,6 +7,7 @@ description: >
   catalog", or after adding a new top-level topic or synthesis. Per-folder
   _index.md files are owned by the ingest workflow, not by this skill.
 allowed-tools: Read Write Edit Glob Grep
+disable-model-invocation: true
 ---
 
 # LLM Wiki — Index

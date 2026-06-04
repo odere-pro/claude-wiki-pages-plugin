@@ -5,6 +5,8 @@
 # Also surfaces a one-line notice when Bun (the deterministic engine runtime) is
 # missing — the plugin still works (bash hooks are unaffected), but the engine
 # commands and git-checkpointed self-heal are disabled until Bun is on PATH.
+set -euo pipefail
+
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
 init_vault_settings

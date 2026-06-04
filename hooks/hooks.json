@@ -45,6 +45,26 @@
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/validate-attachments.sh"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-dmi.sh",
+            "description": "Block SKILL.md edits that add side-effecting verbs without disable-model-invocation: true (path-filtered inside the script)"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/enforce-must-rule.sh",
+            "description": "Warn when a must/never/always rule is added to CLAUDE.md without a corresponding hook (path-filtered inside the script)"
+          }
+        ]
       }
     ],
     "PostToolUse": [

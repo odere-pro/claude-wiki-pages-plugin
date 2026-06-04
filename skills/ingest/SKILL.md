@@ -8,6 +8,7 @@ description: >
   (/claude-wiki-pages:claude-wiki-pages-ingest-agent) unless the user has asked to skip
   lint-fix and synthesis.
 allowed-tools: Bash Read Write Edit Glob Grep
+disable-model-invocation: true
 ---
 
 # LLM Wiki — Ingest

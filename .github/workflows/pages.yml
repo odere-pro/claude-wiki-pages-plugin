@@ -28,6 +28,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+        # Create the Pages site on first run instead of failing with
+        # "Get Pages site failed ... Not Found" when Pages is not yet enabled.
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

@@ -3,6 +3,7 @@
 # Usage (CLI): scripts/validate-frontmatter.sh [--target <vault-path>]
 # Default target: $CLAUDE_WIKI_PAGES_VAULT (fallback: docs/vault)
 # Runs on macOS (BSD) and Linux (GNU)
+set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
@@ -69,11 +70,11 @@ validate_content() {
   case "$type" in
     entity | concept | topic | project | synthesis | index)
       local declared_path wiki_relative expected_path
-      declared_path=$(echo "$frontmatter" | grep '^path:' | sed 's/^path: *//' | tr -d '"'"'" | xargs)
+      declared_path=$(echo "$frontmatter" | grep '^path:' | sed 's/^path: *//' | tr -d '"'"'" | xargs || true)
       if [ -n "$declared_path" ]; then
         wiki_relative=$(echo "$file_path" | sed "s|.*/${VAULT_NAME}/wiki/||")
         expected_path=$(dirname "$wiki_relative")
-        [ "$expected_path" = "." ] && expected_path=""
+        [ "$expected_path" = "." ] && expected_path="" || true
         if [ -n "$expected_path" ] && [ "$declared_path" != "$expected_path" ]; then
           echo "path: field is '${declared_path}' but file is in '${expected_path}'. Update path to match actual location."
           return
@@ -142,7 +143,7 @@ if [ "$TOOL" = "Edit" ]; then
 fi
 
 CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
-[ -z "$CONTENT" ] && exit 0
+[ -z "$CONTENT" ] && exit 0 || true
 
 err=$(validate_content "$FILE_PATH" "$CONTENT")
 if [ -n "$err" ]; then

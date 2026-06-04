@@ -94,7 +94,7 @@ A Claude Code plugin that turns an Obsidian vault into a maintained, provenance-
 
 ### Layer 2 — Skills
 
-Sixteen single-responsibility capabilities. The nine plugin verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`) each read `raw/` and write only to `wiki/` (`synthesize` writes only to `wiki/_synthesis/`; `markdown` writes only to `vault/output/`; `obsidian-graph-colors` writes only to `.obsidian/graph.json`). Three more are user/agent-facing reference skills that do not write to the vault: `onboarding` (guided first run) and the agent-teaching skills `engine-api` (the engine's `--json` tool contract) and `maintain-contract` (the safe ingest/retrieve/maintain ordering). No skill knows about any other skill's internals.
+Twenty-three single-responsibility capabilities. The twelve plugin verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`, `search`, `review`, `draft`) each read `raw/` and write only to `wiki/` (`synthesize` writes only to `wiki/_synthesis/`; `markdown` writes only to `vault/output/`; `draft` writes only to `vault/_proposed/`; `review` promotes `_proposed/` into `wiki/`; `search` is read-only; `obsidian-graph-colors` writes only to `.obsidian/graph.json`). The `obsidian-vault` guard skill confines Obsidian-CLI writes to the vault. Six more are user/agent-facing reference skills that do not write to the vault: `onboarding` (guided first run) and the agent-teaching skills `engine-api` (the engine's `--json` tool contract), `maintain-contract` (the safe ingest/retrieve/maintain ordering), `analyst-modes` (the analyst's five operating modes and write-gates), `curator-fixes` (the curator's check set and fix catalog), and `ingest-pipeline` (the ingest plan/optimize procedures). No skill knows about any other skill's internals.
 
 Skills fall into three provenance groups, reflected in `NOTICE` and `THIRD_PARTY_LICENSES.md`:
 
@@ -124,7 +124,7 @@ Skills fall into three provenance groups, reflected in `NOTICE` and `THIRD_PARTY
 
 ### Layer 3 — Agents
 
-Six multi-step executors that compose Layer 2 skills: orchestrator, onboarding, ingest, curator, analyst, polish.
+Seven multi-step executors that compose Layer 2 skills: orchestrator, onboarding, ingest, curator, analyst, polish, maintenance.
 
 | Agent                                  | Chains                                                                                              |
 | -------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -155,7 +155,7 @@ claude-wiki-pages/                         # plugin source (installed to the use
 ├── .claude-plugin/
 │   ├── plugin.json                     # product version, description, keywords
 │   └── marketplace.json                # same-repo marketplace definition
-├── skills/                             # Layer 2 (16 skills)
+├── skills/                             # Layer 2 (23 skills)
 ├── agents/                             # Layer 3 (5 agents)
 ├── hooks/
 │   └── hooks.json                      # Layer 4 hook wiring

@@ -1,6 +1,7 @@
 #!/bin/bash
 # SubagentStop: quality gate for claude-wiki-pages-curator-agent agent
 # Warns if the agent's output indicates unresolved errors
+set -euo pipefail
 
 INPUT=$(cat)
 AGENT_NAME=$(echo "$INPUT" | jq -r '.agent_name // empty')

@@ -7,6 +7,8 @@ Thumbs.db
 .claude/worktrees/
 .claude/memory/
 .claude/claude-wiki-pages/
+.claude/calibration/
+CLAUDE.local.md
 
 # Local scratch space (plans, drafts)
 tmp/
