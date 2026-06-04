@@ -1,5 +1,6 @@
 // ESLint config mirrors the claude-agentline layout. The eslint + typescript-eslint
-// devDependencies and the CI lint gate are wired in M5; this file is the stable target.
+// devDependencies are pinned in package.json and the lint gate runs in CI via
+// tests/gates/gate-11-eslint.sh (`bun run lint`).
 module.exports = {
   root: true,
   parser: "@typescript-eslint/parser",
