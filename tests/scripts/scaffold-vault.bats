@@ -129,8 +129,8 @@ setup() {
 }
 
 @test "scaffold-vault: real skills/init/template default scaffolds an empty vault" {
-  # Use the actual shipped template (no sample content) — proves first-time
-  # users get a clean slate, not the demo vault's pages.
+  # Use the actual shipped template — proves first-time users get a clean slate,
+  # not the demo vault's pages, but DO get the bundled sample source in raw/.
   run bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET"
 
   [ "$status" -eq 0 ]
@@ -145,11 +145,46 @@ setup() {
   [ ! -d "$TARGET/wiki/patterns" ]
   [ ! -d "$TARGET/wiki/tools" ]
   [ ! -f "$TARGET/wiki/dashboard.md" ]
-  # raw/ holds no ingested sources — only its placeholder.
-  [ -z "$(find "$TARGET/raw" -maxdepth 1 -name '*.md' -type f)" ]
+  # raw/ holds the bundled sample source (U2 — first run just works).
+  [ -f "$TARGET/raw/sample-source.md" ]
   # _sources/ and _synthesis/ are empty of content notes.
   [ -z "$(find "$TARGET/wiki/_sources" -maxdepth 1 -name '*.md' -type f)" ]
   [ -z "$(find "$TARGET/wiki/_synthesis" -maxdepth 1 -name '*.md' -type f)" ]
+}
+
+# ── U2 — bundled sample source (Phase U) ──────────────────────────────────────
+
+@test "scaffold-vault: fresh vault raw/ contains the bundled sample source" {
+  # TDD: scaffolding an empty /tmp vault seeds raw/ with the bundled sample so a
+  # brand-new user can run /claude-wiki-pages:wiki immediately and get a real
+  # ingest result without supplying their own source first.
+  run bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET"
+
+  [ "$status" -eq 0 ]
+  # raw/ must be non-empty — the bundled sample must be present.
+  [ -f "$TARGET/raw/sample-source.md" ]
+  # The file must be a real plain-text source, not an empty placeholder.
+  [ -s "$TARGET/raw/sample-source.md" ]
+}
+
+@test "scaffold-vault: no-clobber — existing raw/ user file is untouched when sample is present" {
+  # TDD: if the user already has a file in raw/, scaffold must not overwrite it
+  # (no-clobber). The existing scaffold-vault no-clobber covers the top-level
+  # raw/ directory entry; this test verifies that a pre-seeded user file inside
+  # raw/ is preserved when scaffold is re-run (idempotency).
+  # Simulate: run scaffold once (seeds sample-source.md), then add a user file,
+  # then run scaffold again — user file must survive unchanged.
+  bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET" >/dev/null
+  printf 'my private notes\n' >"$TARGET/raw/my-notes.md"
+  local user_content="my private notes"
+
+  run bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET"
+
+  [ "$status" -eq 0 ]
+  # User file must still contain the original content.
+  grep -q "$user_content" "$TARGET/raw/my-notes.md"
+  # The bundled sample is still there.
+  [ -f "$TARGET/raw/sample-source.md" ]
 }
 
 @test "scaffold-vault: shipped template passes verify-ingest without further edits" {

@@ -32,13 +32,19 @@ loop well enough to repeat it. Teach by doing, not by lecturing.
 
 1. **Probe + health.** Resolve the vault (`scripts/resolve-vault.sh`). Run `bash scripts/doctor.sh`; if red, run `--fix` and say what was repaired. Note whether Bun (the engine) is present; if not, reassure that hooks still work and link <https://bun.sh>. Report state in one line.
 2. **Scaffold (if needed).** If `vault/CLAUDE.md` is absent, dispatch the `init` skill to create the vault. Explain: `raw/` holds the user's immutable sources, `wiki/` is what the plugin maintains, `vault/CLAUDE.md` is the schema.
-3. **First source.** Ask the user to drop one file into `vault/raw/`, or — if `$ARGUMENTS` says "use the sample" or no source appears — copy the bundled sample. Confirm it landed; do not proceed without a source.
+3. **First source.** Check whether `vault/raw/sample-source.md` already exists — the scaffold seeds it automatically so no file from the user is needed. Tell the user the bundled sample is there and ready to ingest. Ask whether they also want to add their own file; if yes, ask them to drop it into `vault/raw/` and confirm it landed before proceeding.
 4. **Ingest.** Run `/claude-wiki-pages:wiki "ingest the new source"` (or dispatch `claude-wiki-pages-ingest-agent`). Explain that pages are written with citations and the wiki **auto-heals under a git checkpoint** (reversible with `git revert`). Show the new pages and the heal commit.
 5. **First answer.** Run `/claude-wiki-pages:query` with a question the source can answer (offer one if the user has none). Show the answer and its `[[wikilink]]` citations — name this as the payoff.
 
 ## Close
 
-Print a short "what's next" map (ingest more via `/claude-wiki-pages:wiki`, health via `/claude-wiki-pages:doctor`, ask via `/claude-wiki-pages:query`, rollback via `git log` in the vault), and point power users to `/claude-wiki-pages:engine-api` and `/claude-wiki-pages:maintain-contract`.
+Print a short "what's next" map:
+
+- Ingest more sources: drop files into `raw/` and run `/claude-wiki-pages:wiki` — that is the one verb.
+- Ask questions: `/claude-wiki-pages:query`.
+- Health check when something feels wrong: `/claude-wiki-pages:doctor`.
+- Rollback: `git log` inside the vault.
+- Power users: `/claude-wiki-pages:engine-api` and `/claude-wiki-pages:maintain-contract`.
 
 ## Hard rules
 

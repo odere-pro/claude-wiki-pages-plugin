@@ -28,13 +28,19 @@ what just happened, so the user learns the model by doing it once.
 
 1. **Health check.** Run `/claude-wiki-pages:doctor` (or `bash scripts/doctor.sh`). If anything is red, run it with `--fix` and explain what was repaired. Confirm Bun is present (the engine) — if not, note that hooks still work and point to <https://bun.sh>.
 2. **Scaffold the vault.** If no vault exists, run the `init` skill to create `vault/` (immutable `raw/`, maintained `wiki/`, schema in `vault/CLAUDE.md`). Tell the user where it is and that `raw/` is for *their* sources.
-3. **Add a first source.** Ask the user to drop one file (a note, a PDF, a markdown doc) into `vault/raw/` — or offer to use the bundled sample. Confirm it landed.
+3. **Add a first source.** Check whether `vault/raw/` already contains the bundled sample source (`sample-source.md`) — it is seeded there by the scaffold so first-time users can ingest immediately without providing their own material. Tell the user it is there. Ask whether they want to add their own file instead or alongside it; if so, ask them to drop it into `vault/raw/` and confirm it landed.
 4. **Ingest.** Run the ingest flow (`/claude-wiki-pages:wiki "ingest the new source"`). Explain that the plugin reads the source, writes cited wiki pages, and **auto-heals the wiki under a git checkpoint** (so it is always reversible with `git revert`). Show the new pages.
 5. **Ask a question.** Run `/claude-wiki-pages:query "<a question the source can answer>"`. Show the answer with its `[[wikilink]]` citations — this is the payoff: answers grounded in the user's own material.
 
 ## Close
 
-End with a short "what you can do next" map: ingest more sources (`/claude-wiki-pages:wiki`), check health (`/claude-wiki-pages:doctor`), ask questions (`/claude-wiki-pages:query`), and where rollback lives (`git log` in the vault). Point power users at `/claude-wiki-pages:engine-api` to drive the deterministic engine directly.
+End with a short "what you can do next" map:
+
+- Ingest more sources: drop files into `raw/` and run `/claude-wiki-pages:wiki` — that is the one verb for everything.
+- Ask questions: `/claude-wiki-pages:query`.
+- Rollback: `git log` inside the vault.
+- Something feels wrong: `/claude-wiki-pages:doctor`.
+- Power users: `/claude-wiki-pages:engine-api` to drive the deterministic engine directly.
 
 ## Specification anchor
 

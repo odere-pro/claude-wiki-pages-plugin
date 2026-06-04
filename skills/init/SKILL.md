@@ -144,10 +144,12 @@ what is missing.
    - The path to the vault.
    - The schema version present in `<vault>/CLAUDE.md`.
    - Whether settings were created fresh, updated, or already correct.
+   - Note that `<vault>/raw/sample-source.md` is the bundled sample source — it is
+     ready to ingest so the user can see a real result immediately.
    - Three suggested next steps, in order of increasing commitment:
-     1. Drop a source into `<vault>/raw/` and run
-        `/claude-wiki-pages:wiki` — the orchestrator detects the new source and
-        chains the ingest pipeline automatically.
+     1. Run `/claude-wiki-pages:wiki` — the orchestrator detects the bundled sample
+        source in `raw/` and chains the ingest pipeline automatically. No file from
+        you is required to get a first result.
      2. Run `/claude-wiki-pages:status` to confirm every hook fires.
      3. Read `docs/llm-wiki/01-getting-started.md` for the long-form guide.
 
