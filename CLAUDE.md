@@ -43,6 +43,14 @@ Long-form model: [`docs/architecture.md`](./docs/architecture.md).
 
 If an edit introduces a new concept, add the term to `docs/GLOSSARY.md` with a rationale first — enforced by `scripts/validate-docs.sh` (the glossary gate, run in CI Tier 0).
 
+## The one user-facing entry verb
+
+`/claude-wiki-pages:wiki` is the single advertised entry point for end-users. The
+orchestrator probes vault state and dispatches automatically. `/claude-wiki-pages:onboarding`
+(run-once guided wizard) and `/claude-wiki-pages:doctor` (health check — when something
+feels wrong) are progressive-disclosure secondaries; they remain callable but are not
+co-equal top-level choices in user-facing copy.
+
 ## Local workflows
 
 - `bash tests/install-deps.sh` — install every dev/test tool (brew on macOS, apt on Linux). Idempotent. `--check` reports status, `--dry-run` previews.

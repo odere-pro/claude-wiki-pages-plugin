@@ -1,15 +1,59 @@
 # Operations
 
-The one verb you need to know is `/claude-wiki-pages:wiki`. The orchestrator probes vault state and dispatches to the right specialist (init wizard, ingest, curator, or analyst). Polish runs as a tail step after ingest or curator.
+## The one verb
 
-## Verbs you'll actually type
+```text
+/claude-wiki-pages:wiki
+```
 
-| Verb            | Slash command                  | Notes                                                                                                                |
-| --------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| **Wiki**        | `/claude-wiki-pages:wiki`         | Top-level entry. One verb does the right thing — init, ingest, curator, or analyst depending on vault state.         |
-| **Doctor**      | `/claude-wiki-pages:doctor`  | Environment health check. Run after install and any time something feels wrong.                                      |
-| **Query**       | `/claude-wiki-pages:query`  | Direct query skill. Traverses MOCs; every answer cites `[[wikilinks]]` back to wiki pages.                       |
-| **Status**      | `/claude-wiki-pages:status` | One-command status read of the last operations.                                                                   |
+That is the entry point. The orchestrator probes vault state and dispatches to the right
+specialist — init wizard, ingest, curator, or analyst. Polish runs as a tail step after
+ingest or curator. You never need to pick the right specialist by hand.
+
+| State the orchestrator finds                            | What runs                           |
+| ------------------------------------------------------- | ----------------------------------- |
+| No vault or no `schema_version`                         | init wizard (scaffold + orient)     |
+| Files in `raw/` not yet in `wiki/log.md`                | ingest pipeline                     |
+| Previous ingest not followed by lint                    | curator (audit-and-repair)          |
+| Analytical prompt (`what`, `why`, `compare`, …)        | analyst                             |
+| Pending drafts in `_proposed/`                          | review gate                         |
+
+Pass any free-form goal: `/claude-wiki-pages:wiki ingest the new papers` or
+`/claude-wiki-pages:wiki what does the wiki say about retrieval?`
+
+A brand-new vault is seeded with a bundled sample source in `raw/` — you can run
+`/claude-wiki-pages:wiki` immediately after install and get a real ingest result without
+adding your own files first.
+
+## When something feels wrong
+
+Run the environment health check after install and any time behavior seems off:
+
+```text
+/claude-wiki-pages:doctor
+```
+
+`doctor` runs ten checks (D01–D10), reports the first failing prerequisite, and with
+`--fix` auto-repairs the fixable subset. Fix what it flags, then go back to
+`/claude-wiki-pages:wiki`.
+
+## Guided first run
+
+If you prefer a hand-held walkthrough from scaffold to first answer:
+
+```text
+/claude-wiki-pages:onboarding
+```
+
+The onboarding agent walks each step with a plain-language explanation — health check,
+scaffold, ingest, first cited answer. Safe to re-run; it resumes from wherever you are.
+
+## Day-to-day verbs
+
+| Verb       | Slash command               | Notes                                                                      |
+| ---------- | --------------------------- | -------------------------------------------------------------------------- |
+| **Query**  | `/claude-wiki-pages:query`  | Direct query skill. Traverses MOCs; every answer cites `[[wikilinks]]`.    |
+| **Status** | `/claude-wiki-pages:status` | One-command status read of the last operations.                            |
 
 ## Power-user bypasses
 

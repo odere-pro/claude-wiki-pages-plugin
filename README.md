@@ -79,10 +79,9 @@ flowchart TD
 ```text
 /plugin marketplace add odere-pro/claude-wiki-pages-plugin
 /plugin install claude-wiki-pages
-/claude-wiki-pages:doctor
 ```
 
-`doctor` should print all green. If it does not, fix the prerequisite it flags. Local-clone install, update, and uninstall: see [docs/install.md](./docs/install.md).
+Local-clone install, update, and uninstall: see [docs/install.md](./docs/install.md).
 
 ---
 
@@ -92,14 +91,33 @@ flowchart TD
 /claude-wiki-pages:wiki
 ```
 
-The orchestrator probes vault state and dispatches:
+That is the one verb. The orchestrator probes vault state and dispatches:
 
-- **No vault yet** → runs the `init` wizard. Scaffolds `docs/vault/` from the example, writes the schema, prints the next three things to do.
+- **No vault yet** → runs the `init` wizard. Scaffolds `docs/vault/` with the schema and a bundled sample source ready to ingest — no files needed from you to see a real result.
 - **New files in `raw/`** → runs `claude-wiki-pages-ingest-agent`. Produces typed wiki pages with citations and a `wiki/log.md` entry, then runs `claude-wiki-pages-polish-agent` to refresh graph colors and indexes.
 - **Pending lint after an ingest** → runs `claude-wiki-pages-curator-agent` to audit and repair.
 - **Analytical prompt** (`what`, `why`, `compare`, `summarize`, …) → runs `claude-wiki-pages-analyst-agent`. Every answer cites `[[wikilinks]]` back to source.
 
-First-time walkthrough (~30 minutes): [docs/playbooks/200-foundational.md](./docs/playbooks/200-foundational.md). Full operations reference: [docs/operations.md](./docs/operations.md).
+Full operations reference: [docs/operations.md](./docs/operations.md).
+
+<details>
+<summary>First run or something feels wrong?</summary>
+
+**Guided first-run wizard** — walks scaffold → ingest → first answer, one step at a time:
+
+```text
+/claude-wiki-pages:onboarding
+```
+
+**Environment health check** — run after install and whenever something feels off:
+
+```text
+/claude-wiki-pages:doctor
+```
+
+`doctor` reports all green when prerequisites are met. If it flags anything, fix the prerequisite it names and run `/claude-wiki-pages:wiki`.
+
+</details>
 
 ---
 

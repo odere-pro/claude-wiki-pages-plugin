@@ -38,17 +38,21 @@ claude
 
 On session start you should see a short preamble from the `SessionStart` hook reminding the LLM to read `vault/CLAUDE.md` before any wiki operation. If you see that line, the plugin is wired and the hook bus is working.
 
-If you do not see it yet, you have not scaffolded the vault — run `/claude-wiki-pages:init` first (see below).
+If you do not see it yet, you have not scaffolded the vault — run `/claude-wiki-pages:wiki` (see below).
 
-## Scaffold the vault
+## Scaffold the vault and run
 
 From the Claude Code session:
 
 ```
-/claude-wiki-pages:init
+/claude-wiki-pages:wiki
 ```
 
-The onboarding wizard copies `docs/vault-example/` from the plugin cache into `vault/` in your project, writes a per-vault `vault/CLAUDE.md`, and prints a short orientation. You never need to touch files under `skills/`, `agents/`, `hooks/`, `scripts/`, or the plugin cache — those are plugin internals.
+The orchestrator detects that no vault exists, runs the `init` wizard, and scaffolds
+`docs/vault/` in your project. The scaffold includes a bundled sample source in `raw/` so
+you can immediately run `/claude-wiki-pages:wiki` a second time to get a real ingest result
+— no files needed from you at this stage. You never need to touch files under `skills/`,
+`agents/`, `hooks/`, `scripts/`, or the plugin cache — those are plugin internals.
 
 After the wizard runs, your project contains:
 
@@ -57,30 +61,35 @@ vault/
 ├── CLAUDE.md               # authoritative schema for your vault
 ├── _templates/             # frontmatter templates per type
 ├── raw/
+│   ├── sample-source.md    # bundled sample — ingest this first
 │   └── assets/             # images and attachments
 ├── wiki/
 │   ├── index.md            # vault MOC
 │   ├── log.md              # operations log
-│   ├── dashboard.md        # Dataview dashboard
 │   ├── _sources/
 │   └── _synthesis/
 └── output/                 # optional git-ignored scratch space
 ```
 
-## Run the health check
+## Confirm the environment is healthy
+
+```
+/claude-wiki-pages:doctor
+```
+
+`doctor` runs ten checks and prints a green/red report per check. Green everywhere means the
+environment is ready. If any check is red, it tells you exactly what to fix. Run
+`/claude-wiki-pages:doctor --fix` to auto-repair the fixable subset (hook permissions, git
+init, settings migration).
+
+Once `doctor` is green, run:
 
 ```
 /claude-wiki-pages:status
 ```
 
-This exercises every hook path — frontmatter validation, wikilink enforcement, `raw/` immutability, the ingest verifier — and prints a green/red report per path. Green everywhere means:
-
-- `SessionStart` preamble fires.
-- `PreToolUse` frontmatter and wikilink checks block bad writes.
-- `protect-raw.sh` blocks any write under `vault/raw/`.
-- `verify-ingest.sh` runs clean against your current vault state.
-
-Red on any line means the corresponding hook is not firing or reports drift. The status report tells you which script flagged the issue; fix with [guide 4](./04-review-validate-fix.md).
+This exercises every hook path — frontmatter validation, wikilink enforcement, `raw/`
+immutability, the ingest verifier — and prints a green/red report per path.
 
 ## Obsidian setup (optional)
 
@@ -97,6 +106,10 @@ Red on any line means the corresponding hook is not firing or reports drift. The
 `vault/output/` is different: git-ignored scratch space for deliverables you compile out of the wiki. No schema, no lint, no frontmatter. See [guide 5](./05-export-outputs.md).
 
 ## Next step
+
+Run `/claude-wiki-pages:wiki` — the orchestrator will detect the bundled sample source in
+`raw/` and start the ingest pipeline automatically. You will have a cited answer from your
+own wiki within a few minutes.
 
 - First-time ingest of a source → [index.md day 1](./index.md#day-1--install-scaffold-ingest-one-source).
 - You already have a vault and want to add material → [guide 3](./03-update-existing.md).
