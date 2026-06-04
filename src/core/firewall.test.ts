@@ -4,26 +4,26 @@ import { decide, type FirewallPolicy } from "./firewall.ts";
 const base: FirewallPolicy = {
   enabled: true,
   mode: "enforce",
-  vault: "/home/u/project/vault",
+  vault: "/srv/project/vault",
   allowPaths: [],
   denyPaths: ["**/.ssh/**", "**/.aws/**", "**/.env", "**/.git/config"],
 };
 
 describe("firewall decide", () => {
   test("allows writes inside the vault", () => {
-    const d = decide("/home/u/project/vault/wiki/x.md", base);
+    const d = decide("/srv/project/vault/wiki/x.md", base);
     expect(d.allowed).toBe(true);
     expect(d.matchedRule).toBe("vault");
   });
 
   test("blocks writes outside the vault under enforce", () => {
-    const d = decide("/home/u/other/secret.md", base);
+    const d = decide("/srv/other/secret.md", base);
     expect(d.allowed).toBe(false);
     expect(d.matchedRule).toBe("outside-vault");
   });
 
   test("deny globs win even inside the vault", () => {
-    const d = decide("/home/u/project/vault/.env", base);
+    const d = decide("/srv/project/vault/.env", base);
     expect(d.allowed).toBe(false);
     expect(d.matchedRule).toBe("deny:**/.env");
   });
@@ -35,7 +35,7 @@ describe("firewall decide", () => {
   });
 
   test("warn mode advises but never blocks", () => {
-    const d = decide("/home/u/other/secret.md", { ...base, mode: "warn" });
+    const d = decide("/srv/other/secret.md", { ...base, mode: "warn" });
     expect(d.allowed).toBe(true);
     expect(d.matchedRule).toBe("outside-vault");
     expect(d.mode).toBe("warn");
@@ -47,7 +47,7 @@ describe("firewall decide", () => {
   });
 
   test("a path containing the vault name but outside it is blocked", () => {
-    const d = decide("/home/u/project/vault-backup/x.md", base);
+    const d = decide("/srv/project/vault-backup/x.md", base);
     expect(d.allowed).toBe(false);
     expect(d.matchedRule).toBe("outside-vault");
   });
