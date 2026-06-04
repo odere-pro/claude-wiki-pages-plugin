@@ -87,6 +87,36 @@ fraction of the top hit's score (e.g. below 20 % of `hits[0].score`). This
 threshold is a **subset filter** — it only removes low-signal tail pages; it
 does not alter the order of remaining pages.
 
+## R3 — Agent-vs-human retrieval contract
+
+`query` sits at the junction of two consumption paths for `search` output. Both
+paths read the **same score** — the single score object (R4's `score` +
+`matched[]`) that `search` emits. Neither path re-ranks.
+
+### Agent path
+
+The agent path is the C1 budget-aware MOC descent (see "C1 — Budget-aware MOC
+descent" above). C1 reads the `search --json` output — specifically `score`,
+`matched[]`, `wikilink`, `type`, and `file` — to select the reading set under
+the context budget. `matched[]` is read only for channel-aware tie-breaking at
+the budget boundary; C1 never recomputes or re-weights it.
+
+### Human path
+
+The human path is the rendered ranked list that `query` presents to the user: a
+list of `[[wikilinks]]` cited in the answer, ordered highest-scored first. The
+human path does not expose `matched[]` — humans navigate via wikilinks; they do
+not need the per-channel score breakdown.
+
+### One ranking, two consumption forms
+
+There is one ranking, produced once by `search`, shared by both paths. The
+agent path gets the structured form (`score` + `matched[]` + machine-readable
+fields); the human path gets the rendered form (citations in prose + the
+"Supporting pages" list). The same score object drives both — only the
+consumption form differs. This keeps the one-score-object invariant intact
+(Brief §6) and preserves the determinism R4 guarantees.
+
 ## Writing contract
 
 - Append a single line to `vault/wiki/log.md`:

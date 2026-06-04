@@ -172,6 +172,53 @@ title-phrase → title-term → alias-term → tag-term → body-term
 
 Exact channels precede Tier-2 channels so exact matches win ties.
 
+## R3 — Agent-vs-human retrieval contract
+
+There are two consumption paths for `search` output. Both paths read the **same
+ranking** — there is one score object (R4's `score` + `matched[]`).
+Neither path re-ranks: R3 documents how each path consumes the results, not a second ranker.
+
+### Agent path (`search --json`)
+
+The agent path is the machine-actionable contract. Agents (and the C1
+budget-aware MOC descent in `query`) consume:
+
+- `score` — the authoritative rank key; the only ordering key any consumer uses.
+- `matched[]` — the full score breakdown: every channel that fired
+  (`title-phrase`, `title-term`, `alias-term`, `tag-term`, `body-term`,
+  `synonym-term`, `stem-term`, and the reserved `graph-edge`), with
+  `{channel, term, hits, points}` per entry.
+- `wikilink` — the `[[wikilink]]` form of the page title, ready to cite.
+
+The agent path is **deterministic**: same query + same vault + same lexicon →
+byte-identical `hits` array, in the same order, with the same `matched[]`
+contents. This is what makes the output gate-testable and auditable.
+
+Agents read `matched[]` as structured provenance ("why this page ranked").
+`matched[]` is **JSON-only** — it is never emitted in the human text render; humans read a clean list.
+
+### Human path (text render, no `--json`)
+
+The human path is the readable ranked list — a clean, scannable list of
+`[[wikilinks]]` with their scores:
+
+```
+ 18  [[Graph RAG]]  (wiki/ai/graph-rag.md)
+ 13  [[Retrieval]]  (wiki/ai/retrieval.md)
+```
+
+No `matched[]` noise. Humans navigate the MOC and follow wikilinks; they do not
+need the per-channel score breakdown. The text render intentionally omits it.
+
+### One score object, one ranking
+
+There is **one score object** (`score` + `matched[]`) emitted by the engine for
+each hit. Both the agent path and the human path read the same ranking —
+the agent gets the structured form, the human gets the rendered form.
+Neither path re-ranks: `search` emits one ordered `hits` array; consumers take a prefix
+or filter it, they never reorder it by a different key. This is the same
+JSON-only discipline R4 established.
+
 ## GraphRAG (later phase)
 
 `search` is the substrate for graph-aware retrieval: a future `search --graph`
