@@ -36,11 +36,37 @@ bash scripts/engine.sh search "<query>" --target <vault> --json
 `--json` returns:
 
 ```json
-{ "command": "search", "vault": "…", "query": "graph rag",
-  "hits": [ { "title": "Graph RAG", "wikilink": "[[Graph RAG]]",
-             "file": "wiki/ai/graph-rag.md", "type": "concept",
-             "score": 18, "snippet": "Graph RAG walks the knowledge graph…" } ] }
+{
+  "command": "search",
+  "vault": "…",
+  "query": "graph rag",
+  "hits": [
+    {
+      "title": "Graph RAG",
+      "wikilink": "[[Graph RAG]]",
+      "file": "wiki/ai/graph-rag.md",
+      "type": "concept",
+      "score": 18,
+      "snippet": "Graph RAG walks the knowledge graph…",
+      "matched": [
+        { "channel": "title-phrase", "term": "",      "hits": 1, "points": 10 },
+        { "channel": "title-term",   "term": "graph", "hits": 1, "points": 5  },
+        { "channel": "title-term",   "term": "rag",   "hits": 1, "points": 5  },
+        { "channel": "body-term",    "term": "graph", "hits": 3, "points": 3  }
+      ]
+    }
+  ]
+}
 ```
+
+`matched` is the score breakdown: **one `MatchComponent` per scoring site**,
+sorted by `points` desc → `channel` (union literal order: `title-phrase`,
+`title-term`, `alias-term`, `tag-term`, `body-term`) → `term` lexicographic.
+Hard invariant: `hit.score === hit.matched.reduce((s,m) => s+m.points, 0)`.
+JSON-only — the human text output (`search` without `--json`) does not emit it.
+
+`alias-term` and `graph-edge` are reserved channel names (forward-compat for
+Phase 2 alias-tracking and graph-edge contributions); they are not emitted now.
 
 Scoring is fixed and transparent: a title/alias phrase match outranks a
 per-term title match, which outranks a tag match, which outranks body-frequency

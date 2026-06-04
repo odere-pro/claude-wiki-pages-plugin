@@ -7,12 +7,36 @@
  * embeddings, no network — same query over the same vault yields the same
  * ranking, which is what keeps it gate-testable. GraphRAG (graph-aware
  * neighbourhood expansion over the wikilink graph) is a documented later phase.
+ *
+ * R4: every hit carries a `matched` score breakdown — one `MatchComponent` per
+ * scoring channel that fired, where `score === sum(matched[].points)`. The
+ * breakdown is JSON-only (an agent reads it for cut-off decisions); the human
+ * text renderer never prints it.
  */
 
 import { basename, join, relative } from "node:path";
 import { listMarkdownRecursive, readFileSafe, BOOKKEEPING } from "../../core/fs.ts";
 import { parseFrontmatter, titleOf, stringList, splitFrontmatter } from "../../core/frontmatter.ts";
 import { resolveVault } from "../../core/vault.ts";
+
+/**
+ * One component of a hit's score breakdown: which scoring channel fired, the
+ * query term that fired it, how many times it matched (pre-cap), and the points
+ * it contributed after weights/caps. The atom of `SearchHit.matched`.
+ *
+ * `alias-term` is reserved for a future split of alias matches from title
+ * matches (today both fold into the `title-*` channels via `titleHay`);
+ * `graph-edge` will be appended by R2's `--graph` walk. Neither is emitted yet.
+ */
+export interface MatchComponent {
+  readonly channel: "title-phrase" | "title-term" | "alias-term" | "tag-term" | "body-term";
+  /** The query term that fired this component; empty for the whole-phrase channel. */
+  readonly term: string;
+  /** Match count pre-cap (e.g. raw body occurrences before BODY_HITS_CAP). */
+  readonly hits: number;
+  /** Points contributed after weights/caps; sums with siblings to `score`. */
+  readonly points: number;
+}
 
 export interface SearchHit {
   readonly title: string;
@@ -24,6 +48,12 @@ export interface SearchHit {
   readonly score: number;
   /** First body line matching a query term, trimmed; empty when none. */
   readonly snippet: string;
+  /**
+   * R4 score breakdown — ordered points desc, then channel order, then term.
+   * Hard invariant: `score === matched.reduce((s, m) => s + m.points, 0)`.
+   * JSON-only; never rendered in `search`'s human text output.
+   */
+  readonly matched: readonly MatchComponent[];
 }
 
 export interface SearchReport {
@@ -48,6 +78,26 @@ const W_TERM_TITLE = 5;
 const W_TERM_TAG = 3;
 const W_TERM_BODY = 1;
 const BODY_HITS_CAP = 5;
+
+// Stable channel precedence for sorting a hit's match components when points tie.
+const CHANNEL_ORDER: readonly MatchComponent["channel"][] = [
+  "title-phrase",
+  "title-term",
+  "alias-term",
+  "tag-term",
+  "body-term",
+];
+
+/** Total order: points desc → channel precedence → term lexicographic. */
+function sortMatchComponents(components: readonly MatchComponent[]): readonly MatchComponent[] {
+  return [...components].sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    const ai = CHANNEL_ORDER.indexOf(a.channel);
+    const bi = CHANNEL_ORDER.indexOf(b.channel);
+    if (ai !== bi) return ai - bi;
+    return a.term.localeCompare(b.term);
+  });
+}
 
 function terms(query: string): string[] {
   return query
@@ -92,11 +142,26 @@ export function search(opts: SearchOptions): SearchReport {
     const body = splitFrontmatter(content).body.toLowerCase();
 
     let score = 0;
-    if (titleHay.includes(phrase)) score += W_PHRASE_TITLE;
+    const components: MatchComponent[] = [];
+    if (titleHay.includes(phrase)) {
+      score += W_PHRASE_TITLE;
+      components.push({ channel: "title-phrase", term: "", hits: 1, points: W_PHRASE_TITLE });
+    }
     for (const t of qTerms) {
-      if (titleHay.includes(t)) score += W_TERM_TITLE;
-      if (tagHay.includes(t)) score += W_TERM_TAG;
-      score += Math.min(countOccurrences(body, t), BODY_HITS_CAP) * W_TERM_BODY;
+      if (titleHay.includes(t)) {
+        score += W_TERM_TITLE;
+        components.push({ channel: "title-term", term: t, hits: 1, points: W_TERM_TITLE });
+      }
+      if (tagHay.includes(t)) {
+        score += W_TERM_TAG;
+        components.push({ channel: "tag-term", term: t, hits: 1, points: W_TERM_TAG });
+      }
+      const bodyHits = countOccurrences(body, t);
+      const bodyPoints = Math.min(bodyHits, BODY_HITS_CAP) * W_TERM_BODY;
+      if (bodyPoints > 0) {
+        score += bodyPoints;
+        components.push({ channel: "body-term", term: t, hits: bodyHits, points: bodyPoints });
+      }
     }
     if (score === 0) continue;
 
@@ -113,6 +178,7 @@ export function search(opts: SearchOptions): SearchReport {
       type: typeof fm["type"] === "string" ? (fm["type"] as string) : "",
       score,
       snippet: snippetLine.slice(0, 160),
+      matched: sortMatchComponents(components),
     });
   }
 
