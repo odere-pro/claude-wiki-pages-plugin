@@ -41,7 +41,13 @@ Write to `vault/output/_pipeline-plan-YYYY-MM-DD.md` (git-ignored; no frontmatte
 ...
 
 ## Entities and concepts extracted
-- [<new|existing>] <Entity/Concept name> — from <source(s)>
+
+> For each extracted item, apply the **classification checklist** in
+> `skills/ingest/SKILL.md` — assign exactly one `type` (and, for entities,
+> one `entity_type`) drawn from `ontology-profile-v1` in `vault/CLAUDE.md`.
+> Never invent out-of-enum values; flag ambiguous cases for human review.
+
+- [<new|existing>] <Entity/Concept name> — `type: <type>` (entity: `entity_type: <value>`) — from <source(s)>
 ...
 
 ## Proposed topic tree

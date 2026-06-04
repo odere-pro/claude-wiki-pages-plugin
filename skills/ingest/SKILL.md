@@ -57,6 +57,33 @@ This skill MUST NOT:
 - Renumber, reorder, or rebuild `wiki/index.md` (that is `index`'s
   role; this skill only appends).
 
+## Classification checklist
+
+Every new page extracted during ingest (step 3b below) must be classified
+before it is written. Work through this checklist for each item.
+
+**Enum authority:** read the allowed values from `ontology-profile-v1` in
+`vault/CLAUDE.md` — that section is the single source of truth for the
+`type` enum and the `entity_type` enum. Do not restate or copy those lists
+here; they live there and only there.
+
+1. **Assign exactly one `type`** from the `type` enum in `ontology-profile-v1`
+   (`vault/CLAUDE.md`). The vault's effective enum is the closed core set; it
+   is not owner-extensible (adding a type requires a schema change).
+2. **For `type: entity` pages, assign exactly one `entity_type`** from the
+   `entity_type` enum in `ontology-profile-v1` (`vault/CLAUDE.md`). The
+   effective legal set is the fixed core **union** any `entity_type_extensions`
+   list declared in the active vault's own `vault/CLAUDE.md` (decision #6);
+   compose the two lists at read time.
+3. **Out-of-enum items:** if the extracted item does not fit any legal value,
+   direct it to the closest legal type that best captures its nature. If no
+   reasonable mapping exists, flag it as a human decision — never invent an
+   out-of-enum value. Annotate the page with an inline comment explaining the
+   mapping choice so a reviewer can verify or override it.
+4. **Provenance unchanged:** a classified page still requires `sources` linking
+   back to the originating `raw/` file. Classification does not replace or
+   weaken the `sources`, `source_quotes`, `derived`, or `confidence` fields.
+
 ## Workflow
 
 Follow the 13-step ingest sequence in `vault/CLAUDE.md` exactly. The short
@@ -67,7 +94,8 @@ version:
    `vault/wiki/log.md`).
 3. For each source:
    a. Write the summary to `wiki/_sources/`.
-   b. Extract entities and concepts.
+   b. Extract entities and concepts. For each extracted item, apply the
+      **Classification checklist** above before writing the page.
    c. For each extracted item, locate or create its topic folder.
    d. Extend an existing page if one already covers the item; otherwise create
       a new typed page.
