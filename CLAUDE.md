@@ -41,11 +41,11 @@ Long-form model: [`docs/architecture.md`](./docs/architecture.md).
 | Security          | `docs/security.md` (threat model with per-threat test mapping); spec §15; Tier 4 CI at `.github/workflows/adversarial.yml` (corpus replay stubbed) |
 | Tests (Tier 0–4)  | `tests/README.md`; spec §14; hook tests in `tests/scripts/*.bats`                                                                                  |
 
-If an edit introduces a new concept, add the term to `docs/GLOSSARY.md` with a rationale first.
+If an edit introduces a new concept, add the term to `docs/GLOSSARY.md` with a rationale first — enforced by `scripts/validate-docs.sh` (the glossary gate, run in CI Tier 0).
 
 ## Local workflows
 
 - `bash tests/install-deps.sh` — install every dev/test tool (brew on macOS, apt on Linux). Idempotent. `--check` reports status, `--dry-run` previews.
 - `bash tests/run-tests.sh` — run Tier 0 + Tier 1 locally. Also accepts `tier0`, `tier1`, `tier2`, or `all`; `--list` prints the commands without running.
-- `scripts/validate-docs.sh` — glossary gate. Run before every commit.
+- `scripts/validate-docs.sh` — glossary gate, enforced in CI Tier 0. Run it locally before committing to catch violations early.
 - `scripts/verify-ingest.sh docs/vault-example/` — verify the reference vault against the schema.
