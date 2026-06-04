@@ -20,6 +20,25 @@ permissions:
   issues: write
 
 jobs:
+  # The `secrets` and `env` contexts are not available in a job-level `if`, so
+  # the API-key presence check runs here in a step and is exposed as an output
+  # the dependent jobs gate on via the `needs` context.
+  gate:
+    name: gate — detect ANTHROPIC_API_KEY
+    runs-on: ubuntu-latest
+    outputs:
+      has_api_key: ${{ steps.check.outputs.has_api_key }}
+    steps:
+      - id: check
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$ANTHROPIC_API_KEY" ]; then
+            echo "has_api_key=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_api_key=false" >> "$GITHUB_OUTPUT"
+          fi
+
   osv-scan:
     name: osv-scanner — dependency vulnerabilities
     # Reusable workflows must be invoked at the job level via `uses:`, not as a step.
@@ -36,7 +55,8 @@ jobs:
   prompt-injection:
     name: prompt-injection corpus replay
     runs-on: ubuntu-latest
-    if: ${{ env.ANTHROPIC_API_KEY != '' }}
+    needs: gate
+    if: ${{ needs.gate.outputs.has_api_key == 'true' }}
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
@@ -61,7 +81,8 @@ jobs:
   garak:
     name: garak — LLM red-team
     runs-on: ubuntu-latest
-    if: ${{ env.ANTHROPIC_API_KEY != '' }}
+    needs: gate
+    if: ${{ needs.gate.outputs.has_api_key == 'true' }}
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
