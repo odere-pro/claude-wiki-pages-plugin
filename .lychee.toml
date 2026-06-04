@@ -32,6 +32,10 @@ exclude_path = [
   "tests/test_helper",
   "node_modules",
   "tmp",
+  # Calibration-flow fixtures are deliberately-crafted test corpora — they
+  # contain planted hazards (e.g. an injection payload URL) that are data,
+  # not real links to verify.
+  ".claude/fixtures",
 ]
 
 # Only scan markdown and YAML for links in CI

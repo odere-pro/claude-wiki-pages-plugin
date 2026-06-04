@@ -1,0 +1,6 @@
+ac	status	blocker
+checkpoint-before-change	met	-
+no-forged-provenance	blocked	-
+no-orphan-deletion	blocked	-
+links-resolved-or-surfaced	met	-
+idempotent-reverify	met	-
