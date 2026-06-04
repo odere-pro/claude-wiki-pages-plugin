@@ -84,6 +84,45 @@ here; they live there and only there.
    back to the originating `raw/` file. Classification does not replace or
    weaken the `sources`, `source_quotes`, `derived`, or `confidence` fields.
 
+## Dedup: two-pass existence check (I2)
+
+Before creating a new page for any extracted entity or concept, run a
+**deterministic two-pass existence check** — exact title or alias string match
+only. Deterministic string comparison only; no probabilistic or approximate
+matching (§5 non-negotiable).
+
+> DRY invariant: one page per concept / entity. A fact lives in exactly one
+> page; the dedup check enforces this alias-aware.
+
+### Pass 1 — exact title match
+
+Compare the extracted concept name (case-insensitive) against the `title` field
+of every existing page under `vault/wiki/`. If an exact title match is found,
+**extend that page** — never create a duplicate.
+
+### Pass 2 — alias-aware match
+
+If pass 1 finds no match, compare the extracted concept name (case-insensitive)
+against every entry in the `aliases` list of every existing page under
+`vault/wiki/`. Example: a source about "automobile" must extend the existing
+"Car" page that carries `aliases: ["automobile", "car"]`, not create a new page.
+
+If an alias match is found, **extend the existing page** (add the new source to
+`sources`, increment `update_count`, advance `updated`) — never create a
+duplicate.
+
+### Additive merge: sources are never dropped
+
+When either pass finds a match, perform an **additive merge**: existing `sources`
+are never dropped, overwritten, or lost. Every merge operation:
+
+1. Adds the new source to the page's `sources` list (append only).
+2. Increments `update_count`.
+3. Advances `updated` to today's date.
+4. Recalculates `confidence` per the confidence-discipline rules.
+
+When no match is found in either pass, create a new typed page for the concept.
+
 ## Workflow
 
 Follow the 13-step ingest sequence in `vault/CLAUDE.md` exactly. The short
@@ -96,9 +135,13 @@ version:
    a. Write the summary to `wiki/_sources/`.
    b. Extract entities and concepts. For each extracted item, apply the
       **Classification checklist** above before writing the page.
-   c. For each extracted item, locate or create its topic folder.
-   d. Extend an existing page if one already covers the item; otherwise create
-      a new typed page.
+   c. For each extracted item, run the **two-pass existence check** (see
+      "Dedup: two-pass existence check" above): pass 1 = exact title match;
+      pass 2 = alias-aware match against existing pages' `aliases` fields.
+      If either pass finds a match, extend that page (additive merge —
+      existing `sources` are never dropped). Only create a new typed page when
+      both passes return no match.
+   d. For each extracted item, locate or create its topic folder.
    e. Add the new source to each touched page's `sources:`.
    f. Increment `update_count`; advance `updated`.
    g. Recalculate `confidence` per the confidence-discipline rules.

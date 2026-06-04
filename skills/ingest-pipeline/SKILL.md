@@ -46,6 +46,13 @@ Write to `vault/output/_pipeline-plan-YYYY-MM-DD.md` (git-ignored; no frontmatte
 > `skills/ingest/SKILL.md` — assign exactly one `type` (and, for entities,
 > one `entity_type`) drawn from `ontology-profile-v1` in `vault/CLAUDE.md`.
 > Never invent out-of-enum values; flag ambiguous cases for human review.
+>
+> Also apply the **two-pass alias-aware dedup** from `skills/ingest/SKILL.md`
+> before marking any item as `new`. Pass 1 = exact title match; pass 2 =
+> alias-aware match against existing pages' `aliases` fields. Mark items as
+> `existing` if either pass matches, and plan an additive extension (never a
+> duplicate). See "Dedup: two-pass existence check (I2)" in
+> `skills/ingest/SKILL.md` for the full procedure.
 
 - [<new|existing>] <Entity/Concept name> — `type: <type>` (entity: `entity_type: <value>`) — from <source(s)>
 ...
