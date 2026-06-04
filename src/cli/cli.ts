@@ -13,10 +13,26 @@ import { fix } from "../commands/fix/fix.ts";
 import { heal } from "../commands/heal/heal.ts";
 import { doctor, doctorExit } from "../commands/doctor/doctor.ts";
 import { config, configExit, type ConfigSub } from "../commands/config/config.ts";
+import { migrate } from "../commands/migrate/migrate.ts";
+import { search } from "../commands/search/search.ts";
+import { firewallCheck } from "../commands/firewall/firewall.ts";
+import { backlog } from "../commands/backlog/backlog.ts";
+import { propose, type ProposeSub } from "../commands/propose/propose.ts";
 import { renderText, exitCode, type Report } from "../core/report.ts";
 
-const IMPLEMENTED = new Set(["verify", "fix", "heal", "doctor", "config"]);
-const PLANNED = ["index", "link-suggest", "search", "checkpoint"];
+const IMPLEMENTED = new Set([
+  "verify",
+  "fix",
+  "heal",
+  "doctor",
+  "config",
+  "migrate",
+  "search",
+  "firewall",
+  "backlog",
+  "propose",
+]);
+const PLANNED = ["index", "link-suggest", "checkpoint"];
 const ALL = [...IMPLEMENTED, ...PLANNED];
 
 interface ParsedArgs {
@@ -27,6 +43,8 @@ interface ParsedArgs {
   readonly help: boolean;
   readonly fix: boolean;
   readonly strict: boolean;
+  readonly write: boolean;
+  readonly file: string | undefined;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -37,17 +55,21 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   let help = false;
   let fixFlag = false;
   let strict = false;
+  let write = false;
+  let file: string | undefined;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--json") json = true;
     else if (a === "--help" || a === "-h") help = true;
     else if (a === "--fix") fixFlag = true;
     else if (a === "--strict") strict = true;
+    else if (a === "--write") write = true;
     else if (a === "--target") target = argv[++i];
+    else if (a === "--file") file = argv[++i];
     else if (a && !a.startsWith("-") && command === undefined) command = a;
     else if (a && !a.startsWith("-") && sub === undefined) sub = a;
   }
-  return { command, sub, json, target, help, fix: fixFlag, strict };
+  return { command, sub, json, target, help, fix: fixFlag, strict, write, file };
 }
 
 function emit(report: Report, json: boolean): void {
@@ -63,7 +85,7 @@ function usage(): void {
       "",
       `Commands: ${ALL.join(", ")}`,
       "",
-      "Implemented: verify, fix, heal, doctor, config",
+      "Implemented: verify, fix, heal, doctor, config, migrate, search, firewall, backlog, propose",
       "",
     ].join("\n"),
   );
@@ -78,6 +100,8 @@ function main(): number {
     help,
     fix: fixFlag,
     strict,
+    write,
+    file,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -164,6 +188,89 @@ function main(): number {
       );
     else process.stdout.write(JSON.stringify(report.config, null, 2) + "\n");
     return configExit(report);
+  }
+
+  if (command === "migrate") {
+    const report = migrate({ target, write });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else {
+      const lines = report.changes.map(
+        (c) => `${report.applied ? "MIGRATED" : "PLAN"} [${c.action}] ${c.file}`,
+      );
+      process.stdout.write((lines.length ? lines.join("\n") + "\n" : "") + report.message + "\n");
+    }
+    return report.message.startsWith("Vault not found") || report.message.startsWith("No CLAUDE.md")
+      ? 1
+      : 0;
+  }
+
+  if (command === "firewall") {
+    if (!file) {
+      process.stderr.write("firewall: --file <path> is required\n");
+      return 2;
+    }
+    const report = firewallCheck({ target, file });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else
+      process.stdout.write(
+        `${report.allowed ? "ALLOW" : "BLOCK"} [${report.matchedRule}] ${report.file} (mode=${report.mode})\n`,
+      );
+    return report.allowed ? 0 : 1;
+  }
+
+  if (command === "propose") {
+    const allowed: ProposeSub[] = ["review", "approve", "reject"];
+    const chosen = (allowed.includes(sub as ProposeSub) ? sub : "review") as ProposeSub;
+    const report = propose({ target, sub: chosen, file });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else if (chosen === "review")
+      process.stdout.write(
+        (report.drafts.length
+          ? report.drafts
+              .map(
+                (d) =>
+                  `${d.ready ? "[ready]" : "[hold] "} ${d.target}${d.issues.length ? `  (${d.issues.join(", ")})` : ""}`,
+              )
+              .join("\n") + "\n"
+          : "") +
+          report.message +
+          "\n",
+      );
+    else process.stdout.write(report.message + "\n");
+    return report.message.includes("not found") || report.message.includes("requires --file")
+      ? 1
+      : 0;
+  }
+
+  if (command === "backlog") {
+    const report = backlog({ target });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else
+      process.stdout.write(
+        [
+          `pending raw: ${report.pendingRaw.length}`,
+          ...report.pendingRaw.map((p) => `  - ${p}`),
+          `last ingest: ${report.lastIngest ?? "never"}`,
+          `last lint:   ${report.lastLint ?? "never"}${report.daysSinceLint !== null ? ` (${report.daysSinceLint}d ago)` : ""}`,
+          `needs catch-up: ${report.needsCatchup ? "yes" : "no"}`,
+          "",
+        ].join("\n"),
+      );
+    return 0;
+  }
+
+  if (command === "search") {
+    const report = search({ target, query: sub ?? "" });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else if (report.hits.length === 0)
+      process.stdout.write(`search: no matches for "${report.query}"\n`);
+    else
+      process.stdout.write(
+        report.hits
+          .map((h) => `${String(h.score).padStart(3)}  ${h.wikilink}  (${h.file})`)
+          .join("\n") + "\n",
+      );
+    return 0;
   }
 
   if (PLANNED.includes(command)) {

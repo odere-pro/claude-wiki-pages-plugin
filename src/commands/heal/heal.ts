@@ -12,7 +12,9 @@
 import { verify } from "../verify/verify.ts";
 import { fix, type FixChange } from "../fix/fix.ts";
 import { resolveVault } from "../../core/vault.ts";
-import { ensureRepo, checkpoint, commitHeal } from "../../core/git.ts";
+import { ensureRepo, checkpoint, commitHeal, push } from "../../core/git.ts";
+import { appendLog } from "../../core/log.ts";
+import { loadConfig } from "../../data/config/config.ts";
 
 const DEFAULT_MAX_ITERATIONS = 5;
 
@@ -70,7 +72,18 @@ export function heal(opts: HealOptions = {}): HealReport {
   }
 
   const clean = last.errors === 0;
+  // Record the operation in the log before committing, so the entry lands in the
+  // heal commit itself (the precise SHA lives in git; the log stays human-readable).
+  if (clean && changes.length > 0) {
+    appendLog(vault, {
+      verb: "heal",
+      summary: `errors ${before.errors} → ${last.errors} in ${iterations} iteration(s)`,
+      details: ["rollback: git revert the heal commit below"],
+      today: opts.today,
+    });
+  }
   const healSha = clean ? commitHeal(vault, opId, iterations) : null;
+  if (healSha && loadConfig({ cwd: opts.cwd }).config.gitCheckpoint.push === "auto") push(vault);
   const unresolved = clean
     ? []
     : last.findings.filter((x) => x.severity === "error").map((x) => x.message);

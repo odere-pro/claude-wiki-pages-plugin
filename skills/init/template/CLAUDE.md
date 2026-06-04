@@ -2,7 +2,7 @@
 
 ## Schema
 
-`schema_version: 1`
+`schema_version: 2`
 
 This file is the authoritative schema for any wiki operation. Skills and agents override their own defaults when those defaults conflict with the rules below.
 
@@ -41,6 +41,7 @@ vault/
 │   └── <topic-b>/
 │       ├── _index.md
 │       └── ...
+├── _proposed/                   # optional staging for drafts awaiting review (schema v2)
 ├── output/                      # optional scratch space for deliverables (git-ignored)
 ├── _templates/                  # frontmatter templates per type
 └── CLAUDE.md                    # this file
@@ -68,7 +69,10 @@ Every folder contains a `_index.md` that lists and links all notes in that folde
 
 Every note in the vault carries YAML frontmatter. Type lives in frontmatter, not in the folder path — a single topic folder can contain both entities and concepts side by side.
 
-Six allowed types: `source`, `entity`, `concept`, `synthesis`, `index`, `log`. (`vault/output/` files are plain markdown — no frontmatter required, not tracked by this schema.)
+Nine allowed types: `source`, `entity`, `concept`, `topic`, `project`, `synthesis`, `index`, `manifest`, `log`. (`vault/output/` files are plain markdown — no frontmatter required, not tracked by this schema.)
+
+> [!note] Schema version 2
+> `topic`, `project`, and `manifest` were added in schema_version 2, along with the optional claim-level provenance fields `source_quotes` and `derived` (available on every typed page). A vault that declares `schema_version: 1` remains valid — version 2 is a strict superset. Upgrade an existing vault with `bash scripts/engine.sh migrate --target <vault> --write` (see `docs/migration-2.0.md`).
 
 The `log` type is used only for `wiki/log.md` (the operations log). It requires minimal frontmatter: `title`, `type`, `created`, `updated`. Log entries may use `[[wikilinks]]` to reference real pages (e.g., `[[LLM Wiki Pattern]]`), but when describing old/fixed/invalid link patterns, use backtick code formatting instead (e.g., `` `_index` `` not `[[_index]]`) — otherwise Obsidian creates ghost nodes in the graph.
 
@@ -147,6 +151,59 @@ confidence: 0.8
 ---
 ```
 
+### Topic notes (type: `topic`, placed in topic folders) — schema v2
+
+A topic page is a narrative landing page for a topic — distinct from the folder's `_index.md` (which is a mechanical Map of Content listing children). Use a topic page when a topic needs a curated overview that orients the reader before they descend into the entity/concept pages. Optional; not every folder needs one.
+
+```yaml
+---
+title: "Topic Name"
+type: topic
+aliases: []
+parent: "[[Parent Index]]"
+path: "topic-a"
+summary: "One- or two-sentence orientation for this topic."
+key_pages: ["[[important-concept]]", "[[important-entity]]"]
+sources: ["[[source-note-1]]"]
+related: ["[[adjacent-topic]]"]
+source_quotes: [] # optional claim-level provenance — see below
+derived: false # optional — true when the page is LLM inference, not stated in a source
+tags: []
+created: 2026-04-16
+updated: 2026-04-16
+update_count: 1
+status: active | stale | superseded
+confidence: 0.8
+---
+```
+
+### Project notes (type: `project`, placed in topic folders) — schema v2
+
+A project page tracks a goal or initiative that aggregates related entities, concepts, and sources with a lifecycle. Use it to follow ongoing work whose state changes over time.
+
+```yaml
+---
+title: "Project Name"
+type: project
+aliases: []
+parent: "[[Parent Index]]"
+path: "topic-a"
+objective: "What this project aims to achieve."
+project_status: planned | active | paused | done | abandoned
+members: ["[[related-entity]]", "[[related-concept]]"]
+sources: ["[[source-note-1]]"]
+related: ["[[related-project]]"]
+source_quotes: [] # optional claim-level provenance — see below
+derived: false # optional
+tags: []
+created: 2026-04-16
+updated: 2026-04-16
+update_count: 1
+status: active | stale | superseded
+confidence: 0.8
+---
+```
+
 ### Synthesis notes (`wiki/_synthesis/`)
 
 Synthesis notes are higher-order analysis: comparisons, themes, contradictions, gap analyses.
@@ -188,11 +245,34 @@ updated: 2026-04-16
 
 **`aliases`** — every index must include aliases that reflect the topic it represents. Use the topic name in common variations (lowercase slug, title case, abbreviations). This ensures wikilinks resolve when other pages reference the topic by any name variant.
 
+### Source manifest (`wiki/_sources/manifest.md`) — schema v2
+
+The source manifest is a single bookkeeping page that tracks the processed state of every raw source. It gives ingest an idempotency key (re-dropping the same file is detected by checksum) and lets the autonomous maintenance loop detect backlog in O(1) instead of re-scanning the log. It is generated and maintained by the engine (`migrate`, `ingest`); you rarely edit it by hand.
+
+```yaml
+---
+title: "Source Manifest"
+type: manifest
+created: 2026-04-16
+updated: 2026-04-16
+---
+```
+
+The body holds one row per raw source: `raw_file`, `ingested_at`, `source_page` (`[[wikilink]]`), `status` (`processed | pending | skipped`), and `checksum`. The manifest is bookkeeping (like `index.md` and `log.md`): it is exempt from the `sources`-required and index-membership checks.
+
+### Drafts and review (`_proposed/`) — schema v2
+
+`vault/_proposed/` is an optional staging area for drafted pages awaiting human review (e.g. produced by a local model via `/claude-wiki-pages:draft`). Drafts mirror their eventual wiki path — `_proposed/wiki/<topic>/<page>.md` — and carry `status: draft` plus `proposed_by: "<source>"` (e.g. `"ollama:llama3"`, `"claude"`).
+
+Because `_proposed/` is a sibling of `wiki/`, drafts are **outside every wiki-scoped check** (frontmatter validation, wikilinks, lint, index) until promoted — they cannot pollute the wiki. `/claude-wiki-pages:review` promotes a draft into `wiki/` (clearing `proposed_by`, setting `status: active`, stamping `updated`) under a git checkpoint, or rejects it. Never hand-copy a draft into `wiki/`; promotion via `propose approve` is the only sanctioned path.
+
+**`proposed_by`** _(schema v2, optional)_ — present only on drafts under `_proposed/`. Records what produced the draft. Removed on promotion.
+
 ### Graph coloring
 
 Topic branches are color-coded in Obsidian's graph view via the internal graph plugin API. The `/claude-wiki-pages:obsidian-graph-colors` skill manages this programmatically using `obsidian eval`. Each topic folder gets a `path:` query mapped to a unique color. No frontmatter field needed — colors are applied at the Obsidian graph engine level.
 
-When creating a new top-level topic folder, run `/claude-wiki-pages:obsidian-graph-colors` (or the ingest pipeline handles it automatically in step 1.7). The `claude-wiki-pages-curator-agent` also checks for missing color groups and applies them.
+When creating a new top-level topic folder, run `/claude-wiki-pages:obsidian-graph-colors` (or the ingest pipeline handles it automatically in step 1.7). The `claude-wiki-pages-curator-agent` agent also checks for missing color groups and applies them.
 
 ### Field: `parent` placeholder form
 
@@ -206,8 +286,8 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 
 **`type`** is the primary filter. Read only this field to decide which pages are relevant to an operation.
 
-- Ingest touches `source`, `entity`, `concept`, `index`.
-- Query reads `entity`, `concept`, `synthesis`.
+- Ingest touches `source`, `entity`, `concept`, `topic`, `project`, `index`, `manifest`.
+- Query reads `entity`, `concept`, `topic`, `project`, `synthesis`.
 - Lint scans all wiki types. Files in `vault/output/` are out of scope.
 
 **`parent`** links a note to its folder's `_index.md`. Makes the tree navigable through wikilinks, not just the filesystem. Every note except top-level indexes must have a `parent`.
@@ -228,6 +308,10 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 **`update_count`** tracks how many ingest operations touched this page. High count = well-evidenced. Low count = peripheral, candidate for review during lint.
 
 **`contradicts` / `supersedes` / `depends_on`** are typed relationships that carry semantic meaning beyond flat wikilinks. Live in frontmatter. At 50+ pages, install obsidian-wikilink-types plugin for inline typed links.
+
+**`source_quotes`** _(schema v2, optional)_ — claim-level provenance. A list of `{ source: "[[source-note]]", quote: "verbatim sentence from the source" }` objects that pin specific claims on the page to the exact source text behind them. Where `sources` says _which_ sources a page draws on, `source_quotes` says _which sentence_ supports a given claim. Leave empty (`[]`) when page-level `sources` is sufficient; populate it for high-stakes or contested claims.
+
+**`derived`** _(schema v2, optional, default `false`)_ — set to `true` when the page (or a claim on it) is LLM inference synthesised across sources rather than stated in any single source. Makes the inference explicit so a reviewer knows it carries less direct evidentiary weight. A `derived: true` page should keep `confidence` below `0.8` unless multiple sources independently support the inference.
 
 **`aliases`** enable wikilink resolution. Obsidian resolves `[[X]]` by matching filenames or aliases — not titles. Since filenames are kebab-case but wikilinks use Title Case page titles, **the `title` value must always appear as the first entry in `aliases`**. Without this, every `[[Title Case Link]]` creates a ghost node in the graph. On index notes, also include the topic name in common variations (slug, title case, abbreviations).
 

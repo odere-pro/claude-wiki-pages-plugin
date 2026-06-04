@@ -35,9 +35,10 @@ Goal: every top-level topic folder under `vault/wiki/` has a distinct color grou
 2. List top-level folders in `vault/wiki/` (depth 1, excluding `_sources`, `_synthesis`, and any leading-underscore folder).
 3. Read current graph color groups from `vault/.obsidian/graph.json` if it exists. If absent, create the minimum scaffold per the `obsidian-graph-colors` skill.
 4. For each top-level folder without a corresponding color group, append a new group with `path:wiki/<folder>` and the next unused palette color. Insert before the catch-all `_sources` / `_synthesis` / `_index` rules.
-5. Persist via `obsidian eval` + `graph.saveOptions()` (per the `obsidian-cli` reference skill). If `obsidian eval` is unavailable (Obsidian CLI not installed), print `[skip] graph-colors: obsidian-cli unavailable` and continue.
+5. Append the **layer pass** (per the `obsidian-graph-colors` skill): broad fallback groups `path:raw` → green, `path:wiki` → blue, `path:_templates` → orange, ordered **after** all per-topic groups so topic colors win first-match and only uncolored nodes take the layer color. Skip any layer group already present (idempotent).
+6. Persist via `obsidian eval` + `graph.saveOptions()` (per the `obsidian-cli` reference skill). If `obsidian eval` is unavailable (Obsidian CLI not installed), print `[skip] graph-colors: obsidian-cli unavailable` and continue.
 
-Idempotency rule: a folder that already has a color group is left untouched. Adding three new folders followed by a re-run produces zero further changes.
+Idempotency rule: a folder (or layer group) that already has a color group is left untouched. Adding three new folders followed by a re-run produces zero further changes.
 
 ## Step 2 — Regenerate `wiki/index.md`
 

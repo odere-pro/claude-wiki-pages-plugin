@@ -41,7 +41,63 @@
           "enum": ["commit", "branch", "both", "off"],
           "default": "commit",
           "description": "How auto-heal snapshots the vault before changing it. Rollback is git revert / branch checkout."
+        },
+        "push": {
+          "type": "string",
+          "enum": ["off", "auto"],
+          "default": "off",
+          "description": "auto = push to the configured upstream after each git-checkpointed engine op (heal/migrate/propose). Off by default — the plugin is not a hosted service."
         }
+      }
+    },
+    "firewall": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Vault isolation: confine agent writes to the resolved vault (+ allowPaths), minus denyPaths.",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "mode": {
+          "type": "string",
+          "enum": ["enforce", "warn", "off"],
+          "default": "enforce",
+          "description": "enforce = block out-of-vault writes; warn = advise only; off = pass-through."
+        },
+        "allowPaths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Extra write roots beyond the resolved vault. Absolute paths or globs."
+        },
+        "denyPaths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["**/.ssh/**", "**/.aws/**", "**/.env", "**/.git/config"],
+          "description": "Globs always blocked, even inside an allowed root."
+        }
+      }
+    },
+    "localModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional local-model (Ollama/LM Studio) drafting into _proposed/ for human review. Off by default — Claude Code stays primary.",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "provider": { "type": "string", "enum": ["ollama", "lmstudio"], "default": "ollama" },
+        "endpoint": { "type": "string", "default": "http://localhost:11434" },
+        "model": { "type": "string", "default": "" },
+        "draftTarget": { "type": "string", "default": "_proposed" }
+      }
+    },
+    "maintenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Autonomous upkeep: backlog detection + the catch-up recommendation/loop.",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "autoCatchupOnSessionStart": { "type": "boolean", "default": true },
+        "lintEveryDays": { "type": "integer", "minimum": 1, "default": 7 },
+        "maxPerRun": { "type": "integer", "minimum": 1, "maximum": 50, "default": 10 },
+        "cooldownMinutes": { "type": "integer", "minimum": 0, "default": 60 }
       }
     },
     "modelHints": {

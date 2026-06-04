@@ -127,6 +127,32 @@ When a topic folder is deleted or merged:
 2. Filter out entries matching the removed path
 3. Apply and save
 
+## Layer coloring (optional pass)
+
+Beyond per-topic colors, you can color the graph by **layer** — the at-a-glance
+view from the LLM Wiki pattern: raw sources, wiki pages, and schema files each
+get one color, so the three-layer structure is visible at a glance.
+
+| Layer  | Query           | Color            |
+| ------ | --------------- | ---------------- |
+| raw    | `path:raw`      | green (#57E567)  |
+| wiki   | `path:wiki`     | blue (#3498DB)   |
+| schema | `path:_templates` (and the vault `CLAUDE.md`) | orange (#FFA500) |
+
+**Ordering is critical.** Color groups are first-match-wins, and `path:wiki` is
+broad — it matches every wiki page. So the layer groups must come **after** all
+per-topic groups, not before. With this ordering:
+
+- a wiki page in a colored topic keeps its topic color (matched first);
+- any uncolored wiki page falls through to the blue `path:wiki` layer color;
+- `path:raw` colors raw sources green; `path:_templates` colors schema orange.
+
+If you want a **pure layer view** (no per-topic colors), use only the three
+layer groups. If you want both, append the layer groups after the topic groups
+as the fallback tier (still before the `file:_index` catch-all if you keep it).
+The `claude-wiki-pages-polish-agent` applies the layer pass after the per-topic
+pass when it refreshes colors.
+
 ## Converting hex to RGB integer
 
 The `rgb` field is a decimal integer, not hex. To convert:

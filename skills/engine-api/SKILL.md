@@ -3,7 +3,7 @@ name: engine-api
 description: >
   The LLM-facing contract for the deterministic claude-wiki-pages Bun engine —
   how ANY agent should call it. Documents each subcommand (verify, fix, heal,
-  and the planned index/link-suggest/search), its `--json` output shape, exit
+  doctor, config, migrate, search; plus planned index/link-suggest), its `--json` output shape, exit
   codes, and when to call it on a write-path. Trigger when an agent or user
   asks "how do I call the engine", "what does the engine return", "how do I
   verify/heal programmatically", or invokes /claude-wiki-pages:engine-api. This
@@ -75,10 +75,59 @@ any warn/fail. See `/claude-wiki-pages:doctor`.
 Merges defaults ← user (`~/.config/claude-wiki-pages/config.json`) ← project
 (`.claude/claude-wiki-pages.json`) ← `CLAUDE_WIKI_PAGES_*` env overrides.
 
+### `migrate` — upgrade schema_version in place (v1 → v2)
+
+Dry-run by default; `--write` applies under a git checkpoint. Additive and
+idempotent (bumps `schema_version`, writes new templates, generates the source
+manifest). Rollback is `git revert <commit>` (printed on completion).
+
+```json
+{ "command": "migrate", "vault": "…", "from": 1, "to": 2, "applied": true,
+  "changes": [ { "file": "…", "action": "bump-schema|add-template|generate-manifest" } ],
+  "checkpoint": "<sha>", "message": "Migrated schema_version 1 → 2 …" }
+```
+
+### `search` — deterministic keyword retrieval
+
+`search "<query>"` ranks `wiki/` pages (title/alias > tag > body, ties by title)
+and returns `[[wikilink]]`-ready hits. Reproducible — same query, same ranking.
+A candidate set, not a cited answer (use `query` for that).
+
+```json
+{ "command": "search", "vault": "…", "query": "graph rag",
+  "hits": [ { "title": "Graph RAG", "wikilink": "[[Graph RAG]]", "file": "…",
+              "type": "concept", "score": 18, "snippet": "…" } ] }
+```
+
+### `backlog` — outstanding-maintenance probe
+
+`backlog` reports pending raw sources (no `_sources/` summary, or manifest
+`pending`) and overdue lint. The deterministic input to the heartbeat and the
+maintenance agent.
+
+```json
+{ "command": "backlog", "vault": "…", "pendingRaw": ["raw/x.md"],
+  "lastIngest": "2026-05-20", "lastLint": "2026-05-21", "daysSinceLint": 9,
+  "needsCatchup": true }
+```
+
+### `propose` — human-in-the-loop draft review
+
+Drafts live under `_proposed/` (outside `wiki/`, so unvalidated until promoted).
+`propose review` lists them with a readiness check; `propose approve --file <p>`
+promotes a draft into `wiki/` (status→active, drops `proposed_by`, git
+checkpoint); `propose reject --file <p>` deletes it under a checkpoint.
+
+```json
+{ "command": "propose", "sub": "approve", "vault": "…",
+  "promoted": ["wiki/topics/x.md"], "checkpoint": "<sha>",
+  "message": "promoted … Next: curator heal + polish. Rollback: git revert <sha>" }
+```
+
 ### Planned (return `{status:"not-implemented"}` until shipped)
 
 `index` (deterministic page/entity index), `link-suggest <page>` (exact auto-link
-candidates), `search <query>` (grounded retrieval), `checkpoint`.
+candidates), `checkpoint`.
 
 ## The rule for callers
 

@@ -20,7 +20,7 @@ done
 WIKI="$VAULT/wiki"
 INDEX="$WIKI/index.md"
 VAULT_CLAUDE_MD="$VAULT/CLAUDE.md"
-SUPPORTED_SCHEMA_VERSIONS=(1)
+SUPPORTED_SCHEMA_VERSIONS=(1 2)
 
 ERRORS=0
 WARNINGS=0
@@ -98,7 +98,7 @@ else
     BASENAME=$(basename "$filepath" .md)
     # Skip bookkeeping files
     case "$BASENAME" in
-      index | log | dashboard | _index | .gitkeep) continue ;;
+      index | log | dashboard | manifest | _index | .gitkeep) continue ;;
     esac
     # Extract the title from frontmatter
     TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$filepath")
@@ -123,7 +123,7 @@ SOURCES_BAD=0
 while IFS= read -r filepath; do
   BASENAME=$(basename "$filepath" .md)
   case "$BASENAME" in
-    index | log | dashboard | _index | .gitkeep) continue ;;
+    index | log | dashboard | manifest | _index | .gitkeep) continue ;;
   esac
 
   # Extract frontmatter block
