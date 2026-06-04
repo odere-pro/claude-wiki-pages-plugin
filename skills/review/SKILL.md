@@ -15,6 +15,69 @@ The human-in-the-loop gate. Drafts (from a local model, or any source) land in
 `vault/_proposed/`, mirroring their eventual `wiki/` path. Nothing reaches the
 wiki until a human approves it here.
 
+## The `_proposed/` + `proposed_by` contract
+
+This contract is the single review channel for all drafted content
+(`src/commands/propose/propose.ts`). There is **exactly one `_proposed/`
+channel** — no second draft mechanism exists.
+
+### Directory layout
+
+Drafts live at `vault/_proposed/wiki/<topic>/<page>.md`, mirroring the
+target path they would occupy in `vault/wiki/<topic>/<page>.md`.
+`_proposed/` is a sibling of `wiki/` inside the vault root.
+
+```
+vault/
+├── wiki/                  # live wiki pages
+│   └── <topic>/<page>.md
+└── _proposed/             # staging area — outside all wiki-scoped checks
+    └── wiki/
+        └── <topic>/<page>.md  # mirrors the target wiki/ path
+```
+
+### Frontmatter on a draft
+
+Every draft carries:
+
+- `status: draft` — marks the page as not yet in the wiki.
+- `proposed_by: "<source>"` — records what produced the draft (e.g.
+  `"ollama:llama3"`, `"claude"`, `"local-ingest-stub"`). **Dropped on
+  promotion** — the promoted page carries no `proposed_by` field.
+
+### Outside every wiki-scoped check
+
+Because `_proposed/` is a sibling of `wiki/`, every wiki-scoped hook
+and gate (`validate-frontmatter.sh`, `check-wikilinks.sh`, lint,
+`verify-ingest.sh`, the source-index) treats drafts as out-of-scope
+until promotion. Drafts cannot pollute the wiki.
+
+### Promotion (approve)
+
+`propose approve` is the **only sanctioned promotion path**. Do not
+hand-copy draft content into `wiki/` — that bypasses the checkpoint and
+the frontmatter rewrite. On approval, the engine:
+
+1. Moves the file from `_proposed/wiki/…` to `wiki/…`.
+2. Sets `status: active`.
+3. Drops `proposed_by`.
+4. Stamps `updated` with today's date.
+5. Commits the change as a git checkpoint → fully reversible via
+   `git revert <sha>`.
+
+### Rejection
+
+`propose reject` deletes the draft under a git checkpoint. Reversible
+via `git revert <sha>`.
+
+### Who uses this channel
+
+All drafted content routes through this one channel:
+
+- Local-model drafts (`/claude-wiki-pages:draft`, `localModel.enabled`).
+- Durable-memory write-backs (`source_type: agent-session`, C4-write).
+- Local-ingest stub (`local-ingest-stub`, Pc).
+
 ## When to invoke
 
 - The user asks to review/approve/reject drafted pages.
@@ -66,3 +129,6 @@ healed and indexed:
 - Every approve/reject is a git checkpoint; rollback is `git revert <sha>`.
 - Promotion is the only path from a draft to the wiki. Do not hand-copy draft
   content into `wiki/` — that bypasses the checkpoint and the frontmatter rewrite.
+- Schema authority for this section: `docs/vault-example/CLAUDE.md`
+  ("Drafts and review (`_proposed/`)"). This skill aligns with it and does not
+  override it.

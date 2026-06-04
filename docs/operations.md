@@ -40,6 +40,10 @@ For surgical operations on one slice of the pipeline:
 
 Contracts for each live in [`architecture.md`](./architecture.md).
 
+## Draft review gate
+
+All drafted content (local-model drafts, durable-memory write-backs, local-ingest stubs) routes through a single `_proposed/` channel documented in [`skills/review/SKILL.md`](../skills/review/SKILL.md). The implementation lives in `src/commands/propose/propose.ts`.
+
 ## Vault location
 
 The plugin resolves the active vault via `scripts/resolve-vault.sh` using a four-tier order (first match wins):
