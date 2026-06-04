@@ -17,9 +17,13 @@ jobs:
     # by the org/repo setting "Allow GitHub Actions to create and approve pull
     # requests" being OFF. To unblock without flipping that policy, add a
     # fine-grained PAT (contents: write, pull-requests: write) as the
-    # RELEASE_PLEASE_TOKEN secret. If the secret is not set, this job no-ops
-    # so it does not turn the branch red.
-    if: ${{ vars.RELEASE_PLEASE_ENABLED == 'true' || secrets.RELEASE_PLEASE_TOKEN != '' }}
+    # RELEASE_PLEASE_TOKEN secret, then set the RELEASE_PLEASE_ENABLED repo
+    # variable to "true". Until that variable is set, this job no-ops so it
+    # does not turn the branch red.
+    #
+    # NOTE: the `secrets` context is not available in a job-level `if`, so the
+    # toggle is the `vars.RELEASE_PLEASE_ENABLED` repo variable, not the secret.
+    if: ${{ vars.RELEASE_PLEASE_ENABLED == 'true' }}
     steps:
       - uses: googleapis/release-please-action@v4
         with:
