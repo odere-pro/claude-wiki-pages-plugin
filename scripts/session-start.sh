@@ -5,6 +5,12 @@
 # Also surfaces a one-line notice when Bun (the deterministic engine runtime) is
 # missing — the plugin still works (bash hooks are unaffected), but the engine
 # commands and git-checkpointed self-heal are disabled until Bun is on PATH.
+#
+# Always emits:
+#   INDEX: pointer to vault's MOC (wiki/index.md) when it exists — orients the
+#          agent at session start without loading MOC content into context.
+#   NEXT:  a config-independent suggested next step, derived deterministically
+#          from vault filesystem state (no settings.json required).
 set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
@@ -13,8 +19,24 @@ init_vault_settings
 VAULT=$(resolve_vault)
 if [ ! -d "$VAULT" ]; then
   echo "SETUP: Vault not found at '${VAULT}'. Run /claude-wiki-pages:init to initialise your vault, or set a different path: bash scripts/set-vault.sh <path>"
+  echo "NEXT: run /claude-wiki-pages:wiki to initialise the vault and follow the onboarding wizard."
 else
   echo "REMINDER: Read ${VAULT}/CLAUDE.md before any wiki operation. It is the authoritative schema — skill defaults that conflict with it must be overridden."
+  # C4-read: MOC pointer — lets the agent orient to the vault's table of contents
+  # without loading its content into context. Emitted only when the file exists.
+  if [ -f "${VAULT}/wiki/index.md" ]; then
+    echo "INDEX: Vault table of contents is at ${VAULT}/wiki/index.md — read it to orient before any query or ingest."
+  fi
+  # U3: Config-independent NEXT line — derived from raw/ count; no settings.json needed.
+  _raw_pending=0
+  if [ -d "${VAULT}/raw" ]; then
+    _raw_pending=$(find "${VAULT}/raw" -type f -not -path '*/assets/*' -not -name '.*' 2>/dev/null | wc -l | tr -d ' ')
+  fi
+  if [ "${_raw_pending}" -gt 0 ]; then
+    echo "NEXT: run /claude-wiki-pages:wiki to process ${_raw_pending} pending source(s) in raw/."
+  else
+    echo "NEXT: run /claude-wiki-pages:wiki to query, ingest, or maintain the vault."
+  fi
 fi
 if ! command -v bun >/dev/null 2>&1; then
   echo "NOTICE: Bun is not installed — the deterministic engine (verify/fix/heal/doctor/config) and git-checkpointed self-heal are disabled; hooks still enforce the schema. Install: curl -fsSL https://bun.sh/install | bash  (then restart the session). See /claude-wiki-pages:doctor."
