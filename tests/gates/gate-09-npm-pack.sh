@@ -9,8 +9,11 @@ if ! command -v npm >/dev/null 2>&1; then
   exit 0
 fi
 
-listing="$(npm pack --dry-run --json 2>/dev/null | tr ',' '\n' | grep -oE '"path":"[^"]+"' | sed 's/"path":"//;s/"//' || true)"
-[ -z "$listing" ] && { echo "SKIP: could not read npm pack listing"; exit 0; }
+listing="$(npm pack --dry-run --json 2>/dev/null | tr ',' '\n' | grep -oE '"path" *: *"[^"]+"' | sed 's/"path" *: *"//;s/"//' || true)"
+[ -z "$listing" ] && {
+  echo "SKIP: could not read npm pack listing"
+  exit 0
+}
 
 bad=""
 for forbidden in 'src/' 'site/' 'tests/'; do
