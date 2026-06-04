@@ -4,11 +4,16 @@
 #
 # Exit codes (catch first failure; do not mask later ones):
 #   0  healthy
-#   1  vault path unresolvable (no env var, no settings, no auto-detect, default missing)
+#   1  vault path unresolvable (no env var, no settings, no auto-detect, default
+#      missing) OR git binary absent (hard dependency since decision #4 — both
+#      are "environment cannot proceed" failures, so they share exit 1)
 #   2  vault schema_version absent or unsupported
 #   3  raw/ unreadable or wiki/ unwritable
 #   4  hooks not executable (hooks/hooks.json references missing/non-+x scripts)
 #   5  validate-docs.sh fails (glossary drift in plugin prose)
+#
+# Note: a vault that is not yet a git repo is WARN/advisory, not fatal (it is
+# `doctor --fix`-able via engine.sh) — see §3b.
 
 set -euo pipefail
 
@@ -88,6 +93,23 @@ if ! (touch "$PROBE" 2>/dev/null && rm -f "$PROBE" 2>/dev/null); then
   exit 3
 fi
 green "wiki/ writable at $WIKI"
+
+# ─── 3b. Git — binary present + vault in a work tree ──────────────────────────
+# Parity with TS doctor D05 ("Vault under git"). Exit codes:
+#   No new fatal exit code is introduced here. "vault not a repo" is WARN/advisory
+#   (matching TS D05 warn + --fix design) so we never hard-fail on it — existing
+#   doctor.bats fixtures that do not git-init their vault still pass.
+if ! command -v git >/dev/null 2>&1; then
+  # git binary absent — hard dependency since decision #4 (TEAM-BRIEF.md §5).
+  red 1 "git:" "git binary not found — install git (hard dependency since decision #4)"
+  exit 1
+fi
+green "git: binary present"
+if git -C "$VAULT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  green "git: vault is a git repo (self-heal is reversible)"
+else
+  printf '\033[0;33mNOTE:\033[0m git: vault is not a git repo — run doctor --fix (via engine.sh) to git-init\n'
+fi
 
 # ─── 4. Hooks executable ───────────────────────────────────────────────────
 HOOKS_JSON="$PLUGIN_ROOT/hooks/hooks.json"

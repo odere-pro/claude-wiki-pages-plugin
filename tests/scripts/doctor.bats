@@ -91,3 +91,41 @@ setup() {
   [ "$status" -eq 0 ]
   [[ "$output" == *"healthy"* ]]
 }
+
+# ── git-required per-vault init (Phase 0, item 6) — bash doctor git check ────
+
+@test "doctor: reports OK for git when vault is a git repo" {
+  mkdir -p "$VAULT/raw" "$VAULT/wiki"
+  printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
+  # Initialise a git repo in the vault so the check passes.
+  git init -q "$VAULT"
+  git -C "$VAULT" config user.email "test@example.com"
+  git -C "$VAULT" config user.name "Test"
+  git -C "$VAULT" config commit.gpgsign false
+  git -C "$VAULT" add -A
+  git -C "$VAULT" -c commit.gpgsign=false commit -q -m "init"
+  export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
+
+  run bash "$REPO_ROOT/$DOCTOR"
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"healthy"* ]]
+  # The git check should emit an OK line.
+  [[ "$output" == *"git:"* ]]
+}
+
+@test "doctor: warns (not fatal) when vault is not a git repo" {
+  mkdir -p "$VAULT/raw" "$VAULT/wiki"
+  printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
+  # Deliberately do NOT git-init the vault.
+  export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
+
+  run bash "$REPO_ROOT/$DOCTOR"
+
+  # Must still exit 0 — "vault not a repo" is WARN, not fail.
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"healthy"* ]]
+  # The git check should emit a NOTE/WARN advisory.
+  [[ "$output" == *"git:"* ]]
+  [[ "$output" == *"not a git repo"* ]]
+}

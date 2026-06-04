@@ -123,9 +123,14 @@ what is missing.
    The script is idempotent: it creates `<vault>` if missing and copies any
    top-level entries from `${CLAUDE_PLUGIN_ROOT}/skills/init/template/` that
    are not already present in `<vault>`. Existing files are never
-   overwritten (no-clobber). Its stdout contract (`CREATED: …` /
-   `EXISTS: …` / `READY: vault at …; N created, M preserved`) feeds the
-   orientation summary in step 6.
+   overwritten (no-clobber). After scaffolding, the script git-inits the vault
+   as its own git repo (using the engine's `ensureRepo` via `doctor --fix`) so
+   every structural write is committed and reversible. The nesting guard skips
+   the git-init when the target is already inside a git work tree (e.g. the
+   user's project repo). Its stdout contract (`CREATED: …` / `EXISTS: …` /
+   `READY: vault at …; N created, M preserved; git=<initialised|skipped(already-in-repo)>`)
+   feeds the orientation summary in step 6. The vault is always a git repo
+   upon completion (or was already covered by an outer repo).
 4. **Schema check.** Confirm `<project>/<vault>/CLAUDE.md` starts with
    `schema_version: 2`. Step 3 already copies it when absent; if it exists
    but is missing the version header, stamp the correct frontmatter; do not
@@ -158,10 +163,12 @@ what is missing.
 
 Print exactly one of these shapes:
 
-- `READY: vault scaffolded at <vault-path>; schema version 2; settings persisted; verify-ingest clean.`
-- `READY: vault repaired at <vault-path> (<N> files added); schema version 2; settings persisted; verify-ingest clean.`
-- `READY: existing vault at <vault-path>; <N> pages, last log <date>; settings persisted.`
+- `READY: vault scaffolded at <vault-path>; schema version 2; git repo initialised; settings persisted; verify-ingest clean.`
+- `READY: vault repaired at <vault-path> (<N> files added); schema version 2; git repo initialised; settings persisted; verify-ingest clean.`
+- `READY: existing vault at <vault-path>; <N> pages, last log <date>; git repo present; settings persisted.`
 - `WARN: vault at <vault-path> ready but verify-ingest reported: <message>. Settings persisted; no scaffold changes overwritten.`
+
+The `git repo initialised` / `git repo present` note in the READY line confirms the vault is its own git repo after init completes.
 
 `FAILED:` is reserved for cases where `set-vault.sh` itself cannot write
 settings (filesystem permission error) — every other condition must resolve

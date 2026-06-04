@@ -6,6 +6,9 @@
 
 This file is the authoritative schema for any wiki operation. Skills and agents override their own defaults when those defaults conflict with the rules below.
 
+> [!note] Git requirement
+> Every vault is its own git repo; `init` git-inits it; structural writes commit. This is the foundation for reversible self-heal, checkpoints, and durable-memory write-backs.
+
 ## Purpose
 
 This is a personal research vault following Karpathy's LLM Wiki pattern.
