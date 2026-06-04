@@ -140,10 +140,11 @@ and surface only residual items that need editorial intent (deletions, ambiguous
 merges). Tell the user the rollback point (`git revert <healCommit>`).
 
 **Read the full step-by-step procedure for Phases 3–4 (and the Phase 1.2 check
-definitions) before applying.** Resolve in order:
+definitions) before applying** — the **`curator-fixes`** teaching skill
+(`/claude-wiki-pages:curator-fixes`). Resolve in order:
 
-1. `${CLAUDE_PLUGIN_ROOT}/docs/agents/curator-fixes.md` (plugin-install path — canonical).
-2. `docs/agents/curator-fixes.md` (in-repo contributor path).
+1. `${CLAUDE_PLUGIN_ROOT}/skills/curator-fixes/SKILL.md` (plugin-install path — canonical).
+2. `skills/curator-fixes/SKILL.md` (in-repo contributor path).
 
 ---
 

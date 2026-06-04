@@ -82,10 +82,11 @@ edit-then-approve / abort**; do not write any page without explicit approval, an
 log a clean `ingest-aborted` entry if declined.
 
 **Read the full plan format and the abort/confirmation-gate wording before
-writing the plan.** Resolve in order:
+writing the plan** — the **`ingest-pipeline`** teaching skill
+(`/claude-wiki-pages:ingest-pipeline`). Resolve in order:
 
-1. `${CLAUDE_PLUGIN_ROOT}/docs/agents/ingest-pipeline.md` (plugin-install path — canonical).
-2. `docs/agents/ingest-pipeline.md` (in-repo contributor path).
+1. `${CLAUDE_PLUGIN_ROOT}/skills/ingest-pipeline/SKILL.md` (plugin-install path — canonical).
+2. `skills/ingest-pipeline/SKILL.md` (in-repo contributor path).
 
 ### 1.5 Create or update wiki pages
 
@@ -157,7 +158,7 @@ an `optimize` entry.
 
 **Read the full audit/plan/execute procedure and the gate wording before
 restructuring** — same reference resolution as Step 1.4
-(`docs/agents/ingest-pipeline.md`).
+(`skills/ingest-pipeline/SKILL.md`).
 
 ---
 
@@ -189,7 +190,7 @@ Print a **Pipeline complete** report with one section per step — Step 1 Ingest
 pages created-updated, divergences), Step 2 Fix (found/fixed/unresolved), Step 3
 Optimize (status, folders, pages moved, wikilinks), Step 4 Synthesize (notes,
 pages scoped, gaps), Current tree, and Unresolved (anything still failing
-verify-ingest.sh). The full template is in `docs/agents/ingest-pipeline.md`.
+verify-ingest.sh). The full template is in `skills/ingest-pipeline/SKILL.md`.
 
 ---
 

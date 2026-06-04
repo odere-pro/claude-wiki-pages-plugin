@@ -93,12 +93,13 @@ the original task.
 ## Operation modes
 
 The full per-mode procedure (output shapes, metric catalogs, document-type
-table, common extractions) and the two write-gates live in
-`docs/agents/analyst-modes.md`. **After picking a mode in preflight, Read
-that reference** before executing. Resolve it in order:
+table, common extractions) and the two write-gates live in the
+**`analyst-modes`** teaching skill (`/claude-wiki-pages:analyst-modes`).
+**After picking a mode in preflight, Read that skill** before executing.
+Resolve it in order:
 
-1. `${CLAUDE_PLUGIN_ROOT}/docs/agents/analyst-modes.md` (plugin-install path — canonical).
-2. `docs/agents/analyst-modes.md` (in-repo contributor path).
+1. `${CLAUDE_PLUGIN_ROOT}/skills/analyst-modes/SKILL.md` (plugin-install path — canonical).
+2. `skills/analyst-modes/SKILL.md` (in-repo contributor path).
 
 Mode index — pick exactly one, then load its section from the reference:
 

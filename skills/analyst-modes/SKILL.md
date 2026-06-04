@@ -1,7 +1,21 @@
+---
+name: analyst-modes
+description: >
+  The five operating modes (Query, Dashboard, Document Compile, Extract,
+  Challenge) and the two write-gates for the claude-wiki-pages analyst.
+  Documents each mode's procedure, output shape, and metric catalog, plus the
+  dashboard/synthesis approval gates, so the analyst agent can run a mode without
+  inlining the detail. Trigger when an agent or user asks "how does the analyst
+  query/build a dashboard/compile/extract/challenge", "what are the analyst
+  modes", or invokes /claude-wiki-pages:analyst-modes. Reference, not action.
+allowed-tools: Read
+disable-model-invocation: true
+---
+
 # Wiki Analyst — Operation Modes (reference)
 
 Full per-mode procedures and the two write-gates for
-`claude-wiki-pages-analyst-agent`. The agent reads this file after selecting a
+`claude-wiki-pages-analyst-agent`. The agent reads this skill after selecting a
 mode in preflight. Schema authority remains `vault/CLAUDE.md`; the budget,
 untrusted-input, citation, and logging rules live in the agent body and apply to
 every mode here.

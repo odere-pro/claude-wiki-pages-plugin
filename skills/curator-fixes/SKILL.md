@@ -1,8 +1,22 @@
+---
+name: curator-fixes
+description: >
+  The curator's supplemental diagnostic checks, the nine safe auto-fixes, the
+  automatic judgment-fix procedure, and the lint-report template for
+  claude-wiki-pages. Documents what the curator checks and how it repairs wiki
+  structure under a git checkpoint, so the curator agent can apply fixes without
+  inlining the catalog. Trigger when an agent or user asks "what does the curator
+  check/fix", "how are wiki lint issues repaired", or invokes
+  /claude-wiki-pages:curator-fixes. Reference, not action.
+allowed-tools: Read
+disable-model-invocation: true
+---
+
 # Wiki Curator — Checks & Fix Catalog (reference)
 
 The supplemental diagnostic checks, the Phase 3 auto-fix catalog, and the
 Phase 4 judgment-fix procedure for `claude-wiki-pages-curator-agent`. The agent
-reads this file during Phase 1 (diagnose) and Phases 3–4 (apply). Schema
+reads this skill during Phase 1 (diagnose) and Phases 3–4 (apply). Schema
 authority remains `vault/CLAUDE.md`; the contract, engine-heal preflight,
 severity classification, re-verify, report, and hard rules live in the agent
 body.

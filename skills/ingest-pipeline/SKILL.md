@@ -1,8 +1,22 @@
+---
+name: ingest-pipeline
+description: >
+  The ingest pipeline's topic-tree plan format and confirmation gate, the opt-in
+  destructive optimize (restructure) procedure, and the final-report template
+  for claude-wiki-pages. Documents the plan/approval and restructure steps so the
+  ingest agent can drive them without inlining the detail. Trigger when an agent
+  or user asks "how does ingest plan the topic tree", "how does the optimize
+  restructure work", or invokes /claude-wiki-pages:ingest-pipeline. Reference,
+  not action.
+allowed-tools: Read
+disable-model-invocation: true
+---
+
 # Wiki Ingest Pipeline — Plan & Optimize Procedures (reference)
 
 The Step 1.4 topic-tree plan + confirmation gate, the Step 3 optimize
 (destructive restructure) procedure, and the final-report template for
-`claude-wiki-pages-ingest-agent`. The agent reads this file at the start of
+`claude-wiki-pages-ingest-agent`. The agent reads this skill at the start of
 Step 1.4 and Step 3, and when composing the final report. Schema authority
 remains `vault/CLAUDE.md`; the contract, preflight, page-write steps, auto-heal
 delegation, synthesis, model selection, and hard rules live in the agent body.
