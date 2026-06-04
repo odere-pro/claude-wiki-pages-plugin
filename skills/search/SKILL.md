@@ -6,7 +6,9 @@ description: >
   pages ("find pages about X", "which pages mention Y", "list notes tagged Z")
   or needs a candidate set before a deeper query/synthesis. Backed by the
   engine `search` command; read-only. For a cited natural-language answer, use
-  /claude-wiki-pages:query instead.
+  /claude-wiki-pages:query instead. Tier-2 recall: synonym expansion via
+  _vocabulary.md and Porter stemming eliminate zero-overlap misses without
+  embeddings.
 allowed-tools: Read Bash Glob Grep
 ---
 
@@ -104,6 +106,71 @@ using the same priority (title/alias > tag > body).
 - Report the top hits as `[[wikilink]]` so the user can open them directly.
 - Every hit resolves to a real page — never invent titles.
 - When the next step is a cited answer, escalate to `/claude-wiki-pages:query`.
+
+## Tier-2 deterministic recall
+
+When a query term has no exact match in a page, the engine expands it before
+scoring using two deterministic mechanisms — no embeddings, no network, no ML.
+
+### Synonym lexicon (`_vocabulary.md`)
+
+Place `_vocabulary.md` at the vault root (sibling of `wiki/`, outside
+wiki-scoped checks). The engine reads it at query time; humans curate it; the
+engine never writes it.
+
+```yaml
+---
+title: "Vault Vocabulary"
+groups:
+  - canonical: "automobile"
+    variants: ["car", "auto", "motorcar"]
+  - canonical: "machine learning"
+    variants: ["ml", "machine-learning"]
+---
+```
+
+A query for `"car"` will also match pages that contain `"automobile"`, `"auto"`,
+or `"motorcar"`. Synonym matches score lower than exact matches
+(`W_TERM_TITLE_SYNONYM=2` vs `W_TERM_TITLE=5`), so exact-match pages rank first.
+
+The lexicon is **filename-addressed** (`_vocabulary.md`) — no `type:` frontmatter
+field is required and none is added to the page-type enum.
+
+When `_vocabulary.md` is absent, search degrades silently to exact-only behavior
+(the pre-Tier-2 contract). The engine never throws on an absent lexicon.
+
+> **Conceptual synonyms vs aliases:** the `aliases` frontmatter field records
+> known alternate names for a *specific page* (consumed page-side by `titleHay`).
+> The lexicon records cross-page synonym classes consumed *query-side*. Ingest and
+> curator record conceptual synonyms in `aliases`; the lexicon records vocabulary
+> expansions. Do NOT copy `aliases` into the lexicon or vice versa.
+
+### Porter stemmer
+
+The engine applies a pure Porter 1980 stemmer to each query term. A page whose
+title or body contains a morphological variant (`"running"` → stem `"run"`,
+`"ponies"` → stem `"poni"`, `"caresses"` → stem `"caress"`) will be found even
+if the query uses the base form. Stem matches score at `W_TERM_*_STEM=1` —
+lower than synonyms.
+
+The stemmer is a pure TypeScript function: no data files, no network, no ML
+model. `stem(stem(x)) === stem(x)` (idempotent) and `stem("")===""` (total).
+
+### Score invariant under expansion
+
+`score === matched.reduce((s,m) => s+m.points, 0)` is preserved. Each synonym
+or stem match emits exactly one `MatchComponent` per `(source query term, field)`
+pair. De-duplication: if the source query term already scored a field exactly,
+the synonym/stem channel is suppressed for that `(source, field)` pair.
+
+### Channel order (including Tier-2)
+
+```
+title-phrase → title-term → alias-term → tag-term → body-term
+→ synonym-term → stem-term
+```
+
+Exact channels precede Tier-2 channels so exact matches win ties.
 
 ## GraphRAG (later phase)
 

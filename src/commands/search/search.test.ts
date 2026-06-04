@@ -1,6 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { search, type MatchComponent } from "./search.ts";
 import { makeVault } from "../../test-helpers/sandbox/vault.ts";
+import { VOCABULARY_FILE } from "../../core/vocabulary.ts";
 
 const VAULT = {
   "CLAUDE.md": "---\nschema_version: 2\n---\n",
@@ -315,8 +316,252 @@ describe("search", () => {
   });
 });
 
+// ── Tier-2 deterministic recall tests ─────────────────────────────────────────
+
 /**
- * Comparator that mirrors the sort order required by the spec:
+ * Vocabulary fixture: automobile ↔ car ↔ auto ↔ motorcar,
+ * machine learning ↔ ml ↔ machine-learning.
+ */
+const VOCAB_AUTOS = `---
+title: "Vault Vocabulary"
+groups:
+  - canonical: "automobile"
+    variants: ["car", "auto", "motorcar"]
+  - canonical: "machine learning"
+    variants: ["ml", "machine-learning"]
+---
+# Vault Vocabulary
+`;
+
+/**
+ * Vault with an "Automobile" page and a _vocabulary.md.
+ *
+ * The body contains "automobile"×2 (no heading that would add a 3rd occurrence).
+ * With lexicon {automobile,car,auto,motorcar}, query "car":
+ *   - title match on "automobile" → synonym-term, 2 pts
+ *   - body max-synonym count: max("automobile"×2, "auto"×2, "motorcar"×0) = 2 pts
+ *   - total expected score: 4
+ */
+function makeAutoVault() {
+  return makeVault({
+    "CLAUDE.md": "---\nschema_version: 2\n---\n",
+    "wiki/index.md": "---\ntitle: index\n---\n",
+    "wiki/log.md": "---\ntitle: log\n---\n",
+    "wiki/automobile.md":
+      '---\ntitle: "Automobile"\ntype: concept\ntags: []\n---\nAn automobile is a wheeled vehicle. The automobile replaced the horse.\n',
+    [VOCABULARY_FILE]: VOCAB_AUTOS,
+  });
+}
+
+describe("Tier-2 deterministic recall", () => {
+  // ── (1) Byte-identical across 5 runs ─────────────────────────────────────────
+  test("(1) synonym expansion byte-identical across 5 runs", () => {
+    const sb = makeAutoVault();
+    const results = Array.from({ length: 5 }, () =>
+      JSON.stringify(search({ target: sb.vault, query: "car" }).hits),
+    );
+    const first = results[0] ?? "";
+    for (const r of results) {
+      expect(r).toBe(first);
+    }
+    sb.cleanup();
+  });
+
+  // ── (2) matched[] order === sortMatchComponents ───────────────────────────────
+  test("(2) matched[] order equals sortMatchComponents order", () => {
+    const sb = makeAutoVault();
+    const r = search({ target: sb.vault, query: "car" });
+    expect(r.hits.length).toBeGreaterThan(0);
+    for (const hit of r.hits) {
+      const sorted = [...hit.matched].sort(matchComponentComparatorFull);
+      expect(hit.matched).toEqual(sorted);
+    }
+    sb.cleanup();
+  });
+
+  // ── (3) score === sum(matched.points) WITH expansion (no double-count) ────────
+  test("(3) score === sum(matched.points) with expansion — no double-count", () => {
+    const sb = makeAutoVault();
+    const r = search({ target: sb.vault, query: "car" });
+    for (const hit of r.hits) {
+      const sum = hit.matched.reduce((acc, m) => acc + m.points, 0);
+      expect(hit.score).toBe(sum);
+    }
+    sb.cleanup();
+  });
+
+  // ── (6) Zero network ─────────────────────────────────────────────────────────
+  test("(6) zero network: fetch is never called during search with expansion", () => {
+    const originalFetch = globalThis.fetch;
+    let fetchCalled = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).fetch = async () => {
+      fetchCalled = true;
+      throw new Error("network forbidden on NO-RAG path");
+    };
+    try {
+      const sb = makeAutoVault();
+      search({ target: sb.vault, query: "car" });
+      sb.cleanup();
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+    expect(fetchCalled).toBe(false);
+  });
+
+  // ── (8) Absent _vocabulary.md → exact pre-Tier-2 behavior ────────────────────
+  test("(8) absent _vocabulary.md → exact pre-Tier-2 behavior, no synonym/stem channels", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 2\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/automobile.md":
+        '---\ntitle: "Automobile"\ntype: concept\ntags: []\n---\n# Automobile\n\nAn automobile is a wheeled vehicle.\n',
+      // No _vocabulary.md
+    });
+    // "car" has no exact match in this vault without the lexicon → zero hits
+    const r = search({ target: sb.vault, query: "car" });
+    expect(r.hits).toHaveLength(0);
+    // And score===sum invariant holds (vacuously)
+    for (const hit of r.hits) {
+      const sum = hit.matched.reduce((acc, m) => acc + m.points, 0);
+      expect(hit.score).toBe(sum);
+    }
+    sb.cleanup();
+  });
+
+  // ── (9) Zero-overlap miss now found ──────────────────────────────────────────
+  // Automobile page body "automobile"×2, lexicon {automobile,car,auto,motorcar},
+  // query "car" → page appears with synonym-term component, score >= 1.
+  // Without lexicon → absent (verified in test (8)).
+  test("(9) zero-overlap miss found: query 'car' finds Automobile page via synonym", () => {
+    const sb = makeAutoVault();
+    const r = search({ target: sb.vault, query: "car" });
+    const hit = r.hits.find((h) => h.title === "Automobile");
+    expect(hit).toBeDefined();
+    // Must include a synonym-term component for the original query term "car"
+    const synComp = hit!.matched.find((m) => m.channel === "synonym-term" && m.term === "car");
+    expect(synComp).toBeDefined();
+    // score === sum invariant
+    const sum = hit!.matched.reduce((acc, m) => acc + m.points, 0);
+    expect(hit!.score).toBe(sum);
+    sb.cleanup();
+  });
+
+  // ── (9) score === 4 for body "automobile"×2 at W_TERM_BODY_SYNONYM=1, cap=5 ─
+  // body has "automobile automobile" so bodyHits=2, points = min(2,5)*1 = 2
+  // title has "Automobile" → synonym match: W_TERM_TITLE_SYNONYM=2 (title hit)
+  // total expected: 2 (title) + 2 (body × 2 occurrences capped at 5) = 4
+  test("(9) zero-overlap score === 4 (title-synonym 2 + body-synonym 2)", () => {
+    const sb = makeAutoVault();
+    const r = search({ target: sb.vault, query: "car" });
+    const hit = r.hits.find((h) => h.title === "Automobile");
+    expect(hit).toBeDefined();
+    expect(hit!.score).toBe(4);
+    sb.cleanup();
+  });
+
+  // ── (10) Direct outranks synonym ─────────────────────────────────────────────
+  // Page-A title "car" (exact match, W_TERM_TITLE=5) vs
+  // Page-B title "automobile" (synonym, W_TERM_TITLE_SYNONYM=2).
+  // Query "car" → Page-A must rank first.
+  test("(10) direct match outranks synonym: 'car' title ranks above 'automobile' title", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 2\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/car-page.md": '---\ntitle: "Car"\ntype: concept\ntags: []\n---\n# Car\n\nA car.\n',
+      "wiki/automobile-page.md":
+        '---\ntitle: "Automobile"\ntype: concept\ntags: []\n---\n# Automobile\n\nAn automobile.\n',
+      [VOCABULARY_FILE]: VOCAB_AUTOS,
+    });
+    const r = search({ target: sb.vault, query: "car" });
+    const titles = r.hits.map((h) => h.title);
+    expect(titles).toContain("Car");
+    expect(titles).toContain("Automobile");
+    // "Car" (direct title match, score >= 5) must rank above "Automobile" (synonym, score <= 2)
+    expect(titles.indexOf("Car")).toBeLessThan(titles.indexOf("Automobile"));
+    sb.cleanup();
+  });
+
+  // ── (11) Transitive-chain closure → identical search results by group order ──
+  // BLOCK 2 regression at the search() level: a 4-form chain
+  // alpha–bravo–charlie–delta (each group shares one form with the next). A page
+  // whose body only mentions "delta" must be found by query "alpha" via the FULL
+  // closure — and the hits + matched[] must be byte-identical whether the chain
+  // groups appear forward or reverse in _vocabulary.md.
+  const CHAIN_FWD = `---
+title: "Chain Forward"
+groups:
+  - canonical: "alpha"
+    variants: ["bravo"]
+  - canonical: "bravo"
+    variants: ["charlie"]
+  - canonical: "charlie"
+    variants: ["delta"]
+---
+`;
+  const CHAIN_REV = `---
+title: "Chain Reverse"
+groups:
+  - canonical: "charlie"
+    variants: ["delta"]
+  - canonical: "bravo"
+    variants: ["charlie"]
+  - canonical: "alpha"
+    variants: ["bravo"]
+---
+`;
+
+  function makeChainVault(vocab: string) {
+    return makeVault({
+      "CLAUDE.md": "---\nschema_version: 2\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      // Page mentions only "delta" — reachable from "alpha" only via full closure.
+      "wiki/delta-page.md":
+        '---\ntitle: "Delta Page"\ntype: concept\ntags: []\n---\nThe delta term appears here. delta again.\n',
+      [VOCABULARY_FILE]: vocab,
+    });
+  }
+
+  test("(11) transitive chain: query 'alpha' finds the delta-only page (full closure)", () => {
+    const sb = makeChainVault(CHAIN_FWD);
+    const r = search({ target: sb.vault, query: "alpha" });
+    const hit = r.hits.find((h) => h.title === "Delta Page");
+    expect(hit).toBeDefined();
+    const synComp = hit!.matched.find((m) => m.channel === "synonym-term" && m.term === "alpha");
+    expect(synComp).toBeDefined();
+    sb.cleanup();
+  });
+
+  test("(11) transitive chain: forward vs reverse group order → byte-identical hits + matched[]", () => {
+    const sbF = makeChainVault(CHAIN_FWD);
+    const sbR = makeChainVault(CHAIN_REV);
+    const rF = search({ target: sbF.vault, query: "alpha" });
+    const rR = search({ target: sbR.vault, query: "alpha" });
+
+    // The Delta Page must appear in BOTH orders (closure is order-independent).
+    expect(rF.hits.some((h) => h.title === "Delta Page")).toBe(true);
+    expect(rR.hits.some((h) => h.title === "Delta Page")).toBe(true);
+
+    // Hits (including matched[]) must be byte-identical apart from the absolute
+    // vault path; compare the hits array which carries vault-relative file paths.
+    expect(JSON.stringify(rF.hits)).toBe(JSON.stringify(rR.hits));
+
+    // And the score===sum invariant holds under the chain expansion.
+    for (const hit of rF.hits) {
+      const sum = hit.matched.reduce((acc, m) => acc + m.points, 0);
+      expect(hit.score).toBe(sum);
+    }
+    sbF.cleanup();
+    sbR.cleanup();
+  });
+});
+
+/**
+ * Comparator that mirrors the sort order required by the spec (including
+ * the Tier-2 channels):
  * 1. points desc
  * 2. channel (union literal order)
  * 3. term lexicographic
@@ -327,6 +572,8 @@ const CHANNEL_ORDER: readonly MatchComponent["channel"][] = [
   "alias-term",
   "tag-term",
   "body-term",
+  "synonym-term",
+  "stem-term",
 ];
 
 function matchComponentComparator(a: MatchComponent, b: MatchComponent): number {
@@ -336,3 +583,6 @@ function matchComponentComparator(a: MatchComponent, b: MatchComponent): number 
   if (ai !== bi) return ai - bi;
   return a.term.localeCompare(b.term);
 }
+
+/** Full comparator including Tier-2 channels. */
+const matchComponentComparatorFull = matchComponentComparator;
