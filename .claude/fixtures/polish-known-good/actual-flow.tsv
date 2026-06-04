@@ -1,0 +1,5 @@
+ac	status	blocker
+append-only	blocked	-
+preserve-user-prose	met	-
+counts-accurate	met	-
+idempotent-rerun	met	-

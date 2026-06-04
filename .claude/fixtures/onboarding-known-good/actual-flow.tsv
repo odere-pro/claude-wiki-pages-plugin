@@ -1,0 +1,6 @@
+ac	status	blocker
+resume-not-clobber	blocked	-
+health-check-run	met	-
+raw-immutable	met	-
+first-answer-delivered	met	-
+checkpointed-ingest	met	-
