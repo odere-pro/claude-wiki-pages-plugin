@@ -317,6 +317,46 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 
 **`created` / `updated`** use `YYYY-MM-DD` format.
 
+## Ontology profile (`ontology-profile-v1`)
+
+This section is the single named contract for the vault's formal ontology. R2 graph traversal, C1 MOC descent, and I1 classification all read these two tables and no other source. Do not duplicate or fork either table.
+
+### Predicate domain→range table
+
+Each row states: which predicate, which page class may originate the link (domain), which page class it may point to (range), and its direction and cardinality. "Page class" values are drawn from the `type` enum in the table below.
+
+| Predicate | Domain (source class) | Range (target class) | Direction / cardinality |
+| --- | --- | --- | --- |
+| `parent` | any non-root page (`entity`,`concept`,`topic`,`project`,`synthesis`,`index`) | `index` | directed, single |
+| `sources` | `entity`,`concept`,`topic`,`project`,`synthesis` | `source` | directed, 1..N (≥1) |
+| `related` | `entity`,`concept`,`topic`,`project` | `entity`,`concept`,`topic`,`project` | undirected, 0..N |
+| `contradicts` | `concept` | `concept` | undirected, 0..N |
+| `supersedes` | `concept`,`topic`,`project`,`synthesis` | same class as domain | directed, 0..N |
+| `depends_on` | `concept`,`topic`,`project` | `concept`,`entity` | directed, 0..N |
+| `key_pages` | `topic` | `entity`,`concept` | directed, 0..N |
+| `members` | `project` | `entity`,`concept` | directed, 0..N |
+| `scope` | `synthesis` | `entity`,`concept`,`topic`,`project` | directed, 1..N |
+| `children` | `index` | any non-root page | directed, 0..N |
+| `child_indexes` | `index` | `index` | directed, 0..N |
+
+> The graph-traversal primitive (Brief §6) takes its edge set from this table. R2 `--graph` walks the provenance/association core — `sources`+`related`+`depends_on` — to N≤2; the remaining rows (`key_pages`, `members`, `scope`, `children`, `child_indexes`, `parent`) are the MOC/descent edges C1 uses. `contradicts`/`supersedes` are available to R3/synthesis. An edge violating a row's domain/range is a future S1-check lint finding, NOT a traversal the engine follows.
+
+### Enum list
+
+All closed value sets for the schema, single-sourced here. I1's classifier and R1's `--type` filter both read the page-type enum; I1's entity sub-classifier reads `entity_type`. Every consumer reads from this table.
+
+| Enum | Canonical values | Closed? | Calibration |
+| --- | --- | --- | --- |
+| page type (`type`) | `source`,`entity`,`concept`,`topic`,`project`,`synthesis`,`index`,`manifest`,`log` | closed (core) | not vault-extensible — adding a type is a schema change (new ADR + new templates + lint case) |
+| `entity_type` (fixed core, calibratable) | `person`,`organization`,`product`,`tool`,`service`,`standard`,`place` | closed core + owner extension | owner adds via `entity_type_extensions:` allow-list in their OWN vault CLAUDE.md (decision #6); legal set = core ∪ extensions, composed at read time |
+| `source_type` | `article`,`paper`,`policy`,`transcript`,`book`,`video`,`podcast`,`manual` | closed (core) | not owner-extensible |
+| `synthesis_type` | `comparison`,`theme`,`contradiction`,`gap`,`timeline` | closed (core) | not owner-extensible |
+| `project_status` | `planned`,`active`,`paused`,`done`,`abandoned` | closed (core) | not owner-extensible |
+| `source_format` | `text`,`image` (PDF/audio/video deferred) | closed (core) | not owner-extensible |
+| `status` | `active`,`stale`,`superseded`,`draft` | closed (core) | not owner-extensible |
+
+**Calibration mechanism.** A vault owner widens `entity_type` ONLY by adding the delta to their vault's own CLAUDE.md: `entity_type_extensions: [dataset, model]`. The legal set is then core ∪ extensions, computed at read time. There is no parallel enum file and no second list: the core list lives in this profile, the per-vault widening lives in that vault's authoritative CLAUDE.md, and a consumer reads both from the one schema document it already loads. Page type stays fully closed — widening it is a schema change, by design.
+
 ## Ingest rules
 
 When processing a new source from `raw/`:
