@@ -8,7 +8,7 @@ A wiki built by an LLM from human-curated sources is a soft target. This documen
 - **Tier 2 (smoke)** — `tests/smoke/fresh-install.sh`, `tests/smoke/skill-schema.sh`. Exercise an end-to-end ingest against a fixture. Run via `bash tests/run-tests.sh tier2`.
 - **Tier 4 (adversarial, weekly)** — `.github/workflows/adversarial.yml`. Three jobs: `osv-scanner`, a prompt-injection corpus replay, and `garak`. **The corpus-replay job is currently stubbed** (prints `[SKIP] prompt-injection corpus not yet fixtured.`); the fixture is a known TODO. `garak` and `osv-scanner` run live.
 
-See `/SPEC.md §14` for the full tier contract and `tests/README.md` for how to run everything locally.
+See [`../tests/README.md`](../tests/README.md) for the full tier contract and how to run everything locally.
 
 ## 1. Prompt injection via ingested sources
 

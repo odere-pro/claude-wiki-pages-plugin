@@ -13,10 +13,10 @@ exclude = [
   "^mailto:",
   # GitHub rate-limits anonymous link checks aggressively.
   # The repo is verified by hand during release; the checker handles internal links.
-  "^https?://github\\.com/odere-pro/claude-wiki-pages",
+  "^https?://github\\.com/odere-pro/claude-wiki-pages-plugin",
   # The Pages site's own canonical / og:url — self-referential, only live after
   # the pages.yml deploy; not a broken link in the doc sense.
-  "^https?://odere-pro\\.github\\.io/claude-wiki-pages",
+  "^https?://odere-pro\\.github\\.io/claude-wiki-pages-plugin",
 ]
 
 # Internal link resolution

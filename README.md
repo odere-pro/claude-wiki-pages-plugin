@@ -8,7 +8,7 @@
 
 A Claude Code plugin that turns an **Obsidian vault** into a maintained, provenance-tracked **knowledge base** following [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). The human curates sources; the plugin maintains the wiki; **hooks enforce the schema at every tool-call boundary**.
 
-The system is spec-driven: the contract lives in [`SPEC.md`](./SPEC.md), the schema in [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md), the canonical terms in [`docs/GLOSSARY.md`](./docs/GLOSSARY.md). Every skill, agent, and hook binds to them.
+The system is convention-driven: the schema lives in [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md), the canonical terms in [`docs/GLOSSARY.md`](./docs/GLOSSARY.md), the architecture in [`docs/architecture.md`](./docs/architecture.md). Every skill, agent, and hook binds to them.
 
 ---
 
@@ -77,7 +77,7 @@ flowchart TD
 ## Install
 
 ```text
-/plugin marketplace add odere-pro/claude-wiki-pages
+/plugin marketplace add odere-pro/claude-wiki-pages-plugin
 /plugin install claude-wiki-pages
 /claude-wiki-pages:doctor
 ```
@@ -94,7 +94,7 @@ flowchart TD
 
 The orchestrator probes vault state and dispatches:
 
-- **No vault yet** → runs the `llm-wiki` wizard. Scaffolds `docs/vault/` from the example, writes the schema, prints the next three things to do.
+- **No vault yet** → runs the `init` wizard. Scaffolds `docs/vault/` from the example, writes the schema, prints the next three things to do.
 - **New files in `raw/`** → runs `claude-wiki-pages-ingest-agent`. Produces typed wiki pages with citations and a `wiki/log.md` entry, then runs `claude-wiki-pages-polish-agent` to refresh graph colors and indexes.
 - **Pending lint after an ingest** → runs `claude-wiki-pages-curator-agent` to audit and repair.
 - **Analytical prompt** (`what`, `why`, `compare`, `summarize`, …) → runs `claude-wiki-pages-analyst-agent`. Every answer cites `[[wikilinks]]` back to source.
@@ -111,7 +111,6 @@ First-time walkthrough (~30 minutes): [docs/playbooks/200-foundational.md](./doc
 | Day-to-day operations          | [docs/operations.md](./docs/operations.md)                                  |
 | Features and comparison        | [docs/features.md](./docs/features.md)                                      |
 | Architecture (four layers)     | [docs/architecture.md](./docs/architecture.md)                              |
-| Spec (every contract)          | [SPEC.md](./SPEC.md)                                                        |
 | Glossary                     | [docs/GLOSSARY.md](./docs/GLOSSARY.md)                                  |
 | Security and threat model      | [docs/security.md](./docs/security.md)                                      |
 | Step-by-step user guides       | [docs/llm-wiki/](./docs/llm-wiki/index.md)                                  |

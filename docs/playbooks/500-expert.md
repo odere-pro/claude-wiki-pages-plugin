@@ -1,6 +1,6 @@
 # 500 — Expert
 
-> **Audience.** Plugin extender or downstream maintainer. Comfortable reading [`/SPEC.md`](../../SPEC.md), shell scripts, and `hooks.json`. Comfortable forking a Claude Code plugin.
+> **Audience.** Plugin extender or downstream maintainer. Comfortable reading [`docs/architecture.md`](../architecture.md), shell scripts, and `hooks.json`. Comfortable forking a Claude Code plugin.
 >
 > **After this playbook.** You can author a custom skill, add a hook with matching tests, run all four test tiers locally, fork the plugin and rename safely, and integrate `/claude-wiki-pages:wiki` headlessly into a CI pipeline.
 >
@@ -9,7 +9,7 @@
 ## Prerequisites
 
 - Completed [300 — Associate](./300-associate.md).
-- Read [`/SPEC.md`](../../SPEC.md) end-to-end and [`docs/architecture.md`](../architecture.md).
+- Read [`docs/architecture.md`](../architecture.md) end-to-end.
 - `bats-core`, `jq`, `shellcheck`, `shfmt`, `markdownlint-cli`, `lychee`, `gitleaks` available locally — `bash tests/install-deps.sh` provisions them.
 - A fork of the plugin repo and a Claude Code session pointed at it.
 
@@ -28,7 +28,7 @@ The four-layer stack is not just an architecture diagram — it determines where
 | ----- | ------------------------------------ | ------------------------------ |
 | **Layer 1 — Data** | New `entity_type` values via `vault/CLAUDE.md` (the schema authority). New top-level topic folders with `_index.md`. | New `type:` values (validators are hard-coded — needs Layer 4 change too). Mutating `raw/` (blocked by hook). |
 | **Layer 2 — Skills** | New single-responsibility skill under `skills/`. New `obsidian-*` integrations. | Multi-step flows (those are Layer 3 agents). Direct write-without-validation paths. |
-| **Layer 3 — Agents** | New specialist for a missing flow (e.g. `claude-wiki-pages-export-agent`). Extending the orchestrator dispatch table. | Adding state probes to specialists (the orchestrator owns probing — re-probing breaks the contract per [SPEC §11](../../SPEC.md)). |
+| **Layer 3 — Agents** | New specialist for a missing flow (e.g. `claude-wiki-pages-export-agent`). Extending the orchestrator dispatch table. | Adding state probes to specialists (the orchestrator owns probing — re-probing breaks the contract per [`docs/architecture.md`](../architecture.md)). |
 | **Layer 4 — Orchestration** | New hook on existing trigger (`PreToolUse`, `PostToolUse`, `SubagentStop`). New rule under `rules/`. | A hook that writes to the vault (hooks are gates, not editors). A rule that mutates state (rules are declarative). |
 
 Walk extensions through the layers in order. A new capability that needs all four layers is a major change; one that fits in a single layer is incremental.
@@ -99,7 +99,7 @@ The canonical reference: [`skills/lint/SKILL.md`](../../skills/lint/SKILL.md). R
 >
 > ## Spec anchor
 >
-> /SPEC.md §5 (skill contract). vault/CLAUDE.md (entity frontmatter).
+> docs/architecture.md (skill contract). vault/CLAUDE.md (entity frontmatter).
 > ```
 >
 > **Step 3.** Add the skill name to [`docs/GLOSSARY.md`](../GLOSSARY.md) under the Layer 2 skills table. Run `bash scripts/validate-docs.sh` — glossary gate must exit 0.
@@ -245,7 +245,7 @@ No special wiring — the existing `PreToolUse` hooks (`validate-frontmatter.sh`
 - Run each tier locally and read the output.
 - Recognize what's deferred.
 
-The test pyramid (per [`/SPEC.md` §14](../../SPEC.md)):
+The test pyramid (per [`tests/README.md`](../../tests/README.md)):
 
 | Tier | Tools | What it covers |
 | ---- | ----- | -------------- |
@@ -419,7 +419,7 @@ The contribution gates, in order:
 3. **Tier 1** — every new script has a `tests/scripts/<name>.bats`. `bash tests/run-tests.sh tier1` clean.
 4. **CHANGELOG** — append your change under the unreleased section. Format follows [Keep a Changelog](https://keepachangelog.com).
 5. **ADR (when warranted)** — if your change touches the orchestrator dispatch table, the schema authority chain, or any agent's contract, write an ADR under `docs/adr/`. The template is in [`docs/adr/README.md`](../adr/README.md).
-6. **Spec sync** — if the change touches a contract documented in `/SPEC.md`, update the spec in the same PR.
+6. **Spec sync** — if the change touches a documented contract, update the relevant doc (docs/architecture.md) in the same PR.
 
 The full process is in [`CONTRIBUTING.md`](../../CONTRIBUTING.md).
 

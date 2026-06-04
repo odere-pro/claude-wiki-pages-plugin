@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory holds the ADRs for `llm-wiki-stack`. Each ADR captures the **rationale** behind a decision recorded declaratively in [`/SPEC.md`](../../SPEC.md). The SPEC remains the source of truth for _what_ the plugin does; the ADRs explain _why_ a particular path was taken and what alternatives were rejected.
+This directory holds the ADRs for `llm-wiki-stack`. Each ADR captures the **rationale** behind a decision recorded declaratively in `SPEC.md` (removed; see [`architecture.md`](../architecture.md)). The SPEC remained the source of truth for _what_ the plugin does; the ADRs explain _why_ a particular path was taken and what alternatives were rejected.
 
 ## Index
 
@@ -18,7 +18,7 @@ This directory holds the ADRs for `llm-wiki-stack`. Each ADR captures the **rati
 - ADRs are immutable history once accepted, except for trivial typo fixes. A change to a previously-accepted decision lands as a **new** ADR that supersedes the prior one.
 - ADRs ship in their own `docs(adr)` PR; never bundled with feature commits. The implementing PR references the ADR by ID in its body.
 
-## Why ADRs live here and not in `/SPEC.md`
+## Why ADRs live here and not in `SPEC.md`
 
 The SPEC is declarative: it tells the implementer the rule. ADRs are argumentative: they tell the next maintainer the reasoning, the alternatives that were weighed, and the conditions under which the decision should be revisited. Mixing the two would inflate the SPEC and erode the line between "the contract" and "the conversation that produced the contract".
 

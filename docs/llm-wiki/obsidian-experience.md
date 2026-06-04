@@ -80,6 +80,6 @@ POLISH:
 
 ## Specification anchor
 
-[`/SPEC.md §11`](../../SPEC.md) — `claude-wiki-pages-polish-agent` contract.
+[`../architecture.md`](../architecture.md) — `claude-wiki-pages-polish-agent` contract.
 
 [`docs/adr/ADR-0003-polish-agent-and-obsidian-side.md`](../adr/ADR-0003-polish-agent-and-obsidian-side.md) — the rationale for centralising graph colors, index refresh, and MOC consistency in a single specialist.

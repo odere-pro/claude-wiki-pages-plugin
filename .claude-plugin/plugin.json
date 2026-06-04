@@ -6,8 +6,8 @@
     "name": "Aleksandr Derechei",
     "email": "odere.pub@gmail.com"
   },
-  "homepage": "https://github.com/odere-pro/claude-wiki-pages",
-  "repository": "https://github.com/odere-pro/claude-wiki-pages",
+  "homepage": "https://github.com/odere-pro/claude-wiki-pages-plugin",
+  "repository": "https://github.com/odere-pro/claude-wiki-pages-plugin",
   "license": "Apache-2.0",
   "hooks": "./hooks/hooks.json",
   "supported_schema_versions": [

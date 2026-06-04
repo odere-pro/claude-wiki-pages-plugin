@@ -73,7 +73,7 @@ Formal contracts. Defined in `docs/vault-example/CLAUDE.md`; enforced by `valida
 
 ### Architecture terms
 
-The plugin's structure. Contracts in `/SPEC.md`.
+The plugin's structure. Contracts in [`architecture.md`](./architecture.md).
 
 | Term                    | Description                                                                                    |
 | ----------------------- | ---------------------------------------------------------------------------------------------- |
@@ -195,7 +195,7 @@ Lowercase in body prose; capitalize at the start of a heading. Each logs an entr
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | vault schema         | `vault/CLAUDE.md`. The authoritative schema; read at the start of every operation. Mirrored by `docs/vault-example/CLAUDE.md` in this repo. |
 | repo guide           | The repo root `CLAUDE.md`. A map for LLMs editing this repo. Not the schema.                                                           |
-| specification        | `/SPEC.md` at the repo root. Reproducibility-grade contract. 17 sections. (Was `docs/SPECIFICATION.md` before `0.2.0`; stub remains for one minor.) |
+| specification        | The authority set that replaced the former single spec file: `docs/architecture.md` (four-layer architecture & contracts), `docs/vault-example/CLAUDE.md` (schema), and this glossary (canonical terms). |
 | NOTICE               | `NOTICE` at the repo root. Attribution for bundled third-party code. Apache-2.0 requires preservation.                                 |
 | third-party licenses | `THIRD_PARTY_LICENSES.md`. Full license text of any bundled non-Apache-2.0 code.                                                       |
 
@@ -221,6 +221,8 @@ Banned outside `CHANGELOG.md`, `docs/adr/*`, and `docs/migration-1.0.md`, which 
 | `llm-wiki-stack-{orchestrator,ingest,curator,analyst,polish}-agent`                  | `claude-wiki-pages-…-agent`                            |
 | `llm-wiki-{ingest,query,lint,fix,status,synthesize,index,markdown}` (skill names)    | the bare verb (`ingest`, `query`, …)                  |
 | `llm-wiki` (the onboarding skill name)                                                | `init`                                                 |
+
+> `validate-docs.sh` enforces the last row narrowly: it flags `llm-wiki` only in *skill* context — the backtick form `` `llm-wiki` `` and the `/claude-wiki-pages:` namespaced form — so the kept `llm-wiki-pattern` (Karpathy's pattern), the `docs/llm-wiki/` guide directory, and the `plugin.json` keywords are never affected.
 
 ## Discoverability glossary
 

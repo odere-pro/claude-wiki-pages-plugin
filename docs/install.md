@@ -20,7 +20,7 @@ Three ways to install `claude-wiki-pages`. Pick the one that matches your situat
 The default path. Pulls the published release.
 
 ```text
-/plugin marketplace add odere-pro/claude-wiki-pages
+/plugin marketplace add odere-pro/claude-wiki-pages-plugin
 /plugin install claude-wiki-pages
 /claude-wiki-pages:init
 ```
@@ -32,7 +32,7 @@ The third command runs the **onboarding wizard**, which scaffolds a vault by cop
 Use when developing the plugin or running a fork.
 
 ```bash
-git clone https://github.com/odere-pro/claude-wiki-pages
+git clone https://github.com/odere-pro/claude-wiki-pages-plugin
 ```
 
 Then in a Claude Code session:
@@ -71,7 +71,7 @@ Always run after install or update:
 /claude-wiki-pages:doctor
 ```
 
-Exit `0` and "OK" lines for every check means you're good. Any `FAIL[N]` line names the remedy. Exit codes documented in [`/SPEC.md` §10](../SPEC.md).
+Exit `0` and "OK" lines for every check means you're good. Any `FAIL[N]` line names the remedy. Exit codes documented in [`operations.md`](./operations.md).
 
 ## Uninstall
 

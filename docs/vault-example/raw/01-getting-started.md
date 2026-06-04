@@ -12,7 +12,7 @@ Everything you need to go from a fresh plugin install to a verified-green vault.
   **Remote (marketplace):**
 
   ```
-  /plugin marketplace add odere-pro/claude-wiki-pages
+  /plugin marketplace add odere-pro/claude-wiki-pages-plugin
   /plugin install claude-wiki-pages
   ```
 

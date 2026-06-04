@@ -51,7 +51,6 @@ BAN_EXEMPT=(
 SEO_EXEMPT=(
   "README.md"
   "docs/GLOSSARY.md"
-  "SPEC.md"
   "docs/SPECIFICATION.md"
   "scripts/validate-docs.sh"
   ".claude-plugin/plugin.json"
@@ -134,6 +133,36 @@ if [ "$BAN_HITS" -eq 0 ]; then
   ok "no banned strings"
 else
   VIOLATIONS=$((VIOLATIONS + BAN_HITS))
+fi
+
+# ─── Check 0b: retired skill name `llm-wiki` (renamed to `init` in 1.0.0) ─────
+#
+# The bare token `llm-wiki` is NOT in BANNED_STRINGS because it collides with
+# the kept `llm-wiki-pattern` (Karpathy's pattern) and the `docs/llm-wiki/`
+# guide directory. This check narrows to `llm-wiki` used AS A SKILL — the
+# backtick-wrapped form `llm-wiki` and the namespaced
+# `/claude-wiki-pages:llm-wiki` — so the pattern page, plugin.json keyword, and
+# doc path never trip it. Allowlisted in BAN_EXEMPT (CHANGELOG, ADRs, migration,
+# plan, GLOSSARY, tests, fixtures), which legitimately record the rename.
+header "Retired skill name (llm-wiki -> init)"
+
+RETIRED_SKILL='`llm-wiki`|/claude-wiki-pages:llm-wiki([^-[:alnum:]]|$)'
+
+RETIRED_HITS=0
+while IFS= read -r file; do
+  exempt_from "$file" "${BAN_EXEMPT[@]}" && continue || true
+  hits=$(grep -nHE "$RETIRED_SKILL" "$file" 2>/dev/null || true)
+  if [ -n "$hits" ]; then
+    err "retired skill name \`llm-wiki\` in $file (use \`init\`)"
+    printf '%s\n' "$hits" | sed 's/^/    /'
+    RETIRED_HITS=$((RETIRED_HITS + 1))
+  fi
+done < <(git ls-files -- '*.md' 2>/dev/null)
+
+if [ "$RETIRED_HITS" -eq 0 ]; then
+  ok "no retired \`llm-wiki\` skill references"
+else
+  VIOLATIONS=$((VIOLATIONS + RETIRED_HITS))
 fi
 
 # ─── Check 1: SEO-register leaks ─────────────────────────────────────────────

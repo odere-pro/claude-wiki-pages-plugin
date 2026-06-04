@@ -2,7 +2,7 @@
 name: lint
 description: >
   Read-only audit of vault/wiki/ for structural and provenance drift. Reports
-  Errors, Warnings, and Info per the rules in /SPEC.md §13 and vault/CLAUDE.md.
+  Errors, Warnings, and Info per the lint rules in vault/CLAUDE.md.
   Trigger when the user says "lint the vault", "audit the
   wiki", "check for broken links", "run a health check on the wiki", or
   invokes /claude-wiki-pages:lint directly. Does not repair anything —
@@ -14,9 +14,9 @@ allowed-tools: Read Glob Grep Bash Edit
 
 Audit the wiki. Do not repair.
 
-Every rule enumerated here is also listed in `/SPEC.md` §13 and
-`vault/CLAUDE.md`. This skill is the executor for those rules; when the
-specification changes, update this skill.
+Every rule enumerated here is also listed in `vault/CLAUDE.md`, the
+authority for the lint rules. This skill is the executor for those rules;
+when the rules change, update this skill.
 
 ## When to invoke
 

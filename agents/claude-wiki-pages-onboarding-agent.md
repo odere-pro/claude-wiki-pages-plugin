@@ -49,4 +49,4 @@ Print a short "what's next" map (ingest more via `/claude-wiki-pages:wiki`, heal
 
 ## Specification anchor
 
-`/SPEC.md §9` (commands), `/SPEC.md §11` (agent contracts).
+Contracts: [`docs/architecture.md`](../docs/architecture.md) (commands & agent contracts).

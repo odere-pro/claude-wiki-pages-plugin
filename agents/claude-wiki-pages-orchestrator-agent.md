@@ -105,4 +105,4 @@ After the specialist (and, where applicable, polish) returns:
 
 ## Specification anchor
 
-`/SPEC.md §9 Role A` (orchestrator command), `/SPEC.md §11` (`claude-wiki-pages-orchestrator-agent` contract). Decision rationale in [`docs/adr/ADR-0001-four-layer-orchestrator.md`](../docs/adr/ADR-0001-four-layer-orchestrator.md).
+Contracts: [`docs/architecture.md`](../docs/architecture.md) (orchestrator command & `claude-wiki-pages-orchestrator-agent` contract). Decision rationale in [`docs/adr/ADR-0001-four-layer-orchestrator.md`](../docs/adr/ADR-0001-four-layer-orchestrator.md).

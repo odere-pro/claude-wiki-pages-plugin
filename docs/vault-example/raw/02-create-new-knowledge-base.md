@@ -21,7 +21,7 @@ The wizard asks for the vault name, domain, and a few paths, then writes `vault/
 Run the plugin install once (the install is global to your Claude Code setup):
 
 ```
-/plugin marketplace add odere-pro/claude-wiki-pages
+/plugin marketplace add odere-pro/claude-wiki-pages-plugin
 /plugin install claude-wiki-pages@claude-wiki-pages
 ```
 

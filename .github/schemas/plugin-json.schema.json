@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/odere-pro/claude-wiki-pages/schemas/plugin-json.schema.json",
+  "$id": "https://github.com/odere-pro/claude-wiki-pages-plugin/schemas/plugin-json.schema.json",
   "title": "claude-wiki-pages plugin manifest",
   "description": "Minimal shape check for .claude-plugin/plugin.json. Replace with Anthropic's published schema once available.",
   "type": "object",

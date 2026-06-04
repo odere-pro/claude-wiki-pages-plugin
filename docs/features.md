@@ -10,7 +10,7 @@ What `claude-wiki-pages` actually gives you.
 - **Confidence discipline** — `confidence ≥ 0.8` requires two corroborating sources; `1.0` requires a direct quote.
 - **Cross-topic synthesis notes** with explicit `scope:` and `synthesis_type` (`comparison`, `theme`, `contradiction`, `gap`, `timeline`).
 
-Full schema lives in [`docs/vault-example/CLAUDE.md`](./vault-example/CLAUDE.md). Schema authority is enforced by [`/SPEC.md` §7](../SPEC.md).
+Full schema lives in [`docs/vault-example/CLAUDE.md`](./vault-example/CLAUDE.md), the schema authority.
 
 ## Hook-enforced safety
 
@@ -19,7 +19,7 @@ Full schema lives in [`docs/vault-example/CLAUDE.md`](./vault-example/CLAUDE.md)
 - **`SubagentStop` completion gates** — long-running ingest and lint-fix agents cannot leave the wiki in a half-written state.
 - **Append-only operations log** — every ingest, lint, fix, query, and synthesis lands one entry in `wiki/log.md` for human audit.
 
-Full contract in [`/SPEC.md` §10](../SPEC.md).
+Full contract in [`operations.md`](./operations.md).
 
 ## DX
 
@@ -30,7 +30,7 @@ Full contract in [`/SPEC.md` §10](../SPEC.md).
 
 ## Test harness
 
-Five tiers, per [`/SPEC.md` §14](../SPEC.md):
+Five tiers, per [`../tests/README.md`](../tests/README.md):
 
 - Tier 0 — static (shellcheck, shfmt, markdownlint, lychee, gitleaks, glossary gate)
 - Tier 1 — Bats unit (~108 tests)

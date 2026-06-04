@@ -7,7 +7,7 @@
 **Please do not file public GitHub issues for security vulnerabilities.** Use one of the following private channels:
 
 - **Email**: `odere.pub@gmail.com` with subject prefix `[security][claude-wiki-pages]`.
-- **GitHub Security Advisory**: open a draft at <https://github.com/odere-pro/claude-wiki-pages/security/advisories/new>.
+- **GitHub Security Advisory**: open a draft at <https://github.com/odere-pro/claude-wiki-pages-plugin/security/advisories/new>.
 
 Include in the report:
 
@@ -61,5 +61,5 @@ The threat model also documents what the plugin **does not** defend: unsigned pr
 - **No MCP servers.** `claude-wiki-pages` exposes none and depends on none. If that changes, scope will be limited to the vault path and pinned with explicit version tracking.
 - **No npm or PyPI dependencies.** Tooling under `tests/` (`bats-core`, `shellcheck`, `shfmt`, `markdownlint`, `lychee`, `gitleaks`, `yq`, `garak`, `osv-scanner`) is installed by `tests/install-deps.sh` and is not redistributed.
 - **GitHub Actions** in `.github/workflows/` — `uses:` references should pin to a full commit SHA, not a tag. Drift here is a security report.
-- **Adversarial CI** runs weekly via `.github/workflows/adversarial.yml`: `garak` red-team, `osv-scanner` dependency vulnerabilities, and a prompt-injection corpus replay (currently stubbed pending fixture). See `/SPEC.md §14` for the Tier 4 contract.
+- **Adversarial CI** runs weekly via `.github/workflows/adversarial.yml`: `garak` red-team, `osv-scanner` dependency vulnerabilities, and a prompt-injection corpus replay (currently stubbed pending fixture). See [`tests/README.md`](./tests/README.md) for the test-tier contract.
 - **Third-party skills** (`obsidian-markdown`, `obsidian-bases`, `obsidian-cli`) are MIT-licensed copies from `kepano/obsidian-skills`. Provenance and license tracked in `NOTICE` and `THIRD_PARTY_LICENSES.md`. We do not modify them; updates land as a single `chore(skills)` PR with the upstream commit SHA in the message.

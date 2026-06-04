@@ -3,7 +3,7 @@
  *
  * Composes the ported CHECK 0–3 from scripts/verify-ingest.sh into one Report.
  * The parity gate asserts this yields the same error/warn set as the bash
- * script on the shared fixtures, so §9 of SPEC.md keeps holding under the port.
+ * script on the shared fixtures, so the command contract (docs/architecture.md) keeps holding under the port.
  */
 
 import { join } from "node:path";
