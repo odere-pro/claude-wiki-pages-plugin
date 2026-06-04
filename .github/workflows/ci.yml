@@ -46,9 +46,16 @@ jobs:
           fail: true
 
       - name: Gitleaks — secret scan
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Direct full-history scan instead of gitleaks-action@v2. The action does
+        # an incremental push scan over `<first-commit>^..<last-commit>`, which
+        # fails with "ambiguous argument" whenever <first-commit> is the repo's
+        # root commit (e.g. right after a history rewrite). `gitleaks detect
+        # --source .` scans the whole history and handles the root commit fine.
+        run: |
+          ver=8.24.3
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${ver}/gitleaks_${ver}_linux_x64.tar.gz" \
+            | tar -xz -C /tmp gitleaks
+          /tmp/gitleaks detect --source . --config .gitleaks.toml --redact --no-banner
 
       - name: Manifest JSON parses
         run: |

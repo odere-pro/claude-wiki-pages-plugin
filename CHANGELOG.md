@@ -15,23 +15,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - **Local-model drafting + human review (opt-in).** New `vault/_proposed/` staging area (sibling of `wiki/`, so drafts are outside every wiki-scoped check until promoted); `propose` engine command (`review`/`approve`/`reject`, git-checkpointed); `/claude-wiki-pages:review` (the promote/reject gate) and `/claude-wiki-pages:draft` (Ollama/LM Studio drafting into `_proposed/`) skills; `localModel` config block (off by default — Claude Code stays primary); optional `proposed_by` schema field. The orchestrator routes to review when drafts are pending.
 - **Opt-in git push.** New `gitCheckpoint.push` (`off` default / `auto`) pushes to the configured upstream after each git-checkpointed engine op (`heal`, `migrate`, `propose`). Best-effort — a push failure never blocks the op.
 - **Layer graph coloring.** The `obsidian-graph-colors` skill + polish agent now apply an optional layer pass (raw→green, wiki→blue, schema→orange), ordered after per-topic colors so topic colors still win first-match.
+- **Calibration-flow fixtures.** A golden fixture set under `.claude/fixtures/` covering all five wiki flows (onboarding, ingest, curate, polish, analyst) with known-good and known-defect cases — `input/` vault, `expected.md` oracle, and recorded `actual*.tsv` traces — for behavioural regression scoring of the orchestrator and specialists.
 
 ### Changed
 
 - **Calibration audit remediation.** Slimmed the analyst, curator, and ingest agent bodies under 200 lines by extracting their per-mode / per-phase procedures into three new agent-teaching skills — `analyst-modes`, `curator-fixes`, `ingest-pipeline` (skill count 16 → 19; agent-teaching skills 2 → 5). Marked the side-effecting `ingest`/`fix`/`index` skills `disable-model-invocation: true` (slash-command-only). Reworded the `CLAUDE.md` glossary / `validate-docs` rules to reference their CI Tier 0 enforcement. `.gitignore` now ignores `CLAUDE.local.md` and `.claude/calibration/`.
+- **Calibrate skill-invocation guards + enforcement hooks.** Tightened the skill-invocation guards and wired the matching enforcement hooks so side-effecting flows stay slash-command-gated.
 - **Repository renamed to `claude-wiki-pages-plugin`.** The GitHub repo (and Pages site) moved to `odere-pro/claude-wiki-pages-plugin`; the **plugin id stays `claude-wiki-pages`** (the `-plugin` suffix marks the repo, not the plugin). All `github.com/odere-pro/…` and `odere-pro.github.io/…` URLs, schema `$id`s, and the `/plugin marketplace add` target now carry the `-plugin` suffix; the slash namespace `/claude-wiki-pages:`, `/plugin install claude-wiki-pages`, and the npm package `@odere-pro/claude-wiki-pages` are unchanged.
 - **Naming alignment + gate.** Replaced the retired skill name `llm-wiki` with `init` in the README and playbooks (the onboarding/scaffold skill was renamed in `1.0.0`), and hardened `scripts/validate-docs.sh` with a targeted check that flags `` `llm-wiki` `` used as a skill while still allowing the kept `llm-wiki-pattern` and `docs/llm-wiki/`.
+
+### Fixed
+
+- **CD workflow failures.** Repaired three red workflows on `main` so continuous delivery is green again.
+- **Firewall test isolation.** `firewall.test.ts` now uses neutral absolute paths (gate-06), so the suite no longer depends on a machine-specific home directory.
+- **Doc/style gate scope.** `.claude/fixtures/` is excluded from the markdownlint, lychee, and glossary gates — fixture vaults intentionally contain defect cases that must not fail the doc gates.
 
 ### Removed
 
 - **`SPEC.md`.** The consolidated specification has been retired; its contracts now live in the documents that own them — `docs/architecture.md` (four-layer model, command and agent contracts), `docs/vault-example/CLAUDE.md` (schema), `docs/GLOSSARY.md` (canonical terms), `docs/security.md` (threat model), and `tests/README.md` (test tiers). All references across the README, `CLAUDE.md`, agent/command/skill footers, and docs were repointed; the `docs/SPECIFICATION.md` stub now redirects to those living docs. Historical mentions in `CHANGELOG.md`, `docs/adr/*`, and the migration docs are preserved.
-
-### Documentation
-
-- **AWS-Skill-Builder-style playbooks.** New learning path under `docs/playbooks/`: `index.md`, `200-foundational.md` (install → first wiki entry, ~30 min), `300-associate.md` (orchestrator decision tree, hooks, schema, multi-vault, ~2 hours), `500-expert.md` (skill authoring, hook authoring, test harness, fork, CI, ~half day). Orthogonal to the existing `docs/llm-wiki/01-07*.md` task references.
-- **Spec alignment for v0.2.0.** `SPEC.md` §5/§6/§11 corrected — agent count and orchestrator dispatch wording now match the five-agent retrofit. `docs/VOCABULARY.md` Layer 3 row corrected from "Three" to "Five".
-- **DX cleanup.** README version badge bumped to 0.2.0; skill count corrected (12 → 13); `llm-wiki-markdown` added to the Layer 2 list. Stale `/llm-wiki-stack:llm-wiki-stack-ingest-agent` references in `docs/llm-wiki/index.md`, `docs/llm-wiki/02-create-new-knowledge-base.md`, `docs/llm-wiki/03-update-existing.md`, and `docs/vault-example/wiki/tools/llm-wiki-stack.md` reframed — `/llm-wiki-stack:wiki` is the primary entry; the agent-direct form is now documented as a power-user bypass.
-- **Risk and gap report.** New `docs/risk-report-0.2.0.md` tracking deferred work (orchestrator/polish test coverage, Tier 4 corpus replay, edge cases in `resolve-vault.sh` / `session-start.sh` / `prompt-guard.sh`) so the audit findings have a single follow-up surface.
 
 ## [1.0.0] — 2026-06-01
 
@@ -79,6 +80,13 @@ Top-level orchestrator and four-layer DX retrofit. Single `/llm-wiki-stack:wiki`
 - **Default verb.** `/llm-wiki-stack:wiki` replaces the old per-skill chain (the pipeline agent, formerly named `llm-wiki-ingest-pipeline`, now `llm-wiki-stack-ingest-agent`) as the default user verb. The pipeline agent remains user-invocable for power users and scripting.
 - **`scripts/validate-docs.sh`** — extends the namespace resolver to recognize `commands/<name>.md` (in addition to `skills/<name>/` and `agents/<name>.md`); adds the three retired agent names to the banned-string list (allowlisted in CHANGELOG, ADRs, plan, and migration doc).
 - **Documentation surface.** README quick-start, `docs/architecture.md`, `docs/getting-started.md`, `docs/security.md`, `SECURITY.md` updated to use the new agent names and the `/llm-wiki-stack:wiki` entry point.
+
+### Documentation
+
+- **AWS-Skill-Builder-style playbooks.** New learning path under `docs/playbooks/`: `index.md`, `200-foundational.md` (install → first wiki entry, ~30 min), `300-associate.md` (orchestrator decision tree, hooks, schema, multi-vault, ~2 hours), `500-expert.md` (skill authoring, hook authoring, test harness, fork, CI, ~half day). Orthogonal to the existing `docs/llm-wiki/01-07*.md` task references.
+- **Spec alignment.** `SPEC.md` §5/§6/§11 corrected — agent count and orchestrator dispatch wording now match the five-agent retrofit. `docs/VOCABULARY.md` Layer 3 row corrected from "Three" to "Five".
+- **DX cleanup.** README version badge bumped to 0.2.0; skill count corrected (12 → 13); `llm-wiki-markdown` added to the Layer 2 list. Stale `/llm-wiki-stack:llm-wiki-stack-ingest-agent` references in `docs/llm-wiki/index.md`, `docs/llm-wiki/02-create-new-knowledge-base.md`, `docs/llm-wiki/03-update-existing.md`, and `docs/vault-example/wiki/tools/llm-wiki-stack.md` reframed — `/llm-wiki-stack:wiki` is the primary entry; the agent-direct form is now documented as a power-user bypass.
+- **Risk and gap report.** New `docs/risk-report-0.2.0.md` tracking deferred work (orchestrator/polish test coverage, Tier 4 corpus replay, edge cases in `resolve-vault.sh` / `session-start.sh` / `prompt-guard.sh`) so the audit findings have a single follow-up surface.
 
 ### Migration
 
