@@ -4,7 +4,7 @@
 #
 # Exit 0 = all deps present. Exit 1 = one or more missing.
 
-set -uo pipefail
+set -euo pipefail
 
 MISSING=0
 

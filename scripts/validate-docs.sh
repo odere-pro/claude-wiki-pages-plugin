@@ -14,7 +14,7 @@
 #
 # Exit 0 = clean. Exit 1 = violations. Exit 2 = setup error (not in repo root).
 
-set -uo pipefail
+set -euo pipefail
 
 ROOT="${1:-.}"
 cd "$ROOT" || {
@@ -117,7 +117,7 @@ header "Banned strings (retired glossary)"
 
 BAN_HITS=0
 while IFS= read -r file; do
-  exempt_from "$file" "${BAN_EXEMPT[@]}" && continue
+  exempt_from "$file" "${BAN_EXEMPT[@]}" && continue || true
   hits=$(grep -nHiE "$BANNED_STRINGS" "$file" 2>/dev/null || true)
   if [ -n "$hits" ]; then
     err "banned string in $file"
@@ -138,7 +138,7 @@ header "SEO-register leaks into technical surfaces"
 
 SEO_HITS=0
 while IFS= read -r file; do
-  exempt_from "$file" "${SEO_EXEMPT[@]}" && continue
+  exempt_from "$file" "${SEO_EXEMPT[@]}" && continue || true
   hits=$(grep -nHiE "$SEO_LEAK" "$file" 2>/dev/null || true)
   if [ -n "$hits" ]; then
     err "SEO-register term in $file"
@@ -159,7 +159,7 @@ header "Layer capitalization"
 
 LAYER_HITS=0
 while IFS= read -r file; do
-  exempt_from "$file" "${BAN_EXEMPT[@]}" && continue
+  exempt_from "$file" "${BAN_EXEMPT[@]}" && continue || true
   # Case-sensitive: only lowercase "layer 1..4" and lowercase layer-name
   # compounds ("data layer" etc.) are violations. "Layer 4" and "Data layer"
   # (Title Case) are the canonical forms and must pass.
@@ -183,7 +183,7 @@ header "Bare slash commands"
 
 BARE_HITS=0
 while IFS= read -r file; do
-  exempt_from "$file" "${BAN_EXEMPT[@]}" && continue
+  exempt_from "$file" "${BAN_EXEMPT[@]}" && continue || true
   # Only flag backtick-wrapped slash commands — the canonical form for inline
   # code. This avoids false positives from file paths (skills/obsidian-cli/)
   # and from URLs in prose.
@@ -212,7 +212,7 @@ header "Slash-command references"
 # Collect every unique /claude-wiki-pages:<name> referenced anywhere in markdown.
 REFS=$(git ls-files -- '*.md' 2>/dev/null |
   xargs grep -ohE '/claude-wiki-pages:[a-z][a-z0-9-]+' 2>/dev/null |
-  sort -u)
+  sort -u || true)
 
 UNRESOLVED=0
 if [ -n "$REFS" ]; then

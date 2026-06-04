@@ -72,79 +72,21 @@ For each source, write to `vault/wiki/_sources/<kebab-slug>.md` using the `sourc
 
 ### 1.4 Plan the topic tree — externalize, then confirm
 
-The topic-tree shape is the most consequential decision of the run. Errors here cascade into every page's `parent:` and `path:`, and into the Obsidian graph structure. Externalize the plan so the user can review or edit before any page is written.
+The topic-tree shape is the most consequential decision of the run — errors
+cascade into every page's `parent:`/`path:` and the Obsidian graph. **Write a
+plan to `vault/output/_pipeline-plan-YYYY-MM-DD.md`** (sources, extracted
+entities/concepts, proposed tree, folder-size check against the ≤ 12 target,
+graph color groups, open decisions), obeying `vault/CLAUDE.md` hierarchy rules.
+**Then stop at the confirmation gate** — report a summary and offer **approve /
+edit-then-approve / abort**; do not write any page without explicit approval, and
+log a clean `ingest-aborted` entry if declined.
 
-#### 1.4a — Write the plan
+**Read the full plan format and the abort/confirmation-gate wording before
+writing the plan** — the **`ingest-pipeline`** teaching skill
+(`/claude-wiki-pages:ingest-pipeline`). Resolve in order:
 
-Write to `vault/output/_pipeline-plan-YYYY-MM-DD.md` (git-ignored; no frontmatter required). Structure:
-
-```
-# Ingest plan — YYYY-MM-DD
-
-## Sources in this run
-- <source-1.md> — N entities, M concepts
-- <source-2.md> — N entities, M concepts
-...
-
-## Entities and concepts extracted
-- [<new|existing>] <Entity/Concept name> — from <source(s)>
-...
-
-## Proposed topic tree
-
-wiki/<existing-or-new-topic>/
-├── _index.md                    [new | existing]
-├── <page>.md                    [new | update]
-├── <subtopic>/                  [new | existing]
-│   ├── _index.md                [new | existing]
-│   └── <page>.md                [new | update]
-...
-
-## Folder size check
-- <topic>/: N direct children (target ≤ 12)
-- <topic>/<subtopic>/: N direct children (target ≤ 12)
-
-## Graph color groups needed
-- <new-top-level-topic> → next palette color
-- (or: none)
-
-## Open decisions
-- <any ambiguities the model resolved — e.g., "placed X under Y instead of Z because …">
-```
-
-The plan must obey `vault/CLAUDE.md` folder-hierarchy rules (max depth 4, grouped by semantic domain, every folder gets `_index.md`) and ingest-specific sizing:
-
-- **Target ≤ 12 pages per folder.** Plan subtopic folders up front if exceeded.
-- Entities cluster into `roles/`, `tools/`, or named subtopic folders.
-- Deliverables/build items/templates cluster into `deliverables/` or `templates/`.
-- Blockers/decisions/project-tracking cluster into `blockers/` or `project/`.
-- Process concepts (flows, tiers, triggers) stay in the parent topic folder.
-
-#### 1.4b — Confirmation gate
-
-Report to the user:
-
-```
-Ingest plan written to vault/output/_pipeline-plan-YYYY-MM-DD.md.
-
-Summary:
-- N new sources, M total entities/concepts
-- N new folders, N updated folders
-- N pages will be created, M pages will be updated
-- Graph color groups to add: N
-
-Review the plan. Options:
-  (a) Approve — proceed to write pages
-  (b) Edit the plan file, then approve — I'll re-read before proceeding
-  (c) Abort — no pages will be written
-```
-
-**Stop. Wait for explicit approval before continuing.** If the user edits the plan file, re-read it before 1.5. If the user aborts, log the abort to `wiki/log.md` and exit:
-
-```
-## [YYYY-MM-DD] ingest-aborted | Plan declined
-Plan at vault/output/_pipeline-plan-YYYY-MM-DD.md. N sources left unprocessed.
-```
+1. `${CLAUDE_PLUGIN_ROOT}/skills/ingest-pipeline/SKILL.md` (plugin-install path — canonical).
+2. `skills/ingest-pipeline/SKILL.md` (in-repo contributor path).
 
 ### 1.5 Create or update wiki pages
 
@@ -162,9 +104,9 @@ For each entity and concept in the plan, follow the 13-step ingest rules in `vau
 
 Use the `index` frontmatter schema. Body: section headers grouping children by theme, each entry `- [[Page]] — one-line summary`. On index notes, `aliases` also includes topic-name variants (slug, title case, abbreviations).
 
-### 1.7 Polish (graph colors, vault MOC, MOC consistency) — owned by polish-agent
+### 1.7 Polish — owned by polish-agent (no work here)
 
-**Do not duplicate polish-agent work here.** The orchestrator runs `claude-wiki-pages-polish-agent` after this agent returns; that agent owns graph colors for new top-level topics, vault-MOC regeneration, and per-folder `_index.md` consistency. This step intentionally does no work — it remains in the contract only as a marker that the polish pass is expected.
+**Do not duplicate polish-agent work.** The orchestrator runs `claude-wiki-pages-polish-agent` after this agent returns; it owns graph colors for new top-level topics, vault-MOC regeneration, and per-folder `_index.md` consistency. This step is a marker only.
 
 ### 1.8 Append to `wiki/log.md`
 
@@ -197,89 +139,26 @@ anything that genuinely needs editorial intent.
 ```
 
 Capture the sub-agent's report (heal commit SHA, residual items). Do not loop or
-re-prompt — the curator's engine loop already bounds the work, and `git revert`
-is the rollback path. If errors genuinely persist past the loop, surface them in
-the final summary.
+re-prompt — the curator's engine loop bounds the work and `git revert` is the
+rollback path. Surface any persistent errors in the final summary.
 
 ---
 
 ## Step 3 — Optimize (opt-in, destructive)
 
-**This step restructures folders with `git mv` and rewrites `parent:`/`path:` across many pages. It requires explicit user confirmation.**
+**This step restructures folders with `git mv` and rewrites `parent:`/`path:`
+across many pages — it requires explicit user confirmation.** Audit page counts
+per folder; if no folder exceeds 12 direct `.md` children, skip Step 3 and report
+"no optimization needed". Otherwise write a restructure plan to
+`vault/output/_restructure-plan-YYYY-MM-DD.md`, **stop at the confirmation gate**
+(approve / edit-then-approve / decline), and only on approval execute the moves
+(`git mv` + `parent:`/`path:` + `_index.md` + `wiki/index.md` + cross-links),
+then run **one** final lint-fix pass via the curator agent (no third run) and log
+an `optimize` entry.
 
-### 3.1 Audit
-
-Count pages per folder. Identify folders with > 12 direct `.md` children (excluding `_index.md`). If none, skip Step 3 entirely and report "no optimization needed".
-
-### 3.2 Plan and confirm
-
-Write the restructure plan to `vault/output/_restructure-plan-YYYY-MM-DD.md`
-(git-ignored; no frontmatter required). Structure:
-
-```
-# Restructure plan — YYYY-MM-DD
-
-## Proposed restructure
-
-<folder-a>/ (18 pages) → split into:
-  <folder-a>/subtopic-x/  (<count> pages: <list>)
-  <folder-a>/subtopic-y/  (<count> pages: <list>)
-
-<folder-b>/ (14 pages) → split into:
-  ...
-
-## Summary
-- Cross-links to add: N
-- Files to move: N (git mv)
-- Frontmatter rewrites: N (parent/path fields)
-```
-
-Report to the user:
-
-```
-Restructure plan written to vault/output/_restructure-plan-YYYY-MM-DD.md.
-
-Options:
-  (a) Approve — execute the restructure
-  (b) Edit the plan file, then approve — I'll re-read before executing
-  (c) Decline — skip Step 3, proceed to Step 4
-```
-
-**Stop. Wait for explicit approval before continuing.** If the user edits the plan file, re-read it before 3.3. If the user declines, skip to Step 4.
-
-### 3.3 Execute
-
-Only after explicit confirmation:
-
-1. Create subtopic folders with `_index.md` each.
-2. `git mv` each page into the correct subtopic.
-3. Update each moved page's `parent:` and `path:`.
-4. Update the parent `_index.md`: remove moved children from `children:`, add subfolder entries to `child_indexes:`.
-5. Update `wiki/index.md` to reflect new locations.
-6. Add obvious `related:` cross-links (pages sharing 2+ sources, pages in the same new subtopic, pages referenced in body text).
-
-### 3.4 One re-run of lint-fix
-
-Invoke the `Task` tool with `subagent_type: claude-wiki-pages-curator-agent` and the
-following prompt verbatim:
-
-```
-Run a post-restructure lint and fix pass. Pages were moved and new
-_index.md files were created. Verify parent/path, children arrays, and
-index entries are consistent. This is the final pass.
-```
-
-Do not spawn a third run. Unresolved errors go into the final report.
-
-### 3.5 Log
-
-Append to `wiki/log.md`:
-
-```
-## [YYYY-MM-DD] optimize | Tree restructure
-Moved N pages into subtopic folders. Created N new _index.md files.
-Current tree: <summary>.
-```
+**Read the full audit/plan/execute procedure and the gate wording before
+restructuring** — same reference resolution as Step 1.4
+(`skills/ingest-pipeline/SKILL.md`).
 
 ---
 
@@ -291,13 +170,7 @@ Read the current topic tree. Look for critical-path analysis, role/responsibilit
 
 ### 4.2 Write synthesis notes
 
-Write to `vault/wiki/_synthesis/<slug>.md` using the `synthesis` frontmatter from `vault/CLAUDE.md`. Body sections:
-
-- `## Overview` — 2–3 paragraphs
-- `## Key Findings` — numbered insights with `[[wikilink]]` citations
-- `## Relationships` — how scoped pages connect
-- `## Gaps` — what the wiki does not cover
-- `## Recommendations` — actionable next steps
+Write to `vault/wiki/_synthesis/<slug>.md` using the `synthesis` frontmatter from `vault/CLAUDE.md`. Body sections: `## Overview` (2–3 paragraphs), `## Key Findings` (numbered insights with `[[wikilink]]` citations), `## Relationships` (how scoped pages connect), `## Gaps` (what the wiki does not cover), `## Recommendations` (actionable next steps).
 
 ### 4.3 Update index and log
 
@@ -312,38 +185,12 @@ Created [[Synthesis Title]] from N wiki pages across M sources.
 
 ## Final report
 
-```
-## Pipeline complete
-
-### Step 1 — Ingest
-- Plan: approved | edited-then-approved | aborted
-- Plan file: vault/output/_pipeline-plan-YYYY-MM-DD.md
-- Sources processed: N / N unprocessed  (backlog: N, if any)
-- Source summaries created: N
-- Entity pages created/updated: N / N
-- Concept pages created/updated: N / N
-- Divergences from plan: N  (list if any)
-
-### Step 2 — Fix
-- Issues found / fixed / unresolved: N / N / N
-
-### Step 3 — Optimize
-- Status: skipped | declined | executed
-- Folders created: N
-- Pages moved: N
-- Wikilinks added: N
-
-### Step 4 — Synthesize
-- Synthesis notes created: N
-- Pages scoped: N
-- Gaps identified: N
-
-### Current tree
-<folder listing with page counts>
-
-### Unresolved
-<list anything still failing verify-ingest.sh>
-```
+Print a **Pipeline complete** report with one section per step — Step 1 Ingest
+(plan status, plan file, sources processed/backlog, summaries, entity/concept
+pages created-updated, divergences), Step 2 Fix (found/fixed/unresolved), Step 3
+Optimize (status, folders, pages moved, wikilinks), Step 4 Synthesize (notes,
+pages scoped, gaps), Current tree, and Unresolved (anything still failing
+verify-ingest.sh). The full template is in `skills/ingest-pipeline/SKILL.md`.
 
 ---
 

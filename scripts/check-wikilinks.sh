@@ -2,6 +2,7 @@
 # PreToolUse: blocks wiki files that use [text](file.md) instead of [[wikilinks]]
 # Usage (CLI): scripts/check-wikilinks.sh [--target <vault-path>]
 # Default target: $CLAUDE_WIKI_PAGES_VAULT (fallback: docs/vault)
+set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
@@ -82,7 +83,7 @@ if [ "$TOOL" = "Edit" ]; then
 fi
 
 CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
-[ -z "$CONTENT" ] && exit 0
+[ -z "$CONTENT" ] && exit 0 || true
 
 err=$(check_content "$CONTENT")
 if [ -n "$err" ]; then
