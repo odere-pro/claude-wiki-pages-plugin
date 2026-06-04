@@ -81,4 +81,4 @@ POLISH:
 
 ## Specification anchor
 
-`/SPEC.md §11` (`claude-wiki-pages-polish-agent` contract). Decision rationale in [`docs/adr/ADR-0003-polish-agent-and-obsidian-side.md`](../docs/adr/ADR-0003-polish-agent-and-obsidian-side.md).
+Contracts: [`docs/architecture.md`](../docs/architecture.md) (`claude-wiki-pages-polish-agent` contract). Decision rationale in [`docs/adr/ADR-0003-polish-agent-and-obsidian-side.md`](../docs/adr/ADR-0003-polish-agent-and-obsidian-side.md).

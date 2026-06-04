@@ -40,4 +40,4 @@ Task → claude-wiki-pages-orchestrator-agent
 
 ## Specification anchor
 
-`/SPEC.md §9 Role A` (orchestrator command), `/SPEC.md §11` (`claude-wiki-pages-orchestrator-agent` contract).
+Contracts: [`docs/architecture.md`](../docs/architecture.md) (orchestrator command & `claude-wiki-pages-orchestrator-agent` contract).

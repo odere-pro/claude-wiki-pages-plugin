@@ -19,6 +19,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 ### Changed
 
 - **Calibration audit remediation.** Slimmed the analyst, curator, and ingest agent bodies under 200 lines by extracting their per-mode / per-phase procedures into three new agent-teaching skills — `analyst-modes`, `curator-fixes`, `ingest-pipeline` (skill count 16 → 19; agent-teaching skills 2 → 5). Marked the side-effecting `ingest`/`fix`/`index` skills `disable-model-invocation: true` (slash-command-only). Reworded the `CLAUDE.md` glossary / `validate-docs` rules to reference their CI Tier 0 enforcement. `.gitignore` now ignores `CLAUDE.local.md` and `.claude/calibration/`.
+- **Repository renamed to `claude-wiki-pages-plugin`.** The GitHub repo (and Pages site) moved to `odere-pro/claude-wiki-pages-plugin`; the **plugin id stays `claude-wiki-pages`** (the `-plugin` suffix marks the repo, not the plugin). All `github.com/odere-pro/…` and `odere-pro.github.io/…` URLs, schema `$id`s, and the `/plugin marketplace add` target now carry the `-plugin` suffix; the slash namespace `/claude-wiki-pages:`, `/plugin install claude-wiki-pages`, and the npm package `@odere-pro/claude-wiki-pages` are unchanged.
+- **Naming alignment + gate.** Replaced the retired skill name `llm-wiki` with `init` in the README and playbooks (the onboarding/scaffold skill was renamed in `1.0.0`), and hardened `scripts/validate-docs.sh` with a targeted check that flags `` `llm-wiki` `` used as a skill while still allowing the kept `llm-wiki-pattern` and `docs/llm-wiki/`.
+
+### Removed
+
+- **`SPEC.md`.** The consolidated specification has been retired; its contracts now live in the documents that own them — `docs/architecture.md` (four-layer model, command and agent contracts), `docs/vault-example/CLAUDE.md` (schema), `docs/GLOSSARY.md` (canonical terms), `docs/security.md` (threat model), and `tests/README.md` (test tiers). All references across the README, `CLAUDE.md`, agent/command/skill footers, and docs were repointed; the `docs/SPECIFICATION.md` stub now redirects to those living docs. Historical mentions in `CHANGELOG.md`, `docs/adr/*`, and the migration docs are preserved.
 
 ### Documentation
 

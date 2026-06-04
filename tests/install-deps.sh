@@ -9,7 +9,7 @@
 #   bash tests/install-deps.sh --check      report status without installing
 #   bash tests/install-deps.sh --help       print this help
 #
-# See /SPEC.md §14 for tier definitions.
+# See tests/README.md for tier definitions.
 
 set -euo pipefail
 

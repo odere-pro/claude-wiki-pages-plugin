@@ -1,3 +1,3 @@
 # Specification
 
-> Moved to [`/SPEC.md`](../SPEC.md) at the repository root in `0.2.0` for parity with standard plugin layout. This stub remains for one minor version; it is removed in `0.3.0`. Update any links that point here to `/SPEC.md`.
+> The consolidated specification has been retired. Its contracts now live in the documents that own them: [`architecture.md`](./architecture.md) (four-layer model, command and agent contracts), [`vault-example/CLAUDE.md`](./vault-example/CLAUDE.md) (schema), [`GLOSSARY.md`](./GLOSSARY.md) (canonical terms), [`security.md`](./security.md) (threat model), and [`../tests/README.md`](../tests/README.md) (test tiers).

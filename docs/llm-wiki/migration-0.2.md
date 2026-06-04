@@ -72,6 +72,6 @@ The power-user surface remains: you can still invoke specialists directly when s
 ## Where to read more
 
 - [`/CHANGELOG.md`](../../CHANGELOG.md) — full `0.2.0` entry.
-- [`/SPEC.md`](../../SPEC.md) — `§9` (command contracts), `§11` (agent contracts including the orchestrator).
+- `SPEC.md` — `§9` (command contracts), `§11` (agent contracts including the orchestrator).
 - [`docs/adr/ADR-0001-four-layer-orchestrator.md`](../adr/ADR-0001-four-layer-orchestrator.md) — why the orchestrator exists.
 - [`docs/adr/ADR-0002-agent-naming-convention.md`](../adr/ADR-0002-agent-naming-convention.md) — why the rename, why hard not soft.

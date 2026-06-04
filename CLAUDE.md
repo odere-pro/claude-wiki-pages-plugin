@@ -2,7 +2,7 @@
 
 Source of the `claude-wiki-pages` Claude Code plugin: a **four-layer stack** (Data · Skills · Agents · Orchestration) that turns an Obsidian vault into a provenance-tracked wiki, following [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
-**Authorities.** [`SPEC.md`](./SPEC.md) is the contract every skill, agent, and hook binds to. [`docs/GLOSSARY.md`](./docs/GLOSSARY.md) is the canonical term list; enforced by [`scripts/validate-docs.sh`](./scripts/validate-docs.sh). [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md) is the schema (`schema_version: 1`) and wins any frontmatter conflict.
+**Authorities.** [`docs/architecture.md`](./docs/architecture.md) is the four-layer architecture and contract every skill, agent, and hook binds to. [`docs/GLOSSARY.md`](./docs/GLOSSARY.md) is the canonical term list; enforced by [`scripts/validate-docs.sh`](./scripts/validate-docs.sh). [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md) is the schema (`schema_version: 1`) and wins any frontmatter conflict.
 
 ## Vault location
 
@@ -13,7 +13,7 @@ All Layer 4 scripts source `scripts/resolve-vault.sh`, which uses a four-tier re
 3. **Auto-detect** — scan up to 4 levels for a `CLAUDE.md` with `schema_version` + a `wiki/` sibling.
 4. **Default** — `docs/vault`.
 
-To change the vault: `bash scripts/set-vault.sh <path>`. This updates only `current_vault_path`; `default_vault_path` is fixed at `docs/vault` and serves as the reset reference. Claude applies the same logic when no vault path is given. See spec §2 for the full contract.
+To change the vault: `bash scripts/set-vault.sh <path>`. This updates only `current_vault_path`; `default_vault_path` is fixed at `docs/vault` and serves as the reset reference. Claude applies the same logic when no vault path is given. See [`docs/operations.md`](./docs/operations.md) for the full contract.
 
 ## Dev-time vs. runtime
 
@@ -34,12 +34,12 @@ Long-form model: [`docs/architecture.md`](./docs/architecture.md).
 
 | Doing             | Primary source                                                                                                                                     |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Skills, agents    | Spec §5, §9, §11; existing SKILL.md / agent files                                                                                                  |
-| Hook scripts      | Spec §10; `hooks/hooks.json` (scripts and wiring are coupled); `tests/scripts/`                                                                    |
-| Frontmatter       | `docs/vault-example/CLAUDE.md`; spec §7; `docs/vault-example/_templates/`                                                                                    |
+| Skills, agents    | `docs/architecture.md`; existing SKILL.md / agent files                                                                                            |
+| Hook scripts      | `docs/operations.md`; `hooks/hooks.json` (scripts and wiring are coupled); `tests/scripts/`                                                        |
+| Frontmatter       | `docs/vault-example/CLAUDE.md`; `docs/vault-example/_templates/`                                                                                    |
 | User-facing prose | `docs/GLOSSARY.md`; `docs/llm-wiki/` for voice                                                                                                   |
-| Security          | `docs/security.md` (threat model with per-threat test mapping); spec §15; Tier 4 CI at `.github/workflows/adversarial.yml` (corpus replay stubbed) |
-| Tests (Tier 0–4)  | `tests/README.md`; spec §14; hook tests in `tests/scripts/*.bats`                                                                                  |
+| Security          | `docs/security.md` (threat model with per-threat test mapping); Tier 4 CI at `.github/workflows/adversarial.yml` (corpus replay stubbed)           |
+| Tests (Tier 0–4)  | `tests/README.md`; hook tests in `tests/scripts/*.bats`                                                                                            |
 
 If an edit introduces a new concept, add the term to `docs/GLOSSARY.md` with a rationale first — enforced by `scripts/validate-docs.sh` (the glossary gate, run in CI Tier 0).
 

@@ -24,7 +24,7 @@
 
 The Layer 3 orchestrator (`claude-wiki-pages-orchestrator-agent`) does exactly one job: **state probe → choose one specialist → fan out → optional polish tail**. It never recurses, never picks two specialists, and never re-routes after a specialist returns.
 
-The full contract is in [`agents/claude-wiki-pages-orchestrator-agent.md`](../../agents/claude-wiki-pages-orchestrator-agent.md) and [`/SPEC.md` §11](../../SPEC.md). The dispatch table summarized:
+The full contract is in [`agents/claude-wiki-pages-orchestrator-agent.md`](../../agents/claude-wiki-pages-orchestrator-agent.md) and [`docs/architecture.md`](../architecture.md). The dispatch table summarized:
 
 | Probe result                                                                                  | Specialist | Why |
 | --------------------------------------------------------------------------------------------- | ---------- | --- |
@@ -145,7 +145,7 @@ The Layer 4 hooks are the schema's enforcement boundary. They live in [`hooks/ho
 | `PostToolUse` (Write\|Edit) | `post-wiki-write.sh`, `post-ingest-summary.sh` | Advisory (prints reminders) |
 | `SubagentStop` | `subagent-lint-gate.sh`, `subagent-ingest-gate.sh` | **Blocking** (rejects bad completions) |
 
-Full table: [`/SPEC.md` §10](../../SPEC.md).
+Full table: [`docs/operations.md`](../operations.md).
 
 > **Lab.** Drive `validate-frontmatter.sh` directly with a fixture that's missing the `type:` field:
 >
@@ -378,4 +378,4 @@ No. Polish is idempotent by contract — second run produces zero diffs. If the 
 
 - You want to extend the plugin — add a skill, customize a hook, run the test harness, fork — **[500 — Expert](./500-expert.md)**.
 - You're hitting a wall and want known-issue context — **[`docs/risk-report-0.2.0.md`](../risk-report-0.2.0.md)**.
-- You want the contracts behind every agent — **[`agents/`](../../agents/)** and **[`/SPEC.md` §11](../../SPEC.md)**.
+- You want the contracts behind every agent — **[`agents/`](../../agents/)** and **[`docs/architecture.md`](../architecture.md)**.

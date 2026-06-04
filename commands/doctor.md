@@ -50,4 +50,4 @@ Surface the output and tell the user exactly which check to fix.
 
 ## Specification anchor
 
-`/SPEC.md §9 Role E` (diagnostics), `/SPEC.md §15` (security model — doctor is read-only by contract).
+Contracts: [`docs/architecture.md`](../docs/architecture.md) (diagnostics), [`docs/security.md`](../docs/security.md) (security model — doctor is read-only by contract).

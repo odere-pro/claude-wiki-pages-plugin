@@ -10,7 +10,7 @@
 #   bash tests/run-tests.sh --list [<tier>]  print commands without executing
 #   bash tests/run-tests.sh --help           print this help
 #
-# See /SPEC.md §14 for tier definitions.
+# See tests/README.md for tier definitions.
 # Install the required tools first:
 #   bash tests/install-deps.sh
 

@@ -51,4 +51,4 @@ export CLAUDE_WIKI_PAGES_VAULT="$LLM_WIKI_VAULT"
 `1.0.0` also ships the deterministic engine (`claude-wiki-pages verify`, more to
 come). It is additive — the plugin still works without Bun installed; the engine
 is called where a structured check helps and degrades gracefully when absent.
-See [`CHANGELOG.md`](../CHANGELOG.md) and [`SPEC.md`](../SPEC.md).
+See [`CHANGELOG.md`](../CHANGELOG.md) and [`architecture.md`](./architecture.md).

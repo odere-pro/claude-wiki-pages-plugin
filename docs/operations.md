@@ -38,7 +38,7 @@ For surgical operations on one slice of the pipeline:
 | `/claude-wiki-pages:markdown`   | Render a wiki query as portable markdown into `vault/output/`.       |
 | `/claude-wiki-pages:obsidian-graph-colors` | Apply per-topic colors to Obsidian's graph view.                   |
 
-Contracts for each live in [`/SPEC.md` §5](../SPEC.md).
+Contracts for each live in [`architecture.md`](./architecture.md).
 
 ## Vault location
 
@@ -49,7 +49,7 @@ The plugin resolves the active vault via `scripts/resolve-vault.sh` using a four
 3. **Auto-detect** — scan up to 4 levels for a `CLAUDE.md` with `schema_version` next to a `wiki/`.
 4. **Default** — `docs/vault`.
 
-Switch persistently: `bash scripts/set-vault.sh <path>`. Switch for one session: `CLAUDE_WIKI_PAGES_VAULT=<path> claude`. Full contract in [`/SPEC.md` §2](../SPEC.md) and the [300-Associate playbook](./playbooks/300-associate.md) Module 6.
+Switch persistently: `bash scripts/set-vault.sh <path>`. Switch for one session: `CLAUDE_WIKI_PAGES_VAULT=<path> claude`. The full contract is documented above, with a guided walkthrough in the [300-Associate playbook](./playbooks/300-associate.md) Module 6.
 
 ## What runs when
 
@@ -61,7 +61,7 @@ Switch persistently: `bash scripts/set-vault.sh <path>`. Switch for one session:
 | After Write or Edit | `post-wiki-write.sh` and `post-ingest-summary.sh` emit reminders and counts. |
 | Subagent finishes | `subagent-lint-gate.sh` and `subagent-ingest-gate.sh` block bad completions. |
 
-Full hook contract in [`/SPEC.md` §10](../SPEC.md).
+The full hook contract is documented in this guide.
 
 ## Step-by-step walkthroughs
 

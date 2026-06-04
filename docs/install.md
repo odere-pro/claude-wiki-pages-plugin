@@ -71,7 +71,7 @@ Always run after install or update:
 /claude-wiki-pages:doctor
 ```
 
-Exit `0` and "OK" lines for every check means you're good. Any `FAIL[N]` line names the remedy. Exit codes documented in [`/SPEC.md` §10](../SPEC.md).
+Exit `0` and "OK" lines for every check means you're good. Any `FAIL[N]` line names the remedy. Exit codes documented in [`operations.md`](./operations.md).
 
 ## Uninstall
 

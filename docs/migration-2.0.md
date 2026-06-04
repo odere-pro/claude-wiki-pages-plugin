@@ -82,4 +82,4 @@ git revert <checkpoint-sha>   # the SHA printed by `migrate --write`
 
 Or simply set `schema_version` back to `1` — v1 tooling ignores the v2 additions.
 
-See [`SPEC.md`](../SPEC.md) §7, §12 and [`CHANGELOG.md`](../CHANGELOG.md).
+See [`docs/vault-example/CLAUDE.md`](./vault-example/CLAUDE.md) (schema) and [`CHANGELOG.md`](../CHANGELOG.md).

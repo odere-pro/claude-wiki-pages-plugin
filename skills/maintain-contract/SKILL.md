@@ -44,4 +44,4 @@ operate on a vault without corrupting it. It pairs with
 
 ## Specification anchor
 
-`/SPEC.md §9` (command contracts), `/SPEC.md §11` (agent contracts), `/SPEC.md §15` (security model).
+Contracts: [`docs/architecture.md`](../../docs/architecture.md) (command & agent contracts), [`docs/security.md`](../../docs/security.md) (security model).

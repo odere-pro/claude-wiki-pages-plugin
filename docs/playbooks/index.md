@@ -10,7 +10,7 @@ The [user guides](../llm-wiki/index.md) under `docs/llm-wiki/` are *task referen
 | ---- | -------- | ---------------------------- | ---- |
 | [200 — Foundational](./200-foundational.md) | First-time user. Has Claude Code. Has not seen a vault before. | Install the plugin, scaffold a vault, ingest one source, ask one question with cited answers. | ~30 min |
 | [300 — Associate](./300-associate.md) | Operates a real, growing vault. Comfortable with frontmatter and slash commands. | Route work to a specific specialist agent, customize the schema, run hooks manually for debugging, batch-ingest, operate two vaults. | ~2 hours |
-| [500 — Expert](./500-expert.md) | Plugin extender or downstream maintainer. Comfortable reading [`/SPEC.md`](../../SPEC.md) and shell scripts. | Author a new skill, add a hook, run all four test tiers, fork the plugin, integrate it with CI. | ~half day |
+| [500 — Expert](./500-expert.md) | Plugin extender or downstream maintainer. Comfortable reading [`docs/architecture.md`](../architecture.md) and shell scripts. | Author a new skill, add a hook, run all four test tiers, fork the plugin, integrate it with CI. | ~half day |
 
 ## Conventions
 

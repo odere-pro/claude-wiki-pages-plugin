@@ -35,4 +35,4 @@ Task → claude-wiki-pages-onboarding-agent
 
 ## Specification anchor
 
-`/SPEC.md §9` (commands), `/SPEC.md §11` (`claude-wiki-pages-onboarding-agent`).
+Contracts: [`docs/architecture.md`](../docs/architecture.md) (commands & `claude-wiki-pages-onboarding-agent`).

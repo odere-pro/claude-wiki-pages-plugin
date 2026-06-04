@@ -137,4 +137,4 @@ end every write-path with `verify` (or `heal`). See `/claude-wiki-pages:maintain
 
 ## Specification anchor
 
-`/SPEC.md §1` (engine layer), `/SPEC.md §9` (command contracts).
+Contracts: [`docs/architecture.md`](../../docs/architecture.md) (engine layer & command contracts).

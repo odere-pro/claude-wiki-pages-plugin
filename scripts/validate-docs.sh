@@ -51,7 +51,6 @@ BAN_EXEMPT=(
 SEO_EXEMPT=(
   "README.md"
   "docs/GLOSSARY.md"
-  "SPEC.md"
   "docs/SPECIFICATION.md"
   "scripts/validate-docs.sh"
   ".claude-plugin/plugin.json"
