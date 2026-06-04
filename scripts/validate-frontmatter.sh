@@ -21,7 +21,9 @@ while [ $# -gt 0 ]; do
 done
 VAULT_NAME=$(basename "$VAULT")
 
-# Returns a plain error message on stdout, or nothing on success
+# Returns a plain error message on stdout, or nothing on success.
+# U4 (errors-that-teach): reports ALL missing required fields in one message
+# and echoes the offending frontmatter block so the author sees the context.
 validate_content() {
   local file_path="$1" content="$2"
 
@@ -33,12 +35,17 @@ validate_content() {
   local frontmatter
   frontmatter=$(echo "$content" | awk 'NR==1 && /^---$/{n++; next} /^---$/{exit} n{print}')
 
+  # Collect ALL missing universal fields before reporting.
+  local missing_base=""
   for field in type title; do
     if ! echo "$frontmatter" | grep -q "^${field}:"; then
-      echo "Missing required field: ${field}"
-      return
+      missing_base="${missing_base:+${missing_base}, }${field}"
     fi
   done
+  if [ -n "$missing_base" ]; then
+    printf 'Missing required field(s): %s\n---\n%s\n---' "$missing_base" "$frontmatter"
+    return
+  fi
 
   local type
   type=$(echo "$frontmatter" | grep '^type:' | sed 's/^type: *//' | tr -d '"'"'" | xargs)
@@ -60,12 +67,17 @@ validate_content() {
       ;;
   esac
 
+  # Collect ALL missing per-type fields before reporting.
+  local missing_type=""
   for field in $required; do
     if ! echo "$frontmatter" | grep -q "^${field}:"; then
-      echo "${type} note missing required field: ${field}"
-      return
+      missing_type="${missing_type:+${missing_type}, }${field}"
     fi
   done
+  if [ -n "$missing_type" ]; then
+    printf '%s note missing required field(s): %s\n---\n%s\n---' "$type" "$missing_type" "$frontmatter"
+    return
+  fi
 
   case "$type" in
     entity | concept | topic | project | synthesis | index)
@@ -147,7 +159,8 @@ CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
 
 err=$(validate_content "$FILE_PATH" "$CONTENT")
 if [ -n "$err" ]; then
-  escaped=$(printf '%s' "$err" | sed 's/"/\\"/g')
+  # Encode as a valid JSON string: escape backslashes first, then quotes, then newlines.
+  escaped=$(printf '%s' "$err" | sed 's/\\/\\\\/g; s/"/\\"/g' | awk '{printf "%s\\n", $0}' | sed 's/\\n$//')
   echo "{\"decision\":\"block\",\"reason\":\"${escaped}\"}"
 fi
 exit 0

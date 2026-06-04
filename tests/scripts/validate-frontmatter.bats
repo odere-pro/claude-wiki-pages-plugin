@@ -284,3 +284,69 @@ MD
   assert_output_contains '"decision":"block"'
   assert_output_contains "path"
 }
+
+# --- U4 errors-that-teach ----------------------------------------------------
+
+@test "validate-frontmatter: reports ALL missing fields in one message (U4)" {
+  # A topic page missing sources, status, and confidence (3 required fields).
+  # Before U4: the hook blocked on the FIRST missing field only.
+  # After U4: all 3 appear in one reason string, plus the frontmatter block.
+  local content
+  content=$(cat <<'MD'
+---
+title: "Sparse Topic"
+type: topic
+summary: "A topic with several required fields omitted."
+parent: "[[Topics — Index]]"
+path: "topics"
+created: 2026-06-04
+updated: 2026-06-04
+---
+
+# Sparse Topic
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/topics/sparse-topic.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_contains '"decision":"block"'
+  # All three missing fields must appear in the single reason string.
+  assert_output_contains "sources"
+  assert_output_contains "status"
+  assert_output_contains "confidence"
+  # The frontmatter block must be echoed so the user sees the context.
+  assert_output_contains "Sparse Topic"
+  assert_output_contains "type: topic"
+}
+
+@test "validate-frontmatter: reports multiple base missing fields in one message (U4)" {
+  # A page missing both 'type' and 'title' (the two universal required fields).
+  local content
+  content=$(cat <<'MD'
+---
+summary: "No type or title here."
+created: 2026-06-04
+---
+
+Body only.
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/topics/no-type-title.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "type"
+  assert_output_contains "title"
+}
