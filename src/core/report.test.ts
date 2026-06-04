@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test";
-import { buildReport, exitCode, renderText, type Finding } from "./report.ts";
+import { buildReport, exitCode, renderText, type Finding, type Report } from "./report.ts";
 
 const err: Finding = { severity: "error", check: "schema", message: "no schema_version" };
 const warn: Finding = { severity: "warn", check: "moc", message: "orphan source", file: "a.md" };
@@ -69,5 +69,56 @@ describe("renderText", () => {
   test("shows a fail verdict when there are errors", () => {
     const out = renderText(buildReport("verify", "/v", [err]));
     expect(out).toContain("FAIL: fix errors before continuing");
+  });
+});
+
+// ── U5: optional next? on Report ─────────────────────────────────────────────
+
+describe("Report.next (U5)", () => {
+  test("next is absent from buildReport output (buildReport does not set it)", () => {
+    const r = buildReport("verify", "/v", [warn]);
+    expect(r.next).toBeUndefined();
+  });
+
+  test("next survives JSON.stringify round-trip when set on an extended object", () => {
+    const base = buildReport("verify", "/v", [warn]);
+    // Commands that want next extend the frozen object by re-freezing a spread.
+    const withNext: Report = Object.freeze({
+      ...base,
+      next: Object.freeze(["wiki/a.md", "wiki/b.md"]) as readonly string[],
+    });
+    const parsed = JSON.parse(JSON.stringify(withNext)) as { next?: string[] };
+    expect(parsed.next).toEqual(["wiki/a.md", "wiki/b.md"]);
+  });
+
+  test("renderText output is byte-identical whether next is absent or set (gate-05 parity)", () => {
+    const base = buildReport("verify", "/v", [warn]);
+    const withNext: Report = Object.freeze({
+      ...base,
+      next: Object.freeze(["wiki/a.md"]) as readonly string[],
+    });
+    // renderText must NOT emit next — output must be identical.
+    expect(renderText(base)).toBe(renderText(withNext));
+  });
+
+  test("renderText does not contain 'next' in its output", () => {
+    const base = buildReport("verify", "/v", [warn]);
+    const withNext: Report = Object.freeze({
+      ...base,
+      next: Object.freeze(["wiki/should-not-appear.md"]) as readonly string[],
+    });
+    const out = renderText(withNext);
+    expect(out).not.toContain("next");
+    expect(out).not.toContain("wiki/should-not-appear.md");
+  });
+
+  test("next is readonly string[] when present (type assertion)", () => {
+    const base = buildReport("verify", "/v", []);
+    const items: readonly string[] = Object.freeze(["wiki/x.md"]);
+    const withNext: Report = Object.freeze({ ...base, next: items });
+    // Type guard: if next exists it must be an array of strings.
+    if (withNext.next !== undefined) {
+      expect(withNext.next.every((s) => typeof s === "string")).toBe(true);
+    }
   });
 });
