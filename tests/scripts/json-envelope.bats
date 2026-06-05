@@ -399,3 +399,134 @@ MD
   assert_success
   assert_output_contains "ALLOW"
 }
+
+# ── control-char escaping (QA-adv FINDING 1, HIGH) ──────────────────────────
+# JSON forbids literal C0 control characters (0x00-0x1F) in string values.
+# _json_escape() must escape tab→\t, CR→\r, and any remaining 0x01-0x1F→\uXXXX
+# so that --json output is always valid JSON, even when control chars appear in
+# frontmatter field values or in filenames.
+
+# Helper: write a CLAUDE.md schema stub with Required-fields table.
+_ctrl_schema_cat() {
+  cat <<'SCHEMA'
+# Schema stub
+schema_version: 2
+
+## Frontmatter schema
+
+### Required fields by type
+
+| Type | Required fields | Conditional |
+| --- | --- | --- |
+| `entity` | `entity_type parent path sources created updated status confidence` | — |
+SCHEMA
+}
+
+@test "json-envelope: validate-frontmatter --json tab in message produces valid JSON" {
+  # TAB (0x09) in a frontmatter field value flows into the error message string.
+  local v="$BATS_TEST_TMPDIR/ctrl-tab-fm"
+  mkdir -p "$v/wiki/entities"
+  _ctrl_schema_cat >"$v/CLAUDE.md"
+  # Use $'...' quoting so bash interprets \t as a literal tab byte.
+  printf '%s\n' $'---\ntitle: "X\tY"\ntype: entity\n---' >"$v/wiki/entities/tab.md"
+  run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --json --target "$v"
+  # exit 1 expected (missing required fields), output must still be valid JSON
+  assert_status 1
+  assert_valid_json "$output"
+  assert_envelope_has_findings "$output"
+}
+
+@test "json-envelope: validate-frontmatter --json CR in message produces valid JSON" {
+  # CR (0x0D) in a frontmatter field value flows into the error message string.
+  local v="$BATS_TEST_TMPDIR/ctrl-cr-fm"
+  mkdir -p "$v/wiki/entities"
+  _ctrl_schema_cat >"$v/CLAUDE.md"
+  printf '%s\n' $'---\ntitle: "X\rY"\ntype: entity\n---' >"$v/wiki/entities/cr.md"
+  run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --json --target "$v"
+  assert_status 1
+  assert_valid_json "$output"
+  assert_envelope_has_findings "$output"
+}
+
+@test "json-envelope: validate-frontmatter --json BEL (0x07) in message produces valid JSON" {
+  # Generic C0 control char (BEL = 0x07) must be escaped.
+  local v="$BATS_TEST_TMPDIR/ctrl-bel-fm"
+  mkdir -p "$v/wiki/entities"
+  _ctrl_schema_cat >"$v/CLAUDE.md"
+  printf '%s\n' $'---\ntitle: "X\007Y"\ntype: entity\n---' >"$v/wiki/entities/bel.md"
+  run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --json --target "$v"
+  assert_status 1
+  assert_valid_json "$output"
+  assert_envelope_has_findings "$output"
+}
+
+@test "json-envelope: validate-frontmatter --json tab in filename produces valid JSON" {
+  # A filename containing a tab reaches the file field in the JSON finding.
+  local v="$BATS_TEST_TMPDIR/ctrl-tab-fname"
+  mkdir -p "$v/wiki/entities"
+  _ctrl_schema_cat >"$v/CLAUDE.md"
+  # $'tab\tname.md' produces a filename with a literal tab byte.
+  printf '%s\n' $'---\ntitle: "Missing"\ntype: entity\n---' \
+    >"$v/wiki/entities/"$'tab\tname.md'
+  run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --json --target "$v"
+  assert_status 1
+  assert_valid_json "$output"
+  assert_envelope_has_findings "$output"
+}
+
+@test "json-envelope: validate-frontmatter --json CR in filename produces valid JSON" {
+  local v="$BATS_TEST_TMPDIR/ctrl-cr-fname"
+  mkdir -p "$v/wiki/entities"
+  _ctrl_schema_cat >"$v/CLAUDE.md"
+  printf '%s\n' $'---\ntitle: "Missing"\ntype: entity\n---' \
+    >"$v/wiki/entities/"$'cr\rname.md'
+  run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --json --target "$v"
+  assert_status 1
+  assert_valid_json "$output"
+  assert_envelope_has_findings "$output"
+}
+
+@test "json-envelope: check-wikilinks --json tab in message produces valid JSON" {
+  # A markdown-link text with a tab flows into the message field.
+  local v="$BATS_TEST_TMPDIR/ctrl-tab-wl"
+  mkdir -p "$v/wiki/topics"
+  printf '%s\n' $'---\ntitle: "T"\ntype: topic\n---\n\nSee [the\tsample](page.md) here.' \
+    >"$v/wiki/topics/tab-link.md"
+  run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --json --target "$v"
+  assert_status 1
+  assert_valid_json "$output"
+  assert_envelope_has_findings "$output"
+}
+
+@test "json-envelope: check-wikilinks --json CR in message produces valid JSON" {
+  local v="$BATS_TEST_TMPDIR/ctrl-cr-wl"
+  mkdir -p "$v/wiki/topics"
+  printf '%s\n' $'---\ntitle: "T"\ntype: topic\n---\n\nSee [the\rsample](page.md) here.' \
+    >"$v/wiki/topics/cr-link.md"
+  run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --json --target "$v"
+  assert_status 1
+  assert_valid_json "$output"
+  assert_envelope_has_findings "$output"
+}
+
+@test "json-envelope: check-wikilinks --json tab in filename produces valid JSON" {
+  local v="$BATS_TEST_TMPDIR/ctrl-tab-wl-fname"
+  mkdir -p "$v/wiki/topics"
+  printf '%s\n' $'---\ntitle: "T"\ntype: topic\n---\n\nSee [bad](page.md) here.' \
+    >"$v/wiki/topics/"$'tab\twlname.md'
+  run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --json --target "$v"
+  assert_status 1
+  assert_valid_json "$output"
+  assert_envelope_has_findings "$output"
+}
+
+@test "json-envelope: check-wikilinks --json CR in filename produces valid JSON" {
+  local v="$BATS_TEST_TMPDIR/ctrl-cr-wl-fname"
+  mkdir -p "$v/wiki/topics"
+  printf '%s\n' $'---\ntitle: "T"\ntype: topic\n---\n\nSee [bad](page.md) here.' \
+    >"$v/wiki/topics/"$'cr\rwlname.md'
+  run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --json --target "$v"
+  assert_status 1
+  assert_valid_json "$output"
+  assert_envelope_has_findings "$output"
+}

@@ -27,11 +27,38 @@ VAULT_NAME=$(basename "$VAULT")
 
 # ── JSON helpers (no jq dependency) ──────────────────────────────────────────
 # _json_escape: escape a plain string for embedding in a JSON string value.
+# Escapes: backslash → \\, double-quote → \", newline → \n, tab → \t,
+# carriage-return → \r, backspace → \b, form-feed → \f, and any remaining
+# C0 control character (0x01-0x1F) → \uXXXX (lowercase hex).
+# This satisfies RFC 8259 §7 which forbids unescaped control chars in strings.
 _json_escape() {
-  printf '%s' "$1" |
-    sed 's/\\/\\\\/g; s/"/\\"/g' |
-    awk '{printf "%s\\n", $0}' |
-    sed 's/\\n$//'
+  printf '%s' "$1" | LC_ALL=C awk '
+  BEGIN {
+    ORS = ""
+    # Build ord[] table: ord[char] = decimal byte value for all 256 bytes.
+    for (i = 0; i <= 255; i++) {
+      c = sprintf("%c", i)
+      ord[c] = i
+    }
+  }
+  {
+    n = split($0, chars, "")
+    for (i = 1; i <= n; i++) {
+      c = chars[i]
+      o = ord[c]
+      if      (c == "\\") { printf "%s", "\\\\" }
+      else if (c == "\"") { printf "%s", "\\\"" }
+      else if (o ==  8)   { printf "%s", "\\b"  }
+      else if (o ==  9)   { printf "%s", "\\t"  }
+      else if (o == 12)   { printf "%s", "\\f"  }
+      else if (o == 13)   { printf "%s", "\\r"  }
+      else if (o >= 1 && o <= 31) { printf "\\u%04x", o }
+      else { printf "%s", c }
+    }
+    # awk splits on RS (newline by default); emit \n between input lines
+    printf "%s", "\\n"
+  }
+  ' | sed 's/\\n$//'
 }
 
 # _json_finding_with_file: emit one Finding JSON object with a file field.
