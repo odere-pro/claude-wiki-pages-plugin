@@ -171,10 +171,13 @@ if [ "${1:-}" = "--self-test" ]; then
 fi
 
 # Files on the retrieval path (the scope the spec defines).
+# graph.ts is included because it is imported by search.ts and is on the
+# retrieval path; the gate must prove it has zero embedding/vector/fetch tokens.
 RETRIEVAL_FILES=(
   "src/commands/search/search.ts"
   "src/core/vocabulary.ts"
   "src/core/stem.ts"
+  "src/core/graph.ts"
 )
 
 scan_files "${RETRIEVAL_FILES[@]}"

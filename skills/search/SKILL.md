@@ -39,11 +39,11 @@ bash scripts/engine.sh search "<query>" --target <vault> --json
 
 Three optional flags prune the candidate page set **before** scoring. They compose with AND; absent flags match everything.
 
-| Flag | Behaviour |
-| --- | --- |
-| `--type <T>` | Keep only pages whose frontmatter `type` equals `T` exactly. Validation strategy: **filter-only** — the page-type enum is single-sourced in `ontology-profile-v1` (`docs/vault-example/CLAUDE.md §Enum list`); the engine carries no copy. An unknown `T` simply returns zero hits. |
-| `--folder <path>` | Keep only pages whose vault-relative file path starts with `<path>/` (path-prefix match; trailing slash normalised). Example: `--folder wiki/ai` restricts to `wiki/ai/*`. |
-| `--tag <tag>` | Best-effort filter: keep only pages whose frontmatter `tags` list contains `<tag>` as an exact member. Precision only; tag-vocabulary validation is a later item (governed taxonomy). |
+| Flag              | Behaviour                                                                                                                                                                                                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--type <T>`      | Keep only pages whose frontmatter `type` equals `T` exactly. Validation strategy: **filter-only** — the page-type enum is single-sourced in `ontology-profile-v1` (`docs/vault-example/CLAUDE.md §Enum list`); the engine carries no copy. An unknown `T` simply returns zero hits. |
+| `--folder <path>` | Keep only pages whose vault-relative file path starts with `<path>/` (path-prefix match; trailing slash normalised). Example: `--folder wiki/ai` restricts to `wiki/ai/*`.                                                                                                          |
+| `--tag <tag>`     | Best-effort filter: keep only pages whose frontmatter `tags` list contains `<tag>` as an exact member. Precision only; tag-vocabulary validation is a later item (governed taxonomy).                                                                                               |
 
 ```sh
 # Only concept pages mentioning "retrieval":
@@ -75,10 +75,10 @@ bash scripts/engine.sh search "retrieval" --type concept --folder wiki/ai --tag 
       "score": 18,
       "snippet": "Graph RAG walks the knowledge graph…",
       "matched": [
-        { "channel": "title-phrase", "term": "",      "hits": 1, "points": 10 },
-        { "channel": "title-term",   "term": "graph", "hits": 1, "points": 5  },
-        { "channel": "title-term",   "term": "rag",   "hits": 1, "points": 5  },
-        { "channel": "body-term",    "term": "graph", "hits": 3, "points": 3  }
+        { "channel": "title-phrase", "term": "", "hits": 1, "points": 10 },
+        { "channel": "title-term", "term": "graph", "hits": 1, "points": 5 },
+        { "channel": "title-term", "term": "rag", "hits": 1, "points": 5 },
+        { "channel": "body-term", "term": "graph", "hits": 3, "points": 3 }
       ]
     }
   ]
@@ -140,8 +140,8 @@ When `_vocabulary.md` is absent, search degrades silently to exact-only behavior
 (the pre-Tier-2 contract). The engine never throws on an absent lexicon.
 
 > **Conceptual synonyms vs aliases:** the `aliases` frontmatter field records
-> known alternate names for a *specific page* (consumed page-side by `titleHay`).
-> The lexicon records cross-page synonym classes consumed *query-side*. Ingest and
+> known alternate names for a _specific page_ (consumed page-side by `titleHay`).
+> The lexicon records cross-page synonym classes consumed _query-side_. Ingest and
 > curator record conceptual synonyms in `aliases`; the lexicon records vocabulary
 > expansions. Do NOT copy `aliases` into the lexicon or vice versa.
 
@@ -219,9 +219,84 @@ Neither path re-ranks: `search` emits one ordered `hits` array; consumers take a
 or filter it, they never reorder it by a different key. This is the same
 JSON-only discipline R4 established.
 
-## GraphRAG (later phase)
+## R2 — `--graph`: deterministic link-walk (N≤2)
 
-`search` is the substrate for graph-aware retrieval: a future `search --graph`
-expands each hit along the wikilink graph (`sources`, `related`, `depends_on`)
-to return its N-hop neighbourhood. The graph already exists in frontmatter; the
-expansion is traversal, not a new index.
+`search --graph` expands the keyword result set by walking the wikilink graph
+from each keyword hit. The expansion is opt-in, off by default, and uses the
+same deterministic engine — no vectors, no embeddings, no network.
+
+### What it does
+
+After keyword+Tier-2 hits are computed, the engine calls the graph-traversal
+primitive (`src/core/graph.ts`) with all keyword-hit files as seeds. It walks
+the `sources`, `related`, and `depends_on` predicates up to **N=2 hops**.
+Pages discovered by the walk appear as additional hits (or augment existing
+hits if they were already keyword matches).
+
+### How to run
+
+`--graph` is a boolean flag on the `search` command. Omit it for keyword-only
+search (the default); add it to expand along the wikilink graph:
+
+```sh
+# Keyword + graph expansion (N≤2 over sources/related/depends_on):
+bash scripts/engine.sh search "retrieval" --graph --target <vault> --json
+
+# Composes with the R1 candidate filters (filters apply to the keyword seeds):
+bash scripts/engine.sh search "retrieval" --graph --type concept --target <vault> --json
+```
+
+### Weights and channel order
+
+Graph is the WEAKEST signal — hop-decayed, strictly below synonym/exact:
+
+| Signal             | Weight | Channel                     |
+| ------------------ | ------ | --------------------------- |
+| Direct title match | 5      | `title-term`                |
+| Synonym/stem match | 2–1    | `synonym-term`, `stem-term` |
+| Graph hop-1        | 2      | `graph-edge`                |
+| Graph hop-2        | 1      | `graph-edge`                |
+
+Channel order (last = weakest): `title-phrase → title-term → alias-term →
+tag-term → body-term → synonym-term → stem-term → graph-edge`.
+
+### `graph-edge` match component
+
+Every graph-discovered hit carries a `graph-edge` component in `matched[]`:
+
+```json
+{ "channel": "graph-edge", "term": "sources", "hits": 1, "points": 2 }
+```
+
+- `term` — the predicate that created the edge (e.g. `"sources"`, `"related"`, `"depends_on"`).
+- `hits` — the **hop distance** (1 or 2). Note: unlike other channels where
+  `hits` is an occurrence count, on a `graph-edge` row `hits` carries the hop
+  distance from the seed to this page.
+- `points` — the hop-decayed weight (2 for hop-1, 1 for hop-2).
+
+The hard `score===sum(matched.points)` invariant is preserved: every `score+=`
+is paired with a `matched.push()`.
+
+### Bodyless new hits
+
+Graph-only hits (pages discovered solely by the walk, with no keyword match)
+have `snippet: ""` — the engine never reads page bodies during traversal.
+
+### Determinism guarantee
+
+Same vault + same query + same edges + same N → byte-identical output across
+runs. BFS processes frontier pages in sorted vault-relative path order,
+predicates in fixed `edges` array order, resolved targets in sorted title order.
+Nearest-hop dedup: a page reached at hop-1 is never re-recorded at hop-2.
+
+### Off-by-default guarantee
+
+When `--graph` is absent, `search` is byte-identical to the pre-graph baseline.
+Zero graph code is observable on the default path.
+
+### Predicates walked
+
+R2 uses the provenance/association core from `ontology-profile-v1`:
+`sources`, `related`, `depends_on`. Only these three predicates are followed.
+Fields outside the `GraphEdge` closed union (e.g. `tags`) are never traversed.
+`contradicts`/`supersedes` walking and N>2 are deferred to Phase 3.

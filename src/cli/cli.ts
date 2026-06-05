@@ -51,6 +51,10 @@ interface ParsedArgs {
   readonly folder: string | undefined;
   /** R1 candidate filter (best-effort): `tags` membership. */
   readonly tag: string | undefined;
+  /** R2 graph expansion: opt-in N≤2 link-walk over sources/related/depends_on. */
+  readonly graph: boolean;
+  /** S3 cross-vault: colon-separated list of other registered vault roots. */
+  readonly otherVaults: string | undefined;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -66,6 +70,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   let type: string | undefined;
   let folder: string | undefined;
   let tag: string | undefined;
+  let graph = false;
+  let otherVaults: string | undefined;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--json") json = true;
@@ -78,10 +84,27 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (a === "--type") type = argv[++i];
     else if (a === "--folder") folder = argv[++i];
     else if (a === "--tag") tag = argv[++i];
+    else if (a === "--graph") graph = true;
+    else if (a === "--other-vaults") otherVaults = argv[++i];
     else if (a && !a.startsWith("-") && command === undefined) command = a;
     else if (a && !a.startsWith("-") && sub === undefined) sub = a;
   }
-  return { command, sub, json, target, help, fix: fixFlag, strict, write, file, type, folder, tag };
+  return {
+    command,
+    sub,
+    json,
+    target,
+    help,
+    fix: fixFlag,
+    strict,
+    write,
+    file,
+    type,
+    folder,
+    tag,
+    graph,
+    otherVaults,
+  };
 }
 
 function emit(report: Report, json: boolean): void {
@@ -117,6 +140,8 @@ function main(): number {
     type,
     folder,
     tag,
+    graph,
+    otherVaults,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -224,7 +249,10 @@ function main(): number {
       process.stderr.write("firewall: --file <path> is required\n");
       return 2;
     }
-    const report = firewallCheck({ target, file });
+    const otherVaultsList: readonly string[] = otherVaults
+      ? otherVaults.split(":").filter((v) => v.length > 0)
+      : [];
+    const report = firewallCheck({ target, file, otherVaults: otherVaultsList });
     if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
     else
       process.stdout.write(
@@ -275,7 +303,7 @@ function main(): number {
   }
 
   if (command === "search") {
-    const report = search({ target, query: sub ?? "", type, folder, tag });
+    const report = search({ target, query: sub ?? "", type, folder, tag, graph });
     if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
     else if (report.hits.length === 0)
       process.stdout.write(`search: no matches for "${report.query}"\n`);

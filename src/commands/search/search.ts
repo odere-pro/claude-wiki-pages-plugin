@@ -26,6 +26,7 @@ import { parseFrontmatter, titleOf, stringList, splitFrontmatter } from "../../c
 import { resolveVault } from "../../core/vault.ts";
 import { loadLexicon, synonymsOf } from "../../core/vocabulary.ts";
 import { stem, stemTokens } from "../../core/stem.ts";
+import { walk, R2_EDGES } from "../../core/graph.ts";
 
 /**
  * One component of a hit's score breakdown: which scoring channel fired, the
@@ -45,7 +46,8 @@ export interface MatchComponent {
     | "tag-term"
     | "body-term"
     | "synonym-term"
-    | "stem-term";
+    | "stem-term"
+    | "graph-edge";
   /** The original query term that fired this component. Empty for phrase channel. */
   readonly term: string;
   /** Match count pre-cap (e.g. raw body occurrences before BODY_HITS_CAP). */
@@ -105,6 +107,21 @@ export interface SearchOptions {
    * only; no tag-vocabulary validation (governed taxonomy is a later item).
    */
   readonly tag?: string;
+  /**
+   * R2: opt-in N≤2 graph walk over `sources`+`related`+`depends_on` wikilinks.
+   * Default: false (off). When absent/false, search behaves byte-identically to
+   * the pre-graph baseline — zero graph code is observable on the default path.
+   *
+   * When true: after keyword+Tier-2 hits are computed, `walk()` is called with
+   * the keyword hits as seeds. Graph neighbours are appended as new hits
+   * (snippet:"", one graph-edge component) or used to augment existing hits
+   * (graph-edge component added to their matched[] and points added to score).
+   *
+   * score===sum(matched.points) is preserved: every score+= is paired with a
+   * matched component push. Graph is the WEAKEST signal (hop-decayed, strictly
+   * below synonym). The `graph-edge` channel is LAST in CHANNEL_ORDER.
+   */
+  readonly graph?: boolean;
 }
 
 const DEFAULT_LIMIT = 20;
@@ -125,7 +142,7 @@ const W_TERM_TAG_STEM = 1;
 const W_TERM_BODY_STEM = 1;
 
 // Stable channel precedence for sorting a hit's match components when points tie.
-// Exact channels first, then synonym, then stem — so exact wins ties.
+// Exact channels first, then synonym, then stem, then graph-edge (last — weakest).
 const CHANNEL_ORDER: readonly MatchComponent["channel"][] = [
   "title-phrase",
   "title-term",
@@ -134,6 +151,7 @@ const CHANNEL_ORDER: readonly MatchComponent["channel"][] = [
   "body-term",
   "synonym-term",
   "stem-term",
+  "graph-edge",
 ];
 
 /** Total order: points desc → channel precedence → term lexicographic. */
@@ -350,6 +368,93 @@ export function search(opts: SearchOptions): SearchReport {
       snippet: snippetLine.slice(0, 160),
       matched: sortMatchComponents(components),
     });
+  }
+
+  // ── R2: --graph walk (opt-in, off by default) ─────────────────────────────
+  // When opts.graph is true, call walk() with the keyword hits as seeds.
+  // Graph is the WEAKEST signal: W_GRAPH_HOP1=2, W_GRAPH_HOP2=1 (hop-decayed,
+  // strictly ≤ synonym < direct title match). score===sum is preserved because
+  // every score+= is paired with a components.push().
+  //
+  // Off-by-default guarantee: when opts.graph is absent or false, the block
+  // below is entirely skipped — zero graph code is observable on the default
+  // path (byte-identical to the pre-graph baseline).
+  if (opts.graph === true) {
+    // Build a file→mutableHit map for O(1) augmentation lookups.
+    const hitByFile = new Map<
+      string,
+      (typeof hits)[number] & { score: number; matched: MatchComponent[] }
+    >();
+    // Re-build hits as mutable objects for this phase.
+    // (hits[] already has readonly matched[] — we need mutable for augmentation.)
+    const mutableHits: Array<{
+      title: string;
+      wikilink: string;
+      file: string;
+      type: string;
+      score: number;
+      snippet: string;
+      matched: MatchComponent[];
+    }> = hits.map((h) => ({
+      title: h.title,
+      wikilink: h.wikilink,
+      file: h.file,
+      type: h.type,
+      score: h.score,
+      snippet: h.snippet,
+      matched: [...h.matched],
+    }));
+    for (const h of mutableHits) {
+      hitByFile.set(h.file, h);
+    }
+
+    // Walk from all keyword hit files as seeds.
+    const seedFiles = mutableHits.map((h) => h.file);
+    const { refs } = walk({ vault, seeds: seedFiles, edges: R2_EDGES, maxHops: 2 });
+
+    for (const ref of refs) {
+      const graphComp: MatchComponent = {
+        channel: "graph-edge",
+        term: ref.via, // the predicate that created this edge
+        hits: ref.hop, // hop distance (spec: "hits carries hop distance, not occurrence count")
+        points: ref.score, // W_GRAPH_HOP1 or W_GRAPH_HOP2
+      };
+
+      const existing = hitByFile.get(ref.file);
+      if (existing !== undefined) {
+        // AUGMENT: keyword hit that is also a graph neighbor → add graph-edge component.
+        existing.score += graphComp.points;
+        existing.matched.push(graphComp);
+        existing.matched = sortMatchComponents(existing.matched) as MatchComponent[];
+      } else {
+        // NEW: graph-only hit — bodyless (snippet:""), single graph-edge component.
+        const newHit = {
+          title: ref.wikilink.slice(2, -2), // strip [[ and ]]
+          wikilink: ref.wikilink,
+          file: ref.file,
+          type: ref.type,
+          score: graphComp.points,
+          snippet: "",
+          matched: [graphComp],
+        };
+        mutableHits.push(newHit);
+        hitByFile.set(ref.file, newHit);
+      }
+    }
+
+    // Re-apply sort + limit on the mutable hits (graph may have added new entries).
+    mutableHits.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
+    // Freeze matched arrays back to readonly and return.
+    const frozenHits: SearchHit[] = mutableHits.slice(0, limit).map((h) => ({
+      title: h.title,
+      wikilink: h.wikilink,
+      file: h.file,
+      type: h.type,
+      score: h.score,
+      snippet: h.snippet,
+      matched: sortMatchComponents(h.matched),
+    }));
+    return { command: "search", vault, query, hits: frozenHits };
   }
 
   hits.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
