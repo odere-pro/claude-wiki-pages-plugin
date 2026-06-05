@@ -134,6 +134,16 @@ jobs:
             fi
           done
 
+      # bun powers the frontmatter/vocabulary parsers exercised by several Bats
+      # suites (eval-ingest-extract, lint-vocabulary, config-schema). Without it
+      # those tests fail closed (the scripts treat a missing bun as fatal).
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
       - name: Run Bats
         run: bats --recursive tests/scripts/
 
