@@ -437,9 +437,22 @@ _teardown_eval_artifact_repo() {
 }
 
 @test "eval-ingest-extract: --stamp fails closed when the golden set is uncommitted (no fail-open artifact)" {
-  # Run against the REAL repo where the golden set is not in HEAD: the sha cannot
-  # be derived, so --stamp must die (rc 2) and emit NO partial JSON.
-  run bash "$DRIVER" --stamp --score "$CASES/extract-basic/expected" --gold "$CASES/extract-basic/expected" --model-id "m"
+  # The golden set must be present in the working tree (so scoring can run) but
+  # NOT in HEAD (so golden_set_sha cannot be derived) — then --stamp must die
+  # (rc 2) and emit NO partial JSON. Build a sandbox and remove the golden set
+  # from HEAD while keeping the working-tree files, rather than relying on the
+  # real repo's commit state (the golden set IS committed once the gate ships,
+  # which is exactly the external-binding the gate requires).
+  _setup_eval_artifact_repo
+  local good="tests/eval/ingest-extract/cases/extract-basic/expected"
+  run bash -c "
+    cd '$EVAL_REPO' &&
+    git rm -r --cached --quiet tests/eval/ingest-extract &&
+    git commit -q -m 'uncommit golden set' &&
+    bash scripts/eval-ingest-extract.sh --stamp --score '$good' --gold '$good' --model-id 'm'
+  "
+  _teardown_eval_artifact_repo
+
   assert_status 2
   refute_output_contains "{"
 }
