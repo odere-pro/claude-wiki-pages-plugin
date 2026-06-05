@@ -89,6 +89,57 @@ verify, the rule is out of scope for lint and belongs in fix.
   covered by `tests/scripts/verify-ingest.bats` (I3 cases) and
   `src/commands/verify/verify.test.ts` (I3 cases).
 
+### Opt-in WARN checks (run separately — not in the always-run verifier)
+
+These two checks are **opt-in WARN-tier only** — not blocking, not in
+`scripts/verify-ingest.sh`. Run them on demand:
+
+```
+bash scripts/lint-ontology.sh [--target <vault>]
+bash scripts/lint-structural.sh [--target <vault>]
+```
+
+**S1-check — predicate domain→range conformance.**
+Reads the `ontology-profile-v1` predicate table from `vault/CLAUDE.md`
+(the single source of truth — the checker does not copy the table) and
+flags any typed wikilink whose domain (source page class) or range (target
+page class) violates a row. Examples of violations:
+
+- A `depends_on` field on a `concept` page pointing at a `source` page
+  (range violation: `depends_on` range allows only `concept`, `entity`).
+- A `parent` field pointing at a non-`index` page (range violation).
+- A predicate used by a page type not in its domain row.
+
+WARN findings cite: predicate name, offending page, resolved type, and the
+allowed domain or range from the profile. Unresolvable wikilink targets
+(dangling links) are silently skipped — `CHECK 2` in `verify-ingest.sh`
+already handles those. Implemented in `scripts/lint-ontology.sh`; covered
+by `tests/scripts/lint-ontology.bats`.
+
+**S2-structural — template-skeleton conformance + no-raw-HTML.**
+Two independent sub-checks:
+
+- **Skeleton conformance:** for each typed page (`entity`, `concept`,
+  `topic`, `project`, `synthesis`), verify it contains every H2 heading
+  (`## Section`) defined in its `_templates/<type>.md` skeleton. Missing
+  sections signal authoring drift from the structured-authoring templates.
+  `source`, `index`, `manifest`, and `log` pages are exempt (their content
+  is bookkeeping, not narrative). Drafts under `_proposed/` are exempt.
+
+- **No-raw-HTML:** flag any `<div>`, `<span>`, `<table>`, `<thead>`,
+  `<tbody>`, `<tr>`, `<td>`, `<th>`, `<iframe>`, `<script>`, `<style>`,
+  `<form>`, `<input>`, `<button>`, `<select>`, or `<textarea>` tag in the
+  page body. Raw HTML couples content to a specific renderer and violates
+  presentation independence (§5 "the Obsidian render is a view"). Content
+  inside fenced code blocks (`` ``` `` delimited) is excluded.
+
+Both sub-checks are WARN-level. Implemented in `scripts/lint-structural.sh`;
+covered by `tests/scripts/lint-structural.bats`.
+
+> **Phase 3 — deferred:** S2-overlap (>50% token-overlap single-sourcing
+> detector) is explicitly deferred due to false-positive risk. Do NOT build
+> it until the Phase 3 gate is open (PM sign-off required).
+
 ### Info (candidate for review, not drift)
 
 - **Stale pages.** No `updated:` advance in 30+ days despite newer sources
