@@ -23,6 +23,7 @@ set -euo pipefail
 source "$(dirname "$0")/resolve-vault.sh"
 VAULT=$(resolve_vault)
 TARGET_SET=0
+JSON_MODE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --target)
@@ -30,10 +31,47 @@ while [ $# -gt 0 ]; do
       TARGET_SET=1
       shift 2
       ;; # explicit CLI flag overrides auto-detection
+    --json)
+      JSON_MODE=1
+      shift
+      ;;
     *) shift ;;
   esac
 done
 VAULT_NAME=$(basename "$VAULT")
+
+# ── JSON helpers (no jq dependency) ──────────────────────────────────────────
+# _json_escape: escape a plain string for embedding in a JSON string value.
+# Escapes: backslash → \\, double-quote → \", newline → \n, tab → \t,
+# carriage-return → \r.  Covers all characters that break JSON string parsing.
+_json_escape() {
+  printf '%s' "$1" |
+    sed 's/\\/\\\\/g; s/"/\\"/g' |
+    awk '{printf "%s\\n", $0}' |
+    sed 's/\\n$//'
+}
+
+# _json_finding_no_file: emit one Finding JSON object without a file field.
+# $1=severity  $2=check  $3=message
+_json_finding_no_file() {
+  local sev check msg
+  sev=$(_json_escape "$1")
+  check=$(_json_escape "$2")
+  msg=$(_json_escape "$3")
+  printf '{"severity":"%s","check":"%s","message":"%s"}' "$sev" "$check" "$msg"
+}
+
+# _json_finding_with_file: emit one Finding JSON object with a file field.
+# $1=severity  $2=check  $3=message  $4=file
+_json_finding_with_file() {
+  local sev check msg file
+  sev=$(_json_escape "$1")
+  check=$(_json_escape "$2")
+  msg=$(_json_escape "$3")
+  file=$(_json_escape "$4")
+  printf '{"severity":"%s","check":"%s","message":"%s","file":"%s"}' \
+    "$sev" "$check" "$msg" "$file"
+}
 
 # ── Schema-table reader (ADR-0014 Part A, amended) ───────────────────────────
 # _SCHEMA_FILE: the vault's CLAUDE.md.
@@ -271,6 +309,37 @@ validate_content() {
 if [ "$TARGET_SET" -eq 1 ]; then
   WIKI="$VAULT/wiki"
   ERRORS=0
+
+  # Validate the vault directory exists (exit 2 for bad args).
+  if [ ! -d "$WIKI" ]; then
+    if [ "$JSON_MODE" -eq 1 ]; then
+      printf '{"findings":[]}\n'
+    fi
+    exit 2
+  fi
+
+  if [ "$JSON_MODE" -eq 1 ]; then
+    # ── JSON mode: collect findings[], emit envelope, exit 0/1 ──────────────
+    FINDINGS_JSON=""
+    FINDING_SEP=""
+
+    while IFS= read -r -d '' file; do
+      wiki_rel="${file#${WIKI}/}"
+      err=$(validate_content "$wiki_rel" "$(cat "$file")")
+      if [ -n "$err" ]; then
+        finding=$(_json_finding_with_file "error" "frontmatter" "$err" "$wiki_rel")
+        FINDINGS_JSON="${FINDINGS_JSON}${FINDING_SEP}${finding}"
+        FINDING_SEP=","
+        ERRORS=$((ERRORS + 1))
+      fi
+    done < <(find "$WIKI" -name "*.md" -print0 2>/dev/null)
+
+    printf '{"findings":[%s]}\n' "$FINDINGS_JSON"
+    if [ "$ERRORS" -gt 0 ]; then
+      exit 1
+    fi
+    exit 0
+  fi
 
   red() { printf '\033[0;31mERROR: %s\033[0m\n' "$1"; }
   green() { printf '\033[0;32mOK:    %s\033[0m\n' "$1"; }

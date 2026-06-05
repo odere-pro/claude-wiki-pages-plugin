@@ -16,6 +16,7 @@ VAULT=$(resolve_vault)
 
 CLI_FILE=""
 CLI_MODE=0
+JSON_MODE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --target)
@@ -26,6 +27,10 @@ while [ $# -gt 0 ]; do
       CLI_FILE="$2"
       CLI_MODE=1
       shift 2
+      ;;
+    --json)
+      JSON_MODE=1
+      shift
       ;;
     *) shift ;;
   esac
@@ -260,19 +265,40 @@ decide() {
   [ "$MODE" = "warn" ] && echo "allow outside-vault" || echo "block outside-vault"
 }
 
+# ── Early arg validation: --json requires --file ─────────────────────────────
+if [ "$JSON_MODE" -eq 1 ] && [ "$CLI_MODE" -eq 0 ]; then
+  exit 2
+fi
+
 # Resolve the vault to its PHYSICAL absolute path (pwd -P dereferences symlinks)
 # so it is compared in the same namespace as the physical write target. If it
 # does not exist, firewall cannot meaningfully confine to it (e.g. pre-scaffold)
 # — allow and exit.
 VAULT_ABS=$(cd "$VAULT" 2>/dev/null && pwd -P)
 if [ -z "$VAULT_ABS" ]; then
+  if [ "$JSON_MODE" -eq 1 ]; then
+    printf '{"findings":[]}\n'
+    exit 0
+  fi
   [ "$CLI_MODE" -eq 1 ] && echo "ALLOW [no-vault] $CLI_FILE (mode=$MODE)"
   exit 0
 fi
 
 # ── CLI mode ────────────────────────────────────────────────────────────────────
+
 if [ "$CLI_MODE" -eq 1 ]; then
   read -r verdict rule <<<"$(decide "$CLI_FILE")"
+  if [ "$JSON_MODE" -eq 1 ]; then
+    if [ "$verdict" = "allow" ]; then
+      printf '{"findings":[]}\n'
+      exit 0
+    fi
+    # Blocked: emit a Finding-shaped envelope using jq (firewall keeps its existing jq).
+    msg=$(printf 'firewall: write blocked by %s rule for path: %s (mode=%s)' "$rule" "$CLI_FILE" "$MODE")
+    jq -cn --arg sev "error" --arg check "firewall" --arg msg "$msg" --arg file "$CLI_FILE" \
+      '{"findings":[{"severity":$sev,"check":$check,"message":$msg,"file":$file}]}'
+    exit 1
+  fi
   if [ "$verdict" = "allow" ]; then
     echo "ALLOW [$rule] $CLI_FILE (mode=$MODE)"
     exit 0
