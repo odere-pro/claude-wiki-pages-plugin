@@ -119,16 +119,46 @@ set_vault_path() {
 
 # Internal: read the vaults array from settings.json using python3.
 # Prints lines of "path|name" pairs; prints nothing if no vaults key.
+#
+# Fail-closed contract (ADR-0016 N4/N5):
+#   - Exit 1 (with stderr WARN) on malformed JSON.
+#   - Exit 1 (with stderr WARN) when current_vault_path is present in the JSON
+#     but is NOT a member of vaults[].path — invariant violation.
+#   - Exit 0 and print nothing when the vaults key is entirely absent; this is
+#     a valid legacy/fresh single-vault project (tier-4 default-fallback intact).
 _vaults_read() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
-  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null <<'PYEOF'
+  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" <<'PYEOF'
 import json, sys
+
+settings_file = sys.argv[1]
 try:
-    data = json.load(open(sys.argv[1]))
-    for v in data.get("vaults", []):
-        print(v.get("path","") + "|" + v.get("name",""))
-except Exception:
-    pass
+    data = json.load(open(settings_file))
+except Exception as exc:
+    sys.stderr.write(
+        "[claude-wiki-pages] WARN: registry malformed (cannot parse %s: %s)"
+        " — all writes blocked until repaired\n" % (settings_file, exc)
+    )
+    sys.exit(1)
+
+# No vaults key — valid legacy project; tier-4 fallback applies.
+if "vaults" not in data:
+    sys.exit(0)
+
+vaults = data.get("vaults", [])
+current = data.get("current_vault_path", "")
+
+# Check invariant: current_vault_path must be a member of vaults[].path.
+if current and not any(v.get("path", "") == current for v in vaults):
+    sys.stderr.write(
+        "[claude-wiki-pages] WARN: registry inconsistent"
+        " (current_vault_path '%s' is not in vaults[])"
+        " — all writes blocked until repaired\n" % current
+    )
+    sys.exit(1)
+
+for v in vaults:
+    print(v.get("path", "") + "|" + v.get("name", ""))
 PYEOF
 }
 
@@ -290,12 +320,28 @@ vault_switch() {
 }
 
 # vault_list: print the registry, marking the active vault with *.
+# Emits a WARN to stderr when the registry is inconsistent (malformed JSON or
+# current_vault_path ∉ vaults[]) so `set-vault.sh list` surfaces the problem
+# (ADR-0016 N5). Consistent with the fail-closed invariant: a WARN here tells
+# the operator why writes are blocked.
 vault_list() {
   init_vault_settings
   _vaults_backfill
 
   local active
   active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+
+  # Check registry consistency via _vaults_read (which enforces the invariant).
+  # Run it once to detect any remaining inconsistency after backfill and warn.
+  # Use || true so set -e in the caller (set-vault.sh) does not abort the
+  # script when _vaults_read exits non-zero — we want to print the WARN and
+  # still show whatever entries are available.
+  local vaults_out rc
+  rc=0
+  vaults_out=$(_vaults_read) || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    printf '[claude-wiki-pages] WARN: registry is inconsistent — run `set-vault.sh switch <path>` to repair, or edit settings.json manually\n' >&2
+  fi
 
   local path name marker
   while IFS='|' read -r path name; do
@@ -306,7 +352,7 @@ vault_list() {
       marker=" "
     fi
     printf '%s %-40s  %s\n' "$marker" "$path" "$name"
-  done < <(_vaults_read)
+  done <<<"$vaults_out"
 }
 
 # registry_other_vaults: print the registered vault roots EXCEPT the active one
@@ -315,9 +361,21 @@ vault_list() {
 # rule fires in the real PreToolUse hook with no env var required. Read-only:
 # does NOT backfill or otherwise mutate settings (the firewall hook must never
 # write). Prints nothing when there is no registry or only the active vault.
+#
+# Fail-closed contract (ADR-0016 N4): propagates _vaults_read's exit code.
+# A non-zero exit means the registry is untrustworthy (malformed JSON or
+# current_vault_path ∉ vaults[]). The caller (firewall.sh) maps this to
+# zero writable roots — even the active vault is blocked.
 registry_other_vaults() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
-  local active
+  local active vaults_output rc
   active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
-  _vaults_read | awk -F'|' -v active="$active" '$1 != "" && $1 != active {print $1}'
+  # $() captures stdout only; _vaults_read stderr (WARN messages) flows through
+  # to our caller's stderr naturally. Capture exit code after the subshell.
+  vaults_output=$(_vaults_read)
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    return $rc
+  fi
+  printf '%s\n' "$vaults_output" | awk -F'|' -v active="$active" '$1 != "" && $1 != active {print $1}'
 }

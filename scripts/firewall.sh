@@ -42,10 +42,24 @@ done
 # OVERRIDE: CLAUDE_WIKI_PAGES_OTHER_VAULTS (colon-separated) wins when set — used
 # by the parity gate and for explicit control. registry_other_vaults is
 # read-only (never mutates settings — the firewall hook must not write).
+#
+# Fail-closed (ADR-0016 N4): when registry_other_vaults exits non-zero (malformed
+# JSON or current_vault_path ∉ vaults[]), the __FAIL_CLOSED__ state is engaged:
+# OTHER_VAULTS is set to the active vault path so the cross-vault check fires for
+# every write — including to the active vault — yielding ZERO writable roots.
+# The __FAIL_CLOSED__ token is scoped entirely inside this script; it is NEVER
+# emitted from registry_other_vaults into the path-list stdout contract (N4).
+__FAIL_CLOSED__=0
 if [ -n "${CLAUDE_WIKI_PAGES_OTHER_VAULTS:-}" ]; then
   OTHER_VAULTS=$(printf '%s\n' "$CLAUDE_WIKI_PAGES_OTHER_VAULTS" | tr ':' '\n')
 else
-  OTHER_VAULTS=$(registry_other_vaults 2>/dev/null)
+  OTHER_VAULTS=$(registry_other_vaults)
+  if [ $? -ne 0 ]; then
+    __FAIL_CLOSED__=1
+    # Use the active vault path as a sentinel OTHER_VAULT so cross-vault fires
+    # for every write, including to the active vault — zero writable roots.
+    OTHER_VAULTS="$VAULT"
+  fi
 fi
 
 # ── config (project overrides user; defaults when absent) ───────────────────────
