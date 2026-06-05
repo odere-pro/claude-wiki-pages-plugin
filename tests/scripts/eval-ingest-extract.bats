@@ -368,12 +368,18 @@ _setup_eval_artifact_repo() {
     skip "bun not available — artifact stamping needs the frontmatter parser"
   fi
   EVAL_REPO="$(mktemp -d "${BATS_TEST_TMPDIR:-/tmp}/eval-artifact.XXXXXX")"
-  mkdir -p "$EVAL_REPO/scripts" "$EVAL_REPO/src" "$EVAL_REPO/tests/eval"
+  mkdir -p "$EVAL_REPO/scripts" "$EVAL_REPO/src" "$EVAL_REPO/tests/eval" \
+    "$EVAL_REPO/skills/init/template"
   cp "$REPO_ROOT/scripts/eval-ingest-extract.sh" \
     "$REPO_ROOT/scripts/verify-ingest.sh" \
     "$REPO_ROOT/scripts/validate-frontmatter.sh" \
     "$REPO_ROOT/scripts/resolve-vault.sh" "$EVAL_REPO/scripts/"
   cp -R "$REPO_ROOT/src/core" "$EVAL_REPO/src/"
+  # validate-frontmatter.sh falls back to the bundled runtime schema template
+  # (skills/init/template/CLAUDE.md) for its required-fields table when a target
+  # vault has none (ADR-0014 §A.6). Mirror the real runtime layout (scripts/ and
+  # skills/ are siblings under the plugin root) so the fallback resolves here.
+  cp "$REPO_ROOT/skills/init/template/CLAUDE.md" "$EVAL_REPO/skills/init/template/"
   # The engine frontmatter parser imports the 'yaml' package; let bun resolve it
   # from the real node_modules via a symlink (no install in the test).
   if [ -d "$REPO_ROOT/node_modules" ]; then

@@ -79,6 +79,24 @@ Nine allowed types: `source`, `entity`, `concept`, `topic`, `project`, `synthesi
 
 The `log` type is used only for `wiki/log.md` (the operations log). It requires minimal frontmatter: `title`, `type`, `created`, `updated`. Log entries may use `[[wikilinks]]` to reference real pages (e.g., `[[LLM Wiki Pattern]]`), but when describing old/fixed/invalid link patterns, use backtick code formatting instead (e.g., `` `_index` `` not `[[_index]]`) — otherwise Obsidian creates ghost nodes in the graph.
 
+### Required fields by type
+
+The two universal required fields `type` and `title` apply to every typed page and are not repeated in the table below.
+
+This table is the **single source of truth** for required fields per page type. `scripts/validate-frontmatter.sh` parses this table at gate time (grep/awk only — no Bun). Changing a required field means editing this table and only this table; the per-type YAML examples below are illustrations.
+
+| Type | Required fields | Conditional |
+| --- | --- | --- |
+| `source` | `source_type sources created updated status confidence` | `source_format != text` requires `attachment_path extracted_at` |
+| `entity` | `entity_type parent path sources created updated status confidence` | — |
+| `concept` | `parent path sources created updated status confidence` | — |
+| `topic` | `summary parent path sources created updated status confidence` | — |
+| `project` | `objective project_status parent path sources created updated status confidence` | — |
+| `synthesis` | `synthesis_type sources created updated status confidence` | — |
+| `index` | `aliases created updated` | — |
+| `manifest` | `created updated` | — |
+| `log` | `created updated` | — |
+
 ### Source notes (`wiki/_sources/`)
 
 ```yaml
@@ -323,6 +341,8 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 ## Ontology profile (`ontology-profile-v1`)
 
 This section is the single named contract for the vault's formal ontology. R2 graph traversal, C1 MOC descent, and I1 classification all read these two tables and no other source. Do not duplicate or fork either table.
+
+> **Coverage note (D15).** This profile covers two closed sets: (1) the predicate domain→range table below — a closed set of typed wikilink predicates with declared domain, range, direction, and cardinality; and (2) the enum list below — closed canonical values for every schema enum. `entity_type` is the **sole vault-extensible axis**: an owner may widen it via `entity_type_extensions:` in their own CLAUDE.md (decision §11.6); all other enums are fully closed. Adding a new page `type` is a schema change requiring a new ADR, new templates, and a new row in the `### Required fields by type` table.
 
 ### Predicate domain→range table
 

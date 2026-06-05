@@ -10,6 +10,7 @@ This directory holds the ADRs for `llm-wiki-stack`. Each ADR captures the **rati
 | A2  | [Agent naming convention](./ADR-0002-agent-naming-convention.md)                                            | §11               |
 | A3  | [Polish-agent and Obsidian-side experience](./ADR-0003-polish-agent-and-obsidian-side.md)                   | §11               |
 | 0013 | [Design-drift gate — `validate-docs.sh` Check 5](./ADR-0013-design-drift-gate.md)                          | §2, §5, §6        |
+| 0014 | [Single-source required fields; duplicate-claim WARN in review](./ADR-0014-single-source-required-fields-and-duplicate-claim-warning.md) | §2, §5, §6, §11.1 |
 
 ## Conventions
 

@@ -143,3 +143,30 @@ setup() {
     return 1
   fi
 }
+
+# Required-fields table parity (ADR-0014 Part A, amended): the single required-
+# fields table is mirrored dev↔runtime. validate-frontmatter.sh reads the vault
+# CLAUDE.md table or falls back to the runtime template — so the two MUST stay
+# byte-identical or a vault and the fallback would enforce different rules.
+_required_fields_block() {
+  awk '
+    /^### Required fields by type/ { in_t=1; next }
+    in_t && /^#{1,6}[[:space:]]/ { exit }
+    in_t && /\|/ { print }
+  ' "$1"
+}
+
+@test "ontology-profile: required-fields table is identical in vault schema and runtime template" {
+  local vault_block template_block
+  vault_block=$(_required_fields_block "$VAULT_SCHEMA")
+  template_block=$(_required_fields_block "$TEMPLATE_SCHEMA")
+  if [ -z "$vault_block" ]; then
+    printf 'required-fields table missing from %s\n' "$VAULT_SCHEMA" >&2
+    return 1
+  fi
+  if [ "$vault_block" != "$template_block" ]; then
+    printf 'required-fields table drift between vault schema and runtime template:\n' >&2
+    diff <(printf '%s\n' "$vault_block") <(printf '%s\n' "$template_block") >&2 || true
+    return 1
+  fi
+}
