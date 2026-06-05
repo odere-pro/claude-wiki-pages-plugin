@@ -3,7 +3,7 @@
 `schema_version: 2`
 
 This is a PLANTED-BAD candidate extraction for the `provenance-trap` eval case
-(`docs/plan/0003-local-model-quality-gate.md`). It is the **Finding-1 regression
+(`docs/adr/ADR-0011-local-model-quality-gate.md`). It is the **Finding-1 regression
 fixture**: its `source_quotes` reproduce the gold claims but ALSO add one
 fabricated, **lowercase-initial / order-divergent** quote ("a paid sync
 service…"). That line sorts differently under JS code-unit order (the extractor's

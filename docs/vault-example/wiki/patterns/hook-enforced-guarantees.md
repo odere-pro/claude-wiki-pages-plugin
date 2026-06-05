@@ -10,7 +10,7 @@ sources:
   - "[[Update an Existing Vault]]"
   - "[[Review, Validate, Fix]]"
   - "[[Check the Dashboard]]"
-related: ["[[LLM Wiki Pattern]]", "[[Lint-Fix Workflow]]"]
+related: ["[[LLM Wiki Pattern]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -43,4 +43,3 @@ Schema invariants and safety properties that live in `PreToolUse` and `SubagentS
 ## Related Concepts
 
 - [[LLM Wiki Pattern]] — the pattern this guarantee supports.
-- [[Lint-Fix Workflow]] — the human-in-the-loop layer for what hooks cannot enforce.

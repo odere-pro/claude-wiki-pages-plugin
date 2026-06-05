@@ -10,7 +10,7 @@ sources:
   - "[[Getting Started]]"
   - "[[Create a New Vault]]"
   - "[[Update an Existing Vault]]"
-related: ["[[claude-wiki-pages]]", "[[Obsidian]]", "[[LLM Wiki Pattern]]"]
+related: ["[[claude-wiki-pages]]", "[[LLM Wiki Pattern]]"]
 tags: ["tool", "cli"]
 created: 2026-04-24
 updated: 2026-04-24
@@ -34,4 +34,3 @@ Anthropic's CLI harness for running skills, agents, and hook-driven workflows. T
 ## Related
 
 - [[claude-wiki-pages]] — the plugin that runs inside Claude Code.
-- [[Obsidian]] — the editor Claude Code's wiki output is designed to be read in.

@@ -19,10 +19,10 @@
   "ignores": [
     "node_modules",
     "tmp",
+    ".claude/worktrees",
     "tests/test_helper",
     "docs/vault-example/raw",
     "docs/vault-example/wiki/log.md",
-    "docs/plan",
     ".claude/fixtures",
   ],
 }

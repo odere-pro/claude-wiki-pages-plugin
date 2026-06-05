@@ -9,7 +9,7 @@ moments that an expert stops seeing, so the plugin is approachable on day one.
 
 ## Shared context pointer
 
-Read `docs/brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. You read these as a
+Read `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. You read these as a
 newcomer would — looking for where they confuse:
 
 - `docs/getting-started.md` + `docs/install.md` — the first thing a new user follows.

@@ -9,7 +9,7 @@ reuse-before-build — so the roadmap is implementable, not aspirational.
 
 ## Shared context pointer
 
-Read `docs/brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
+Read `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
 
 - `scripts/engine.sh` + `scripts/` — the deterministic Bun engine and the hook scripts a UX idea
   must hook into.

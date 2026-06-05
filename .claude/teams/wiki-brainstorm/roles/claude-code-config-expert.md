@@ -9,7 +9,7 @@ plugin packaging tuned so the right things happen by default and nothing surpris
 
 ## Shared context pointer
 
-Read `docs/brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
+Read `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
 
 - `hooks/hooks.json` — the registered hooks (`SessionStart`, `UserPromptSubmit`, `PreToolUse`,
   `PostToolUse`, `SubagentStop`) and their wiring to `scripts/`.

@@ -2,18 +2,19 @@
 
 > How the **dev teams** (build the plugin) and the **runtime agents** (run inside the installed
 > plugin) work. Authority: [`docs/teams.md`](../teams.md), [`agents/`](../../agents/),
-> [`docs/brainstorm/`](../brainstorm/README.md), [`.claude/teams/wiki-dev/`].
+> [`.claude/teams/wiki-brainstorm/`](../../.claude/teams/wiki-brainstorm/README.md),
+> [`.claude/teams/wiki-dev/`](../../.claude/teams/wiki-dev/README.md).
 
 ## Two dev teams — ideate, then build
 
 ```mermaid
 graph LR
-    subgraph BS["Brainstorm team (docs/brainstorm/)"]
+    subgraph BS["Brainstorm team (.claude/teams/wiki-brainstorm/)"]
         pm["product-manager<br/>(facilitator)"]
         arc["architect"]
         roles["+ 9 personas<br/>ontology · authoring · skeptic<br/>grill-me · users · config"]
     end
-    roadmap["Roadmap proposal<br/>(docs/plan/ or tmp/)"]
+    roadmap["Roadmap proposal<br/>(tmp/ scratch)"]
     subgraph DEV["Engineering team (.claude/teams/wiki-dev/)"]
         mgr["wiki-dev-manager<br/>(entry)"]
         lanes["4 lanes A–D<br/>retrieval · schema · ingest · ux"]

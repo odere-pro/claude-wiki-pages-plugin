@@ -10,7 +10,7 @@ the source of truth.
 
 ## Shared context pointer
 
-Read `docs/brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
+Read `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
 
 - `docs/vault-example/CLAUDE.md` — the schema (`schema_version`); wins any frontmatter conflict.
 - `docs/vault-example/_templates/` — the proto structured-authoring templates a page is authored to.

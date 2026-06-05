@@ -10,7 +10,7 @@ of truth. Co-own convergence with the Product Manager.
 
 ## Shared context pointer
 
-Read `docs/brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
+Read `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
 
 - `docs/architecture.md` — the four-layer contract (Layer 1 Data, Layer 2 Skills, Layer 3 Agents,
   Layer 4 Orchestration) you must keep coherent.

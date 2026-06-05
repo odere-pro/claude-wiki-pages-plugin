@@ -7,7 +7,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 ### Added
 
 - **Schema version 2 (additive).** New page types `topic` (narrative topic landing page), `project` (goal/initiative with a `project_status` lifecycle), and `manifest` (source-processed tracker at `wiki/_sources/manifest.md`); new templates `topic.md` and `project.md`; optional claim-level provenance fields `source_quotes` and `derived` on any typed page. Version 2 is a strict superset of v1 — existing v1 vaults stay valid. `validate-frontmatter.sh`, `verify-ingest.sh`, and the engine `verify` accept both versions; `plugin.json` now declares `supported_schema_versions: [1, 2]`.
-- **`migrate` engine command.** `claude-wiki-pages migrate [--write]` upgrades a vault v1 → v2 in place: bumps `schema_version`, writes the new templates when absent, and generates the source manifest — additive, idempotent, and git-checkpointed (`git revert <checkpoint>` rolls it back). Dry-run by default. New guide: [`docs/migration-2.0.md`](docs/migration-2.0.md).
+- **`migrate` engine command.** `claude-wiki-pages migrate [--write]` upgrades a vault v1 → v2 in place: bumps `schema_version`, writes the new templates when absent, and generates the source manifest — additive, idempotent, and git-checkpointed (`git revert <checkpoint>` rolls it back). Dry-run by default.
 - **`search` engine command + skill.** Deterministic keyword retrieval over `wiki/` (title/alias > tag > body, ties by title) returning `[[wikilink]]`-ready hits with `--json`. New `/claude-wiki-pages:search` skill; wired into the analyst agent's search strategy. GraphRAG (`search --graph`) documented as the next phase.
 - **Vault firewall.** New PreToolUse hook `scripts/firewall.sh` (first in the Write/Edit chain) + engine `firewall check` command confine agent writes to the resolved vault plus `firewall.allowPaths`, minus `firewall.denyPaths` (default-deny `**/.ssh/**`, `**/.aws/**`, `**/.env`, `**/.git/config`). Modes `enforce`/`warn`/`off` via the new `firewall` config block. New `obsidian-vault` guard skill teaches agents to scope the Obsidian CLI; `gate-11-firewall-parity.sh` pins the bash hook to the engine.
 - **Engine log entries.** `heal` and `migrate` now record their operation in `wiki/log.md` via the new `src/core/log.ts` helper.
@@ -36,7 +36,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ## [1.0.0] — 2026-06-01
 
-Rebrand to **`claude-wiki-pages`** and the first cut of the deterministic **Bun engine**. Breaking: the plugin id, slash namespace, agent names, skill names, settings path, and env vars all change. Migration map: [`docs/migration-1.0.md`](docs/migration-1.0.md).
+Rebrand to **`claude-wiki-pages`** and the first cut of the deterministic **Bun engine**. Breaking: the plugin id, slash namespace, agent names, skill names, settings path, and env vars all change.
 
 ### Added
 

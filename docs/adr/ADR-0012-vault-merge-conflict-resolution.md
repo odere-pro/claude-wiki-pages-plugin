@@ -5,8 +5,6 @@
 - **Date:** 2026-06-05
 - **SPEC anchor:** §6 (Layer 4 — vault management, firewall); Brief §5 (one active vault, NO-RAG),
   §6 (one mechanism); decision #3
-- **Supersedes proposal:** `docs/plan/0004-vault-merge-conflict-resolution.md` (this ADR records the
-  signed-off design and the PM's binding preconditions for the deferred build)
 
 ## Context
 

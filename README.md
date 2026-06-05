@@ -130,12 +130,10 @@ Full operations reference: [docs/operations.md](./docs/operations.md).
 | Features and comparison      | [docs/features.md](./docs/features.md)                   |
 | Architecture (four layers)   | [docs/architecture.md](./docs/architecture.md)           |
 | Glossary                     | [docs/GLOSSARY.md](./docs/GLOSSARY.md)                   |
-| Security and threat model    | [docs/security.md](./docs/security.md)                   |
+| Security and threat model    | [SECURITY.md](./SECURITY.md)                             |
 | Step-by-step user guides     | [docs/llm-wiki/](./docs/llm-wiki/index.md)               |
-| Playbooks (200 / 300 / 500)  | [docs/playbooks/](./docs/playbooks/index.md)             |
 | ADRs                         | [docs/adr/](./docs/adr/README.md)                        |
 | Agent teams (dev)            | [docs/teams.md](./docs/teams.md)                         |
-| Risk and follow-up tracker   | [docs/risk-report-0.2.0.md](./docs/risk-report-0.2.0.md) |
 | Test harness                 | [tests/README.md](./tests/README.md)                     |
 | Contributing                 | [CONTRIBUTING.md](./CONTRIBUTING.md)                     |
 | Release log                  | [CHANGELOG.md](./CHANGELOG.md)                           |

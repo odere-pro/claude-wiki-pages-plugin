@@ -2,7 +2,7 @@
 # eval-ingest-extract.sh — local-model quality-gate eval driver for the
 # `ingest-extract` capability tier.
 #
-# Spec: docs/plan/0003-local-model-quality-gate.md (ratified design + the PM's
+# Spec: docs/adr/ADR-0011-local-model-quality-gate.md (ratified design + the PM's
 # calibrated bar). This script is the MEASUREMENT APPARATUS only. It is
 # MODEL-NEUTRAL: it does NOT wire up Ollama or any local model, makes NO network
 # call, and flips NO default. The Claude-first default for ingest-extract is

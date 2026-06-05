@@ -23,9 +23,9 @@ fabricates a skill path.
 
 ## Shared context pointer
 
-Read `docs/brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
+Read `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
 
-- `docs/brainstorm/TEAM-BRIEF.md` §2 (the product vision the requirements must serve) and §7
+- `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` §2 (the product vision the requirements must serve) and §7
   (the output contract a requirement must slot into).
 - `docs/GLOSSARY.md` — so an interrogated requirement uses canonical terms.
 - `docs/architecture.md` — so a requirement names the layer it touches.

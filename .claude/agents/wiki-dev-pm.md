@@ -24,8 +24,7 @@ starts.
 
 ## Shared context pointer
 
-Authority docs: `docs/plan/0002-agentic-brain-roadmap.md` (the plan of record — vision recap, open
-questions, decisions log), the Team Brief §2 (the eleven goals) and §11 (open questions),
+Authority docs: `docs/adr/` (the ratified decisions), the Team Brief §2 (the eleven goals) and §11 (open questions),
 `docs/architecture.md` (what the product is today), `README.md` and `docs/llm-wiki/` (the user
 voice). Cite paths; never restate the Brief.
 

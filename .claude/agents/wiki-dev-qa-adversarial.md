@@ -5,7 +5,7 @@ description: >
   development team. Verifies the non-negotiables empirically: no embeddings on the
   default retrieval path, structural provenance, raw immutability, fail-closed
   per-vault write confinement, and untrusted-input handling. Owns Tier 2 smoke and
-  Tier 3/4 adversarial (docs/security.md threat model, .github/workflows/adversarial.yml),
+  Tier 3/4 adversarial (SECURITY.md threat model, .github/workflows/adversarial.yml),
   the npm-pack release gate, and the end-to-end dogfood loop on a scratch vault.
   Use after functional QA passes, for any retrieval, schema, firewall, raw, memory,
   or local-model item, and before a release. Reads
@@ -26,11 +26,11 @@ trusts untrusted input.
 
 ## Shared context pointer
 
-Authority docs: `docs/security.md` (the threat model with per-threat test mapping),
+Authority docs: `SECURITY.md` (the threat model with per-threat test mapping),
 `.github/workflows/adversarial.yml` (Tier 4, corpus replay stubbed), `scripts/firewall.sh` +
 `src/core/firewall.ts`, `scripts/protect-raw.sh` + `rules/raw-immutable.md`,
 `scripts/prompt-guard.sh` and `tests/scripts/prompt-guard.bats`, `tests/smoke/`,
-`tests/gates/gate-09-npm-pack.sh`, and the dogfood loop in `docs/brainstorm/README.md`. Cite paths;
+`tests/gates/gate-09-npm-pack.sh`, and the dogfood loop in `.claude/teams/wiki-brainstorm/README.md`. Cite paths;
 do not restate.
 
 ## Your lens

@@ -8,10 +8,10 @@ sources:
   - "[[Using claude-wiki-pages]]"
   - "[[Create a New Vault]]"
   - "[[Update an Existing Vault]]"
-related: ["[[Entity Distribution Model]]", "[[Hook-Enforced Guarantees]]", "[[Lint-Fix Workflow]]", "[[claude-wiki-pages]]"]
+related: ["[[Hook-Enforced Guarantees]]", "[[claude-wiki-pages]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Vault Scaffolding]]"]
+depends_on: []
 tags: ["workflow"]
 created: 2026-04-24
 updated: 2026-04-24
@@ -41,6 +41,5 @@ The default, single-command workflow for pulling new sources into the wiki. Invo
 
 ## Related Concepts
 
-- [[Entity Distribution Model]] — the DRY rule the pipeline enforces.
-- [[Lint-Fix Workflow]] — what the pipeline runs after ingest.
-- [[Vault Scaffolding]] — prerequisite.
+- [[Hook-Enforced Guarantees]] — the gate that aborts the pipeline if the wiki is left half-written.
+- [[claude-wiki-pages]] — the plugin that ships this pipeline.

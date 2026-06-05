@@ -9,7 +9,7 @@ automation the plugin should reward, and the friction that shows up only at scal
 
 ## Shared context pointer
 
-Read `docs/brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
+Read `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
 
 - `docs/operations.md` — the day-to-day verb reference you live in.
 - `scripts/resolve-vault.sh` + `scripts/set-vault.sh` — multi-vault switching (no simultaneous

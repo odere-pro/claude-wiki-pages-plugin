@@ -8,8 +8,8 @@
 
 | Aspect        | Rule                                                                                                  |
 | ------------- | ----------------------------------------------------------------------------------------------------- |
-| Mission       | Implement the brainstorm roadmap as additive extensions of the four-layer stack.                      |
-| Plan of record | `docs/plan/0002-agentic-brain-roadmap.md` (scratch mirror: `tmp/plan/brainstorm-roadmap.md`).        |
+| Mission       | Implement the ratified design decisions as additive extensions of the four-layer stack.               |
+| Plan of record | The accepted ADRs in `docs/adr/`, decomposed into assignable work in `BACKLOG.md`.                    |
 | Authority     | `docs/architecture.md`, `docs/GLOSSARY.md`, `docs/vault-example/CLAUDE.md` (schema wins).             |
 | Output        | Shipped code + tests + docs, merged green, one roadmap item at a time.                                |
 | Mode          | Read-only until the Delivery Lead assigns you an item; then edit only your lane's paths.               |
@@ -75,9 +75,9 @@ engine.
 - `docs/GLOSSARY.md` + `scripts/validate-docs.sh` — canonical terms, enforced in CI Tier 0.
 - `docs/vault-example/CLAUDE.md` — the schema (`schema_version`); wins any frontmatter conflict.
 - `docs/vault-example/_templates/` — the structured-authoring templates.
-- `docs/operations.md` — hook and script contracts; `docs/security.md` — the threat model.
-- `docs/adr/` (decisions) vs `docs/plan/` (proposals). The roadmap is a proposal; an accepted
-  item ships with an ADR.
+- `docs/operations.md` — hook and script contracts; `SECURITY.md` — the threat model.
+- `docs/adr/` records the ratified decisions; brainstorm proposals are transient (scratch). A
+  decision is binding only once it lands as an accepted ADR, and each shipped item references one.
 
 ## 5. Non-negotiables (hard list — violating any one blocks merge)
 

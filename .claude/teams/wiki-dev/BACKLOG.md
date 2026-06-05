@@ -1,6 +1,6 @@
 # Backlog — claude-wiki-pages implementation
 
-The roadmap (`docs/plan/0002-agentic-brain-roadmap.md`) decomposed into assignable items, grouped by
+The accepted decisions in `docs/adr/` decomposed into assignable items, grouped by
 phase and tagged with the owning lane, dependencies, user-gate, and the key gate that proves it
 done. The Delivery Lead assigns from here; the PM attaches acceptance criteria; the Architect signs
 off design for M-effort and shared-mechanism items.

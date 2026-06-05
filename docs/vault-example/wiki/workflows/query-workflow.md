@@ -6,7 +6,7 @@ parent: "[[Workflows — Index]]"
 path: "workflows"
 sources:
   - "[[Query the Wiki]]"
-related: ["[[LLM Wiki Pattern]]", "[[Output Compilation Workflow]]", "[[claude-wiki-pages]]"]
+related: ["[[LLM Wiki Pattern]]", "[[claude-wiki-pages]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -40,4 +40,3 @@ Ask the wiki a question; receive a prose answer whose every claim ends in a `[[w
 ## Related Concepts
 
 - [[LLM Wiki Pattern]] — the pattern that makes the wiki queryable with citations.
-- [[Output Compilation Workflow]] — the next step if the query needs to become a deliverable.

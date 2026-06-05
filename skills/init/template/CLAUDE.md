@@ -75,7 +75,7 @@ Every note in the vault carries YAML frontmatter. Type lives in frontmatter, not
 Nine allowed types: `source`, `entity`, `concept`, `topic`, `project`, `synthesis`, `index`, `manifest`, `log`. (`vault/output/` files are plain markdown — no frontmatter required, not tracked by this schema.)
 
 > [!note] Schema version 2
-> `topic`, `project`, and `manifest` were added in schema_version 2, along with the optional claim-level provenance fields `source_quotes` and `derived` (available on every typed page). A vault that declares `schema_version: 1` remains valid — version 2 is a strict superset. Upgrade an existing vault with `bash scripts/engine.sh migrate --target <vault> --write` (see `docs/migration-2.0.md`).
+> `topic`, `project`, and `manifest` were added in schema_version 2, along with the optional claim-level provenance fields `source_quotes` and `derived` (available on every typed page). A vault that declares `schema_version: 1` remains valid — version 2 is a strict superset. Upgrade an existing vault with `bash scripts/engine.sh migrate --target <vault> --write`.
 
 The `log` type is used only for `wiki/log.md` (the operations log). It requires minimal frontmatter: `title`, `type`, `created`, `updated`. Log entries may use `[[wikilinks]]` to reference real pages (e.g., `[[LLM Wiki Pattern]]`), but when describing old/fixed/invalid link patterns, use backtick code formatting instead (e.g., `` `_index` `` not `[[_index]]`) — otherwise Obsidian creates ghost nodes in the graph.
 

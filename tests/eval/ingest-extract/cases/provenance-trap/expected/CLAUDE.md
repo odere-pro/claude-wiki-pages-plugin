@@ -3,7 +3,7 @@
 `schema_version: 2`
 
 This is the GOLDEN reference for the `provenance-trap` eval case
-(`docs/plan/0003-local-model-quality-gate.md`). It is the structured output a
+(`docs/adr/ADR-0011-local-model-quality-gate.md`). It is the structured output a
 correct `ingest-extract` of `../input.md` must produce: every claim traces to
 the source, and NO unsourced fact (price, license, revenue) is invented.
 

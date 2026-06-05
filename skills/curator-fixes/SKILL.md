@@ -135,7 +135,7 @@ For each orphan page:
 
 **Do NOT auto-edit `sources:` fields to connect `type: source` orphans.**
 Mutating `sources:` forges a provenance claim the user never made and is the
-exact drift `docs/security.md` calls out. Surface every unlinked `type: source`
+exact drift `SECURITY.md` calls out. Surface every unlinked `type: source`
 orphan as a **Report-only** item with candidate pages suggested in the report
 (most relevant concept/entity pages found by grep over body text + shared
 entities). The user — not this agent — decides whether the source actually

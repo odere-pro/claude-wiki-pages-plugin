@@ -9,7 +9,7 @@ path, vault resolution — so the team builds on real capability instead of rein
 
 ## Shared context pointer
 
-Read `docs/brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
+Read `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate. Your authority docs:
 
 - `CLAUDE.md` — the one user-facing entry verb `/claude-wiki-pages:wiki` and the
   progressive-disclosure secondaries `/claude-wiki-pages:onboarding` and `/claude-wiki-pages:doctor`.

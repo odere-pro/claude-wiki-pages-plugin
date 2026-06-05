@@ -90,7 +90,7 @@ UX & adoption facts every teammate must respect:
 - `docs/vault-example/CLAUDE.md` — the schema; wins any frontmatter conflict.
 - `docs/vault-example/_templates/` — the structured-authoring templates.
 - `CLAUDE.md` — the one entry verb and the dev-time vs runtime separation.
-- `docs/adr/` (decisions) vs `docs/plan/` (proposals) — the roadmap is a proposal.
+- `docs/adr/` (decisions) vs `tmp/plan/` (proposals) — the roadmap is a proposal.
 
 ## 5. Non-negotiables (hard list)
 
@@ -123,7 +123,7 @@ The Product Manager (facilitator) writes **one implementation plan that hands of
 engineering team** (`docs/teams.md`). It is the artifact `wiki-dev-manager` picks up to start work,
 so every phase item must be **assignable**: mapped to a lane (A retrieval · B schema · C ingest ·
 D ux), sized, with acceptance criteria QA can check. Write it in the voice of the existing roadmaps
-in `docs/plan/`:
+in `tmp/plan/`:
 
 ```
 # claude-wiki-pages: UX & adoption — development plan (brainstorm output)

@@ -3,7 +3,7 @@
 A dev-only setup for running a team of agents that brainstorms the **UX & adoption** course of
 `claude-wiki-pages` — onboarding, authoring ergonomics, ontology clarity, capability tiers, and
 configuration. It is **not** part of the shipped plugin (`agents/`, `skills/`, `hooks/`) and is
-never loaded as end-user session context — it sits alongside `docs/plan/` and `docs/adr/`.
+never loaded as end-user session context — it sits alongside `tmp/plan/` and `docs/adr/`.
 
 It is the **ideation** counterpart to the engineering team in `.claude/teams/wiki-dev/` (which
 *implements* roadmaps). See `docs/teams.md` for how the two teams relate and when to use each.
@@ -11,7 +11,7 @@ It is the **ideation** counterpart to the engineering team in `.claude/teams/wik
 ## What's here
 
 ```text
-docs/brainstorm/
+.claude/teams/wiki-brainstorm/
   TEAM-BRIEF.md          # shared context every teammate reads first (charter, vision, non-negotiables, roster, protocol)
   README.md              # this file
   roles/                 # one structured prompt per role
@@ -54,11 +54,11 @@ unavailable at run time, the role applies the same Socratic interrogation method
 In a session opened at the repo root, paste this to the team lead:
 
 > Create an 11-teammate agent team for the claude-wiki-pages UX & adoption brainstorm. Every
-> teammate first reads `docs/brainstorm/TEAM-BRIEF.md`, then adopts one role from
-> `docs/brainstorm/roles/` (one teammate per file). Spawn each with the model named in its role
+> teammate first reads `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md`, then adopts one role from
+> `.claude/teams/wiki-brainstorm/roles/` (one teammate per file). Spawn each with the model named in its role
 > header (opus or sonnet). The `product-manager` is the facilitator: it frames Round 1, runs the
 > three-round protocol in Brief §9 (divergence → cross-critique → convergence), and writes the
-> phased roadmap to `docs/plan/` in the structure of Brief §7, with the `architect`'s coherence
+> phased roadmap to `tmp/plan/` in the structure of Brief §7, with the `architect`'s coherence
 > sign-off. Keep everything read-only on the plugin and grounded with repo-path citations.
 
 The Product Manager orchestrates the rounds, resolves conflicts (Brief §9), and writes the roadmap.
@@ -74,7 +74,7 @@ The Product Manager orchestrates the rounds, resolves conflicts (Brief §9), and
 
 ## Output
 
-One phased roadmap in `docs/plan/` (a proposal, not a decision — `docs/adr/` is for decisions).
+One phased roadmap in `tmp/plan/` (a proposal, not a decision — `docs/adr/` is for decisions).
 
 ## Dogfood the result (optional)
 

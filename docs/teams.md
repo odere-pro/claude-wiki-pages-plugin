@@ -1,25 +1,25 @@
 # Agent teams
 
 `claude-wiki-pages` runs two complementary, dev-only agent teams. Neither ships in the plugin
-(`agents/`, `skills/`, `hooks/`) and neither is loaded as end-user session context — they sit
-alongside `docs/plan/` and `docs/adr/` and exist to plan and build the plugin itself.
+(`agents/`, `skills/`, `hooks/`) and neither is loaded as end-user session context — they live
+under `.claude/teams/` and exist to plan and build the plugin itself.
 
-- The **brainstorming team** *ideates* — it produces phased roadmaps (proposals) for the plugin's
-  UX & adoption course.
-- The **engineering team** *implements* — it turns an approved roadmap into shipped, gate-green
-  changes.
+- The **brainstorming team** *ideates* — it produces phased roadmap *proposals* (transient working
+  artifacts) for the plugin's UX & adoption course.
+- The **engineering team** *implements* — it turns a settled direction into shipped, gate-green
+  changes. Ratified decisions are recorded as ADRs in `docs/adr/`.
 
 | | Brainstorming team | Engineering team (`wiki-dev`) |
 |---|---|---|
 | Charter | UX & adoption — onboarding, authoring, ontology clarity, capability tiers, config | Implement the four-layer roadmap |
-| Output | A phased roadmap in `docs/plan/` (a proposal) | Shipped, gate-green changes + ADRs |
+| Output | A phased roadmap *proposal* (transient scratch) | Shipped, gate-green changes + ADRs |
 | Mode | Read-only on the plugin (proposal-only) | Edits the plugin, lane by lane, behind gates |
-| Lives in | `docs/brainstorm/` | `.claude/teams/wiki-dev/` + `.claude/agents/wiki-dev-*.md` |
+| Lives in | `.claude/teams/wiki-brainstorm/` | `.claude/teams/wiki-dev/` + `.claude/agents/wiki-dev-*.md` |
 | Headcount | 11 personas | 9 teammates |
 
 ## Brainstorming team (UX & adoption)
 
-Apparatus: `docs/brainstorm/` — `TEAM-BRIEF.md` (shared context), `README.md` (how to run),
+Apparatus: `.claude/teams/wiki-brainstorm/` — `TEAM-BRIEF.md` (shared context), `README.md` (how to run),
 `roles/*.md` (one structured prompt per persona). A UX/adoption-oriented panel spanning the whole
 user spectrum — novice, power user, agent — plus the authoring, ontology, engineering, and
 configuration expertise to keep proposals buildable and coherent.
@@ -44,17 +44,17 @@ the **Architect** co-owns architectural coherence at convergence.
 **How it runs** — a three-round protocol (`TEAM-BRIEF.md` §9): Divergence (isolated ideation) →
 Cross-critique (peer objections; the Skeptic critiques all, the Grill-Me Interrogator makes every
 proposal falsifiable) → Convergence (the Product Manager merges into a roadmap with the Architect's
-coherence sign-off). Full run instructions are in `docs/brainstorm/README.md`.
+coherence sign-off). Full run instructions are in `.claude/teams/wiki-brainstorm/README.md`.
 
 **External dependency** — the `grill-me-interrogator` drives a **grill-me** skill that is not in
-this repo; wire it in before running (see `docs/brainstorm/roles/grill-me-interrogator.md`).
+this repo; wire it in before running (see `.claude/teams/wiki-brainstorm/roles/grill-me-interrogator.md`).
 
 ## Engineering team (`wiki-dev`)
 
 Apparatus: `.claude/teams/wiki-dev/` — `TEAM-BRIEF.md` (shared context), `BACKLOG.md` (assignable
 work by phase → lane → item), `README.md` (how to launch). The nine roles are spawnable agent
-definitions in `.claude/agents/wiki-dev-*.md`. It implements the agentic-brain roadmap
-(`docs/plan/0002-agentic-brain-roadmap.md`) across four parallel lanes.
+definitions in `.claude/agents/wiki-dev-*.md`. It implements the decisions ratified in
+`docs/adr/` across four parallel lanes.
 
 | Role (slug) | Title | Model · Lane / focus |
 |---|---|---|
@@ -78,12 +78,13 @@ Phase 2 → Phase 3. Full launch instructions are in `.claude/teams/wiki-dev/REA
 ## When to use which
 
 - **A roadmap or a direction is unclear** — convene the **brainstorming team**. It diverges across
-  perspectives, stress-tests proposals, and writes a phased proposal to `docs/plan/`. Nothing in
-  the plugin changes.
-- **A roadmap is approved and needs building** — convene the **engineering team**. It assigns items
+  perspectives, stress-tests proposals, and converges on a phased proposal (a transient working
+  artifact). Nothing in the plugin changes.
+- **A direction is settled and needs building** — convene the **engineering team**. It assigns items
   to lanes, builds them test-first, and ships only what passes the gates.
 
-The handoff between them is a roadmap in `docs/plan/`: the brainstorming team writes it, the
-engineering team consumes it. Both keep the same non-negotiables (NO RAG / no embeddings, structural
-provenance, DRY single-sourcing, ontology-in-schema, structured authoring, glossary-first,
-KISS/YAGNI) and both are read-only on the plugin until work is explicitly assigned.
+The handoff between them is the proposal: the brainstorming team produces it, the Architect ratifies
+the settled decisions as ADRs in `docs/adr/`, and the engineering team implements against those.
+Both keep the same non-negotiables (NO RAG / no embeddings, structural provenance, DRY
+single-sourcing, ontology-in-schema, structured authoring, glossary-first, KISS/YAGNI) and both are
+read-only on the plugin until work is explicitly assigned.

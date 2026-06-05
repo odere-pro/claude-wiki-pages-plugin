@@ -9,7 +9,7 @@ the name of "better UX". Make every role defend its proposal against KISS / YAGN
 
 ## Shared context pointer
 
-Read `docs/brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate — weaponize it. Your
+Read `.claude/teams/wiki-brainstorm/TEAM-BRIEF.md` in full first; cite, do not restate — weaponize it. Your
 authority docs:
 
 - `CLAUDE.md` — the glossary-first rule; the dev-time vs runtime separation.

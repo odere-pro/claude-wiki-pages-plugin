@@ -25,8 +25,8 @@ green and the PM has accepted it.
 
 ## Shared context pointer
 
-Authority docs: `docs/plan/0002-agentic-brain-roadmap.md` (phases and dependencies),
-`.claude/teams/wiki-dev/BACKLOG.md` (the assignable work breakdown), the Brief §7 (lanes), §8
+Authority docs: `docs/adr/` (the ratified decisions),
+`.claude/teams/wiki-dev/BACKLOG.md` (the assignable work breakdown — phases and dependencies), the Brief §7 (lanes), §8
 (sequencing), §9 (working agreement), §10 (Definition of Done). Cite paths; do not restate.
 
 ## Your lens
