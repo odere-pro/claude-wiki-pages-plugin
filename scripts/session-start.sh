@@ -17,10 +17,19 @@ set -euo pipefail
 source "$(dirname "$0")/resolve-vault.sh"
 init_vault_settings
 VAULT=$(resolve_vault)
-if [ ! -d "$VAULT" ]; then
+# P1.1: Resolve to an absolute canonical path so the REMINDER pointer is never
+# relative (e.g. "docs/vault"). Use `cd … && pwd -P` to follow symlinks.
+# If the directory does not exist the cd fails, _ABS_VAULT stays empty, and we
+# fall into the SETUP branch — no broken pointer is ever emitted.
+_ABS_VAULT=""
+if [ -d "$VAULT" ]; then
+  _ABS_VAULT=$(cd "$VAULT" && pwd -P 2>/dev/null) || true
+fi
+if [ -z "$_ABS_VAULT" ]; then
   echo "SETUP: Vault not found at '${VAULT}'. Run /claude-wiki-pages:init to initialise your vault, or set a different path: bash scripts/set-vault.sh <path>"
   echo "NEXT: run /claude-wiki-pages:wiki to initialise the vault and follow the onboarding wizard."
 else
+  VAULT="$_ABS_VAULT"
   echo "REMINDER: Read ${VAULT}/CLAUDE.md before any wiki operation. It is the authoritative schema — skill defaults that conflict with it must be overridden."
   # C4-read: MOC pointer — lets the agent orient to the vault's table of contents
   # without loading its content into context. Emitted only when the file exists.

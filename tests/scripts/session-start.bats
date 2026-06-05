@@ -152,3 +152,101 @@ teardown() {
   assert_output_contains "NEXT:"
   assert_output_contains "/claude-wiki-pages:wiki"
 }
+
+# P1.1: REMINDER line must contain the ABSOLUTE resolved vault path (begins with /).
+# Protects against relative paths such as "docs/vault" leaking into the pointer.
+@test "session-start: REMINDER path is absolute (begins with /)" {
+  local vault_dir="$BATS_TEST_TMPDIR/abs-path-vault"
+  mkdir -p "$vault_dir"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  assert_output_contains "REMINDER:"
+  # Extract the path from the REMINDER line and verify it starts with /
+  local reminder_line
+  reminder_line=$(printf '%s\n' "${output}" | grep '^REMINDER:')
+  case "$reminder_line" in
+    *"/$vault_dir"*|*" /"*) : ;;  # contains an absolute path segment
+    *) : ;;
+  esac
+  # The vault_dir itself is already absolute (BATS_TEST_TMPDIR is /tmp/…)
+  # so checking that output contains vault_dir is sufficient when vault_dir is absolute
+  assert_output_contains "$vault_dir/CLAUDE.md"
+}
+
+# P1.1: REMINDER must point to vault/CLAUDE.md explicitly (not just vault/).
+@test "session-start: REMINDER points to vault CLAUDE.md" {
+  local vault_dir="$BATS_TEST_TMPDIR/claudemd-pointer-vault"
+  mkdir -p "$vault_dir"
+  printf '%s\n' '---' 'schema_version: 1' '---' >"$vault_dir/CLAUDE.md"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  assert_output_contains "REMINDER:"
+  assert_output_contains "${vault_dir}/CLAUDE.md"
+  [ -f "${vault_dir}/CLAUDE.md" ]
+}
+
+# P1.1: When vault resolves to a RELATIVE path (e.g. docs/vault-example),
+# the emitted REMINDER must still use the absolute canonical path.
+@test "session-start: REMINDER is absolute even when VAULT env var is relative" {
+  # Use a relative path inside the repo to simulate the docs/vault-example case.
+  local rel_vault="docs/vault-example"
+  local abs_vault
+  abs_vault="$(cd "$REPO_ROOT/$rel_vault" 2>/dev/null && pwd -P)" || true
+
+  # Skip if the reference vault does not exist (not a blocker on minimal CI).
+  [ -d "$REPO_ROOT/$rel_vault" ] || skip "docs/vault-example not present in this checkout"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$rel_vault'
+    cd '$REPO_ROOT'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  assert_output_contains "REMINDER:"
+  # Must contain the absolute path, not the bare relative fragment
+  assert_output_contains "$abs_vault/CLAUDE.md"
+  refute_output_contains "REMINDER: Read ${rel_vault}/CLAUDE.md"
+}
+
+# P1.1: No-vault path must NOT emit a REMINDER or INDEX line (no broken pointer).
+@test "session-start: no REMINDER or INDEX when vault does not exist" {
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='/nonexistent/vault/does-not-exist'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  refute_output_contains "REMINDER:"
+  refute_output_contains "INDEX:"
+}
+
+# P1.1: Output is plain stdout — no JSON envelope or hook-block object.
+@test "session-start: output is plain text, no JSON envelope" {
+  local vault_dir="$BATS_TEST_TMPDIR/plain-text-vault"
+  mkdir -p "$vault_dir"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  refute_output_contains '{"type":'
+  refute_output_contains '"decision":'
+}
