@@ -7,6 +7,7 @@ description: >
   vault/_proposed/; promotion runs under a git checkpoint and then chains the
   maintenance loop. The human-in-the-loop gate for any drafted content.
 allowed-tools: Bash Read Write Edit Glob Grep
+disable-model-invocation: true
 ---
 
 # LLM Wiki — Review
@@ -83,6 +84,49 @@ All drafted content routes through this one channel:
 - The user asks to review/approve/reject drafted pages.
 - A local-model `draft` run (`/claude-wiki-pages:draft`) has produced proposals.
 - The orchestrator detected pending drafts in `_proposed/`.
+
+## Duplicate-claim check (P2.4 — ADR-0014 Part B)
+
+Before presenting a draft to the human reviewer, run the duplicate-claim
+helper to surface any `source_quotes` that already appear in an existing
+`wiki/` page. This is an **advisory WARN only** — exit 0, never blocks
+promotion. A genuine restatement on two legitimately distinct pages is
+sometimes correct; the call is human judgment.
+
+```sh
+bash scripts/check-duplicate-claims.sh \
+  --target <vault> \
+  --proposed <vault>/_proposed/wiki/<topic>/<page>.md
+```
+
+The script prints one WARN block per duplicate, naming the existing wiki
+page and suggesting `[[existing-page]]` as a wikilink instead of restating
+the claim. Present these warnings to the human reviewer alongside the
+normal readiness output.
+
+**Canonical (normalized) form** — the check uses exact/normalized string
+equality only. No fuzzy matching, no edit-distance, no embeddings, no
+semantic similarity — ever (TEAM-BRIEF §5/§11.1, NO-RAG boundary absolute).
+
+Normalization is applied in this exact order to every `source_quotes.quote`
+value before comparison:
+
+1. Strip surrounding YAML scalar quoting (leading/trailing `"`, `'`, `[`,
+   `]` characters from the raw scalar string).
+2. ASCII lowercase (`tr '[:upper:]' '[:lower:]'`).
+3. Collapse every run of whitespace (space, tab, newline) to a single space.
+4. Trim leading and trailing whitespace.
+5. Remove a fixed ASCII punctuation class — exactly these characters:
+   period, comma, semicolon, colon, exclamation mark, question mark,
+   double quote, single quote, backtick, open/close parenthesis,
+   open/close square bracket, hyphen-minus; plus en dash (U+2013) and
+   em dash (U+2014).
+
+Two quotes are duplicates **iff** steps 1–5 produce the byte-identical
+string. A paraphrase — same meaning, different words — does **not** match.
+This canonical form is also defined in
+`scripts/check-duplicate-claims.sh` header (single definition, two
+display sites — script header and this skill — as required by ADR-0014).
 
 ## How to run
 
