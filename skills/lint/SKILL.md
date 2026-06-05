@@ -178,6 +178,33 @@ A wiki page that has not had its `updated:` field advanced in 30 or more days
 despite newer related sources appearing in `raw/` is a calendar-relative Info
 finding. This is a separate, independent mechanism from S4.
 
+**Stale-memory flagging — agent-session pages (no new field, no parallel system).**
+A `source_type: agent-session` page is a first-class source note that follows
+the same lifecycle as every other page in `wiki/_sources/`. There is no new field
+and no parallel staleness system for agent-session memories — they decay and are
+flagged via the EXISTING mechanisms:
+
+- **S4 source-relative staleness:** if a wiki page that cites the agent-session
+  source has its `updated:` date fall behind the session source's own `updated:`
+  field, S4 emits a WARN-level `stale-source` finding, identical to any other
+  source that moved on after ingest. The session source is resolved through
+  `wiki/_sources/` by `title:` or `aliases:` match, exactly as article or paper
+  sources are.
+- **`status: stale` + `confidence` decay:** when the curator or fix path acts on
+  an S4 finding for an agent-session page, it sets `status: stale` on the
+  affected wiki page and may lower `confidence`, the same mutation applied to any
+  stale wiki page. The agent-session source note itself may also receive
+  `status: stale` when it has been unconfirmed past the staleness threshold or
+  contradicted by newer sources — again, the standard lifecycle fields, not a
+  memory-specific override.
+- **30-day calendar staleness:** applies equally to any wiki page sourced from an
+  agent-session source that has not been updated in 30+ days despite newer related
+  sources appearing in `raw/`.
+
+In summary: stale agent-session memories are flagged the same way any stale
+claim is flagged — through `status: stale`, `confidence`, and the S4 staleness
+machinery. No new field, no memory-specific deletion, no parallel staleness path.
+
 ## Workflow
 
 1. Read the schema.
