@@ -106,13 +106,9 @@ set_vault_path() {
 
 # ── Multi-vault registry helpers ─────────────────────────────────────────────
 #
-# Registry shape (additive — old settings.json without "vaults" is valid):
-#   {
-#     "default_vault_path": "...",   ← unchanged, never written here
-#     "current_vault_path": "...",   ← sole active pointer, written by set_vault_path
-#     "vaults": [{"path":"...","name":"..."}]  ← NEW sidecar array
-#   }
-#
+# Registry shape and invariant are documented in docs/operations.md
+# ("Multi-vault registry" section) — that is the single canonical reference.
+# Summary: {default_vault_path, current_vault_path, vaults:[{path,name}]}.
 # Invariant: current_vault_path MUST equal one vaults[].path.
 # Backfill: any operation that reads the registry adds current_vault_path to
 # vaults[] if the key is missing, keeping old settings files migration-safe.

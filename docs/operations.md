@@ -99,6 +99,48 @@ The plugin resolves the active vault via `scripts/resolve-vault.sh` using a four
 
 Switch persistently: `bash scripts/set-vault.sh <path>`. Switch for one session: `CLAUDE_WIKI_PAGES_VAULT=<path> claude`. The full contract is documented above.
 
+## Multi-vault registry
+
+The vault registry lives in `.claude/claude-wiki-pages/settings.json` and manages N registered
+vaults with exactly one active at a time. `scripts/resolve-vault.sh` is the sole resolver;
+the registry selects, the resolver confines (ADR-0016).
+
+### Registry shape
+
+```json
+{
+  "default_vault_path": "docs/vault",
+  "current_vault_path": "projects/my-vault",
+  "vaults": [
+    {"path": "projects/my-vault", "name": "my-vault"},
+    {"path": "projects/archive",  "name": "archive"}
+  ]
+}
+```
+
+| Field | Role |
+| ----- | ---- |
+| `default_vault_path` | Factory default; never overwritten by lifecycle commands. |
+| `current_vault_path` | Sole active pointer; read by `resolve_vault()`. |
+| `vaults` | Array of `{path, name}` objects; all registered vaults. |
+
+**Invariant:** `current_vault_path` must equal exactly one `vaults[].path`. A registry that
+violates this invariant is treated as malformed: `_vaults_read` exits non-zero, all writes are
+blocked (fail-closed), and a stderr warning names the problem.
+
+**Progressive disclosure:** `init_vault_settings` creates `settings.json` without the `vaults`
+key. The `vaults` array is introduced only by the first `vault_add`. A fresh or legacy
+`settings.json` without a `vaults` key is valid; the tier-4 default-fallback applies.
+
+### Lifecycle commands (`scripts/set-vault.sh`)
+
+| Command | Effect |
+| ------- | ------ |
+| `set-vault.sh add <path> [name]` | Register a vault without switching. |
+| `set-vault.sh remove <path\|name>` | Deregister (never deletes data on disk). Refuses to remove the active vault or the last vault. |
+| `set-vault.sh switch <path\|name>` | Change `current_vault_path` to a registered vault. |
+| `set-vault.sh list` | Print the registry; active vault marked with `*`. |
+
 ## What runs when
 
 | Event | Behaviour |

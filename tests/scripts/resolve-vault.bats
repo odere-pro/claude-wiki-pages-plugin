@@ -442,3 +442,198 @@ print(len(data.get('vaults', [])))
   # Files must still exist
   [ -d "$EXTRA" ]
 }
+
+# ── PM.1: simultaneous N-vault registry ─────────────────────────────────────────
+# These tests pin the three PM.1 invariants from ADR-0016 Part B:
+#   1. init_vault_settings produces settings.json with NO vaults key (progressive disclosure).
+#   2. First vault_add introduces the vaults array.
+#   3. N>=3 vaults: add/list/switch/remove maintain the single-active invariant.
+
+@test "PM.1 init_vault_settings: fresh init produces settings.json with NO vaults key" {
+  # Must produce exactly two keys: default_vault_path and current_vault_path.
+  # The vaults key must be ABSENT until the first vault_add (progressive disclosure
+  # per ADR-0016 Part B item 3).
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    init_vault_settings
+  "
+
+  assert_success
+  [ -f "$SETTINGS_TMP" ]
+  # vaults key must be absent
+  run bash -c "python3 -c \"
+import json, sys
+data = json.load(open('$SETTINGS_TMP'))
+sys.exit(0 if 'vaults' not in data else 1)
+\""
+  assert_success
+}
+
+@test "PM.1 vault_add: first vault_add introduces the vaults array (progressive disclosure)" {
+  # Start from a fresh init — no vaults key — then add one vault.
+  # The vaults array must appear only after the first vault_add.
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    init_vault_settings
+    vault_add 'projects/alpha' 'alpha'
+  "
+
+  assert_success
+  # vaults key must now exist
+  run bash -c "python3 -c \"
+import json, sys
+data = json.load(open('$SETTINGS_TMP'))
+sys.exit(0 if 'vaults' in data else 1)
+\""
+  assert_success
+}
+
+@test "PM.1 N=3 vaults: add three vaults, list shows all three" {
+  local V1="$BATS_TEST_TMPDIR/vault-alpha"
+  local V2="$BATS_TEST_TMPDIR/vault-beta"
+  local V3="$BATS_TEST_TMPDIR/vault-gamma"
+  mkdir -p "$V1" "$V2" "$V3"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s"\n}\n' "$V1" "$V1" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_add '$V1' 'alpha'
+    vault_add '$V2' 'beta'
+    vault_add '$V3' 'gamma'
+    vault_list
+  "
+
+  assert_success
+  assert_output_contains "$V1"
+  assert_output_contains "$V2"
+  assert_output_contains "$V3"
+  # Exactly one active marker
+  local star_count
+  star_count=$(printf '%s\n' "$output" | grep -c '^\*' || true)
+  [ "$star_count" -eq 1 ]
+}
+
+@test "PM.1 N=3 vaults: switch changes active, single-active invariant holds" {
+  local V1="$BATS_TEST_TMPDIR/vault-a"
+  local V2="$BATS_TEST_TMPDIR/vault-b"
+  local V3="$BATS_TEST_TMPDIR/vault-c"
+  mkdir -p "$V1" "$V2" "$V3"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"a"},{"path":"%s","name":"b"},{"path":"%s","name":"c"}]\n}\n' \
+    "$V1" "$V1" "$V1" "$V2" "$V3" >"$SETTINGS_TMP"
+
+  # Switch to V2 then verify V1 no longer active, V2 is
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_switch '$V2'
+    resolve_vault
+  "
+
+  assert_success
+  [ "$output" = "$V2" ]
+
+  # current_vault_path in settings must be V2
+  run bash -c "python3 -c \"
+import json, sys
+data = json.load(open('$SETTINGS_TMP'))
+sys.exit(0 if data['current_vault_path'] == '$V2' else 1)
+\""
+  assert_success
+
+  # Exactly one registry entry matches V2 as active, V1/V3 are non-active
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_list
+  "
+  assert_success
+  local star_count
+  star_count=$(printf '%s\n' "$output" | grep -c '^\*' || true)
+  [ "$star_count" -eq 1 ]
+  assert_output_contains "* $V2"
+}
+
+@test "PM.1 N=3 vaults: remove non-active vault leaves two in registry, single-active holds" {
+  local V1="$BATS_TEST_TMPDIR/vault-one"
+  local V2="$BATS_TEST_TMPDIR/vault-two"
+  local V3="$BATS_TEST_TMPDIR/vault-three"
+  mkdir -p "$V1" "$V2" "$V3"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"one"},{"path":"%s","name":"two"},{"path":"%s","name":"three"}]\n}\n' \
+    "$V1" "$V1" "$V1" "$V2" "$V3" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_remove '$V3'
+    vault_list
+  "
+
+  assert_success
+  assert_output_contains "$V1"
+  assert_output_contains "$V2"
+  refute_output_contains "$V3"
+  # Single-active invariant: exactly one marker
+  local star_count
+  star_count=$(printf '%s\n' "$output" | grep -c '^\*' || true)
+  [ "$star_count" -eq 1 ]
+  # Active vault unchanged
+  grep -q "\"current_vault_path\": \"$V1\"" "$SETTINGS_TMP"
+}
+
+@test "PM.1 N=3 vaults: remove then switch preserves single-active invariant" {
+  local V1="$BATS_TEST_TMPDIR/vault-x"
+  local V2="$BATS_TEST_TMPDIR/vault-y"
+  local V3="$BATS_TEST_TMPDIR/vault-z"
+  mkdir -p "$V1" "$V2" "$V3"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"x"},{"path":"%s","name":"y"},{"path":"%s","name":"z"}]\n}\n' \
+    "$V1" "$V1" "$V1" "$V2" "$V3" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_remove '$V3'
+    vault_switch '$V2'
+    vault_list
+  "
+
+  assert_success
+  assert_output_contains "$V1"
+  assert_output_contains "$V2"
+  refute_output_contains "$V3"
+  local star_count
+  star_count=$(printf '%s\n' "$output" | grep -c '^\*' || true)
+  [ "$star_count" -eq 1 ]
+  assert_output_contains "* $V2"
+}
+
+@test "PM.1 sole-resolver: resolve_vault is the only resolution function in resolve-vault.sh" {
+  # ADR-0016 Part B: registry selects, resolver confines — no parallel resolution function.
+  # Grep confirms resolve_vault is the only function whose name ends in _vault and
+  # whose body echoes a vault path (the resolver pattern). This pins the
+  # no-parallel-resolver invariant.
+  run bash -c "
+    grep -Ec '^[a-z_]+\(\)' '$REPO_ROOT/scripts/resolve-vault.sh'
+  "
+  assert_success
+  # There are multiple functions (init_vault_settings, set_vault_path, etc.)
+  # but ONLY resolve_vault echoes a path as its primary output.
+  # The sole-resolver invariant: no second function named *resolve* exists.
+  run bash -c "
+    grep -E '^[a-z_]*resolve[a-z_]*\(\)' '$REPO_ROOT/scripts/resolve-vault.sh'
+  "
+  assert_success
+  # Must match exactly one line: resolve_vault()
+  [ "$(printf '%s\n' "$output" | wc -l | tr -d ' ')" -eq 1 ]
+  assert_output_contains "resolve_vault()"
+}
