@@ -6,6 +6,9 @@
  * supports `--json` for agent consumption. In M1 only `verify` is implemented;
  * the remaining verbs are declared so the surface is stable and discoverable,
  * and are filled in over M3–M5.
+ *
+ * One source of truth: the CAPABILITIES table below. IMPLEMENTED, PLANNED, ALL,
+ * usage(), and the capabilities verb all derive from it (ADR-0015 N1/N2/N3).
  */
 
 import { verify } from "../commands/verify/verify.ts";
@@ -18,22 +21,80 @@ import { search } from "../commands/search/search.ts";
 import { firewallCheck } from "../commands/firewall/firewall.ts";
 import { backlog } from "../commands/backlog/backlog.ts";
 import { propose, type ProposeSub } from "../commands/propose/propose.ts";
-import { renderText, exitCode, type Report } from "../core/report.ts";
+import { buildReport, renderText, exitCode, type Report } from "../core/report.ts";
 
-const IMPLEMENTED = new Set([
-  "verify",
-  "fix",
-  "heal",
-  "doctor",
-  "config",
-  "migrate",
-  "search",
-  "firewall",
-  "backlog",
-  "propose",
-]);
-const PLANNED = ["index", "link-suggest", "checkpoint"];
-const ALL = [...IMPLEMENTED, ...PLANNED];
+// ── One CAPABILITIES table — single source of truth (ADR-0015 N1, N2) ─────────
+//
+// Every consumer (IMPLEMENTED Set, PLANNED array, ALL, usage(), capabilities verb)
+// derives from this table. Adding or retiring a verb is a one-line edit here;
+// nothing else needs updating (the drift that existed at src/cli/cli.ts:23-36
+// and :123 is eliminated). The table lives in-place (N2: YAGNI until a second
+// consumer outside the router exists).
+
+/** Status of a verb in the engine surface. */
+export type VerbStatus = "implemented" | "planned";
+
+/** One row in the CAPABILITIES table. */
+export interface CapabilityEntry {
+  readonly name: string;
+  readonly status: VerbStatus;
+}
+
+/**
+ * The machine-readable capabilities manifest shape (ADR-0015 N3 named typed model).
+ * Emitted through the existing emit()/exitCode() path as a CapabilitiesReport.
+ */
+export interface CapabilitiesManifest {
+  readonly verbs: readonly CapabilityEntry[];
+}
+
+/**
+ * A Report carrying the capabilities manifest.
+ * Extends Report so it flows through emit() unchanged.
+ * JSON.stringify includes the manifest field automatically.
+ * renderText() ignores it (verify-parity preserved).
+ */
+export interface CapabilitiesReport extends Report {
+  readonly manifest: CapabilitiesManifest;
+}
+
+/**
+ * THE single source of truth for the verb surface.
+ * IMPLEMENTED, PLANNED, ALL, usage(), and the capabilities verb all derive from it.
+ */
+export const CAPABILITIES: readonly CapabilityEntry[] = [
+  { name: "verify", status: "implemented" },
+  { name: "fix", status: "implemented" },
+  { name: "heal", status: "implemented" },
+  { name: "doctor", status: "implemented" },
+  { name: "config", status: "implemented" },
+  { name: "migrate", status: "implemented" },
+  { name: "search", status: "implemented" },
+  { name: "firewall", status: "implemented" },
+  { name: "backlog", status: "implemented" },
+  { name: "propose", status: "implemented" },
+  { name: "capabilities", status: "implemented" },
+  { name: "index", status: "planned" },
+  { name: "link-suggest", status: "planned" },
+  { name: "checkpoint", status: "planned" },
+] as const;
+
+// Derived views — no independent Set/array that can drift from the table.
+const PLANNED = CAPABILITIES.filter((e) => e.status === "planned").map((e) => e.name);
+const ALL = CAPABILITIES.map((e) => e.name);
+
+/**
+ * Build the capabilities Report + manifest (ADR-0015 N3).
+ * Exits 0 on success (clean enumeration); a future malformed-table condition
+ * would exit non-zero via exitCode(). Exported for testing.
+ */
+export function capabilitiesReport(): CapabilitiesReport {
+  const manifest: CapabilitiesManifest = {
+    verbs: CAPABILITIES.map((e) => ({ name: e.name, status: e.status })),
+  };
+  const base = buildReport("capabilities", "", []);
+  return Object.freeze({ ...base, manifest: Object.freeze(manifest) });
+}
 
 interface ParsedArgs {
   readonly command: string | undefined;
@@ -112,6 +173,13 @@ function emit(report: Report, json: boolean): void {
 }
 
 function usage(): void {
+  // Derives the verb list directly from CAPABILITIES — no hardcoded literal.
+  // The status label is capitalised from the VerbStatus value at runtime.
+  const statusLabel = (s: VerbStatus): string => s.charAt(0).toUpperCase() + s.slice(1);
+  const byStatus = (s: VerbStatus): string =>
+    CAPABILITIES.filter((e) => e.status === s)
+      .map((e) => e.name)
+      .join(", ");
   process.stdout.write(
     [
       "claude-wiki-pages — deterministic LLM-Wiki engine",
@@ -120,7 +188,7 @@ function usage(): void {
       "",
       `Commands: ${ALL.join(", ")}`,
       "",
-      "Implemented: verify, fix, heal, doctor, config, migrate, search, firewall, backlog, propose",
+      `${statusLabel("implemented")}: ${byStatus("implemented")}`,
       "",
     ].join("\n"),
   );
@@ -316,6 +384,13 @@ function main(): number {
     return 0;
   }
 
+  // capabilities verb — serializes the CAPABILITIES table via emit()/exitCode() (ADR-0015 N3).
+  if (command === "capabilities") {
+    const report = capabilitiesReport();
+    emit(report, json);
+    return exitCode(report);
+  }
+
   if (PLANNED.includes(command)) {
     const msg = {
       command,
@@ -332,4 +407,7 @@ function main(): number {
   return 2;
 }
 
-process.exit(main());
+// Guard process.exit so this module is importable by tests without side effects.
+if (import.meta.main) {
+  process.exit(main());
+}

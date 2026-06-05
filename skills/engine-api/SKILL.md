@@ -124,6 +124,50 @@ checkpoint); `propose reject --file <p>` deletes it under a checkpoint.
   "message": "promoted … Next: curator heal + polish. Rollback: git revert <sha>" }
 ```
 
+### `capabilities` — agent-facing verb-surface manifest (ADR-0015)
+
+`capabilities --json` returns the engine's own dispatch table as a machine-readable
+manifest. Agents call this to discover which verbs are safe to invoke without parsing
+prose or guessing. The output is deterministic (same call, same result, every run).
+
+```json
+{
+  "command": "capabilities",
+  "vault": "",
+  "findings": [],
+  "errors": 0,
+  "warnings": 0,
+  "clean": true,
+  "manifest": {
+    "verbs": [
+      { "name": "verify",       "status": "implemented" },
+      { "name": "fix",          "status": "implemented" },
+      { "name": "heal",         "status": "implemented" },
+      { "name": "doctor",       "status": "implemented" },
+      { "name": "config",       "status": "implemented" },
+      { "name": "migrate",      "status": "implemented" },
+      { "name": "search",       "status": "implemented" },
+      { "name": "firewall",     "status": "implemented" },
+      { "name": "backlog",      "status": "implemented" },
+      { "name": "propose",      "status": "implemented" },
+      { "name": "capabilities", "status": "implemented" },
+      { "name": "index",        "status": "planned" },
+      { "name": "link-suggest", "status": "planned" },
+      { "name": "checkpoint",   "status": "planned" }
+    ]
+  }
+}
+```
+
+Exit 0 (clean). The `manifest.verbs` array is the authoritative list — every
+`status: "implemented"` verb has a live dispatch branch; every `status: "planned"`
+verb returns `{status:"not-implemented"}` until it ships. **Why-not-RAG:** exact
+enumeration of the engine's own in-code dispatch table — same input, same output,
+no corpus, no embeddings.
+
+**Note:** `capabilities` is an agent-facing term (ADR-0015 Glossary note). It is
+defined here (agent-facing skill) and must not appear in user-facing onboarding.
+
 ### Planned (return `{status:"not-implemented"}` until shipped)
 
 `index` (deterministic page/entity index), `link-suggest <page>` (exact auto-link
