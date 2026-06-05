@@ -2,7 +2,7 @@
 
 Source of the `claude-wiki-pages` Claude Code plugin: a **four-layer stack** (Data · Skills · Agents · Orchestration) that turns an Obsidian vault into a provenance-tracked wiki, following [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
-**Authorities.** [`docs/architecture.md`](./docs/architecture.md) is the four-layer architecture and contract every skill, agent, and hook binds to. [`docs/GLOSSARY.md`](./docs/GLOSSARY.md) is the canonical term list; enforced by [`scripts/validate-docs.sh`](./scripts/validate-docs.sh). [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md) is the schema (`schema_version: 1`) and wins any frontmatter conflict.
+**Authorities.** [`docs/architecture.md`](./docs/architecture.md) is the four-layer architecture and contract every skill, agent, and hook binds to. [`docs/GLOSSARY.md`](./docs/GLOSSARY.md) is the canonical term list; enforced by [`scripts/validate-docs.sh`](./scripts/validate-docs.sh). [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md) is the schema (`schema_version: 2`) and wins any frontmatter conflict.
 
 ## Vault location
 
