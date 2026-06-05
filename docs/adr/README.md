@@ -25,6 +25,8 @@ contracts) and [`vault-example/CLAUDE.md`](../vault-example/CLAUDE.md) (the sche
 | 0012 | [Vault `merge` conflict resolution](./ADR-0012-vault-merge-conflict-resolution.md) |
 | 0013 | [Design-drift gate — `validate-docs.sh` Check 5](./ADR-0013-design-drift-gate.md) |
 | 0014 | [Single-source required fields; duplicate-claim WARN in review](./ADR-0014-single-source-required-fields-and-duplicate-claim-warning.md) |
+| 0015 | [Engine self-description surfaces — `capabilities`/`ontology --json`](./ADR-0015-engine-self-description-surfaces.md) |
+| 0016 | [Simultaneous multi-vault management — fail-closed registry, audit roll-up](./ADR-0016-simultaneous-multi-vault-management.md) |
 
 ## Conventions
 
