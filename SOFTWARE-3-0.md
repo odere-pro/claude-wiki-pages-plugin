@@ -56,7 +56,7 @@ typed predicates) is the `ontology-profile-v1` contract in
 - **Audit trail** — agent session learnings land as committed `source_type: agent-session`
   raw sources through the [ADR-0010](./docs/adr/ADR-0010-durable-memory-carve-out.md)
   carve-out and the `_proposed/` gate; maintenance activity is logged to the vault `wiki/log.md`.
-- **Threat model** — [docs/security.md](./docs/security.md) and [SECURITY.md](./SECURITY.md).
+- **Threat model** — [SECURITY.md](./SECURITY.md).
 
 ## Contributing
 

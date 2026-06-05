@@ -4,20 +4,15 @@
 - **Date:** 2026-06-05
 - **SPEC anchor:** §5 (NO embeddings — precompiled wiki pages); Brief §5 (NO-RAG, absolute),
   decision #7 (model-agnostic, quality-gated Ollama path) / §11.7
-- **Supersedes proposal:** `docs/plan/0003-local-model-quality-gate.md` (this ADR records the
-  ratified decision with the PM's calibrated thresholds)
 
 ## Context
 
-Decision #7 makes the full Claude→Ollama swap the north star, gated on local models proving
-stable/accurate/quality output, widened one capability tier at a time "only as the bar is met". The
-roadmap named the gap precisely as an open implementation-unknown: *what eval and threshold declare
-a local model "good enough" for a given capability tier*
-(`docs/plan/0002-agentic-brain-roadmap.md:206-208`). Plan 0003 proposed the design — a
-fixtures-based golden-set eval scoped first to the narrowest tier, `ingest-extract`, reusing the
-shipped verify/test machinery and never embeddings. The PM **ratified** that design and directed it
-be promoted to an ADR with **calibrated** thresholds (tighter than the proposal's starting numbers)
-and three binding build conditions. This ADR is that record.
+The north star is a full Claude→Ollama swap, gated on local models proving stable, accurate,
+quality output, widened one capability tier at a time "only as the bar is met". That gates on a
+precise open question: *what eval and threshold declare a local model "good enough" for a given
+capability tier*. The decision is a fixtures-based golden-set eval scoped first to the narrowest
+tier, `ingest-extract`, reusing the shipped verify/test machinery and never embeddings — with
+**calibrated** thresholds and three binding build conditions. This ADR is that record.
 
 Two constraints frame the decision and are non-negotiable:
 

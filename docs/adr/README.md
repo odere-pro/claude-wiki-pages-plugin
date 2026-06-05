@@ -1,27 +1,35 @@
 # Architecture Decision Records
 
-This directory holds the ADRs for `llm-wiki-stack`. Each ADR captures the **rationale** behind a decision recorded declaratively in `SPEC.md` (removed; see [`architecture.md`](../architecture.md)). The SPEC remained the source of truth for _what_ the plugin does; the ADRs explain _why_ a particular path was taken and what alternatives were rejected.
+This directory holds the ADRs for `claude-wiki-pages`. Each ADR captures the **rationale** behind a
+system-design decision: what was decided, the alternatives that were weighed, and the conditions
+under which the decision should be revisited. The *contracts* themselves live in the documents that
+own them — [`architecture.md`](../architecture.md) (the four-layer model and command/agent
+contracts) and [`vault-example/CLAUDE.md`](../vault-example/CLAUDE.md) (the schema). ADRs explain
+*why* a particular path was taken; they are not the spec.
 
 ## Index
 
-| ID  | Title                                                                                                       | SPEC anchor       |
-| --- | ----------------------------------------------------------------------------------------------------------- | ----------------- |
-| A1  | [Four-layer orchestrator](./ADR-0001-four-layer-orchestrator.md)                                            | §5, §9, §11       |
-| A2  | [Agent naming convention](./ADR-0002-agent-naming-convention.md)                                            | §11               |
-| A3  | [Polish-agent and Obsidian-side experience](./ADR-0003-polish-agent-and-obsidian-side.md)                   | §11               |
-| 0013 | [Design-drift gate — `validate-docs.sh` Check 5](./ADR-0013-design-drift-gate.md)                          | §2, §5, §6        |
-| 0014 | [Single-source required fields; duplicate-claim WARN in review](./ADR-0014-single-source-required-fields-and-duplicate-claim-warning.md) | §2, §5, §6, §11.1 |
+| ID | Title |
+| --- | --- |
+| 0001 | [Four-layer orchestrator](./ADR-0001-four-layer-orchestrator.md) |
+| 0002 | [Agent naming convention](./ADR-0002-agent-naming-convention.md) |
+| 0003 | [Polish-agent and Obsidian-side experience](./ADR-0003-polish-agent-and-obsidian-side.md) |
+| 0004 | [`ontology-profile-v1`](./ADR-0004-ontology-profile-v1.md) |
+| 0005 | [Git-required per-vault init](./ADR-0005-git-required-per-vault-init.md) |
+| 0006 | [One search score object](./ADR-0006-search-score-object.md) |
+| 0007 | [Wiki-native recall](./ADR-0007-wiki-native-recall.md) |
+| 0008 | [One graph-traversal primitive](./ADR-0008-graph-traversal-primitive.md) |
+| 0009 | [Multi-vault registry and per-vault write confinement](./ADR-0009-multi-vault-confinement.md) |
+| 0010 | [Durable-memory carve-out](./ADR-0010-durable-memory-carve-out.md) |
+| 0011 | [Local-model quality gate](./ADR-0011-local-model-quality-gate.md) |
+| 0012 | [Vault `merge` conflict resolution](./ADR-0012-vault-merge-conflict-resolution.md) |
+| 0013 | [Design-drift gate — `validate-docs.sh` Check 5](./ADR-0013-design-drift-gate.md) |
+| 0014 | [Single-source required fields; duplicate-claim WARN in review](./ADR-0014-single-source-required-fields-and-duplicate-claim-warning.md) |
 
 ## Conventions
 
 - One file per decision, named `ADR-NNNN-<kebab-slug>.md` with a four-digit zero-padded ID.
-- Format: **Status / Date / SPEC anchor → Context → Decision → Alternatives considered → Consequences → Revisit when**.
-- Status field: `Proposed` while the decision is still being implemented, `Accepted` once the implementing PR merges, `Superseded by ADR-MMMM` when replaced, or `Deprecated`.
+- Format: **Status / Date → Context → Decision → Alternatives considered → Consequences → Revisit when**.
+- Status field: `Proposed` while the decision is still being implemented, `Accepted` once the implementing change merges, `Superseded by ADR-MMMM` when replaced, or `Deprecated`.
 - ADRs are immutable history once accepted, except for trivial typo fixes. A change to a previously-accepted decision lands as a **new** ADR that supersedes the prior one.
-- ADRs ship in their own `docs(adr)` PR; never bundled with feature commits. The implementing PR references the ADR by ID in its body.
-
-## Why ADRs live here and not in `SPEC.md`
-
-The SPEC is declarative: it tells the implementer the rule. ADRs are argumentative: they tell the next maintainer the reasoning, the alternatives that were weighed, and the conditions under which the decision should be revisited. Mixing the two would inflate the SPEC and erode the line between "the contract" and "the conversation that produced the contract".
-
-In-flight design work that has not yet converged on a decision belongs in [`docs/plan/`](../plan/), not here. ADRs record decisions; plans record proposals.
+- An ADR records a *settled* decision. It is self-contained: it states the design choice and its reasoning directly, without depending on transient planning artifacts.

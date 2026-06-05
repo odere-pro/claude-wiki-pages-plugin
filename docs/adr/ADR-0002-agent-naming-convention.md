@@ -53,7 +53,7 @@ Skills keep their existing names. `llm-wiki-ingest` is fine because no agent nam
 
 **Negative.**
 
-- **Breaking change.** Any user script, internal documentation, or muscle memory pinned to the old names breaks at `0.2.0`. Mitigated by a `docs/llm-wiki/migration-0.2.md` page and a "Vocabulary changes" CHANGELOG section that lists every rename inline.
+- **Breaking change.** Any user script, internal documentation, or muscle memory pinned to the old names breaks at `0.2.0`. Mitigated by a "Vocabulary changes" CHANGELOG section that lists every rename inline.
 - **CHANGELOG.md grows.** The historical "ingested-pipeline" references are preserved in CHANGELOG.md and `validate-docs.sh` allowlists CHANGELOG from the banned-string check. This means new contributors searching for `ingest-pipeline` in the repo will see CHANGELOG hits and may briefly be confused. The CHANGELOG entry is explicit about the rename to short-circuit that confusion.
 - **`-agent` suffix is verbose.** `llm-wiki-stack-orchestrator-agent` is 32 characters. Acceptable: it appears in `Task` calls and ADRs, not in user-facing slash commands.
 

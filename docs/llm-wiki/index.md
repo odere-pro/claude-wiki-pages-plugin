@@ -14,8 +14,6 @@ A map. Each section points you at the one guide that actually teaches it.
 
 This is the orchestrator entry. Type it any time. The plugin probes vault state and routes to the right next step — initialise, ingest, curate, or query. Everything else is either a power-user bypass or a diagnostic.
 
-> Looking for a structured learning path instead of a guide map? See the [playbooks](../playbooks/index.md) — `200 Foundational`, `300 Associate`, `500 Expert`.
-
 ## Your path through the guides
 
 Read in order. Each guide is self-contained.

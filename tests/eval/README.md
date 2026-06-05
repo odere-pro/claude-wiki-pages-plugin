@@ -1,7 +1,7 @@
 # Local-model quality-gate eval — `ingest-extract` golden set
 
 This directory is the **measurement apparatus** for the local-model quality gate
-described in [`docs/plan/0003-local-model-quality-gate.md`](../../docs/plan/0003-local-model-quality-gate.md).
+described in [`docs/adr/ADR-0011-local-model-quality-gate.md`](../../docs/adr/ADR-0011-local-model-quality-gate.md).
 It is the bar a local model must clear before the Claude→Ollama capability
 progression (decision D7) may widen to the `ingest-extract` tier.
 

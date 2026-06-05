@@ -97,7 +97,7 @@ The plugin resolves the active vault via `scripts/resolve-vault.sh` using a four
 3. **Auto-detect** — scan up to 4 levels for a `CLAUDE.md` with `schema_version` next to a `wiki/`.
 4. **Default** — `docs/vault`.
 
-Switch persistently: `bash scripts/set-vault.sh <path>`. Switch for one session: `CLAUDE_WIKI_PAGES_VAULT=<path> claude`. The full contract is documented above, with a guided walkthrough in the [300-Associate playbook](./playbooks/300-associate.md) Module 6.
+Switch persistently: `bash scripts/set-vault.sh <path>`. Switch for one session: `CLAUDE_WIKI_PAGES_VAULT=<path> claude`. The full contract is documented above.
 
 ## What runs when
 
@@ -113,4 +113,4 @@ The full hook contract is documented in this guide.
 
 ## Step-by-step walkthroughs
 
-The seven user guides under [`docs/llm-wiki/`](./llm-wiki/index.md) cover install → ingest → validate → query → output. The [playbooks](./playbooks/index.md) restructure the same material as a 200/300/500 learning path.
+The seven user guides under [`docs/llm-wiki/`](./llm-wiki/index.md) cover install → ingest → validate → query → output.

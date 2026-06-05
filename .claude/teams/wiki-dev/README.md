@@ -1,8 +1,8 @@
 # claude-wiki-pages development team — agent-team apparatus
 
-A dev-only, cross-functional agent team that **implements** the brainstorm roadmap
-(`docs/plan/0002-agentic-brain-roadmap.md`). It is the implementation counterpart to the
-brainstorm team in `docs/brainstorm/` (which produced the roadmap). Like that apparatus, it is
+A dev-only, cross-functional agent team that **implements** the decisions ratified in `docs/adr/`,
+decomposed into assignable work in `BACKLOG.md`. It is the implementation counterpart to the
+brainstorm team in `.claude/teams/wiki-brainstorm/` (which ideates proposals). Like that apparatus, it is
 **not** part of the shipped plugin — it lives in `.claude/` and is never loaded as end-user session
 context.
 
@@ -109,5 +109,5 @@ schema-pinned reference and must stay untouched.
 
 - This apparatus is read-only on the plugin until the Delivery Lead assigns an item; teammates then
   edit only their lane's paths.
-- It mirrors the repo's existing team pattern (`docs/brainstorm/`) but is located in `.claude/` as a
+- It mirrors the repo's existing team pattern (`.claude/teams/wiki-brainstorm/`) but is located in `.claude/` as a
   reusable, spawnable team. It does not ship and is not loaded as end-user context.

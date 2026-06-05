@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # Tests for scripts/eval-ingest-extract.sh — the local-model quality-gate eval
-# driver for the `ingest-extract` tier (docs/plan/0003-local-model-quality-gate.md).
+# driver for the `ingest-extract` tier (docs/adr/ADR-0011-local-model-quality-gate.md).
 #
 # This builds the MEASUREMENT APPARATUS only. It is MODEL-NEUTRAL: nothing here
 # wires up Ollama or any local model, makes a network call, or flips a default.

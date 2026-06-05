@@ -42,9 +42,6 @@ BAN_EXEMPT=(
   "docs/GLOSSARY.md"
   "CHANGELOG.md"
   "docs/adr/*"
-  "docs/plan/*"
-  "docs/llm-wiki/migration-0.2.md"
-  "docs/migration-1.0.md"
   "tests/*"
   # Calibration-flow fixtures are test corpora, not project prose.
   ".claude/fixtures/*"
@@ -55,7 +52,6 @@ BAN_EXEMPT=(
 SEO_EXEMPT=(
   "README.md"
   "docs/GLOSSARY.md"
-  "docs/SPECIFICATION.md"
   "scripts/validate-docs.sh"
   ".claude-plugin/plugin.json"
   ".claude-plugin/marketplace.json"
@@ -74,11 +70,11 @@ SEO_EXEMPT=(
 # see docs/adr/ADR-0002-agent-naming-convention.md): llm-wiki-ingest-pipeline,
 # llm-wiki-lint-fix, llm-wiki-analyst.
 # Identifiers retired in 1.0.0 (plugin rebrand llm-wiki-stack → claude-wiki-pages,
-# skills → short verbs; see docs/migration-1.0.md): the plugin id llm-wiki-stack
+# skills → short verbs): the plugin id llm-wiki-stack
 # and the old llm-wiki-<verb> skill names. The bare `llm-wiki` is intentionally
 # NOT banned here (it collides with the kept `llm-wiki-pattern` and docs/llm-wiki/);
 # a stray `/claude-wiki-pages:llm-wiki` is caught by the slash-resolution check.
-# All allowlisted only in CHANGELOG, docs/adr/*, and the migration docs.
+# All allowlisted only in CHANGELOG and docs/adr/*, which preserve the historical record.
 BANNED_STRINGS='\bsecond-brain\b|\bsecond brain\b|\bvault-synthesize\b|\bvault-index\b|\bllm-wiki-stack\b|\bllm-wiki-ingest\b|\bllm-wiki-query\b|\bllm-wiki-lint\b|\bllm-wiki-fix\b|\bllm-wiki-status\b|\bllm-wiki-synthesize\b|\bllm-wiki-index\b|\bllm-wiki-markdown\b|\bllm-wiki-ingest-pipeline\b|\bllm-wiki-lint-fix\b|\bllm-wiki-analyst\b'
 
 # SEO-register terms that remain allowed in README/plugin.json but nowhere else.
@@ -148,8 +144,8 @@ fi
 # guide directory. This check narrows to `llm-wiki` used AS A SKILL — the
 # backtick-wrapped form `llm-wiki` and the namespaced
 # `/claude-wiki-pages:llm-wiki` — so the pattern page, plugin.json keyword, and
-# doc path never trip it. Allowlisted in BAN_EXEMPT (CHANGELOG, ADRs, migration,
-# plan, GLOSSARY, tests, fixtures), which legitimately record the rename.
+# doc path never trip it. Allowlisted in BAN_EXEMPT (CHANGELOG, ADRs, GLOSSARY,
+# tests, fixtures), which legitimately record the rename.
 header "Retired skill name (llm-wiki -> init)"
 
 RETIRED_SKILL='`llm-wiki`|/claude-wiki-pages:llm-wiki([^-[:alnum:]]|$)'

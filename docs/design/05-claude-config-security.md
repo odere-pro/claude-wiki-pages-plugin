@@ -3,7 +3,7 @@
 > How the plugin's configuration is set up, how writes are secured, and how vaults are isolated.
 > Authority: [`scripts/resolve-vault.sh`](../../scripts/resolve-vault.sh),
 > [`scripts/firewall.sh`](../../scripts/firewall.sh), [`hooks/hooks.json`](../../hooks/hooks.json),
-> [`docs/security.md`](../security.md), [`docs/operations.md`](../operations.md).
+> [`SECURITY.md`](../../SECURITY.md), [`docs/operations.md`](../operations.md).
 
 ## Setup — vault resolution (4-tier, first match wins)
 
@@ -56,7 +56,7 @@ untrusted input *before* it becomes instructions.
 graph LR
     subgraph devtime["Dev-time (plugin source — never user context)"]
         d1["docs/ · tmp/ · tests/"]
-        d2[".claude/teams/* · docs/brainstorm/*"]
+        d2[".claude/teams/* (wiki-dev · wiki-brainstorm)"]
         d3["root CLAUDE.md · SOFTWARE-3-0.md"]
     end
     subgraph runtime["Runtime (loaded on install)"]

@@ -51,7 +51,7 @@ Formal contracts. Defined in `docs/vault-example/CLAUDE.md`; enforced by `valida
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | schema         | The rules that define a valid vault. Lives in `vault/CLAUDE.md`. Skill defaults defer to it.                                                                                                             |
 | schema version | Integer version of the schema. Frontmatter field `schema_version`. Current: 2 (v1 still supported). Mismatch blocks `verify-ingest.sh`. Upgrade in place with `migrate`.                                  |
-| migrate        | The engine command that upgrades a vault's `schema_version` in place (v1 → v2). Additive, idempotent, git-checkpointed. `bash scripts/engine.sh migrate [--write]`. See `docs/migration-2.0.md`.         |
+| migrate        | The engine command that upgrades a vault's `schema_version` in place (v1 → v2). Additive, idempotent, git-checkpointed. `bash scripts/engine.sh migrate [--write]`.         |
 | frontmatter    | YAML block between `---` fences at the top of every wiki page.                                                                                                                                           |
 | type           | Frontmatter field naming a page's category. One of `source`, `entity`, `concept`, `synthesis`, `index`, `log` (v1); v2 adds `topic`, `project`, `manifest`. The primary filter.                          |
 | sources        | Frontmatter field listing a page's citations. Required on every non-source page. List of `[[wikilinks]]` into the sources folder (`_sources/`). Plain strings are a lint error.                          |
@@ -311,7 +311,7 @@ Retired from the glossary as of schema version 1. `validate-docs.sh` flags occur
 
 #### Renamed in `1.0.0` (plugin rebrand to `claude-wiki-pages`)
 
-Banned outside `CHANGELOG.md`, `docs/adr/*`, and `docs/migration-1.0.md`, which preserve the historical record.
+Banned outside `CHANGELOG.md` and `docs/adr/*`, which preserve the historical record.
 
 | Banned (pre-`1.0.0`)                                                                 | Replacement                                            |
 | ------------------------------------------------------------------------------------ | ------------------------------------------------------ |

@@ -12,7 +12,7 @@ sources:
   - "[[Update an Existing Vault]]"
   - "[[Review, Validate, Fix]]"
   - "[[Export Outputs]]"
-related: ["[[Claude Code]]", "[[Obsidian]]", "[[LLM Wiki Pattern]]", "[[Hook-Enforced Guarantees]]"]
+related: ["[[Claude Code]]", "[[LLM Wiki Pattern]]", "[[Hook-Enforced Guarantees]]"]
 tags: ["tool", "plugin"]
 created: 2026-04-24
 updated: 2026-04-24
@@ -25,7 +25,7 @@ confidence: 0.9
 
 ## Overview
 
-The Claude Code plugin that implements the [[LLM Wiki Pattern]] on top of an [[Obsidian]] vault. Four layers: Data (vault), Skills (single-responsibility verbs), Agents (multi-step pipelines), and Orchestration (hooks, scripts, rules).
+The Claude Code plugin that implements the [[LLM Wiki Pattern]] on top of an Obsidian vault. Four layers: Data (vault), Skills (single-responsibility verbs), Agents (multi-step pipelines), and Orchestration (hooks, scripts, rules).
 
 ## Key Facts
 
@@ -38,6 +38,5 @@ The Claude Code plugin that implements the [[LLM Wiki Pattern]] on top of an [[O
 ## Related
 
 - [[Claude Code]] — the CLI harness the plugin runs inside.
-- [[Obsidian]] — the reading environment the wiki output targets.
 - [[LLM Wiki Pattern]] — the pattern the plugin implements.
 - [[Hook-Enforced Guarantees]] — the mechanism that makes the plugin reliable.

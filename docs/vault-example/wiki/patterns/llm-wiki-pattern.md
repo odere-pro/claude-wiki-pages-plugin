@@ -7,7 +7,7 @@ path: "patterns"
 sources:
   - "[[Using claude-wiki-pages]]"
   - "[[Getting Started]]"
-related: ["[[Hook-Enforced Guarantees]]", "[[Entity Distribution Model]]", "[[Obsidian]]", "[[Claude Code]]"]
+related: ["[[Hook-Enforced Guarantees]]", "[[Claude Code]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -30,7 +30,7 @@ A research-management pattern: the human curates raw source material; an LLM der
 - Two distinct roles: human curates (drops sources into an immutable `raw/`), LLM maintains (writes everything in `wiki/`).
 - Every wiki claim must carry a `[[wikilink]]` to a source note in `wiki/_sources/` — no claim without provenance.
 - Topic-tree organization (folders by topic, not by note type) so a single topic folder holds both entities and concepts.
-- Hand-edits are allowed but discouraged; the LLM workflow enforces invariants that hand-editing tends to break (see [[Entity Distribution Model]]).
+- Hand-edits are allowed but discouraged; the LLM workflow enforces invariants that hand-editing tends to break — one source rewrites many existing pages rather than spawning near-duplicates.
 
 ## Examples
 
@@ -40,4 +40,3 @@ A research-management pattern: the human curates raw source material; an LLM der
 ## Related Concepts
 
 - [[Hook-Enforced Guarantees]] — the mechanism that keeps the pattern safe from model drift.
-- [[Entity Distribution Model]] — the DRY rule that prevents near-duplicate pages.

@@ -34,7 +34,7 @@ The dominant design risk, established by reading the actual diagrams, is **false
 node labels in this tree are overwhelmingly human prose — emoji, `<br/>` line breaks, `·` separators,
 and parenthetical descriptions (e.g. `human["👤 Person<br/>(Obsidian / terminal)"]`,
 `lanes["4 lanes A–D<br/>retrieval · schema · ingest · ux"]`). Only a minority of labels embed a real
-path token (`hooks/hooks.json`, `engine.sh`, `commands/`, `docs/brainstorm/`). A naive "every node
+path token (`hooks/hooks.json`, `engine.sh`, `commands/`, `.claude/teams/`). A naive "every node
 label must name a real path" rule would flag almost every node and make the gate worse than useless.
 The gate must therefore ground **path-shaped tokens it can recognize**, not whole label prose, and
 must honor a `[speculative]` escape hatch — which already appears as block-level prose in the tree

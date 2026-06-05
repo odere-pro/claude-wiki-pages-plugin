@@ -96,7 +96,7 @@ tier3() {
 }
 
 # eval — local-model quality-gate eval for the ingest-extract tier
-# (docs/plan/0003-local-model-quality-gate.md). OPT-IN and MODEL-NEUTRAL: it is
+# (docs/adr/ADR-0011-local-model-quality-gate.md). OPT-IN and MODEL-NEUTRAL: it is
 # never part of the default merge-gating run and it wires up NO local model.
 #
 # A real *measured* run requires a model to PRODUCE candidate extractions; that

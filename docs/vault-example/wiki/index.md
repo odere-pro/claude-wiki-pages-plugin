@@ -35,23 +35,16 @@ Master catalog of every page in the wiki.
 
 - [[LLM Wiki Pattern]] — human curates sources, LLM derives the cited wiki.
 - [[Hook-Enforced Guarantees]] — invariants live in hooks, not in model discipline.
-- [[Entity Distribution Model]] — one source rewrites many pages; no duplicates.
 
 ### Tools ([[Tools — Index]])
 
 - [[Claude Code]] — CLI harness for skills, agents, and hooks.
-- [[Obsidian]] — local-first markdown editor; vault = folder.
-- [[Dataview]] — Obsidian community plugin powering the dashboard.
 - [[claude-wiki-pages]] — this plugin.
-- [[Pandoc]] — markdown → PDF / DOCX for deliverables.
 
 ### Workflows ([[Workflows — Index]])
 
 - [[Ingest Pipeline]] — the default, single-command ingest verb.
-- [[Lint-Fix Workflow]] — status → lint → lint-fix validation ladder.
 - [[Query Workflow]] — ask the wiki; receive cited answers.
-- [[Output Compilation Workflow]] — compile deliverables into `output/`.
-- [[Vault Scaffolding]] — stand up a fresh `vault/` in a project.
 
 ## Synthesis
 

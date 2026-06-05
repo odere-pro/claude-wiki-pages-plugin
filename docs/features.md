@@ -26,7 +26,6 @@ Full contract in [`operations.md`](./operations.md).
 - **One-command pipeline** — `/claude-wiki-pages:wiki` probes vault state and runs the right specialist (init / ingest / curator / analyst). Polish runs as a tail step.
 - **Obsidian-native** — works with Dataview, Templater, Web Clipper, and the graph view out of the box.
 - **Vault-portable** — switch vaults with `CLAUDE_WIKI_PAGES_VAULT` or `bash scripts/set-vault.sh`. The plugin never assumes a single vault.
-- **AWS-Skill-Builder-style playbooks** — three learning paths (200 Foundational, 300 Associate, 500 Expert) under [`docs/playbooks/`](./playbooks/index.md).
 
 ## Test harness
 
@@ -38,7 +37,7 @@ Five tiers, per [`../tests/README.md`](../tests/README.md):
 - Tier 3 — release readiness
 - Tier 4 — adversarial (weekly; corpus replay stubbed pending fixture)
 
-Full layout in [`tests/README.md`](../tests/README.md). Open follow-ups in [`docs/risk-report-0.2.0.md`](./risk-report-0.2.0.md).
+Full layout in [`tests/README.md`](../tests/README.md).
 
 ## How it compares
 
@@ -46,6 +45,6 @@ Full layout in [`tests/README.md`](../tests/README.md). Open follow-ups in [`doc
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | Can I run this locally?              | [`obsidian-llm-wiki-local`](https://github.com/kytmanov/obsidian-llm-wiki-local): yes, local-LLM only      | Yes — provider-agnostic, via whichever model Claude Code uses    |
 | Can I install it as a Claude plugin? | [`rvk7895/llm-knowledge-bases`](https://github.com/rvk7895/llm-knowledge-bases): yes, as a bag of commands | Yes, **plus** a four-layer architecture with hook-enforced gates |
-| Does it ship a security model?       | Nobody in the top 10 does                                                                                  | Yes — see [`docs/security.md`](./security.md)                    |
+| Does it ship a security model?       | Nobody in the top 10 does                                                                                  | Yes — see [`SECURITY.md`](../SECURITY.md)                        |
 
 Long-form architecture: [`docs/architecture.md`](./architecture.md).
