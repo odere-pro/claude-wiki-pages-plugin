@@ -86,7 +86,8 @@ Formal vocabulary for the plugin's knowledge model. Defined in the `ontology-pro
 | predicate             | A typed directed relationship between two pages (e.g. `depends_on`, `related`, `sources`). Predicates form the edges of the wikilink graph and carry a `domain` and `range` constraint.         |
 | domain                | The class that is the subject of a predicate — the page type that may carry this wikilink field. Defined per predicate in `ontology-profile-v1`.                                                 |
 | range (ontology)      | The class that is the object of a predicate — the page type a wikilink field must point to. Distinct use of the word "range" from any numeric/interval sense; defined per predicate in `ontology-profile-v1`. |
-| controlled vocabulary | A closed, maintained list of permitted values for a field (e.g. `entity_type`, `tag`). Changes require explicit governance; random additions are a lint error. See `tag taxonomy`.               |
+| controlled vocabulary    | A closed, maintained list of permitted values for a field (e.g. `entity_type`, `tag`). Changes require explicit governance; random additions are a lint error. See `tag taxonomy`.               |
+| entity_type_extensions   | The vault-owner-controlled extension list that may add values to the `entity_type` enum beyond the closed core. Only `entity_type` is vault-extensible (Decision D15 of `tmp/SOFTWARE-3-0-plan.md`); predicates and the page-type enum stay closed-core and cannot be extended per vault. Defined in `ontology-profile-v1`. |
 | structured authoring  | Writing pages as instances of typed classes, conforming to a template, with single-sourced facts and presentation-independent content — the wiki's authoring discipline.                         |
 | single-sourcing       | Storing a fact in exactly one wiki page and referencing it elsewhere via `[[wikilinks]]`, so updates propagate without copy-paste drift.                                                          |
 | modular content       | Content broken into typed, reusable page units (entities, concepts, topics) rather than monolithic documents, enabling flexible composition without duplication.                                  |
@@ -211,6 +212,19 @@ Lowercase in body prose; capitalize at the start of a heading. Each logs an entr
 | marketplace              | Same-repo marketplace: `.claude-plugin/marketplace.json` points at `.`; the repo is the marketplace. |
 | GraphRAG                 | Graph-aware retrieval: expand a `search` hit along the wikilink graph (`sources`, `related`, `depends_on`) to its N-hop neighbourhood. Documented direction for a future `search --graph`; traversal over the existing graph, not a new index. |
 
+### Software 3.0 and design terms
+
+Terms introduced by the Software 3.0 entry-point and design-drift gate work (`SOFTWARE-3-0.md`, `docs/design/`, ADR-0013).
+
+| Term                      | Description                                                                                                                                                                               |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Software 3.0              | The development posture where the repo's docs, tools, design, system design, context, and memory are equally accessible and usable by humans and by agents — enforced by gates, not just by convention. Named after the Software 3.0 paradigm; applied here to make every surface dual-entry by construction. |
+| dual entry point          | Also: `dual-entry router`. The `SOFTWARE-3-0.md` file at the repo root that provides both a human on-ramp and an agent on-ramp for every project surface. It is a **link-only dev-time router** — it links, never restates — and is not copied into a user's vault on install. Must not be confused with the `manifest` term (Decision D2 of `tmp/SOFTWARE-3-0-plan.md`). |
+| parity gate               | A CI assertion that enforces the "equally usable" contract: every row of the `SOFTWARE-3-0.md` dual-entry router must have a non-empty human cell and a non-empty agent cell, each with a resolving link. A single-ramped row fails the build and names the offending surface. Implemented as assertion 5f inside `scripts/validate-docs.sh` Check 5 (ADR-0013). |
+| design-drift gate         | Also: `node grounding`. The `validate-docs.sh` Check 5 added by ADR-0013, scanning `docs/design/*.md` and `SOFTWARE-3-0.md` for five categories of drift: (a) mermaid nodes naming a path that no longer exists, (b) dead relative links, (c) hook/script names not matching `hooks/hooks.json`, (d) count assertions in `06-feature-relations.md` differing from reality, (e) missing Authority links. Uses grep/awk/bash only (Tier-0); no mermaid parser. |
+| node grounding            | The requirement that every path-shaped token (a directory form or a known-extension file reference) inside a mermaid fence resolves to a real repo path or is covered by a `[speculative]` marker. Prose labels with no path-shaped token contribute nothing to grounding (the false-positive bound). See `design-drift gate`. |
+| `[speculative]`           | A design-doc marker that exempts an unresolved mermaid node, fence, or diagram from the node-grounding check (5a of ADR-0013). Used when a diagram depicts a planned-but-not-yet-built path; the marker must appear in the block or doc carrying the ungrounded node. A `[speculative]` node or fence always passes the gate even if its path token does not resolve. |
+
 ### Retrieval terms
 
 Concepts for the deterministic, embedding-free retrieval path (§5 non-negotiable).
@@ -240,6 +254,8 @@ Concepts for the deterministic, embedding-free retrieval path (§5 non-negotiabl
 | vault lifecycle           | The set of operations that govern a vault's membership in the registry: `add` (register), `remove` (deregister), `merge` (consolidate two vaults), `switch` (change the active vault).  |
 | vault merge               | The lifecycle operation that consolidates two vaults into one, deduplicating by `sources` and title, and flagging collisions for human review.                                            |
 | per-vault write confinement | The firewall invariant that agent and tool writes are restricted to the active vault plus its explicit `allowPaths`. Cross-vault writes are blocked. Enforced by `scripts/firewall.sh` and `src/core/firewall.ts`. |
+| registered vault roots   | The set of vault root paths currently enrolled in the vault registry. A vault root becomes registered via the `add` lifecycle command and is eligible to be made the active vault. Alias for the membership dimension of `vault registry`. |
+| cross-vault              | Describes any operation that would read from or write to a vault other than the currently active one. Cross-vault writes are unconditionally blocked by the firewall (`scripts/firewall.sh`); cross-vault reads are also prohibited unless explicitly permitted. The confinement rule enforced by `per-vault write confinement`. |
 
 ### Ingest and memory terms
 
