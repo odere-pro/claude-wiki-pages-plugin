@@ -24,6 +24,18 @@ output instead of eyeballing the vault. **Always pass `--json` for machine use.*
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh" <command> --target <vault> --json
 ```
 
+Global flags:
+
+- `--target <vault>` — the vault root to operate on. Always supply this when a vault registry is
+  configured; omitting it lets the engine resolve the vault independently, which may disagree with
+  the hook's resolved path.
+- `--other-vaults <colon-separated-paths>` — the registered vault roots other than the active one,
+  used by the `firewall` command to enforce the `cross-vault` deny rule. Derive this value from
+  `registry_other_vaults` in `scripts/resolve-vault.sh` rather than hard-coding paths. See
+  [Multi-vault operating rules](../maintain-contract/SKILL.md#multi-vault-operating-rules) for the
+  full confinement contract (ADR-0009 + ADR-0016).
+- `--json` — emit structured JSON output. Always pass this for machine use.
+
 If Bun is missing, the bridge prints a warning and exits 0 — degrade to the bash
 verifiers (`verify-ingest.sh`) rather than failing.
 
