@@ -14,15 +14,15 @@ The system is convention-driven: the schema lives in [`docs/vault-example/CLAUDE
 
 ## What's inside
 
-| Layer        | Surface                                                                                                                       | Count |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------- | :---: |
-| **Data**     | `docs/vault-example/` — immutable `raw/`, LLM-maintained `wiki/`, schema in `vault/CLAUDE.md`                                 |   1   |
+| Layer        | Surface                                                                                                                                                                                                                                                                                                                                                | Count |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---: |
+| **Data**     | `docs/vault-example/` — immutable `raw/`, LLM-maintained `wiki/`, schema in `vault/CLAUDE.md`                                                                                                                                                                                                                                                          |   1   |
 | **Skills**   | 12 short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`, `search`, `review`, `draft`) + `onboarding` + 5 agent-teaching (`engine-api`, `maintain-contract`, `analyst-modes`, `curator-fixes`, `ingest-pipeline`) + `obsidian-graph-colors` + `obsidian-vault` + 3 third-party `obsidian-*` (MIT, kepano) |  23   |
-| **Agents**   | Orchestrator (entry) + onboarding, ingest, curator, analyst, polish, maintenance — see [docs/operations.md](./docs/operations.md)          |   7   |
-| **Commands** | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:onboarding`, `/claude-wiki-pages:doctor`                                  |   3   |
-| **Hooks**    | `SessionStart` + `UserPromptSubmit` + 4 `PreToolUse` + 2 `PostToolUse` + 2 `SubagentStop`                                     |  10   |
-| **Rules**    | Path-scoped guidance under `rules/`                                                                                           |   4   |
-| **Tests**    | Five tiers — Tier 0 static, Tier 1 Bats unit, Tier 2 smoke, Tier 3 release, Tier 4 adversarial                                |   5   |
+| **Agents**   | Orchestrator (entry) + onboarding, ingest, curator, analyst, polish, maintenance — see [docs/operations.md](./docs/operations.md)                                                                                                                                                                                                                      |   7   |
+| **Commands** | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:onboarding`, `/claude-wiki-pages:doctor`                                                                                                                                                                                                                                                                |   3   |
+| **Hooks**    | `SessionStart` + `UserPromptSubmit` + 4 `PreToolUse` + 2 `PostToolUse` + 2 `SubagentStop`                                                                                                                                                                                                                                                              |  10   |
+| **Rules**    | Path-scoped guidance under `rules/`                                                                                                                                                                                                                                                                                                                    |   4   |
+| **Tests**    | Five tiers — Tier 0 static, Tier 1 Bats unit, Tier 2 smoke, Tier 3 release, Tier 4 adversarial                                                                                                                                                                                                                                                         |   5   |
 
 Long-form architecture: [docs/architecture.md](./docs/architecture.md). Feature list and competitor comparison: [docs/features.md](./docs/features.md).
 
@@ -59,14 +59,14 @@ flowchart TD
 
 ## Prerequisites
 
-| Tool        | Purpose                                                  | Install                                                  |
-| ----------- | -------------------------------------------------------- | -------------------------------------------------------- |
-| Claude Code | `>= 2.0`                                                 | [docs.claude.com/code](https://docs.claude.com/en/docs/claude-code) |
-| `bash`, `git`, `find` | Hook scripts and file walking                  | Pre-installed on macOS / Linux                           |
-| `jq`        | JSON parsing in hooks and resolvers                      | `brew install jq` / `apt-get install jq`                 |
-| **Bun** `>= 1.2` | **Recommended** — runs the deterministic engine (verify/fix/heal/doctor/config) and git-checkpointed self-heal. Without it the plugin still works, but those commands are disabled. | `curl -fsSL https://bun.sh/install \| bash` |
-| `git` repo for the vault | So self-heal can checkpoint and `git revert`        | `git init` in the vault (or `/claude-wiki-pages:doctor --fix`) |
-| Obsidian    | Optional — for graph view, Dataview, Web Clipper         | [obsidian.md](https://obsidian.md/)                      |
+| Tool                     | Purpose                                                                                                                                                                             | Install                                                             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Claude Code              | `>= 2.0`                                                                                                                                                                            | [docs.claude.com/code](https://docs.claude.com/en/docs/claude-code) |
+| `bash`, `git`, `find`    | Hook scripts and file walking                                                                                                                                                       | Pre-installed on macOS / Linux                                      |
+| `jq`                     | JSON parsing in hooks and resolvers                                                                                                                                                 | `brew install jq` / `apt-get install jq`                            |
+| **Bun** `>= 1.2`         | **Recommended** — runs the deterministic engine (verify/fix/heal/doctor/config) and git-checkpointed self-heal. Without it the plugin still works, but those commands are disabled. | `curl -fsSL https://bun.sh/install \| bash`                         |
+| `git` repo for the vault | So self-heal can checkpoint and `git revert`                                                                                                                                        | `git init` in the vault (or `/claude-wiki-pages:doctor --fix`)      |
+| Obsidian                 | Optional — for graph view, Dataview, Web Clipper                                                                                                                                    | [obsidian.md](https://obsidian.md/)                                 |
 
 `/claude-wiki-pages:doctor` checks all of these and tells you exactly what to install. The `SessionStart` hook prints a one-line notice if Bun is missing.
 
@@ -79,10 +79,9 @@ flowchart TD
 ```text
 /plugin marketplace add odere-pro/claude-wiki-pages-plugin
 /plugin install claude-wiki-pages
-/claude-wiki-pages:doctor
 ```
 
-`doctor` should print all green. If it does not, fix the prerequisite it flags. Local-clone install, update, and uninstall: see [docs/install.md](./docs/install.md).
+Local-clone install, update, and uninstall: see [docs/install.md](./docs/install.md).
 
 ---
 
@@ -92,35 +91,55 @@ flowchart TD
 /claude-wiki-pages:wiki
 ```
 
-The orchestrator probes vault state and dispatches:
+That is the one verb. The orchestrator probes vault state and dispatches:
 
-- **No vault yet** → runs the `init` wizard. Scaffolds `docs/vault/` from the example, writes the schema, prints the next three things to do.
+- **No vault yet** → runs the `init` wizard. Scaffolds `docs/vault/` with the schema and a bundled sample source ready to ingest — no files needed from you to see a real result.
 - **New files in `raw/`** → runs `claude-wiki-pages-ingest-agent`. Produces typed wiki pages with citations and a `wiki/log.md` entry, then runs `claude-wiki-pages-polish-agent` to refresh graph colors and indexes.
 - **Pending lint after an ingest** → runs `claude-wiki-pages-curator-agent` to audit and repair.
 - **Analytical prompt** (`what`, `why`, `compare`, `summarize`, …) → runs `claude-wiki-pages-analyst-agent`. Every answer cites `[[wikilinks]]` back to source.
 
-First-time walkthrough (~30 minutes): [docs/playbooks/200-foundational.md](./docs/playbooks/200-foundational.md). Full operations reference: [docs/operations.md](./docs/operations.md).
+Full operations reference: [docs/operations.md](./docs/operations.md).
+
+<details>
+<summary>First run or something feels wrong?</summary>
+
+**Guided first-run wizard** — walks scaffold → ingest → first answer, one step at a time:
+
+```text
+/claude-wiki-pages:onboarding
+```
+
+**Environment health check** — run after install and whenever something feels off:
+
+```text
+/claude-wiki-pages:doctor
+```
+
+`doctor` reports all green when prerequisites are met. If it flags anything, fix the prerequisite it names and run `/claude-wiki-pages:wiki`.
+
+</details>
 
 ---
 
 ## Documentation
 
-| Topic                          | Guide                                                                       |
-| ------------------------------ | --------------------------------------------------------------------------- |
-| Install / update / uninstall   | [docs/install.md](./docs/install.md)                                        |
-| Day-to-day operations          | [docs/operations.md](./docs/operations.md)                                  |
-| Features and comparison        | [docs/features.md](./docs/features.md)                                      |
-| Architecture (four layers)     | [docs/architecture.md](./docs/architecture.md)                              |
-| Glossary                     | [docs/GLOSSARY.md](./docs/GLOSSARY.md)                                  |
-| Security and threat model      | [docs/security.md](./docs/security.md)                                      |
-| Step-by-step user guides       | [docs/llm-wiki/](./docs/llm-wiki/index.md)                                  |
-| Playbooks (200 / 300 / 500)    | [docs/playbooks/](./docs/playbooks/index.md)                                |
-| ADRs                           | [docs/adr/](./docs/adr/README.md)                                           |
-| Risk and follow-up tracker     | [docs/risk-report-0.2.0.md](./docs/risk-report-0.2.0.md)                    |
-| Test harness                   | [tests/README.md](./tests/README.md)                                        |
-| Contributing                   | [CONTRIBUTING.md](./CONTRIBUTING.md)                                        |
-| Release log                    | [CHANGELOG.md](./CHANGELOG.md)                                              |
-| Vulnerability disclosure       | [SECURITY.md](./SECURITY.md), [SUPPORT.md](./SUPPORT.md)                    |
+| Topic                        | Guide                                                    |
+| ---------------------------- | -------------------------------------------------------- |
+| Install / update / uninstall | [docs/install.md](./docs/install.md)                     |
+| Day-to-day operations        | [docs/operations.md](./docs/operations.md)               |
+| Features and comparison      | [docs/features.md](./docs/features.md)                   |
+| Architecture (four layers)   | [docs/architecture.md](./docs/architecture.md)           |
+| Glossary                     | [docs/GLOSSARY.md](./docs/GLOSSARY.md)                   |
+| Security and threat model    | [docs/security.md](./docs/security.md)                   |
+| Step-by-step user guides     | [docs/llm-wiki/](./docs/llm-wiki/index.md)               |
+| Playbooks (200 / 300 / 500)  | [docs/playbooks/](./docs/playbooks/index.md)             |
+| ADRs                         | [docs/adr/](./docs/adr/README.md)                        |
+| Agent teams (dev)            | [docs/teams.md](./docs/teams.md)                         |
+| Risk and follow-up tracker   | [docs/risk-report-0.2.0.md](./docs/risk-report-0.2.0.md) |
+| Test harness                 | [tests/README.md](./tests/README.md)                     |
+| Contributing                 | [CONTRIBUTING.md](./CONTRIBUTING.md)                     |
+| Release log                  | [CHANGELOG.md](./CHANGELOG.md)                           |
+| Vulnerability disclosure     | [SECURITY.md](./SECURITY.md), [SUPPORT.md](./SUPPORT.md) |
 
 ---
 

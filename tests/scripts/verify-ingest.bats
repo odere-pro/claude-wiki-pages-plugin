@@ -141,3 +141,126 @@ MD
   assert_output_contains "not found"
   assert_output_contains "/nonexistent/vault/does-not-exist"
 }
+
+# ──────────────────────────────────────────────────────────────────────────────
+# S4-derivation: staleness from updated vs newest cited-source date (CHECK 4)
+# ──────────────────────────────────────────────────────────────────────────────
+
+@test "verify-ingest S4: warns when wiki page predates a cited source" {
+  # Give the source a newer updated: date than the wiki page that cites it.
+  # sample-entity.md has updated: 2026-04-18; set sample.md updated: 2026-05-01.
+  local source_file="$FIXTURE_VAULT/wiki/_sources/sample.md"
+  sed -i.bak 's/^updated: 2026-04-18/updated: 2026-05-01/' "$source_file"
+  rm -f "${source_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # WARN-level: exit 0 (no errors), but warning text present.
+  assert_success
+  assert_output_contains "stale-source"
+  assert_output_contains "Sample Entity"
+}
+
+@test "verify-ingest S4: clean when wiki page is newer than all cited sources" {
+  # sample-entity.md updated: 2026-04-18, sample.md updated: 2026-04-18 — same
+  # date is not stale (not strictly newer). Set wiki page to be clearly newer.
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  sed -i.bak 's/^updated: 2026-04-18/updated: 2026-06-01/' "$entity_file"
+  rm -f "${entity_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  refute_output_contains "stale-source"
+}
+
+@test "verify-ingest S4: dangling cited source is labelled, not treated as fresh" {
+  # Replace the sources entry in sample-entity.md with a wikilink that does not
+  # resolve to any file in _sources/.
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  sed -i.bak 's|sources: \["\[\[Sample\]\]"\]|sources: ["[[Nonexistent Source]]"]|' "$entity_file"
+  rm -f "${entity_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # Must not crash (exit 0 or exit 1 for other errors, but the dangling-source
+  # condition itself is a WARN, not an error). The key requirement is that the
+  # dangling case is labelled and does NOT suppress a "stale-source" warning
+  # (i.e., it never silently counts as "fresh").
+  assert_output_contains "dangling-source"
+  assert_output_contains "Nonexistent Source"
+  # No crash: must have printed at least the Summary header.
+  assert_output_contains "Summary"
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+# I3: provenance-completeness checks (CHECK 5)
+# ──────────────────────────────────────────────────────────────────────────────
+
+@test "verify-ingest I3: entity with no sources is an ERROR" {
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # Remove all sources entries — replace the sources list with an empty array.
+  sed -i.bak 's|sources: \["\[\[Sample\]\]"\]|sources: []|' "$entity_file"
+  rm -f "${entity_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_status 1
+  assert_output_contains "no-sources"
+  assert_output_contains "Sample Entity"
+}
+
+@test "verify-ingest I3: malformed source entry counts as present — no double-flag" {
+  # A plain-string source entry is already caught by CHECK 2 (sources-format).
+  # The presence check (I3) must NOT also fire, because there IS 1 entry present.
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  sed -i.bak 's|sources: \["\[\[Sample\]\]"\]|sources: ["not-a-link"]|' "$entity_file"
+  rm -f "${entity_file}.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # CHECK 2 fires for the malformed source — exit 1.
+  assert_status 1
+  assert_output_contains "Plain string in sources"
+  # But provenance-completeness must NOT also fire for this page.
+  refute_output_contains "no-sources"
+}
+
+@test "verify-ingest I3: derived:true with confidence >= 0.8 is a WARN" {
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # Set derived: true and confidence: 0.85 on the page (keeping the source entry so
+  # provenance-completeness does not fire — this test isolates the consistency check).
+  sed -i.bak 's/^confidence: 0\.9/confidence: 0.85/' "$entity_file"
+  rm -f "${entity_file}.bak"
+  # Append derived: true to the frontmatter (before the closing ---).
+  # Use awk to insert the field safely.
+  awk '
+    /^---$/ && count++ == 1 { print "derived: true"; print; next }
+    { print }
+  ' "$entity_file" >"${entity_file}.new"
+  mv "${entity_file}.new" "$entity_file"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # WARN-level: script exits 0 (no errors), but warning text is present.
+  assert_success
+  assert_output_contains "derived-high-confidence"
+  assert_output_contains "Sample Entity"
+}
+
+@test "verify-ingest I3: derived:true with confidence < 0.8 is clean" {
+  local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # Set derived: true and confidence: 0.7 — below the threshold, so no warning.
+  sed -i.bak 's/^confidence: 0\.9/confidence: 0.7/' "$entity_file"
+  rm -f "${entity_file}.bak"
+  awk '
+    /^---$/ && count++ == 1 { print "derived: true"; print; next }
+    { print }
+  ' "$entity_file" >"${entity_file}.new"
+  mv "${entity_file}.new" "$entity_file"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  refute_output_contains "derived-high-confidence"
+}

@@ -38,11 +38,11 @@ exits without overwriting anything.
 
 Sealed inputs this skill may read:
 
-- The plugin's own `${CLAUDE_PLUGIN_ROOT}/skills/llm-wiki/template/` tree — the
+- The plugin's own `${CLAUDE_PLUGIN_ROOT}/skills/init/template/` tree — the
   reference scaffold used as the copy source. This is always the plugin cache
   path, never a project-local path (even when the user's chosen vault
   happens to be `docs/vault-example`).
-- The plugin's `${CLAUDE_PLUGIN_ROOT}/skills/llm-wiki/template/CLAUDE.md` — the
+- The plugin's `${CLAUDE_PLUGIN_ROOT}/skills/init/template/CLAUDE.md` — the
   authoritative schema.
 - The user's project root — to determine the target install path and detect a
   prior install.
@@ -58,9 +58,9 @@ Two write targets, both scoped to the user's project:
 2. `<project>/.claude/claude-wiki-pages/settings.json` — written via
    `scripts/set-vault.sh` so the chosen vault path persists across sessions.
 
-- Copy missing pieces from `${CLAUDE_PLUGIN_ROOT}/skills/llm-wiki/template/` into
+- Copy missing pieces from `${CLAUDE_PLUGIN_ROOT}/skills/init/template/` into
   `<project>/<vault>/` verbatim.
-- Confirm `<project>/<vault>/CLAUDE.md` declares `schema_version: 1`.
+- Confirm `<project>/<vault>/CLAUDE.md` declares `schema_version: 2`.
 - Do NOT populate `wiki/_sources/`, `wiki/_synthesis/`, or any topic folder
   beyond what the reference scaffold already contains.
 - Do NOT write to `<project>/` outside the new `vault/` subtree and the
@@ -121,13 +121,18 @@ what is missing.
 3. **Scaffold vault (create + populate).** Run
    `bash ${CLAUDE_PLUGIN_ROOT}/scripts/scaffold-vault.sh <vault>`.
    The script is idempotent: it creates `<vault>` if missing and copies any
-   top-level entries from `${CLAUDE_PLUGIN_ROOT}/skills/llm-wiki/template/` that
+   top-level entries from `${CLAUDE_PLUGIN_ROOT}/skills/init/template/` that
    are not already present in `<vault>`. Existing files are never
-   overwritten (no-clobber). Its stdout contract (`CREATED: …` /
-   `EXISTS: …` / `READY: vault at …; N created, M preserved`) feeds the
-   orientation summary in step 6.
+   overwritten (no-clobber). After scaffolding, the script git-inits the vault
+   as its own git repo (using the engine's `ensureRepo` via `doctor --fix`) so
+   every structural write is committed and reversible. The nesting guard skips
+   the git-init when the target is already inside a git work tree (e.g. the
+   user's project repo). Its stdout contract (`CREATED: …` / `EXISTS: …` /
+   `READY: vault at …; N created, M preserved; git=<initialised|skipped(already-in-repo)>`)
+   feeds the orientation summary in step 6. The vault is always a git repo
+   upon completion (or was already covered by an outer repo).
 4. **Schema check.** Confirm `<project>/<vault>/CLAUDE.md` starts with
-   `schema_version: 1`. Step 3 already copies it when absent; if it exists
+   `schema_version: 2`. Step 3 already copies it when absent; if it exists
    but is missing the version header, stamp the correct frontmatter; do not
    rewrite unrelated content.
 5. **Verify.** Invoke
@@ -139,10 +144,12 @@ what is missing.
    - The path to the vault.
    - The schema version present in `<vault>/CLAUDE.md`.
    - Whether settings were created fresh, updated, or already correct.
+   - Note that `<vault>/raw/sample-source.md` is the bundled sample source — it is
+     ready to ingest so the user can see a real result immediately.
    - Three suggested next steps, in order of increasing commitment:
-     1. Drop a source into `<vault>/raw/` and run
-        `/claude-wiki-pages:wiki` — the orchestrator detects the new source and
-        chains the ingest pipeline automatically.
+     1. Run `/claude-wiki-pages:wiki` — the orchestrator detects the bundled sample
+        source in `raw/` and chains the ingest pipeline automatically. No file from
+        you is required to get a first result.
      2. Run `/claude-wiki-pages:status` to confirm every hook fires.
      3. Read `docs/llm-wiki/01-getting-started.md` for the long-form guide.
 
@@ -158,10 +165,12 @@ what is missing.
 
 Print exactly one of these shapes:
 
-- `READY: vault scaffolded at <vault-path>; schema version 1; settings persisted; verify-ingest clean.`
-- `READY: vault repaired at <vault-path> (<N> files added); schema version 1; settings persisted; verify-ingest clean.`
-- `READY: existing vault at <vault-path>; <N> pages, last log <date>; settings persisted.`
+- `READY: vault scaffolded at <vault-path>; schema version 2; git repo initialised; settings persisted; verify-ingest clean.`
+- `READY: vault repaired at <vault-path> (<N> files added); schema version 2; git repo initialised; settings persisted; verify-ingest clean.`
+- `READY: existing vault at <vault-path>; <N> pages, last log <date>; git repo present; settings persisted.`
 - `WARN: vault at <vault-path> ready but verify-ingest reported: <message>. Settings persisted; no scaffold changes overwritten.`
+
+The `git repo initialised` / `git repo present` note in the READY line confirms the vault is its own git repo after init completes.
 
 `FAILED:` is reserved for cases where `set-vault.sh` itself cannot write
 settings (filesystem permission error) — every other condition must resolve

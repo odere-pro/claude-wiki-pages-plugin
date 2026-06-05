@@ -2,7 +2,7 @@
 
 Source of the `claude-wiki-pages` Claude Code plugin: a **four-layer stack** (Data · Skills · Agents · Orchestration) that turns an Obsidian vault into a provenance-tracked wiki, following [Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
-**Authorities.** [`docs/architecture.md`](./docs/architecture.md) is the four-layer architecture and contract every skill, agent, and hook binds to. [`docs/GLOSSARY.md`](./docs/GLOSSARY.md) is the canonical term list; enforced by [`scripts/validate-docs.sh`](./scripts/validate-docs.sh). [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md) is the schema (`schema_version: 1`) and wins any frontmatter conflict.
+**Authorities.** [`docs/architecture.md`](./docs/architecture.md) is the four-layer architecture and contract every skill, agent, and hook binds to. [`docs/GLOSSARY.md`](./docs/GLOSSARY.md) is the canonical term list; enforced by [`scripts/validate-docs.sh`](./scripts/validate-docs.sh). [`docs/vault-example/CLAUDE.md`](./docs/vault-example/CLAUDE.md) is the schema (`schema_version: 2`) and wins any frontmatter conflict.
 
 ## Vault location
 
@@ -42,6 +42,14 @@ Long-form model: [`docs/architecture.md`](./docs/architecture.md).
 | Tests (Tier 0–4)  | `tests/README.md`; hook tests in `tests/scripts/*.bats`                                                                                            |
 
 If an edit introduces a new concept, add the term to `docs/GLOSSARY.md` with a rationale first — enforced by `scripts/validate-docs.sh` (the glossary gate, run in CI Tier 0).
+
+## The one user-facing entry verb
+
+`/claude-wiki-pages:wiki` is the single advertised entry point for end-users. The
+orchestrator probes vault state and dispatches automatically. `/claude-wiki-pages:onboarding`
+(run-once guided wizard) and `/claude-wiki-pages:doctor` (health check — when something
+feels wrong) are progressive-disclosure secondaries; they remain callable but are not
+co-equal top-level choices in user-facing copy.
 
 ## Local workflows
 

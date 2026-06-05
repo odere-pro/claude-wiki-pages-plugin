@@ -91,8 +91,8 @@ After the specialist (and, where applicable, polish) returns:
 
 1. Surface the specialist's report verbatim under a heading: `## Specialist: <name>`.
 2. If polish ran, surface its `POLISH:` block under `## Polish`.
-3. Add a one-paragraph summary under `## Outcome`: what changed in `$VAULT`, what the user should know, and (if applicable) the suggested next `/claude-wiki-pages:wiki` invocation.
-4. If the wizard ran (Step 2 row 1), parse its `NEXT_STEP:` trailing line. If `ingest_pending=true`, end the report with: _"You can run `/claude-wiki-pages:wiki` again to start the ingest."_ (Do not chain in this turn — the wizard already did one fan-out's worth of work.)
+3. Add a one-paragraph summary under `## Outcome`: what changed in `$VAULT`, what the user should know, the suggested next `/claude-wiki-pages:wiki` invocation (always the one advertised entry verb), and — when the specialist produced a checkpoint commit — the undo clause: _"To undo the last structural change: `git revert <checkpoint>`"_ where `<checkpoint>` is the SHA printed by the specialist. This references the existing git-checkpoint mechanism used by every write-path specialist; do not invent a separate undo surface.
+4. If the wizard ran (Step 2 row 1), parse its `NEXT_STEP:` trailing line. If `ingest_pending=true`, end the report with: _"A bundled sample source is ready in `raw/`. Run `/claude-wiki-pages:wiki` again to ingest it and get your first cited answer."_ (Do not chain in this turn — the wizard already did one fan-out's worth of work.)
 5. Stop. Do not invoke another specialist.
 
 ---

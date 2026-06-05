@@ -38,6 +38,31 @@ Run each via `Grep`/`Glob` against `vault/wiki/`:
 
 Heavier computational checks (Jaccard similarity for near-duplicate bodies, content-block deduplication) are **not** run from this agent. If the user wants them, extend `verify-ingest.sh` with `--deep` mode in a separate change.
 
+## Stale agent-session memories (no memory-specific auto-deletion)
+
+A `source_type: agent-session` page in `wiki/_sources/` is a first-class source
+note subject to the same lifecycle as every other source. The curator handles
+stale agent-session memories exactly like any stale page — there is no
+memory-specific deletion path, no separate staleness field, and no parallel
+staleness mechanism. The standard tools apply:
+
+- **`status: stale` + `confidence`** — when an S4 WARN or 30-day calendar
+  staleness finding targets a wiki page whose `sources:` list includes an
+  agent-session source, the curator sets `status: stale` on the wiki page and
+  may lower `confidence`, the same mutation it applies to any stale page.
+- **Agent-session source note itself** — if the session source is unconfirmed
+  past the staleness threshold or contradicted by newer sources, the curator
+  sets `status: stale` on the source note and lowers `confidence` to reflect
+  reduced evidentiary weight. This is flag-and-decay, not deletion.
+- **No memory-specific auto-deletion** — the curator never auto-deletes an
+  agent-session source note. Deletion of any page (including stale session
+  memories) requires explicit editorial intent from the user, surfaced as a
+  report-only item.
+
+In all cases the curator uses `status: stale` and `confidence` — the canonical
+lifecycle fields defined in `vault/CLAUDE.md` — with no new field and no
+parallel staleness system.
+
 ## Phase 3 — Auto-apply safe fixes
 
 Execute in order. Each fix is idempotent and content-preserving.

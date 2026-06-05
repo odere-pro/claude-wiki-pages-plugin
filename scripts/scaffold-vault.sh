@@ -78,5 +78,52 @@ while IFS= read -r entry; do
   CREATED=$((CREATED + 1))
 done < <(find "$SOURCE" -mindepth 1 -maxdepth 1 2>/dev/null | sort)
 
-printf 'READY: vault at %s; %d created, %d preserved\n' "$TARGET" "$CREATED" "$PRESERVED"
+# ─── Git-required per-vault init ──────────────────────────────────────────────
+# Every vault must be its own git repo (TEAM-BRIEF.md §5, decision #4).
+# Guard: skip if the target is already inside a git work tree — this prevents
+# nesting a repo inside the plugin repo (e.g. docs/vault-example/) or a user's
+# project repo whose layout happens to contain the vault directory.
+GIT_STATE="initialised"
+if git -C "$TARGET" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  # Target is already inside a git work tree — nesting guard triggers.
+  GIT_STATE="skipped(already-in-repo)"
+elif command -v bun >/dev/null 2>&1; then
+  # Bun is available: reuse the single git seam — engine D05 → ensureRepo.
+  # This is the primary path; the bash fallback below is bun-absent only.
+  PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+  bash "$PLUGIN_ROOT/scripts/engine.sh" doctor --target "$TARGET" --fix >/dev/null 2>&1 || true
+  if ! git -C "$TARGET" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    # engine.sh doctor --fix silently failed (e.g. empty vault, no files to commit).
+    # Fall through to the bash fallback.
+    GIT_STATE="fallback"
+  fi
+else
+  GIT_STATE="fallback"
+fi
+
+if [ "$GIT_STATE" = "fallback" ]; then
+  # Bash fallback: bun absent or engine git step produced no repo.
+  # NOTE: this is the bun-absent degradation path only (mirrors doctor.sh:131).
+  # It is intentionally minimal — git init + initial commit — to keep a single
+  # mechanism: we do NOT duplicate ensureRepo logic; we only handle the case
+  # where Bun is unavailable.
+  git -C "$TARGET" init -q 2>/dev/null || true
+  if git -C "$TARGET" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$TARGET" add -A >/dev/null 2>&1 || true
+    git \
+      -C "$TARGET" \
+      -c user.name=claude-wiki-pages \
+      -c user.email=claude-wiki-pages@users.noreply.github.com \
+      -c commit.gpgsign=false \
+      commit \
+      --no-verify \
+      --allow-empty \
+      -m "chore(claude-wiki-pages): initial vault commit" \
+      >/dev/null 2>&1 || true
+    GIT_STATE="initialised"
+  fi
+fi
+
+printf 'READY: vault at %s; %d created, %d preserved; git=%s\n' \
+  "$TARGET" "$CREATED" "$PRESERVED" "$GIT_STATE"
 exit 0

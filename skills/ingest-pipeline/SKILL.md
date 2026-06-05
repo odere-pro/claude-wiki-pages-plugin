@@ -28,6 +28,14 @@ cascade into every page's `parent:` and `path:`, and into the Obsidian graph
 structure. Externalize the plan so the user can review or edit before any page
 is written.
 
+> **PDF sources (`source_format: pdf`):** when a source is a PDF under
+> `raw/assets/`, apply the PDF ingest path documented in
+> `skills/ingest/SKILL.md` — "PDF sources (I4): `source_format: pdf`" — before
+> planning the topic tree. The required fields (`source_format: pdf`,
+> `attachment_path`, `extracted_at`) must appear in the source note, and the
+> PDF remains immutable in `raw/assets/` throughout. Classification and dedup
+> proceed identically to text sources.
+
 ### 1.4a — Write the plan
 
 Write to `vault/output/_pipeline-plan-YYYY-MM-DD.md` (git-ignored; no frontmatter required). Structure:
@@ -41,7 +49,20 @@ Write to `vault/output/_pipeline-plan-YYYY-MM-DD.md` (git-ignored; no frontmatte
 ...
 
 ## Entities and concepts extracted
-- [<new|existing>] <Entity/Concept name> — from <source(s)>
+
+> For each extracted item, apply the **classification checklist** in
+> `skills/ingest/SKILL.md` — assign exactly one `type` (and, for entities,
+> one `entity_type`) drawn from `ontology-profile-v1` in `vault/CLAUDE.md`.
+> Never invent out-of-enum values; flag ambiguous cases for human review.
+>
+> Also apply the **two-pass alias-aware dedup** from `skills/ingest/SKILL.md`
+> before marking any item as `new`. Pass 1 = exact title match; pass 2 =
+> alias-aware match against existing pages' `aliases` fields. Mark items as
+> `existing` if either pass matches, and plan an additive extension (never a
+> duplicate). See "Dedup: two-pass existence check (I2)" in
+> `skills/ingest/SKILL.md` for the full procedure.
+
+- [<new|existing>] <Entity/Concept name> — `type: <type>` (entity: `entity_type: <value>`) — from <source(s)>
 ...
 
 ## Proposed topic tree

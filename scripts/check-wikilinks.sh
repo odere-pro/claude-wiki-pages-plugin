@@ -20,7 +20,9 @@ while [ $# -gt 0 ]; do
 done
 VAULT_NAME=$(basename "$VAULT")
 
-# Returns a plain error message on stdout, or nothing on success
+# Returns a plain error message on stdout, or nothing on success.
+# U4 (errors-that-teach): includes the specific offending fragment so the
+# author can locate the line without a separate grep.
 check_content() {
   local content="$1"
 
@@ -31,8 +33,10 @@ check_content() {
   # Strip fenced code blocks to avoid false positives on examples
   body=$(echo "$body" | sed '/^```/,/^```/d')
 
-  if echo "$body" | grep -qE '\[.+\]\([^)]+\.md\)'; then
-    echo 'Wiki file uses [text](file.md) links. Convert to [[Page Title]] wikilinks for Obsidian compatibility.'
+  local offending
+  offending=$(echo "$body" | grep -oE '\[.+\]\([^)]+\.md\)' | head -1 || true)
+  if [ -n "$offending" ]; then
+    echo "Wiki file uses [text](file.md) links (e.g. ${offending}). Convert to [[Page Title]] wikilinks for Obsidian compatibility."
   fi
 }
 
@@ -75,9 +79,13 @@ esac
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
 if [ "$TOOL" = "Edit" ]; then
   NEW=$(echo "$INPUT" | jq -r '.tool_input.new_string // empty')
-  if [ -n "$NEW" ] && echo "$NEW" | grep -qE '\[.+\]\([^)]+\.md\)'; then
-    echo '{"decision":"block","reason":"Edit introduces [text](file.md) links. Use [[Page Title]] wikilinks for Obsidian compatibility."}'
-    exit 0
+  if [ -n "$NEW" ]; then
+    local_frag=$(echo "$NEW" | grep -oE '\[.+\]\([^)]+\.md\)' | head -1 || true)
+    if [ -n "$local_frag" ]; then
+      escaped_frag=$(printf '%s' "$local_frag" | sed 's/"/\\"/g')
+      echo "{\"decision\":\"block\",\"reason\":\"Edit introduces [text](file.md) links (e.g. ${escaped_frag}). Use [[Page Title]] wikilinks for Obsidian compatibility.\"}"
+      exit 0
+    fi
   fi
   exit 0
 fi

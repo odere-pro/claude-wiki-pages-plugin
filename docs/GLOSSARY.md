@@ -70,6 +70,28 @@ Formal contracts. Defined in `docs/vault-example/CLAUDE.md`; enforced by `valida
 | MOC            | Map of Content. Established PKM term for a navigation page over a scope. Frontmatter `type: index`. Per-folder MOC is `_index.md`; vault MOC is `wiki/index.md`. Scope differs; the concept is the same. |
 | synthesis note | A page under `wiki/_synthesis/` with `type: synthesis`. Cross-topic analysis.                                                                                                                            |
 | portable markdown | GitHub-flavored markdown without Obsidian-only syntax (`[[wikilinks]]`, Dataview, callouts, block IDs). The output format produced by `markdown` into `vault/output/`. Distinct from wiki pages, which use Obsidian-flavored markdown.                  |
+| confidence decay | The gradual decrease in a page's `confidence` score as time passes without a source refresh, signalling that derived claims may be stale. Drives staleness detection in the curator agent. |
+| staleness signal | Any indicator — elapsed time, missing sources, or low confidence — that a page may no longer reflect its raw sources. Surfaced by lint and the curator's staleness check. |
+
+### Ontology terms
+
+Formal vocabulary for the plugin's knowledge model. Defined in the `ontology-profile-v1` block of `docs/vault-example/CLAUDE.md`; consumed by the classifier, the graph-traversal primitive, and the tag taxonomy.
+
+| Term                  | Description                                                                                                                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ontology              | The formal set of classes, properties, and typed relationships that structure the wiki. Lives in the `ontology-profile-v1` block of the vault schema; never a triplestore or RDF database.       |
+| ontology-profile-v1   | The first versioned ontology block in `docs/vault-example/CLAUDE.md`. The single source of truth for the predicate domain→range table and the `entity_type` enum. Blocks R2, C1, and I1 until present. |
+| class                 | A named category of wiki page in the ontology (e.g. `Person`, `Tool`, `Concept`). Every page with `type: entity` belongs to exactly one class via `entity_type`.                                |
+| property              | A named attribute of a class in the ontology (e.g. `title`, `aliases`, `confidence`). Corresponds to a frontmatter field on pages of that class.                                                |
+| predicate             | A typed directed relationship between two pages (e.g. `depends_on`, `related`, `sources`). Predicates form the edges of the wikilink graph and carry a `domain` and `range` constraint.         |
+| domain                | The class that is the subject of a predicate — the page type that may carry this wikilink field. Defined per predicate in `ontology-profile-v1`.                                                 |
+| range (ontology)      | The class that is the object of a predicate — the page type a wikilink field must point to. Distinct use of the word "range" from any numeric/interval sense; defined per predicate in `ontology-profile-v1`. |
+| controlled vocabulary    | A closed, maintained list of permitted values for a field (e.g. `entity_type`, `tag`). Changes require explicit governance; random additions are a lint error. See `tag taxonomy`.               |
+| entity_type_extensions   | The vault-owner-controlled extension list that may add values to the `entity_type` enum beyond the closed core. Only `entity_type` is vault-extensible (Decision D15 of `tmp/SOFTWARE-3-0-plan.md`); predicates and the page-type enum stay closed-core and cannot be extended per vault. Defined in `ontology-profile-v1`. |
+| structured authoring  | Writing pages as instances of typed classes, conforming to a template, with single-sourced facts and presentation-independent content — the wiki's authoring discipline.                         |
+| single-sourcing       | Storing a fact in exactly one wiki page and referencing it elsewhere via `[[wikilinks]]`, so updates propagate without copy-paste drift.                                                          |
+| modular content       | Content broken into typed, reusable page units (entities, concepts, topics) rather than monolithic documents, enabling flexible composition without duplication.                                  |
+| presentation-independence | The property of wiki pages whose meaning is separable from their rendered view. The Obsidian render is a view; the wiki page is the canonical form.                                           |
 
 ### Architecture terms
 
@@ -102,6 +124,7 @@ The plugin's structure. Contracts in [`architecture.md`](./architecture.md).
 | catch-up                | Acting on a backlog: the ingest → curator → polish → lint loop that clears pending sources and refreshes lint. |
 | maintenance             | Autonomous upkeep: the `maintenance` config block + `claude-wiki-pages-maintenance-agent` that runs the catch-up loop in one pass. Off by default. |
 | proposed draft          | A page under `vault/_proposed/` with `status: draft` and `proposed_by`. Mirrors its eventual `wiki/` path; outside every wiki-scoped check until promoted. |
+| `_proposed/`            | The staging directory (`vault/_proposed/`) that holds proposed drafts. A sibling of `wiki/`; sits outside every wiki-scoped check (frontmatter validation, lint, index) until a draft is promoted via `propose approve`. There is exactly one `_proposed/` channel — no second draft mechanism. |
 | review                  | The promote/reject gate (`/claude-wiki-pages:review` + engine `propose`). The only sanctioned path from a draft to the wiki; runs under a git checkpoint. |
 | local model             | Optional Ollama/LM Studio drafting into `_proposed/` (`/claude-wiki-pages:draft`, `localModel` config). Off by default — Claude Code stays primary. |
 | layer coloring          | An optional graph-color pass (raw→green, wiki→blue, schema→orange) layered after per-topic colors, so the three-layer structure is visible at a glance. Applied by the polish agent via `obsidian-graph-colors`. |
@@ -188,6 +211,82 @@ Lowercase in body prose; capitalize at the start of a heading. Each logs an entr
 | post-install perspective | The voice user guides are written in. Assume `/plugin install`, not `git clone`.                     |
 | marketplace              | Same-repo marketplace: `.claude-plugin/marketplace.json` points at `.`; the repo is the marketplace. |
 | GraphRAG                 | Graph-aware retrieval: expand a `search` hit along the wikilink graph (`sources`, `related`, `depends_on`) to its N-hop neighbourhood. Documented direction for a future `search --graph`; traversal over the existing graph, not a new index. |
+
+### Software 3.0 and design terms
+
+Terms introduced by the Software 3.0 entry-point and design-drift gate work (`SOFTWARE-3-0.md`, `docs/design/`, ADR-0013).
+
+| Term                      | Description                                                                                                                                                                               |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Software 3.0              | The development posture where the repo's docs, tools, design, system design, context, and memory are equally accessible and usable by humans and by agents — enforced by gates, not just by convention. Named after the Software 3.0 paradigm; applied here to make every surface dual-entry by construction. |
+| dual entry point          | Also: `dual-entry router`. The `SOFTWARE-3-0.md` file at the repo root that provides both a human on-ramp and an agent on-ramp for every project surface. It is a **link-only dev-time router** — it links, never restates — and is not copied into a user's vault on install. Must not be confused with the `manifest` term (Decision D2 of `tmp/SOFTWARE-3-0-plan.md`). |
+| parity gate               | A CI assertion that enforces the "equally usable" contract: every row of the `SOFTWARE-3-0.md` dual-entry router must have a non-empty human cell and a non-empty agent cell, each with a resolving link. A single-ramped row fails the build and names the offending surface. Implemented as assertion 5f inside `scripts/validate-docs.sh` Check 5 (ADR-0013). |
+| design-drift gate         | Also: `node grounding`. The `validate-docs.sh` Check 5 added by ADR-0013, scanning `docs/design/*.md` and `SOFTWARE-3-0.md` for five categories of drift: (a) mermaid nodes naming a path that no longer exists, (b) dead relative links, (c) hook/script names not matching `hooks/hooks.json`, (d) count assertions in `06-feature-relations.md` differing from reality, (e) missing Authority links. Uses grep/awk/bash only (Tier-0); no mermaid parser. |
+| node grounding            | The requirement that every path-shaped token (a directory form or a known-extension file reference) inside a mermaid fence resolves to a real repo path or is covered by a `[speculative]` marker. Prose labels with no path-shaped token contribute nothing to grounding (the false-positive bound). See `design-drift gate`. |
+| `[speculative]`           | A design-doc marker that exempts an unresolved mermaid node, fence, or diagram from the node-grounding check (5a of ADR-0013). Used when a diagram depicts a planned-but-not-yet-built path; the marker must appear in the block or doc carrying the ungrounded node. A `[speculative]` node or fence always passes the gate even if its path token does not resolve. |
+
+### Retrieval terms
+
+Concepts for the deterministic, embedding-free retrieval path (§5 non-negotiable).
+
+| Term                    | Description                                                                                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| synonym lexicon         | The checked-in file of curated term→alias mappings used to expand a query before the keyword match. Distinct from frontmatter `aliases`, which are page-level; the lexicon is vault-global and governed. |
+| synonym expansion       | Replacing a query term with its synonyms from the synonym lexicon before keyword matching, so a search for "ML" also matches pages tagged "machine learning".                                    |
+| query expansion         | Broadening a search query by adding synonyms, stems, or related terms before matching, increasing recall without embeddings.                                                                     |
+| stemming                | Reducing query and page tokens to their root form (e.g. "running" → "run") so morphological variants match. Applied deterministically in the Bun engine; no ML model involved.                  |
+| graph link-walk         | Following typed wikilinks (`sources`, `related`, `depends_on`) from a seed page to its N-hop neighbourhood. The non-embedding recall mechanism; walks the existing Obsidian graph structure.    |
+| graph-traversal primitive | The single engine function that executes a graph link-walk given a seed page, a predicate set (from `ontology-profile-v1`), and a hop limit N. Returns scored page references, never page bodies. Shared by R2, R3, and C1. |
+| candidate filter        | A `--type`, `--folder`, or `--tag` argument that restricts the search corpus before ranking, improving precision. Implemented in the engine `search` command.                                    |
+| score breakdown         | The per-match explanation of how a search score was assembled (title hit, tag hit, body hit, graph proximity). Emitted in JSON under the `matched{}` field; used by the analyst for cut-off decisions. |
+| match component         | One entry in a `score breakdown` — a `{channel, term, hits, points}` record naming which scoring channel (title-phrase, title-term, tag-term, body-term) a query term fired and the points it contributed. The atom of `matched{}`; a hit's `score` equals the sum of its match components' `points`. |
+| working set             | The subset of wiki pages loaded into the LLM's context window for a given query or agent turn, bounded by the context budget.                                                                    |
+| MOC descent             | Traversing the Map-of-Content hierarchy (vault MOC → topic MOC → page) to collect the relevant working set for a query, staying within the context budget.                                      |
+| context budget          | The maximum token allocation reserved for wiki-page content in a single LLM call. Constrains MOC descent depth and the size of the working set.                                                 |
+| tag taxonomy            | The governed closed list of tags permitted in vault frontmatter. A subset of the controlled vocabulary; subject to quality and freshness evaluations to prevent drift.                           |
+
+### Vault management terms
+
+| Term                      | Description                                                                                                                                                                               |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| active vault              | The single vault currently designated for writes. Exactly one vault is active at a time; the firewall enforces write confinement to it. Set via `scripts/set-vault.sh` or the `switch` lifecycle command. |
+| vault registry            | The managed list of vaults known to the plugin, stored in `.claude/claude-wiki-pages/settings.json`. Supports `add`, `remove`, `merge`, and `switch` lifecycle operations.               |
+| vault lifecycle           | The set of operations that govern a vault's membership in the registry: `add` (register), `remove` (deregister), `merge` (consolidate two vaults), `switch` (change the active vault).  |
+| vault merge               | The lifecycle operation that consolidates two vaults into one, deduplicating by `sources` and title, and flagging collisions for human review.                                            |
+| per-vault write confinement | The firewall invariant that agent and tool writes are restricted to the active vault plus its explicit `allowPaths`. Cross-vault writes are blocked. Enforced by `scripts/firewall.sh` and `src/core/firewall.ts`. |
+| registered vault roots   | The set of vault root paths currently enrolled in the vault registry. A vault root becomes registered via the `add` lifecycle command and is eligible to be made the active vault. Alias for the membership dimension of `vault registry`. |
+| cross-vault              | Describes any operation that would read from or write to a vault other than the currently active one. Cross-vault writes are unconditionally blocked by the firewall (`scripts/firewall.sh`); cross-vault reads are also prohibited unless explicitly permitted. The confinement rule enforced by `per-vault write confinement`. |
+
+### Ingest and memory terms
+
+| Term                      | Description                                                                                                                                                                               |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| agent-session source      | A wiki page written by an agent during a session, carrying `source_type: agent-session` in frontmatter. The sanctioned `source_type` for durable-memory write-backs via the review gate. |
+| session learning          | Observations or conclusions an agent accumulates during a session that are candidates for durable storage as `agent-session source` pages via the `_proposed/` channel.                   |
+| ingest-extract            | The sub-step of the ingest pipeline that reads a raw source and extracts structured entities, concepts, and claims before writing wiki pages. Distinct from the write step.              |
+| local-ingest-stub         | A lightweight ingest path (`/claude-wiki-pages:draft` with `localModel.enabled`) that routes new content through `_proposed/` for human review rather than writing directly to `wiki/`. Pc in the roadmap. |
+| provenance-completeness   | The property of a wiki page that every claim traceable to a raw source carries an explicit `sources` entry (and optionally `source_quotes`). Checked by the provenance-completeness lint rule (I3). |
+| classification checklist  | The structured prompt or rule (I1) that ensures an ingested entity is evaluated against the `entity_type` enum and assigned to the correct class before a wiki page is written.          |
+
+### Capability and model terms
+
+| Term                  | Description                                                                                                                                                                               |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| capability tier       | A named level of plugin functionality tied to the available LLM (e.g. Tier 1: Claude full, Tier 2: Ollama draft-only). Each tier specifies which skills and agents are active.           |
+| capability progression | The roadmap plan to widen local-model scope one capability tier at a time, gated on each tier meeting a defined quality threshold before the next tier is unlocked.                      |
+| degraded mode         | Operation at a lower capability tier when the full-capability model (Claude) is unavailable. The plugin remains functional for the capabilities of the active tier.                      |
+| model-agnostic        | The design property that plugin logic (skills, agents, scripts) makes no assumption about which LLM is running. Provider selection is a configuration concern (`localModel` config block). |
+| quality gate          | A defined eval metric and pass threshold that a local model must meet before a capability tier is widened. Prevents premature expansion of Ollama scope beyond proven ability.           |
+| golden set            | A checked-in fixtures set of raw-source inputs paired with their expected structured output (frontmatter plus claims), used as the deterministic reference for the local-model quality-gate eval. Output is scored by exact comparison to the golden set, never by vector similarity.           |
+
+### UX and DX terms
+
+| Term                  | Description                                                                                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| progressive disclosure | Surfacing only the concepts a user needs at their current stage, revealing more advanced options only after the basics are mastered. Governs how the plugin presents verbs and flags.       |
+| one advertised path   | The UX principle that exactly one verb is promoted as the entry point for each task (`/claude-wiki-pages:wiki`); alternatives exist but are documented below a fold.                        |
+| time-to-first-value   | The elapsed time from install to the user's first successful cited answer. A UX health metric for the onboarding flow.                                                                      |
+| time-to-mastery       | The elapsed time from first-value to confident independent use of the power-user surface. A UX health metric for the progressive-disclosure design.                                         |
 
 ### Authoritative files
 

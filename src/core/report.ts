@@ -33,6 +33,14 @@ export interface Report {
   readonly warnings: number;
   /** True when there are zero error-severity findings. */
   readonly clean: boolean;
+  /**
+   * Optional follow-up page paths for JSON consumers only (e.g. the analyst
+   * agent reading structured output). `buildReport` does NOT set this field;
+   * commands that want it extend the frozen Report with a spread. `renderText`
+   * intentionally ignores it to preserve byte-identical parity with the bash
+   * verifiers (gate-05).
+   */
+  readonly next?: readonly string[];
 }
 
 /** Build an immutable Report from a flat list of findings. */

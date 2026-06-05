@@ -99,3 +99,43 @@ MD
   assert_success
   assert_output_empty
 }
+
+# --- U4 errors-that-teach ----------------------------------------------------
+
+@test "check-wikilinks: error includes the offending fragment (U4)" {
+  # Before U4: generic "Wiki file uses [text](file.md) links" with no context.
+  # After U4: the specific offending fragment appears so the author can locate it.
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  local content
+  content=$(cat <<'MD'
+---
+title: "Fragment Test"
+type: entity
+entity_type: tool
+aliases: ["Fragment Test"]
+parent: "[[Topics — Index]]"
+path: "topics"
+sources: ["[[Sample]]"]
+created: 2026-04-18
+updated: 2026-04-18
+status: active
+confidence: 0.9
+---
+
+# Fragment Test
+
+See the [sample entity](sample-entity.md) for details.
+MD
+  )
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/topics/fragment-test.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/check-wikilinks.sh" "$json_file"
+
+  assert_success
+  assert_output_contains '"decision":"block"'
+  # The offending fragment must be present in the reason so the author can find it.
+  assert_output_contains "sample-entity.md"
+}

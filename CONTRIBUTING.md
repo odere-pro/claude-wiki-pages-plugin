@@ -16,6 +16,38 @@ Thanks for your interest in `claude-wiki-pages`. This document is short because 
 3. Keep PRs focused. A skill change, a schema change, and a doc change are three PRs, not one.
 4. Update `CHANGELOG.md` under `[Unreleased]` with your change.
 
+## Local test loop
+
+Install all dev and test dependencies (idempotent; detects macOS/Linux automatically):
+
+```bash
+bash tests/install-deps.sh
+```
+
+Run the default suite (Tier 0 static gates + Tier 1 Bats):
+
+```bash
+bash tests/run-tests.sh
+```
+
+Run individual tiers:
+
+```bash
+bash tests/run-tests.sh tier0    # shellcheck, shfmt, markdownlint, lychee, gitleaks, validate-docs
+bash tests/run-tests.sh tier1    # Bats unit tests (tests/scripts/)
+bash tests/run-tests.sh tier2    # smoke tests (self-skips without the `claude` CLI)
+bash tests/run-tests.sh tier3    # permanently dropped — self-skips with a clear message
+bash tests/run-tests.sh --list   # print commands without running them
+```
+
+Install the pre-commit hook so Tier 0 runs automatically on every commit:
+
+```bash
+pre-commit install
+```
+
+(Requires [pre-commit](https://pre-commit.com). `bash tests/install-deps.sh` installs it for you.)
+
 ## Local development
 
 Test the plugin from a fresh project:

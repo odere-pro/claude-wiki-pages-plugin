@@ -344,6 +344,267 @@ while IFS= read -r dir; do
 done < <(find "$WIKI" -mindepth 1 -maxdepth 1 -type d | sort)
 
 # ──────────────────────────────────────────────
+# CHECK 4: S4-derivation — staleness from updated vs newest cited-source date
+#
+# For each wiki page (excluding bookkeeping) that carries a sources: list,
+# resolve each [[wikilink]] to the matching file in wiki/_sources/ (by title:
+# or aliases: match). Find the newest date on the cited source (updated: first,
+# then date_ingested:, then date_published:). If that source date is strictly
+# newer than the wiki page's own updated:, emit a WARN-level "stale-source"
+# finding. An unresolvable wikilink emits a separate "dangling-source" WARN and
+# is NOT counted as fresh (source-relative, not calendar-relative; no auto-
+# mutation of status:).
+# ──────────────────────────────────────────────
+header "Cited-source staleness (S4)"
+
+# Helper: extract the first occurrence of a scalar frontmatter field.
+# Usage: _fm_field <file> <field-name>
+# Returns the trimmed value or empty string.
+# `grep -m1` avoids piping into `head` (which would SIGPIPE grep under
+# `set -o pipefail`); the trailing `|| true` absorbs grep's exit-1 on no match
+# so a missing field yields "" instead of killing the script under `set -e`.
+_fm_field() {
+  local file="$1" field="$2"
+  local line
+  line=$(sed -n '/^---$/,/^---$/p' "$file" | grep -m1 -E "^${field}:[[:space:]]" || true)
+  [ -z "$line" ] && return 0
+  printf '%s' "$line" | sed "s/^${field}:[[:space:]]*//" | tr -d "\"'"
+}
+
+# Helper: given a wikilink target name (without [[ ]]), find the source file in
+# _sources/ whose title: or aliases: contains that name.
+# Prints the absolute filepath or nothing.
+_resolve_source_wikilink() {
+  local target="$1"
+  local sources_dir="$2"
+  [ -d "$sources_dir" ] || return 0
+  while IFS= read -r candidate; do
+    # Match against title:
+    local title
+    title=$(_fm_field "$candidate" "title")
+    if [ "$title" = "$target" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+    # Match against aliases: (inline list, e.g. aliases: ["Foo", "foo"])
+    local aliases_line
+    aliases_line=$(sed -n '/^---$/,/^---$/p' "$candidate" |
+      grep -m1 -E "^aliases:" || true)
+    if [ -n "$aliases_line" ] && echo "$aliases_line" | grep -qF "\"${target}\""; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done < <(find "$sources_dir" -name '*.md' -not -name '.gitkeep' -type f | sort)
+  # Not found
+  return 0
+}
+
+# Helper: return the best available date from a source file (YYYY-MM-DD string).
+# Priority: updated: > date_ingested: > date_published:
+_source_best_date() {
+  local file="$1"
+  local d
+  d=$(_fm_field "$file" "updated")
+  [ -n "$d" ] && printf '%s\n' "$d" && return
+  d=$(_fm_field "$file" "date_ingested")
+  [ -n "$d" ] && printf '%s\n' "$d" && return
+  d=$(_fm_field "$file" "date_published")
+  [ -n "$d" ] && printf '%s\n' "$d" && return
+  printf ''
+}
+
+STALE_SOURCE_FOUND=0
+
+while IFS= read -r filepath; do
+  BASENAME=$(basename "$filepath" .md)
+  # Skip bookkeeping files; _sources/ pages are the targets, not the checkers.
+  case "$BASENAME" in
+    index | log | dashboard | manifest | _index | .gitkeep) continue ;;
+  esac
+  # Skip the _sources/ directory itself and _synthesis/.
+  case "$filepath" in
+    */_sources/*) continue ;;
+    */_synthesis/*) continue ;;
+  esac
+
+  # Extract the wiki page's own updated: date.
+  PAGE_UPDATED=$(_fm_field "$filepath" "updated")
+  [ -z "$PAGE_UPDATED" ] && continue # no updated: field — skip staleness check
+
+  # Extract sources: wikilink entries from frontmatter.
+  PAGE_SOURCES=$(sed -n '/^---$/,/^---$/p' "$filepath" | awk '
+    /^sources:/ {
+      if ($0 ~ /\[/) {
+        line = $0
+        sub(/^sources:[[:space:]]*\[/, "", line)
+        sub(/\][[:space:]]*$/, "", line)
+        n = split(line, items, ",")
+        for (i = 1; i <= n; i++) {
+          gsub(/^[[:space:]"'\'']+|[[:space:]"'\'']+$/, "", items[i])
+          if (items[i] != "") print items[i]
+        }
+        next
+      }
+      while ((getline line) > 0) {
+        if (line !~ /^[[:space:]]*-/) break
+        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
+        gsub(/"?[[:space:]]*$/, "", line)
+        if (line != "") print line
+      }
+    }
+  ')
+  [ -z "$PAGE_SOURCES" ] && continue
+
+  while IFS= read -r entry; do
+    [ -z "$entry" ] && continue
+    # Only process [[wikilink]] entries (plain-string check is CHECK 2).
+    if echo "$entry" | grep -qE '^\[\[.+\]\]$'; then
+      # Strip [[ and ]] to get target name; also strip alias suffix after |.
+      TARGET=$(echo "$entry" | sed 's/^\[\[//' | sed 's/\]\]$//' | cut -d'|' -f1)
+      # Resolve to a file in _sources/.
+      SOURCE_FILE=$(_resolve_source_wikilink "$TARGET" "$WIKI/_sources")
+      if [ -z "$SOURCE_FILE" ]; then
+        yellow "dangling-source: \"${TARGET}\" cited by $(basename "$filepath") could not be resolved in _sources/"
+        WARNINGS=$((WARNINGS + 1))
+        STALE_SOURCE_FOUND=$((STALE_SOURCE_FOUND + 1))
+        continue
+      fi
+      SOURCE_DATE=$(_source_best_date "$SOURCE_FILE")
+      if [ -z "$SOURCE_DATE" ]; then
+        continue # source has no date field — cannot evaluate staleness
+      fi
+      # Compare YYYY-MM-DD strings lexicographically (valid for ISO dates).
+      # Stale when source_date is strictly greater than page_updated.
+      if [[ "$SOURCE_DATE" > "$PAGE_UPDATED" ]]; then
+        PAGE_TITLE=$(_fm_field "$filepath" "title")
+        [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
+        yellow "stale-source: \"${PAGE_TITLE}\" ($(basename "$filepath")) updated ${PAGE_UPDATED} but cited source \"${TARGET}\" has date ${SOURCE_DATE}"
+        WARNINGS=$((WARNINGS + 1))
+        STALE_SOURCE_FOUND=$((STALE_SOURCE_FOUND + 1))
+      fi
+    fi
+  done <<<"$PAGE_SOURCES"
+done < <(find "$WIKI" -name '*.md' -type f | sort)
+
+if [ "$STALE_SOURCE_FOUND" -eq 0 ]; then
+  green "All cited sources are current (no staleness findings)"
+fi
+
+# ──────────────────────────────────────────────
+# CHECK 5: I3 — provenance-completeness
+#
+# 5a. source-presence: a page whose type: is one of entity / concept / topic /
+#     project / synthesis MUST have at least one entry in sources:.  An empty
+#     or absent sources: list is an ERROR.  Pages whose sources: list is
+#     non-empty but contains malformed entries are already caught by CHECK 2;
+#     this check counts only the presence of at least one entry and must NOT
+#     double-flag those pages.
+#
+# 5b. derived/confidence consistency: a page with derived: true must keep
+#     confidence < 0.8.  Any violation is a WARN.
+# ──────────────────────────────────────────────
+header "Provenance completeness (I3)"
+
+SOURCE_REQUIRING_TYPES="entity concept topic project synthesis"
+PROVENANCE_ERRORS=0
+DERIVED_WARNS=0
+
+while IFS= read -r filepath; do
+  BASENAME=$(basename "$filepath" .md)
+  # Skip bookkeeping files.
+  case "$BASENAME" in
+    index | log | dashboard | manifest | _index | .gitkeep) continue ;;
+  esac
+  # Skip _sources/ and _synthesis/ directories.
+  case "$filepath" in
+    */_sources/*) continue ;;
+    */_synthesis/*) continue ;;
+  esac
+
+  # Read the type: field from frontmatter.
+  PAGE_TYPE=$(sed -n '/^---$/,/^---$/p' "$filepath" |
+    grep -m1 -E '^type:[[:space:]]' | sed 's/^type:[[:space:]]*//' | tr -d "\"'" || true)
+
+  # ── 5a: source-presence ──────────────────────────────────────────────────
+  # Only check source-requiring types.
+  IS_REQUIRING=0
+  for t in $SOURCE_REQUIRING_TYPES; do
+    if [ "$PAGE_TYPE" = "$t" ]; then
+      IS_REQUIRING=1
+      break
+    fi
+  done
+
+  if [ "$IS_REQUIRING" -eq 1 ]; then
+    # Count entries in sources:. We need the raw count regardless of format
+    # so that malformed-but-present entries are not double-flagged.
+    ENTRY_COUNT=$(sed -n '/^---$/,/^---$/p' "$filepath" | awk '
+      /^sources:/ {
+        if ($0 ~ /\[/) {
+          # Inline array: count comma-separated tokens inside the brackets.
+          line = $0
+          sub(/^sources:[[:space:]]*\[/, "", line)
+          sub(/\][[:space:]]*$/, "", line)
+          # Empty inline array: "[]"
+          if (line == "") { print 0; exit }
+          n = split(line, items, ",")
+          count = 0
+          for (i = 1; i <= n; i++) {
+            gsub(/^[[:space:]"'\'']+|[[:space:]"'\'']+$/, "", items[i])
+            if (items[i] != "") count++
+          }
+          print count; exit
+        }
+        # Multi-line array: count "- " lines.
+        count = 0
+        while ((getline line) > 0) {
+          if (line !~ /^[[:space:]]*-/) break
+          gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
+          gsub(/"?[[:space:]]*$/, "", line)
+          if (line != "") count++
+        }
+        print count; exit
+      }
+    ')
+    # If awk printed nothing, sources: is absent — treat as 0.
+    ENTRY_COUNT="${ENTRY_COUNT:-0}"
+
+    if [ "$ENTRY_COUNT" -eq 0 ]; then
+      PAGE_TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$filepath")
+      [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
+      red "no-sources: \"${PAGE_TITLE}\" ($(basename "$filepath")) has type \"${PAGE_TYPE}\" but no sources entries"
+      PROVENANCE_ERRORS=$((PROVENANCE_ERRORS + 1))
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+
+  # ── 5b: derived/confidence consistency ────────────────────────────────────
+  DERIVED_VAL=$(sed -n '/^---$/,/^---$/p' "$filepath" |
+    grep -m1 -E '^derived:[[:space:]]' | sed 's/^derived:[[:space:]]*//' | tr -d "\"'" || true)
+
+  if [ "$DERIVED_VAL" = "true" ]; then
+    CONF_VAL=$(sed -n '/^---$/,/^---$/p' "$filepath" |
+      grep -m1 -E '^confidence:[[:space:]]' | sed 's/^confidence:[[:space:]]*//' | tr -d "\"'" || true)
+    if [ -n "$CONF_VAL" ]; then
+      # Use awk for floating-point comparison (bash arithmetic is integer-only).
+      IS_HIGH=$(awk -v c="$CONF_VAL" 'BEGIN { print (c + 0 >= 0.8) ? "1" : "0" }')
+      if [ "$IS_HIGH" = "1" ]; then
+        PAGE_TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$filepath")
+        [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
+        yellow "derived-high-confidence: \"${PAGE_TITLE}\" ($(basename "$filepath")) has derived: true but confidence ${CONF_VAL} >= 0.8 — lower confidence to reflect inferred status"
+        DERIVED_WARNS=$((DERIVED_WARNS + 1))
+        WARNINGS=$((WARNINGS + 1))
+      fi
+    fi
+  fi
+
+done < <(find "$WIKI" -name '*.md' -type f | sort)
+
+if [ "$PROVENANCE_ERRORS" -eq 0 ] && [ "$DERIVED_WARNS" -eq 0 ]; then
+  green "All provenance checks passed"
+fi
+
+# ──────────────────────────────────────────────
 # SUMMARY
 # ──────────────────────────────────────────────
 header "Summary"

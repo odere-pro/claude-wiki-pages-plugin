@@ -19,6 +19,11 @@ export interface FirewallOptions {
   readonly target?: string;
   readonly cwd?: string;
   readonly file: string;
+  /**
+   * S3 cross-vault: the OTHER registered vault roots (all vaults[] paths minus
+   * the active one). Writes into these are blocked as "cross-vault".
+   */
+  readonly otherVaults?: readonly string[];
 }
 
 export function firewallCheck(opts: FirewallOptions): FirewallReport {
@@ -30,6 +35,7 @@ export function firewallCheck(opts: FirewallOptions): FirewallReport {
     vault,
     allowPaths: firewall.allowPaths,
     denyPaths: firewall.denyPaths,
+    otherVaults: opts.otherVaults ?? [],
   });
   return { command: "firewall", vault, file: opts.file, ...decision };
 }

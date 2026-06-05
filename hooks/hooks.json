@@ -95,6 +95,28 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/session-memory.sh",
+            "description": "Persist session learning as source_type: agent-session raw source when CLAUDE_WIKI_PAGES_SESSION_SCRATCH is set. Lazy: no-op when scratch absent or empty. Idempotent on session ID. Does NOT ingest to wiki — that happens on next /wiki or maintenance pass."
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/session-memory.sh",
+            "description": "Persist session learning as source_type: agent-session raw source when CLAUDE_WIKI_PAGES_SESSION_SCRATCH is set. Lazy: no-op when scratch absent or empty. Idempotent on session ID. Does NOT ingest to wiki — that happens on next /wiki or maintenance pass."
+          }
+        ]
+      }
     ]
   }
 }

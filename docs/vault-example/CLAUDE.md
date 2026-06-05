@@ -6,6 +6,9 @@
 
 This file is the authoritative schema for any wiki operation. Skills and agents override their own defaults when those defaults conflict with the rules below.
 
+> [!note] Git requirement
+> Every vault is its own git repo; `init` git-inits it; structural writes commit. This is the foundation for reversible self-heal, checkpoints, and durable-memory write-backs.
+
 ## Purpose
 
 This is a personal research vault following Karpathy's LLM Wiki pattern.
@@ -76,14 +79,32 @@ Nine allowed types: `source`, `entity`, `concept`, `topic`, `project`, `synthesi
 
 The `log` type is used only for `wiki/log.md` (the operations log). It requires minimal frontmatter: `title`, `type`, `created`, `updated`. Log entries may use `[[wikilinks]]` to reference real pages (e.g., `[[LLM Wiki Pattern]]`), but when describing old/fixed/invalid link patterns, use backtick code formatting instead (e.g., `` `_index` `` not `[[_index]]`) — otherwise Obsidian creates ghost nodes in the graph.
 
+### Required fields by type
+
+The two universal required fields `type` and `title` apply to every typed page and are not repeated in the table below.
+
+This table is the **single source of truth** for required fields per page type. `scripts/validate-frontmatter.sh` parses this table at gate time (grep/awk only — no Bun). Changing a required field means editing this table and only this table; the per-type YAML examples below are illustrations.
+
+| Type | Required fields | Conditional |
+| --- | --- | --- |
+| `source` | `source_type sources created updated status confidence` | `source_format != text` requires `attachment_path extracted_at` |
+| `entity` | `entity_type parent path sources created updated status confidence` | — |
+| `concept` | `parent path sources created updated status confidence` | — |
+| `topic` | `summary parent path sources created updated status confidence` | — |
+| `project` | `objective project_status parent path sources created updated status confidence` | — |
+| `synthesis` | `synthesis_type sources created updated status confidence` | — |
+| `index` | `aliases created updated` | — |
+| `manifest` | `created updated` | — |
+| `log` | `created updated` | — |
+
 ### Source notes (`wiki/_sources/`)
 
 ```yaml
 ---
 title: "Article or Document Title"
 type: source
-source_type: article | paper | policy | transcript | book | video | podcast | manual
-source_format: text | image # default: text. Required if the original is not markdown/plain text.
+source_type: article | paper | policy | transcript | book | video | podcast | manual | agent-session
+source_format: text | image | pdf # default: text. Required if the original is not markdown/plain text.
 attachment_path: "raw/assets/..." # required when source_format != text
 extracted_at: 2026-04-16 # required when source_format != text
 url: "https://..."
@@ -101,7 +122,7 @@ confidence: 1.0
 ---
 ```
 
-`source_format` defaults to `text`. The PDF / audio / video formats are deferred — extend the enum when those paths are implemented. When `source_format` is not `text`, both `attachment_path` and `extracted_at` are required, and `attachment_path` must point to a real file under `vault/raw/assets/`.
+`source_format` defaults to `text`. Audio / video formats are deferred — extend the enum when those paths are implemented. `pdf` is supported (I4): when `source_format` is `pdf` or `image`, both `attachment_path` and `extracted_at` are required, and `attachment_path` must point to a real file under `vault/raw/assets/`.
 
 ### Entity notes (type: `entity`, placed in topic folders)
 
@@ -316,6 +337,48 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 **`aliases`** enable wikilink resolution. Obsidian resolves `[[X]]` by matching filenames or aliases — not titles. Since filenames are kebab-case but wikilinks use Title Case page titles, **the `title` value must always appear as the first entry in `aliases`**. Without this, every `[[Title Case Link]]` creates a ghost node in the graph. On index notes, also include the topic name in common variations (slug, title case, abbreviations).
 
 **`created` / `updated`** use `YYYY-MM-DD` format.
+
+## Ontology profile (`ontology-profile-v1`)
+
+This section is the single named contract for the vault's formal ontology. R2 graph traversal, C1 MOC descent, and I1 classification all read these two tables and no other source. Do not duplicate or fork either table.
+
+> **Coverage note (D15).** This profile covers two closed sets: (1) the predicate domain→range table below — a closed set of typed wikilink predicates with declared domain, range, direction, and cardinality; and (2) the enum list below — closed canonical values for every schema enum. `entity_type` is the **sole vault-extensible axis**: an owner may widen it via `entity_type_extensions:` in their own CLAUDE.md (decision §11.6); all other enums are fully closed. Adding a new page `type` is a schema change requiring a new ADR, new templates, and a new row in the `### Required fields by type` table.
+
+### Predicate domain→range table
+
+Each row states: which predicate, which page class may originate the link (domain), which page class it may point to (range), and its direction and cardinality. "Page class" values are drawn from the `type` enum in the table below.
+
+| Predicate | Domain (source class) | Range (target class) | Direction / cardinality |
+| --- | --- | --- | --- |
+| `parent` | any non-root page (`entity`,`concept`,`topic`,`project`,`synthesis`,`index`) | `index` | directed, single |
+| `sources` | `entity`,`concept`,`topic`,`project`,`synthesis` | `source` | directed, 1..N (≥1) |
+| `related` | `entity`,`concept`,`topic`,`project` | `entity`,`concept`,`topic`,`project` | undirected, 0..N |
+| `contradicts` | `concept` | `concept` | undirected, 0..N |
+| `supersedes` | `concept`,`topic`,`project`,`synthesis` | same class as domain | directed, 0..N |
+| `depends_on` | `concept`,`topic`,`project` | `concept`,`entity` | directed, 0..N |
+| `key_pages` | `topic` | `entity`,`concept` | directed, 0..N |
+| `members` | `project` | `entity`,`concept` | directed, 0..N |
+| `scope` | `synthesis` | `entity`,`concept`,`topic`,`project` | directed, 1..N |
+| `children` | `index` | any non-root page | directed, 0..N |
+| `child_indexes` | `index` | `index` | directed, 0..N |
+
+> The graph-traversal primitive (Brief §6) takes its edge set from this table. R2 `--graph` walks the provenance/association core — `sources`+`related`+`depends_on` — to N≤2; the remaining rows (`key_pages`, `members`, `scope`, `children`, `child_indexes`, `parent`) are the MOC/descent edges C1 uses. `contradicts`/`supersedes` are available to R3/synthesis. An edge violating a row's domain/range is a future S1-check lint finding, NOT a traversal the engine follows.
+
+### Enum list
+
+All closed value sets for the schema, single-sourced here. I1's classifier and R1's `--type` filter both read the page-type enum; I1's entity sub-classifier reads `entity_type`. Every consumer reads from this table.
+
+| Enum | Canonical values | Closed? | Calibration |
+| --- | --- | --- | --- |
+| page type (`type`) | `source`,`entity`,`concept`,`topic`,`project`,`synthesis`,`index`,`manifest`,`log` | closed (core) | not vault-extensible — adding a type is a schema change (new ADR + new templates + lint case) |
+| `entity_type` (fixed core, calibratable) | `person`,`organization`,`product`,`tool`,`service`,`standard`,`place` | closed core + owner extension | owner adds via `entity_type_extensions:` allow-list in their OWN vault CLAUDE.md (decision #6); legal set = core ∪ extensions, composed at read time |
+| `source_type` | `article`,`paper`,`policy`,`transcript`,`book`,`video`,`podcast`,`manual`,`agent-session` | closed (core) | not owner-extensible |
+| `synthesis_type` | `comparison`,`theme`,`contradiction`,`gap`,`timeline` | closed (core) | not owner-extensible |
+| `project_status` | `planned`,`active`,`paused`,`done`,`abandoned` | closed (core) | not owner-extensible |
+| `source_format` | `text`,`image`,`pdf` (audio/video deferred) | closed (core) | not owner-extensible |
+| `status` | `active`,`stale`,`superseded`,`draft` | closed (core) | not owner-extensible |
+
+**Calibration mechanism.** A vault owner widens `entity_type` ONLY by adding the delta to their vault's own CLAUDE.md: `entity_type_extensions: [dataset, model]`. The legal set is then core ∪ extensions, computed at read time. There is no parallel enum file and no second list: the core list lives in this profile, the per-vault widening lives in that vault's authoritative CLAUDE.md, and a consumer reads both from the one schema document it already loads. Page type stays fully closed — widening it is a schema change, by design.
 
 ## Ingest rules
 

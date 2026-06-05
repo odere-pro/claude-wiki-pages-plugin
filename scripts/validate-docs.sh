@@ -2,15 +2,19 @@
 # scripts/validate-docs.sh — glossary gate per docs/GLOSSARY.md
 #
 # Checks:
-#   1. Banned strings (second-brain, second brain, vault-synthesize, vault-index)
+#   0. Banned strings (second-brain, second brain, vault-synthesize, vault-index)
 #      do not appear outside the explicit allowlist. These terms were retired
 #      from the glossary in schema version 1; their replacements are the
 #      `llm-wiki-*` skill names.
-#   2. Discoverability-register terms ("knowledge management", "agent harness",
+#   0b. Retired skill name `llm-wiki` (renamed to `init` in 1.0.0).
+#   1. Discoverability-register terms ("knowledge management", "agent harness",
 #      "LLM Wiki Stack", "raw material") do not leak into technical surfaces.
-#   3. Layer references are capitalized ("Layer 1", "Data layer", etc.).
-#   4. Slash commands in docs carry the /claude-wiki-pages: namespace prefix.
-#   5. Every /claude-wiki-pages:<name> reference resolves to a real skill or agent.
+#   2. Layer references are capitalized ("Layer 1", "Data layer", etc.).
+#   3. Slash commands in docs carry the /claude-wiki-pages: namespace prefix.
+#   4. Every /claude-wiki-pages:<name> reference resolves to a real skill or agent.
+#   5. Design-drift (ADR-0013): mermaid node grounding, link resolution, hook
+#      set-equality, feature-relation counts, authority presence, router parity.
+#      Scan set: docs/design/*.md and SOFTWARE-3-0.md.
 #
 # Exit 0 = clean. Exit 1 = violations. Exit 2 = setup error (not in repo root).
 
@@ -92,12 +96,14 @@ NAMESPACED_NAMES='doctor|wiki|claude-wiki-pages-orchestrator-agent|claude-wiki-p
 
 RED=$'\033[0;31m'
 GREEN=$'\033[0;32m'
+YELLOW=$'\033[0;33m'
 BOLD=$'\033[1m'
 RESET=$'\033[0m'
 
 header() { printf '\n%s=== %s ===%s\n' "$BOLD" "$1" "$RESET"; }
 err() { printf '%sFAIL:%s %s\n' "$RED" "$RESET" "$1"; }
 ok() { printf '%sPASS:%s %s\n' "$GREEN" "$RESET" "$1"; }
+warn() { printf '%sWARN:%s %s\n' "$YELLOW" "$RESET" "$1"; }
 
 exempt_from() {
   local file="$1"
@@ -270,6 +276,404 @@ if [ "$UNRESOLVED" -eq 0 ]; then
 else
   VIOLATIONS=$((VIOLATIONS + UNRESOLVED))
 fi
+
+# ─── Check 5: design-drift (ADR-0013) ───────────────────────────────────────
+#
+# Scan set: docs/design/*.md and SOFTWARE-3-0.md (via git ls-files).
+# Sub-checks:
+#   5a — mermaid node grounding: file-form tokens (.sh/.ts/.json/.md/.yml/.yaml)
+#        inside mermaid fences must resolve (scripts/ inventory or git ls-files).
+#        Docs carrying [speculative] are fully exempt.
+#   5b — link resolution: every ](./…) and ](../…) relative link must resolve,
+#        resolved relative to the linking file's directory. Gitignored targets and
+#        http(s)/mailto links are exempt.
+#   5c — hook set-equality: every script wired in hooks/hooks.json must appear
+#        somewhere in design-doc mermaid fences; PreToolUse ordering delta → WARN.
+#   5d — 06-feature-relations counts: stated agents/skills/commands/hook-event
+#        counts must match reality.
+#   5e — authority presence: each scanned doc must carry ≥1 resolvable link to
+#        an authority surface (CLAUDE.md, docs/architecture.md,
+#        docs/vault-example/CLAUDE.md, hooks/hooks.json,
+#        .claude-plugin/plugin.json, docs/adr/).
+#   5f — router parity: every row in SOFTWARE-3-0.md's "Six surfaces" table must
+#        have non-empty human AND agent cells, with all links resolving.
+
+header "Design-drift gate (Check 5)"
+
+# Guard: only run Check 5 if this looks like the full plugin repo.
+# Without hooks/hooks.json there is no ground truth for 5c/5d, and design
+# docs legitimately link to hooks/ — those links would all FAIL spuriously
+# in stripped contexts (e.g. isolated bats test repos).
+if ! git ls-files -- 'hooks/hooks.json' 2>/dev/null | grep -q .; then
+  ok "no hooks/hooks.json tracked — skipping design-drift check"
+else
+
+  # Helper: resolve a relative link from a given directory.
+  # Prints the resolved path if it exists, empty string if not.
+  # Gitignored paths are treated as "ok" (print "GITIGNORED").
+  # Usage: _resolve_link <dir> <link>
+  _resolve_link() {
+    local dir="$1" link="$2"
+    # Skip external links
+    case "$link" in http* | mailto*)
+      printf 'EXTERNAL'
+      return
+      ;;
+    esac
+    # Strip trailing anchor
+    link="${link%%#*}"
+    [ -z "$link" ] && {
+      printf 'OK'
+      return
+    }
+    # Resolve relative to dir using subshell
+    local exists
+    if exists=$(cd "$dir" 2>/dev/null && { [ -e "$link" ] && printf 'OK' || printf 'MISSING'; }); then
+      if [ "$exists" = "MISSING" ]; then
+        # Check if gitignored. Build absolute path with pure shell (no python3):
+        # get dir's physical absolute path, then walk the link's path segments.
+        local dirabs
+        dirabs=$(cd "$dir" 2>/dev/null && pwd) || true
+        if [ -n "$dirabs" ]; then
+          # Normalize: join dirabs + link, resolve . and .. segments.
+          local joined="$dirabs/$link"
+          local abs="" seg
+          local IFS='/'
+          for seg in $joined; do
+            case "$seg" in
+              '' | .) ;;
+              ..) abs="${abs%/*}" ;;
+              *) abs="$abs/$seg" ;;
+            esac
+          done
+          unset IFS
+          abs="${abs:-/}"
+          local rel="${abs#$(pwd)/}"
+          if git check-ignore -q "$rel" 2>/dev/null; then
+            printf 'GITIGNORED'
+            return
+          fi
+        fi
+        printf 'MISSING'
+      else
+        printf 'OK'
+      fi
+    else
+      printf 'MISSING'
+    fi
+  }
+
+  # Helper: check if a file-form token resolves.
+  # Returns 0 if resolved, 1 if not.
+  # Resolution order: -e repo-root, scripts/ inventory, git ls-files any basename.
+  DRIFT_HITS=0
+  # Cache git ls-files once to avoid repeated subprocess and SIGPIPE risk.
+  _GIT_LS=$(git ls-files 2>/dev/null || true)
+
+  _token_resolves() {
+    local tok="$1"
+    [ -e "$tok" ] && return 0
+    [ -f "scripts/$tok" ] && return 0
+    # Anchor to path boundary: match only when tok is the full filename component
+    # (preceded by '/' or start-of-line). Avoids suffix collisions like
+    # 'docs.sh' matching 'validate-docs.sh' under unanchored grep -F.
+    # Escape any regex metacharacters in the token before building the pattern.
+    local _escaped
+    _escaped=$(printf '%s' "$tok" | sed 's/[][\\.^$*/]/\\&/g')
+    # Here-string (not a pipe): grep -q closes its input early on a match, which
+    # would SIGPIPE a feeding `printf` and, under `set -o pipefail`, surface as a
+    # 141 pipeline status — falsely reporting the token unresolved on BSD/macOS.
+    grep -qE "(^|/)${_escaped}$" <<<"$_GIT_LS" && return 0
+    return 1
+  }
+
+  # ── Collect all script tokens from design-doc mermaid fences for 5c ──────────
+  # Set A: all bare *.sh tokens across all design doc fences.
+  # Set B: scripts from hooks/hooks.json (bare names).
+  # Fail if Set B − Set A is non-empty (a hooked script is not depicted anywhere).
+  # Also collect PreToolUse script order from the hooks-diagram fence (02).
+
+  _DESIGN_SH_TOKENS=""
+  _DESIGN_PRE_ORDER="" # PreToolUse scripts in design-doc order (from hook-diagram fence)
+  _HOOKS_PRE_ORDER=""  # PreToolUse scripts from hooks.json
+
+  # Extract Set B from hooks.json
+  _HOOKS_SH_SET=$(grep -oE 'scripts/[a-z-]+\.sh' hooks/hooks.json 2>/dev/null |
+    sed 's|scripts/||' | sort -u || true)
+
+  # Extract hooks.json PreToolUse order (bare names, in wiring order).
+  # Use two-argument match + substr (BSD awk compatible; no three-arg match).
+  _HOOKS_PRE_ORDER=$(awk '
+  BEGIN { in_pre=0 }
+  /"PreToolUse"/ { in_pre=1 }
+  in_pre && /"command"/ {
+    if (match($0, /scripts\/[a-z-]+\.sh/)) {
+      s=substr($0,RSTART,RLENGTH)
+      sub(/scripts\//, "", s)
+      print s
+    }
+  }
+  in_pre && /^[[:space:]]*\]/ { in_pre=0 }
+' hooks/hooks.json 2>/dev/null | awk '!seen[$0]++' || true)
+
+  # ── Per-file scans ────────────────────────────────────────────────────────────
+  while IFS= read -r file; do
+    [ -f "$file" ] || continue
+    dir=$(dirname "$file")
+
+    # ── 5a: mermaid node grounding ─────────────────────────────────────────────
+    # Use anchored awk to avoid triggering on inline ` ```mermaid ` code spans.
+    # Always extract tokens (even from speculative docs) for 5c Set A collection.
+    # Only run the FAIL grounding check for non-speculative docs.
+    FENCE_TOKENS=$(awk \
+      '/^[[:space:]]*```mermaid/{f=1;next} /^[[:space:]]*```/{if(f)f=0;next} f' \
+      "$file" 2>/dev/null |
+      grep -oE '[A-Za-z0-9_-]+\.(sh|ts|json|md|yml|yaml)' | sort -u || true)
+
+    # Collect *.sh tokens for 5c Set A aggregation (regardless of speculative status).
+    if [ -n "$FENCE_TOKENS" ]; then
+      _SH=$(printf '%s' "$FENCE_TOKENS" | grep '\.sh$' || true)
+      if [ -n "$_SH" ]; then
+        _DESIGN_SH_TOKENS=$(printf '%s\n%s' "$_DESIGN_SH_TOKENS" "$_SH" | sort -u)
+      fi
+    fi
+
+    # Collect PreToolUse order from 02-component-design.md (regardless of speculative status).
+    case "$file" in
+      */02-component-design.md)
+        # Extract *.sh scripts from the fence that has >= 5 hook event names
+        # (the authoritative hook-chain diagram).
+        _DESIGN_PRE_ORDER=$(awk '
+        /^[[:space:]]*```mermaid/{f=1;cnt=0;buf="";next}
+        /^[[:space:]]*```/{
+          if(f){
+            if(cnt>=5){print buf}
+            f=0;cnt=0;buf=""
+          }
+          next
+        }
+        f{
+          if(/SessionStart|UserPromptSubmit|PreToolUse|PostToolUse|SubagentStop|Stop|SessionEnd/)cnt++
+          if (/pre[[:space:]]*-->/ && match($0,/pre[[:space:]]*-->[^"]*"[A-Za-z0-9_-]+\.sh/)) {
+            s=substr($0,RSTART,RLENGTH)
+            sub(/.*"/, "", s)
+            buf=buf s "\n"
+          }
+        }
+      ' "$file" 2>/dev/null | awk '!seen[$0]++' || true)
+        ;;
+    esac
+
+    # Run 5a FAIL check only for docs without [speculative].
+    if grep -q '\[speculative\]' "$file" 2>/dev/null; then
+      : # doc is speculative — exempt from grounding failures
+    else
+      while IFS= read -r tok; do
+        [ -z "$tok" ] && continue
+        if ! _token_resolves "$tok"; then
+          err "unresolved mermaid token '$tok' in $file"
+          DRIFT_HITS=$((DRIFT_HITS + 1))
+        fi
+      done <<<"$FENCE_TOKENS"
+    fi
+
+    # ── 5b: relative link resolution ───────────────────────────────────────────
+    while IFS= read -r rawlink; do
+      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
+      case "$link" in http* | mailto*) continue ;; esac
+      result=$(_resolve_link "$dir" "$link")
+      case "$result" in OK | GITIGNORED | EXTERNAL) ;; *)
+        err "dead link in $file: $link"
+        printf '    (link does not resolve)\n'
+        DRIFT_HITS=$((DRIFT_HITS + 1))
+        ;;
+      esac
+    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
+      sed 's/^](\(.*\))$/\1/' || true)
+
+    # ── 5e: authority presence ──────────────────────────────────────────────────
+    # Each scanned doc must carry >=1 resolvable relative link to an authority surface.
+    AUTH_FOUND=0
+    while IFS= read -r rawlink; do
+      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
+      case "$link" in http* | mailto*) continue ;; esac
+      # Is this link to an authority surface?
+      if grep -qE \
+        'CLAUDE\.md|architecture\.md|hooks\.json|plugin\.json|/docs/adr|docs/adr' <<<"$link"; then
+        result=$(_resolve_link "$dir" "$link")
+        case "$result" in OK | GITIGNORED)
+          AUTH_FOUND=1
+          break
+          ;;
+        esac
+      fi
+    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
+      sed 's/^](\(.*\))$/\1/' || true)
+
+    if [ "$AUTH_FOUND" -eq 0 ]; then
+      err "no resolvable authority link in $file"
+      printf '    (add a link to CLAUDE.md, docs/architecture.md, hooks/hooks.json, etc.)\n'
+      DRIFT_HITS=$((DRIFT_HITS + 1))
+    fi
+
+  done < <(git ls-files -- 'docs/design/*.md' 'SOFTWARE-3-0.md' 2>/dev/null)
+
+  # ── 5c: hook set-equality ─────────────────────────────────────────────────────
+  # Set B − Set A: scripts wired in hooks/hooks.json but not depicted in any design doc fence.
+  HOOK_SET_HITS=0
+  while IFS= read -r s; do
+    [ -z "$s" ] && continue
+    if ! grep -qxF "$s" <<<"$_DESIGN_SH_TOKENS"; then
+      err "hook script not depicted in any design-doc mermaid fence: $s"
+      HOOK_SET_HITS=$((HOOK_SET_HITS + 1))
+    fi
+  done <<<"$_HOOKS_SH_SET"
+
+  if [ "$HOOK_SET_HITS" -eq 0 ]; then
+    ok "all hooks/hooks.json scripts are depicted in design docs"
+  else
+    DRIFT_HITS=$((DRIFT_HITS + HOOK_SET_HITS))
+  fi
+
+  # ── 5c: PreToolUse ordering WARN (OQ-11) ─────────────────────────────────────
+  # Compare the PreToolUse script order in the design-doc hook-diagram fence
+  # against hooks/hooks.json. A delta is a WARN (does NOT increment VIOLATIONS).
+  if [ -n "$_DESIGN_PRE_ORDER" ] && [ -n "$_HOOKS_PRE_ORDER" ]; then
+    # Filter design order to only include scripts that are in hooks.json PreToolUse
+    DESIGN_PRE_FILTERED=$(printf '%s' "$_DESIGN_PRE_ORDER" | while IFS= read -r s; do
+      grep -qxF "$s" <<<"$_HOOKS_PRE_ORDER" && printf '%s\n' "$s" || true
+    done)
+    if [ "$DESIGN_PRE_FILTERED" != "$(printf '%s' "$_HOOKS_PRE_ORDER")" ] &&
+      [ -n "$DESIGN_PRE_FILTERED" ]; then
+      warn "PreToolUse script order in 02-component-design.md differs from hooks/hooks.json"
+      printf '    design order: %s\n' "$(printf '%s' "$DESIGN_PRE_FILTERED" | tr '\n' ' ')"
+      printf '    hooks.json:   %s\n' "$(printf '%s' "$_HOOKS_PRE_ORDER" | tr '\n' ' ')"
+      printf '    (ordering delta is a doc issue, not a regression — OQ-11)\n'
+    fi
+  fi
+
+  # ── 5d: 06-feature-relations.md count verification ───────────────────────────
+  FEAT_DOC="docs/design/06-feature-relations.md"
+  if git ls-files -- "$FEAT_DOC" 2>/dev/null | grep -q .; then
+    # Actual counts
+    ACTUAL_AGENTS=$(git ls-files -- 'agents/*.md' 2>/dev/null | wc -l | tr -d ' ')
+    ACTUAL_SKILLS=$(git ls-files -- 'skills/*/SKILL.md' 2>/dev/null | wc -l | tr -d ' ')
+    ACTUAL_CMDS=$(git ls-files -- 'commands/*.md' 2>/dev/null | wc -l | tr -d ' ')
+    ACTUAL_HOOKS=$(grep -oE '"(SessionStart|UserPromptSubmit|PreToolUse|PostToolUse|SubagentStop|Stop|SessionEnd)"' \
+      hooks/hooks.json 2>/dev/null | sort -u | wc -l | tr -d ' ' || true)
+
+    # Stated counts — extract from the table row's "In this repo?" cell (col 3
+    # when split on '|').  Strip leading non-digit content (emoji, checkmarks,
+    # whitespace) then take the first integer.  This handles both the plain
+    # "| 7 |" form and the "| ✅ 7 |" / "| ✅ 7 events |" forms.
+    # For the four known numeric dimensions a table row MUST be present; an
+    # empty extraction is itself a FAIL (not a silent skip).
+    _stated_count() {
+      local label="$1"
+      grep "\*\*${label}\*\*" "$FEAT_DOC" 2>/dev/null |
+        awk -F'|' '{print $3}' |
+        grep -oE '[0-9]+' | head -1 || true
+    }
+    STATED_AGENTS=$(_stated_count "Agents")
+    STATED_SKILLS=$(_stated_count "Skills")
+    STATED_CMDS=$(_stated_count "Commands")
+    STATED_HOOKS=$(_stated_count "Hooks")
+
+    COUNT_FAIL=0
+
+    # For each known dimension: a missing stated count is itself a failure
+    # (the table row is required; silence would hide drift).
+    if [ -z "$STATED_AGENTS" ] || [ "$STATED_AGENTS" != "$ACTUAL_AGENTS" ]; then
+      err "count mismatch in $FEAT_DOC: agents stated=${STATED_AGENTS:-<unextractable>} actual=$ACTUAL_AGENTS"
+      COUNT_FAIL=$((COUNT_FAIL + 1))
+    fi
+    if [ -z "$STATED_SKILLS" ] || [ "$STATED_SKILLS" != "$ACTUAL_SKILLS" ]; then
+      err "count mismatch in $FEAT_DOC: skills stated=${STATED_SKILLS:-<unextractable>} actual=$ACTUAL_SKILLS"
+      COUNT_FAIL=$((COUNT_FAIL + 1))
+    fi
+    if [ -z "$STATED_CMDS" ] || [ "$STATED_CMDS" != "$ACTUAL_CMDS" ]; then
+      err "count mismatch in $FEAT_DOC: commands stated=${STATED_CMDS:-<unextractable>} actual=$ACTUAL_CMDS"
+      COUNT_FAIL=$((COUNT_FAIL + 1))
+    fi
+    if [ -z "$STATED_HOOKS" ] || [ "$STATED_HOOKS" != "$ACTUAL_HOOKS" ]; then
+      err "count mismatch in $FEAT_DOC: hook events stated=${STATED_HOOKS:-<unextractable>} actual=$ACTUAL_HOOKS"
+      COUNT_FAIL=$((COUNT_FAIL + 1))
+    fi
+
+    if [ "$COUNT_FAIL" -eq 0 ]; then
+      ok "06-feature-relations.md counts match reality"
+    else
+      DRIFT_HITS=$((DRIFT_HITS + COUNT_FAIL))
+    fi
+  fi
+
+  # ── 5f: router parity (SOFTWARE-3-0.md "Six surfaces" table) ─────────────────
+  ROUTER_FILE="SOFTWARE-3-0.md"
+  if git ls-files -- "$ROUTER_FILE" 2>/dev/null | grep -q .; then
+    dir_router=$(dirname "$ROUTER_FILE")
+    ROUTER_HITS=0
+
+    # Parse the table with awk FS="|". Skip header and separator rows.
+    # For each data row: check col 2 (human) and col 3 (agent) are non-empty.
+    # Check every ](./...) or ](../...) link in each cell resolves.
+    while IFS= read -r row; do
+      # Skip separator rows (--- patterns)
+      case "$row" in *'---'*) continue ;; esac
+      # Skip header row (contains "Human on-ramp")
+      case "$row" in *'Human on-ramp'*) continue ;; esac
+      # Skip non-table lines
+      case "$row" in '|'*) ;; *) continue ;; esac
+
+      # Split on | and get columns (awk-style: $2=col1, $3=human, $4=agent)
+      col1=$(printf '%s' "$row" | awk -F'|' '{print $2}')
+      col2=$(printf '%s' "$row" | awk -F'|' '{print $3}')
+      col3=$(printf '%s' "$row" | awk -F'|' '{print $4}')
+
+      # Strip whitespace and markup placeholders for emptiness check.
+      # Also remove &nbsp;, em/en dashes (— –), underscores so that
+      # placeholder-only cells (e.g. '&nbsp;', '—') still count as empty.
+      col2_stripped=$(printf '%s' "$col2" | sed 's/[[:space:]]//g;s/\*//g;s/&nbsp;//g;s/—//g;s/–//g;s/_//g')
+      col3_stripped=$(printf '%s' "$col3" | sed 's/[[:space:]]//g;s/\*//g;s/&nbsp;//g;s/—//g;s/–//g;s/_//g')
+
+      # Surface name for error messages
+      surface=$(printf '%s' "$col1" | sed 's/[[:space:]]*\*\*\([^*]*\)\*\*/\1/;s/^[[:space:]]*//;s/[[:space:]]*$//')
+
+      if [ -z "$col2_stripped" ] || [ -z "$col3_stripped" ]; then
+        err "single-ramped router row in $ROUTER_FILE: '$surface' missing human or agent on-ramp"
+        ROUTER_HITS=$((ROUTER_HITS + 1))
+        continue
+      fi
+
+      # Check all relative links in col2 and col3 resolve
+      for cell in "$col2" "$col3"; do
+        while IFS= read -r rawlink; do
+          link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
+          case "$link" in http* | mailto*) continue ;; esac
+          result=$(_resolve_link "$dir_router" "$link")
+          case "$result" in OK | GITIGNORED | EXTERNAL) ;; *)
+            err "dead link in router row '$surface' ($ROUTER_FILE): $link"
+            ROUTER_HITS=$((ROUTER_HITS + 1))
+            ;;
+          esac
+        done < <(printf '%s' "$cell" | grep -oE '\]\(\.(\.)?/[^)]+\)' |
+          sed 's/^](\(.*\))$/\1/' || true)
+      done
+    done < <(grep '^|' "$ROUTER_FILE" 2>/dev/null || true)
+
+    if [ "$ROUTER_HITS" -eq 0 ]; then
+      ok "router parity: all rows have human and agent on-ramps with resolved links"
+    else
+      DRIFT_HITS=$((DRIFT_HITS + ROUTER_HITS))
+    fi
+  fi
+
+  if [ "$DRIFT_HITS" -eq 0 ]; then
+    ok "no design-drift violations"
+  else
+    VIOLATIONS=$((VIOLATIONS + DRIFT_HITS))
+  fi
+
+fi # end: hooks/hooks.json guard for Check 5
 
 # ─── Summary ────────────────────────────────────────────────────────────────
 

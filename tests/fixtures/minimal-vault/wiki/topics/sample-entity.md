@@ -23,6 +23,11 @@ A fixture entity referenced by [[Sample]]. Exists only to exercise the
 verify-ingest source-traceability check — without an entity citing the
 source, the source would be flagged as orphan.
 
+## Key Facts
+
+- Fixture entity used by Bats test suite.
+- Minimal content; not a reference example.
+
 ## Related
 
 None.
