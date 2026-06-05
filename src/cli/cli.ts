@@ -21,7 +21,9 @@ import { search } from "../commands/search/search.ts";
 import { firewallCheck } from "../commands/firewall/firewall.ts";
 import { backlog } from "../commands/backlog/backlog.ts";
 import { propose, type ProposeSub } from "../commands/propose/propose.ts";
+import { join as pathJoin } from "node:path";
 import { buildReport, renderText, exitCode, type Report } from "../core/report.ts";
+import { ontology, type OntologyReport } from "../commands/ontology/ontology.ts";
 
 // ── One CAPABILITIES table — single source of truth (ADR-0015 N1, N2) ─────────
 //
@@ -74,6 +76,7 @@ export const CAPABILITIES: readonly CapabilityEntry[] = [
   { name: "backlog", status: "implemented" },
   { name: "propose", status: "implemented" },
   { name: "capabilities", status: "implemented" },
+  { name: "ontology", status: "implemented" },
   { name: "index", status: "planned" },
   { name: "link-suggest", status: "planned" },
   { name: "checkpoint", status: "planned" },
@@ -387,6 +390,21 @@ function main(): number {
   // capabilities verb — serializes the CAPABILITIES table via emit()/exitCode() (ADR-0015 N3).
   if (command === "capabilities") {
     const report = capabilitiesReport();
+    emit(report, json);
+    return exitCode(report);
+  }
+
+  // ontology verb — projects ontology-profile-v1 via emit()/exitCode() (ADR-0015 N6, Part C).
+  // Resolves the schema document from --target or falls back to docs/vault-example/CLAUDE.md.
+  if (command === "ontology") {
+    // Resolve the schema path: the vault's CLAUDE.md is both the profile document
+    // (contains ontology-profile-v1) and the vault-extension source for entity_type_extensions.
+    // Fall back to the bundled example vault schema when no --target is given.
+    const schemaPath = target
+      ? pathJoin(target.replace(/\/+$/, ""), "CLAUDE.md")
+      : pathJoin(import.meta.dir, "../../docs/vault-example/CLAUDE.md");
+    const vaultClaudeMd = target ? pathJoin(target.replace(/\/+$/, ""), "CLAUDE.md") : undefined;
+    const report: OntologyReport = ontology({ schemaPath, vaultClaudeMd });
     emit(report, json);
     return exitCode(report);
   }

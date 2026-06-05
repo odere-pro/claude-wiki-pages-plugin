@@ -1,5 +1,7 @@
 # Bun project config — substitutes for vitest.config.ts / tsup.config.ts in the
-# agentline layout. `bun test` discovers *.test.ts colocated under src/.
+# agentline layout. `bun test` discovers *.test.ts colocated under src/ plus
+# engine-level contract tests under tests/engine/.
 [test]
 coverage = false
 coverageThreshold = { line = 0.8, function = 0.8, statement = 0.8 }
+include = ["src/**/*.test.ts", "tests/engine/*.test.ts"]
