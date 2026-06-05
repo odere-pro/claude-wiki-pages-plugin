@@ -261,6 +261,7 @@ Concepts for the deterministic, embedding-free retrieval path (§5 non-negotiabl
 | degraded mode         | Operation at a lower capability tier when the full-capability model (Claude) is unavailable. The plugin remains functional for the capabilities of the active tier.                      |
 | model-agnostic        | The design property that plugin logic (skills, agents, scripts) makes no assumption about which LLM is running. Provider selection is a configuration concern (`localModel` config block). |
 | quality gate          | A defined eval metric and pass threshold that a local model must meet before a capability tier is widened. Prevents premature expansion of Ollama scope beyond proven ability.           |
+| golden set            | A checked-in fixtures set of raw-source inputs paired with their expected structured output (frontmatter plus claims), used as the deterministic reference for the local-model quality-gate eval. Output is scored by exact comparison to the golden set, never by vector similarity.           |
 
 ### UX and DX terms
 

@@ -7,6 +7,8 @@
 #   bash tests/run-tests.sh tier1            Tier 1 only
 #   bash tests/run-tests.sh tier2            Tier 2 smoke (self-skips without `claude` CLI)
 #   bash tests/run-tests.sh tier3            Tier 3 stub (permanently dropped — self-skips)
+#   bash tests/run-tests.sh eval             Local-model quality-gate eval (opt-in;
+#                                            self-skips without a configured local model)
 #   bash tests/run-tests.sh all              all available tiers
 #   bash tests/run-tests.sh --list [<tier>]  print commands without executing
 #   bash tests/run-tests.sh --help           print this help
@@ -21,7 +23,7 @@ LIST=0
 TIER="default"
 
 usage() {
-  sed -n '2,16p' "$0" | sed 's/^# \?//'
+  sed -n '2,18p' "$0" | sed 's/^# \?//'
 }
 
 while [ "$#" -gt 0 ]; do
@@ -31,9 +33,9 @@ while [ "$#" -gt 0 ]; do
       exit 0
       ;;
     -l | --list) LIST=1 ;;
-    tier0 | tier1 | tier2 | tier3 | default | all) TIER="$1" ;;
+    tier0 | tier1 | tier2 | tier3 | eval | default | all) TIER="$1" ;;
     *)
-      echo "unknown tier: $1 (expected tier0|tier1|tier2|tier3|default|all)" >&2
+      echo "unknown tier: $1 (expected tier0|tier1|tier2|tier3|eval|default|all)" >&2
       exit 2
       ;;
   esac
@@ -93,11 +95,43 @@ tier3() {
   printf 'No tests to run. This target is intentionally empty.\n'
 }
 
+# eval — local-model quality-gate eval for the ingest-extract tier
+# (docs/plan/0003-local-model-quality-gate.md). OPT-IN and MODEL-NEUTRAL: it is
+# never part of the default merge-gating run and it wires up NO local model.
+#
+# A real *measured* run requires a model to PRODUCE candidate extractions; that
+# produce step is model-specific and is NOT shipped here (the Ollama progression
+# stays NO-GO). So this target self-skips when no local model is configured —
+# mirroring how tier2 self-skips without the `claude` CLI — signalled by the
+# CLAUDE_WIKI_PAGES_EVAL_MODEL env var. When a model IS named, the produce loop
+# is still out of scope; the target runs the driver's --self-test (the
+# fail-closed apparatus proof) and tells the operator to attach a measured-run
+# scorecard per tests/eval/README.md before any default flip.
+eval_tier() {
+  local driver="tests/../scripts/eval-ingest-extract.sh"
+  if [ "$LIST" -eq 1 ]; then
+    printf '[list] eval: bash scripts/eval-ingest-extract.sh --self-test (SKIP without CLAUDE_WIKI_PAGES_EVAL_MODEL)\n'
+    return 0
+  fi
+  printf '\n━━━ eval (ingest-extract quality gate) ━━━\n'
+  if [ -z "${CLAUDE_WIKI_PAGES_EVAL_MODEL:-}" ]; then
+    printf 'SKIP: eval is opt-in — no local model configured.\n'
+    printf 'Set CLAUDE_WIKI_PAGES_EVAL_MODEL=<model-id> to record a measured run.\n'
+    printf 'The apparatus self-test still runs in Tier 1 (bats eval-ingest-extract).\n'
+    return 0
+  fi
+  printf '[eval] model configured: %s\n' "$CLAUDE_WIKI_PAGES_EVAL_MODEL"
+  printf '[eval] note: the model PRODUCE step is model-specific and not shipped here;\n'
+  printf '[eval] running the driver fail-closed self-test as the apparatus check.\n'
+  run "eval self-test" bash "$driver" --self-test
+}
+
 case "$TIER" in
   tier0) tier0 ;;
   tier1) tier1 ;;
   tier2) tier2 ;;
   tier3) tier3 ;;
+  eval) eval_tier ;;
   default)
     tier0
     tier1

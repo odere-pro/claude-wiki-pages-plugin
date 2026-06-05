@@ -95,6 +95,39 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
 }
 
 # ---------------------------------------------------------------------------
+# eval selector — opt-in local-model quality-gate eval (plan 0003).
+# Self-skips cleanly when no local model is configured (mirrors tier2/claude).
+# Building/testing the apparatus must NOT require a live model.
+# ---------------------------------------------------------------------------
+
+@test "run-tests: eval selector self-skips with no model configured and exits 0" {
+  run env -u CLAUDE_WIKI_PAGES_EVAL_MODEL bash "$SCRIPT" eval
+
+  assert_success
+  assert_output_contains "SKIP"
+  assert_output_contains "eval"
+}
+
+@test "run-tests: --list eval names the eval target" {
+  run bash "$SCRIPT" --list eval
+
+  assert_success
+  assert_output_contains "eval"
+}
+
+@test "run-tests: eval is NOT part of the default run" {
+  run bash "$SCRIPT" --list
+
+  assert_success
+  # The opt-in eval tier must not run as part of the default merge-gating run.
+  # (The driver script still appears in the tier0 shellcheck glob — that is the
+  # static lint of the file, not the eval tier executing. The distinctive marker
+  # of the eval tier is its --self-test invocation / "[list] eval:" label.)
+  refute_output_contains "[list] eval:"
+  refute_output_contains "eval-ingest-extract.sh --self-test"
+}
+
+# ---------------------------------------------------------------------------
 # gate-12: stale-dist check
 # ---------------------------------------------------------------------------
 
