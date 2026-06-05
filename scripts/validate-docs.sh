@@ -380,7 +380,10 @@ else
     # Escape any regex metacharacters in the token before building the pattern.
     local _escaped
     _escaped=$(printf '%s' "$tok" | sed 's/[][\\.^$*/]/\\&/g')
-    printf '%s\n' "$_GIT_LS" | grep -qE "(^|/)${_escaped}$" && return 0
+    # Here-string (not a pipe): grep -q closes its input early on a match, which
+    # would SIGPIPE a feeding `printf` and, under `set -o pipefail`, surface as a
+    # 141 pipeline status — falsely reporting the token unresolved on BSD/macOS.
+    grep -qE "(^|/)${_escaped}$" <<<"$_GIT_LS" && return 0
     return 1
   }
 
@@ -495,8 +498,8 @@ else
       link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
       case "$link" in http* | mailto*) continue ;; esac
       # Is this link to an authority surface?
-      if printf '%s' "$link" | grep -qE \
-        'CLAUDE\.md|architecture\.md|hooks\.json|plugin\.json|/docs/adr|docs/adr'; then
+      if grep -qE \
+        'CLAUDE\.md|architecture\.md|hooks\.json|plugin\.json|/docs/adr|docs/adr' <<<"$link"; then
         result=$(_resolve_link "$dir" "$link")
         case "$result" in OK | GITIGNORED)
           AUTH_FOUND=1
@@ -520,7 +523,7 @@ else
   HOOK_SET_HITS=0
   while IFS= read -r s; do
     [ -z "$s" ] && continue
-    if ! printf '%s' "$_DESIGN_SH_TOKENS" | grep -qxF "$s"; then
+    if ! grep -qxF "$s" <<<"$_DESIGN_SH_TOKENS"; then
       err "hook script not depicted in any design-doc mermaid fence: $s"
       HOOK_SET_HITS=$((HOOK_SET_HITS + 1))
     fi
@@ -538,7 +541,7 @@ else
   if [ -n "$_DESIGN_PRE_ORDER" ] && [ -n "$_HOOKS_PRE_ORDER" ]; then
     # Filter design order to only include scripts that are in hooks.json PreToolUse
     DESIGN_PRE_FILTERED=$(printf '%s' "$_DESIGN_PRE_ORDER" | while IFS= read -r s; do
-      printf '%s\n' "$_HOOKS_PRE_ORDER" | grep -qxF "$s" && printf '%s\n' "$s" || true
+      grep -qxF "$s" <<<"$_HOOKS_PRE_ORDER" && printf '%s\n' "$s" || true
     done)
     if [ "$DESIGN_PRE_FILTERED" != "$(printf '%s' "$_HOOKS_PRE_ORDER")" ] &&
       [ -n "$DESIGN_PRE_FILTERED" ]; then
