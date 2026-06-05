@@ -150,6 +150,27 @@ version:
 5. Print a summary table: sources processed, pages created, pages updated,
    folders touched.
 
+## Agent-session sources: ingest like any source (no laundering)
+
+A `source_type: agent-session` file written by the `Stop`/`SessionEnd` hook into
+`raw/agent-sessions/` is a **real raw source** (`type: source`). It enters the
+wiki through the same `_proposed/` review gate as every other source — never
+as an unsourced `derived: true` page.
+
+Concretely:
+
+1. The hook writes `raw/agent-sessions/<session-id>-<timestamp>.md` and commits it.
+2. The next `/claude-wiki-pages:wiki` or maintenance pass detects it as an unprocessed source
+   (not yet in `wiki/log.md`).
+3. Ingest creates `wiki/_sources/<slug>.md` with `source_type: agent-session`
+   and extracts entities/concepts as drafts under `_proposed/`.
+4. `propose approve` (or the review gate) promotes drafts to `wiki/`.
+5. Every promoted wiki page lists the agent-session source in its `sources` field,
+   keeping provenance structural.
+
+**Never** write a session learning as `derived: true` or promote it directly to
+`wiki/` without going through `_proposed/`. Provenance is structural (TEAM-BRIEF §5).
+
 ## Hook enforcement
 
 Every Write triggers Layer 4 gates:
