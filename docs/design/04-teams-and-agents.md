@@ -31,7 +31,7 @@ graph LR
 
 The brainstorm team is **read-only / proposal-only**; the engineering team **implements** behind
 the test gates. The handoff artifact is a roadmap — see this very effort:
-[`tmp/SOFTWARE-3-0-plan.md`](../../tmp/SOFTWARE-3-0-plan.md).
+`tmp/SOFTWARE-3-0-plan.md`.
 
 ## Brainstorm protocol — three rounds
 

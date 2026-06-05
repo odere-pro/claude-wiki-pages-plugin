@@ -108,4 +108,4 @@ graph TB
 > What is *new* (Phase M) is simultaneous **management** of N vaults. Reuse the existing confinement;
 > the firewall keeps deriving "other vaults" from the registry (it never re-stores them), and a
 > malformed registry must resolve **fail-closed** (zero writable roots), not to all. Tracked in
-> [`tmp/SOFTWARE-3-0-plan.md`](../../tmp/SOFTWARE-3-0-plan.md).
+> `tmp/SOFTWARE-3-0-plan.md`.

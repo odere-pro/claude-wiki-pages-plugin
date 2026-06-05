@@ -49,7 +49,7 @@ shows the whole system on one screen. Come back for the rest when you need detai
 
 The deeper L3 sequences for the maintenance loop, the per-vault firewall decision tree, and an
 ER-style diagram of the ontology classes/predicates are tracked in
-[`tmp/SOFTWARE-3-0-plan.md`](../../tmp/SOFTWARE-3-0-plan.md) (the diagram workstream). Add them
+`tmp/SOFTWARE-3-0-plan.md` (the diagram workstream). Add them
 here as they land.
 
 > **Gate status — honest note:** the "node grounding" and link-existence checks described above
