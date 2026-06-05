@@ -32,7 +32,7 @@ is the resolved vault's `CLAUDE.md`, surfaced by [`scripts/session-start.sh`](./
 | **Tools** | [docs/operations.md](./docs/operations.md) (the verbs), `/claude-wiki-pages:wiki` | [`skills/engine-api`](./skills/engine-api/SKILL.md) (engine subcommands, `--json`, exit codes) |
 | **Design** | [docs/architecture.md](./docs/architecture.md) (the four-layer stack), [docs/design/](./docs/design/README.md) (diagrams, multi-zoom) | [docs/design/](./docs/design/README.md) (mermaid source) + per-skill / per-agent frontmatter contracts |
 | **System design** | [docs/adr/](./docs/adr/README.md) (decisions), [docs/teams.md](./docs/teams.md) (who builds what), [docs/design/06-feature-relations.md](./docs/design/06-feature-relations.md) | [schemas/](./schemas/) + [hooks/hooks.json](./hooks/hooks.json) + [.claude-plugin/plugin.json](./.claude-plugin/plugin.json) |
-| **Context** | [docs/vault-example/CLAUDE.md](./docs/vault-example/CLAUDE.md) (the schema, `ontology-profile-v1`) | same schema + [`skills/maintain-contract`](./skills/maintain-contract/SKILL.md) (what to read before acting) |
+| **Context** | [docs/vault-example/CLAUDE.md](./docs/vault-example/CLAUDE.md#ontology-profile-ontology-profile-v1) (the schema, `ontology-profile-v1`) | same schema + [`skills/maintain-contract`](./skills/maintain-contract/SKILL.md) (what to read before acting) |
 | **Memory** | [docs/adr/ADR-0010-durable-memory-carve-out.md](./docs/adr/ADR-0010-durable-memory-carve-out.md), the vault `wiki/log.md` | [`scripts/session-memory.sh`](./scripts/session-memory.sh) (`source_type: agent-session` provenance) |
 
 ## Authoring — one path, both writers
