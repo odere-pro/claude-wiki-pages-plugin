@@ -234,6 +234,22 @@ validate_content() {
     fi
   fi
 
+  # NOTE (P3.4 / ADR-0015 N7): entity_type membership validation (checking that
+  # `entity_type:` holds a value from the composed set core ∪
+  # entity_type_extensions) is intentionally NOT implemented in this bash hook.
+  # It lives ONLY in the Bun engine (src/commands/verify/check-entity-type.ts),
+  # which calls parseOntologyProfile from src/commands/ontology/ontology.ts.
+  #
+  # Adding that check here would require calling the engine (a Bun dependency)
+  # on the hot PreToolUse hook path — which this script was designed to avoid.
+  # Re-implementing the parser inline would create a second source of truth for
+  # the entity_type core enum, violating the single-source invariant (TEAM-BRIEF
+  # §6, CLAUDE.md "no parallel enum file and no second list").
+  #
+  # This `case` statement is therefore a KNOWN Bun-absent fallback DRY exception:
+  # it checks path:/parent: consistency (filesystem-only logic) but does NOT
+  # validate entity_type values against the ontology enum. That gap is
+  # intentional and documented here so reviewers do not add enum logic here.
   case "$type" in
     entity | concept | topic | project | synthesis | index)
       local declared_path wiki_relative expected_path
