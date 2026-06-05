@@ -85,8 +85,8 @@ The `log` type is used only for `wiki/log.md` (the operations log). It requires 
 ---
 title: "Article or Document Title"
 type: source
-source_type: article | paper | policy | transcript | book | video | podcast | manual
-source_format: text | image # default: text. Required if the original is not markdown/plain text.
+source_type: article | paper | policy | transcript | book | video | podcast | manual | agent-session
+source_format: text | image | pdf # default: text. Required if the original is not markdown/plain text.
 attachment_path: "raw/assets/..." # required when source_format != text
 extracted_at: 2026-04-16 # required when source_format != text
 url: "https://..."
@@ -104,7 +104,7 @@ confidence: 1.0
 ---
 ```
 
-`source_format` defaults to `text`. The PDF / audio / video formats are deferred — extend the enum when those paths are implemented. When `source_format` is not `text`, both `attachment_path` and `extracted_at` are required, and `attachment_path` must point to a real file under `vault/raw/assets/`.
+`source_format` defaults to `text`. Audio / video formats are deferred — extend the enum when those paths are implemented. `pdf` is supported (I4): when `source_format` is `pdf` or `image`, both `attachment_path` and `extracted_at` are required, and `attachment_path` must point to a real file under `vault/raw/assets/`.
 
 ### Entity notes (type: `entity`, placed in topic folders)
 
@@ -352,10 +352,10 @@ All closed value sets for the schema, single-sourced here. I1's classifier and R
 | --- | --- | --- | --- |
 | page type (`type`) | `source`,`entity`,`concept`,`topic`,`project`,`synthesis`,`index`,`manifest`,`log` | closed (core) | not vault-extensible — adding a type is a schema change (new ADR + new templates + lint case) |
 | `entity_type` (fixed core, calibratable) | `person`,`organization`,`product`,`tool`,`service`,`standard`,`place` | closed core + owner extension | owner adds via `entity_type_extensions:` allow-list in their OWN vault CLAUDE.md (decision #6); legal set = core ∪ extensions, composed at read time |
-| `source_type` | `article`,`paper`,`policy`,`transcript`,`book`,`video`,`podcast`,`manual` | closed (core) | not owner-extensible |
+| `source_type` | `article`,`paper`,`policy`,`transcript`,`book`,`video`,`podcast`,`manual`,`agent-session` | closed (core) | not owner-extensible |
 | `synthesis_type` | `comparison`,`theme`,`contradiction`,`gap`,`timeline` | closed (core) | not owner-extensible |
 | `project_status` | `planned`,`active`,`paused`,`done`,`abandoned` | closed (core) | not owner-extensible |
-| `source_format` | `text`,`image` (PDF/audio/video deferred) | closed (core) | not owner-extensible |
+| `source_format` | `text`,`image`,`pdf` (audio/video deferred) | closed (core) | not owner-extensible |
 | `status` | `active`,`stale`,`superseded`,`draft` | closed (core) | not owner-extensible |
 
 **Calibration mechanism.** A vault owner widens `entity_type` ONLY by adding the delta to their vault's own CLAUDE.md: `entity_type_extensions: [dataset, model]`. The legal set is then core ∪ extensions, computed at read time. There is no parallel enum file and no second list: the core list lives in this profile, the per-vault widening lives in that vault's authoritative CLAUDE.md, and a consumer reads both from the one schema document it already loads. Page type stays fully closed — widening it is a schema change, by design.

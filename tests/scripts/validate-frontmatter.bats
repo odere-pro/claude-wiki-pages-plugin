@@ -350,3 +350,170 @@ MD
   assert_output_contains "type"
   assert_output_contains "title"
 }
+
+# --- source_type: agent-session (Wave-2 durable memory) ----------------------
+
+@test "validate-frontmatter: allows source with source_type: agent-session" {
+  # Decision #4: durable memory writes carry source_type: agent-session.
+  # This value must NOT be rejected by the hook (it is in the enum).
+  local content
+  content=$(cat <<'MD'
+---
+title: "Session 2026-06-05"
+type: source
+source_type: agent-session
+source_format: text
+url: ""
+author: "claude"
+publisher: ""
+date_published: 2026-06-05
+date_ingested: 2026-06-05
+tags: []
+aliases: ["Session 2026-06-05"]
+sources: []
+created: 2026-06-05
+updated: 2026-06-05
+status: active
+confidence: 0.9
+---
+
+# Session 2026-06-05
+
+Agent session notes.
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/_sources/session-2026-06-05.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_empty
+}
+
+# --- source_format: pdf (Wave-2 I4 PDF ingest) --------------------------------
+
+@test "validate-frontmatter: allows source with source_format: pdf and required fields" {
+  # I4: PDF ingest path requires attachment_path and extracted_at when source_format != text.
+  local content
+  content=$(cat <<'MD'
+---
+title: "Architecture PDF"
+type: source
+source_type: paper
+source_format: pdf
+attachment_path: "raw/assets/architecture.pdf"
+extracted_at: 2026-06-05
+url: ""
+author: "Author"
+publisher: "Publisher"
+date_published: 2026-06-01
+date_ingested: 2026-06-05
+tags: []
+aliases: ["Architecture PDF"]
+sources: []
+created: 2026-06-05
+updated: 2026-06-05
+status: active
+confidence: 1.0
+---
+
+# Architecture PDF
+
+PDF source note.
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/_sources/architecture-pdf.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_empty
+}
+
+@test "validate-frontmatter: blocks source with source_format: pdf missing attachment_path" {
+  # source_format != text → attachment_path + extracted_at required.
+  local content
+  content=$(cat <<'MD'
+---
+title: "PDF Missing Attachment"
+type: source
+source_type: paper
+source_format: pdf
+extracted_at: 2026-06-05
+url: ""
+author: "Author"
+publisher: "Publisher"
+date_published: 2026-06-01
+date_ingested: 2026-06-05
+tags: []
+aliases: []
+sources: []
+created: 2026-06-05
+updated: 2026-06-05
+status: active
+confidence: 1.0
+---
+
+# PDF Missing Attachment
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/_sources/pdf-missing-attachment.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "attachment_path"
+}
+
+@test "validate-frontmatter: blocks source with source_format: image missing extracted_at" {
+  # The non-text rule applies to all non-text formats, not just pdf.
+  local content
+  content=$(cat <<'MD'
+---
+title: "Image Missing Extracted At"
+type: source
+source_type: paper
+source_format: image
+attachment_path: "raw/assets/diagram.png"
+url: ""
+author: "Author"
+publisher: "Publisher"
+date_published: 2026-06-01
+date_ingested: 2026-06-05
+tags: []
+aliases: []
+sources: []
+created: 2026-06-05
+updated: 2026-06-05
+status: active
+confidence: 1.0
+---
+
+# Image Missing Extracted At
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "/tmp/test-project/vault/wiki/_sources/image-missing-extracted-at.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/validate-frontmatter.sh" "$json_file"
+
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "extracted_at"
+}

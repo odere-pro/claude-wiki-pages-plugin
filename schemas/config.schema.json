@@ -85,7 +85,17 @@
         "provider": { "type": "string", "enum": ["ollama", "lmstudio"], "default": "ollama" },
         "endpoint": { "type": "string", "default": "http://localhost:11434" },
         "model": { "type": "string", "default": "" },
-        "draftTarget": { "type": "string", "default": "_proposed" }
+        "draftTarget": { "type": "string", "default": "_proposed" },
+        "tier": {
+          "type": "string",
+          "enum": ["draft", "ingest-extract"],
+          "description": "Capability tier: 'draft' = local model produces _proposed/ drafts only; 'ingest-extract' = local model also runs source extraction during ingest. Consumed by modelHints at runtime."
+        },
+        "offlinePolicy": {
+          "type": "string",
+          "enum": ["strict", "prefer-local", "off"],
+          "description": "Offline fallback behaviour: 'strict' = fail if Claude API is unreachable; 'prefer-local' = fall back to the configured local model; 'off' = no local fallback (default when localModel.enabled is false)."
+        }
       }
     },
     "maintenance": {

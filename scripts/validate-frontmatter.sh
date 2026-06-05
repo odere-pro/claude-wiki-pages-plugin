@@ -79,6 +79,25 @@ validate_content() {
     return
   fi
 
+  # source_format != text requires attachment_path + extracted_at (schema rule).
+  if [ "$type" = "source" ]; then
+    local fmt
+    fmt=$(echo "$frontmatter" | grep '^source_format:' | sed 's/^source_format: *//' | tr -d '"'"'" | xargs || true)
+    if [ -n "$fmt" ] && [ "$fmt" != "text" ]; then
+      local missing_attach=""
+      for field in attachment_path extracted_at; do
+        if ! echo "$frontmatter" | grep -q "^${field}:"; then
+          missing_attach="${missing_attach:+${missing_attach}, }${field}"
+        fi
+      done
+      if [ -n "$missing_attach" ]; then
+        printf 'source note with source_format: %s requires field(s): %s\n---\n%s\n---' \
+          "$fmt" "$missing_attach" "$frontmatter"
+        return
+      fi
+    fi
+  fi
+
   case "$type" in
     entity | concept | topic | project | synthesis | index)
       local declared_path wiki_relative expected_path
