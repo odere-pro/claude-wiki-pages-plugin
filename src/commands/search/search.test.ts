@@ -1,6 +1,8 @@
 import { test, expect, describe } from "bun:test";
+import { join } from "node:path";
+import { existsSync } from "node:fs";
 import { search, type MatchComponent } from "./search.ts";
-import { makeVault } from "../../test-helpers/sandbox/vault.ts";
+import { makeVault, type Sandbox } from "../../test-helpers/sandbox/vault.ts";
 import { VOCABULARY_FILE } from "../../core/vocabulary.ts";
 
 const VAULT = {
@@ -791,3 +793,157 @@ function matchComponentComparator(a: MatchComponent, b: MatchComponent): number 
 
 /** Full comparator including Tier-2 channels. */
 const matchComponentComparatorFull = matchComponentComparator;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Synonym channel — reachability AND precision regression guard (D2).
+//
+// These tests run against a SANDBOX fixture, not the reference vault. The
+// reference vault (docs/vault-example) ships `groups: []` on purpose — this
+// small meta-vault has no term pair that clears every curation rule, so a
+// reference assertion would either be vacuous or force a bad group. The engine's
+// synonym channel still needs a regression guard, so we construct a synthetic
+// vault with a known-good single-token group and assert both properties the
+// shipped bugs violated:
+//
+//   • REACHABILITY — the prior multi-word group ("ingest pipeline") was inert:
+//     terms() tokenizes the query, so a multi-word map key is never looked up.
+//     A usable group needs a single-token form. Group {car, automobile} is
+//     single-token-reachable and stemmer-distinct (car / automobil); the two
+//     forms share no substring, so the synonym channel — not the exact body
+//     channel — is what fires (an abbreviation that is a prefix of its
+//     expansion, e.g. config/configuration, would match exactly and never
+//     exercise the synonym path).
+//
+//   • PRECISION — the prior {folder, directory} group surfaced a false friend:
+//     the corpus's only "directory" meant the shell working directory, a
+//     different referent than "folder". Substring matching cannot tell senses
+//     apart, so precision is the CURATOR's responsibility: a false-friend term
+//     must be kept OUT of the group. We assert the engine honors that exclusion
+//     — a same-sense page IS surfaced, while a control page and a false-friend
+//     page (whose only synonym-eligible word is deliberately absent from the
+//     lexicon) are NOT surfaced via the synonym channel.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("synonym channel — reachability and precision (sandbox)", () => {
+  // Known-good group: single-token reachable, stemmer-distinct, same-sense, and
+  // the two forms share no substring (so the synonym path is genuinely exercised).
+  const VOCAB_AUTO = `---
+title: "Vault Vocabulary"
+groups:
+  - canonical: "automobile"
+    variants: ["car"]
+---
+# Vocab
+`;
+
+  // Same-sense target: body says "automobile" (the vehicle sense). A "car" query
+  // must reach it via the synonym channel — "car" is not a substring of the body.
+  const PAGE_VEHICLE =
+    '---\ntitle: "Automobile"\ntype: concept\ntags: []\n---\n' +
+    "# Automobile\n\nAn automobile is a wheeled vehicle. The automobile replaced the horse.\n";
+
+  // Control page: contains NEITHER form (nor either as a substring) — must never
+  // be a synonym hit.
+  const PAGE_UNRELATED =
+    '---\ntitle: "Quilting"\ntype: concept\ntags: []\n---\n' +
+    "# Quilting\n\nA craft about stitching fabric pieces by hand.\n";
+
+  // False-friend page: its subject ("locomotive"/"freight") is a DIFFERENT
+  // vehicle than an automobile and is DELIBERATELY NOT in the lexicon. Models
+  // the folder/directory bug — a related-but-distinct referent the curator must
+  // keep out of the group. Worded to contain neither "car" nor "automobile" as a
+  // substring so the assertion isolates the synonym channel.
+  const PAGE_FALSE_FRIEND =
+    '---\ntitle: "Locomotive"\ntype: concept\ntags: []\n---\n' +
+    "# Locomotive\n\nA locomotive hauls freight wagons along the rail line.\n";
+
+  function makeAutoSynVault(withLexicon: boolean): Sandbox {
+    const files: Record<string, string> = {
+      "CLAUDE.md": "---\nschema_version: 2\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/automobile.md": PAGE_VEHICLE,
+      "wiki/quilting.md": PAGE_UNRELATED,
+      "wiki/locomotive.md": PAGE_FALSE_FRIEND,
+    };
+    if (withLexicon) files[VOCABULARY_FILE] = VOCAB_AUTO;
+    return makeVault(files);
+  }
+
+  function synHitTitles(r: ReturnType<typeof search>): string[] {
+    return r.hits
+      .filter((h) => h.matched.some((m) => m.channel === "synonym-term"))
+      .map((h) => h.title)
+      .sort();
+  }
+
+  test("REACHABILITY: single-token query 'car' fires a synonym-term component", () => {
+    const sb = makeAutoSynVault(true);
+    try {
+      const r = search({ target: sb.vault, query: "car" });
+      const syn = r.hits.flatMap((h) => h.matched.filter((m) => m.channel === "synonym-term"));
+      // The single-token key 'car' is reachable and expands to "automobile".
+      expect(syn.length).toBeGreaterThan(0);
+      // Every synonym component is keyed on the query token itself.
+      for (const c of syn) expect(c.term).toBe("car");
+    } finally {
+      sb.cleanup();
+    }
+  });
+
+  test("PRECISION: only the same-sense page is a synonym hit (no bleed to control or false friend)", () => {
+    const sb = makeAutoSynVault(true);
+    try {
+      const r = search({ target: sb.vault, query: "car" });
+      const titles = synHitTitles(r);
+      // True positive: the same-sense vehicle page IS surfaced via synonym.
+      expect(titles).toContain("Automobile");
+      // No bleed: the unrelated control page is NOT a synonym hit.
+      expect(titles).not.toContain("Quilting");
+      // Curated exclusion: the false-friend page (a different vehicle, absent
+      // from the lexicon) is NOT surfaced as a same-sense synonym hit.
+      expect(titles).not.toContain("Locomotive");
+    } finally {
+      sb.cleanup();
+    }
+  });
+
+  test("LOAD-BEARING: removing the lexicon drops every synonym-term hit", () => {
+    const withLex = makeAutoSynVault(true);
+    const withoutLex = makeAutoSynVault(false);
+    try {
+      const rWith = search({ target: withLex.vault, query: "car" });
+      const rWithout = search({ target: withoutLex.vault, query: "car" });
+      const synWith = rWith.hits.flatMap((h) =>
+        h.matched.filter((m) => m.channel === "synonym-term"),
+      );
+      const synWithout = rWithout.hits.flatMap((h) =>
+        h.matched.filter((m) => m.channel === "synonym-term"),
+      );
+      expect(synWith.length).toBeGreaterThan(0);
+      // Absent lexicon → zero synonym components: the group is what produces them.
+      expect(synWithout.length).toBe(0);
+    } finally {
+      withLex.cleanup();
+      withoutLex.cleanup();
+    }
+  });
+});
+
+// The reference vault ships an empty lexicon; assert that contract directly so a
+// future accidental re-introduction of a group is a deliberate, reviewed change.
+describe("reference vault — synonym lexicon present and currently empty", () => {
+  const REFERENCE_VAULT = join(import.meta.dir, "..", "..", "..", "docs", "vault-example");
+
+  test("the reference vault and its _vocabulary.md exist", () => {
+    expect(existsSync(REFERENCE_VAULT)).toBe(true);
+    expect(existsSync(join(REFERENCE_VAULT, VOCABULARY_FILE))).toBe(true);
+  });
+
+  test("the reference lexicon has no synonym groups (honest-empty template)", () => {
+    // An empty lexicon loads to a zero-size expand map (never throws). No query
+    // can produce a synonym-term hit against the reference vault.
+    const r = search({ target: REFERENCE_VAULT, query: "directory" });
+    const syn = r.hits.flatMap((h) => h.matched.filter((m) => m.channel === "synonym-term"));
+    expect(syn.length).toBe(0);
+  });
+});

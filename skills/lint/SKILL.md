@@ -91,12 +91,13 @@ verify, the rule is out of scope for lint and belongs in fix.
 
 ### Opt-in WARN checks (run separately — not in the always-run verifier)
 
-These two checks are **opt-in WARN-tier only** — not blocking, not in
+These checks are **opt-in WARN-tier only** — not blocking, not in
 `scripts/verify-ingest.sh`. Run them on demand:
 
 ```
 bash scripts/lint-ontology.sh [--target <vault>]
 bash scripts/lint-structural.sh [--target <vault>]
+bash scripts/lint-vocabulary.sh [--target <vault>] [--min-tag-usage N]
 ```
 
 **S1-check — predicate domain→range conformance.**
@@ -139,6 +140,27 @@ covered by `tests/scripts/lint-structural.bats`.
 > **Phase 3 — deferred:** S2-overlap (>50% token-overlap single-sourcing
 > detector) is explicitly deferred due to false-positive risk. Do NOT build
 > it until the Phase 3 gate is open (PM sign-off required).
+
+**S3-vocabulary — controlled-vocabulary freshness.**
+Three WARN-level signals that flag drift between the synonym lexicon
+(`_vocabulary.md`) and the live wiki:
+
+- **Orphaned form:** a canonical or variant in a vocabulary group that
+  matches no wiki page (frontmatter `tags:`/`aliases:`/`title:` or body
+  prose), case-folded. Signals a term the lexicon governs but the wiki no
+  longer uses — a candidate for curation.
+- **Fully-unreferenced group:** every form in a group is absent from the
+  wiki. Reported as a single WARN citing the YAML `canonical` form (not
+  one line per variant) so the signal stays actionable.
+- **Tag below usage floor:** a vocabulary form that appears as a page `tag:`
+  on fewer than N pages (default N=2; override with `--min-tag-usage N`).
+  N=2 is a named constant, not a magic number — callers can lower or raise
+  the floor per vault.
+
+Advisory-only (WARN, never blocks). Detection only: never mutates
+`_vocabulary.md` — humans curate it; repair is the curator/fix path.
+Implemented in `scripts/lint-vocabulary.sh`; covered by
+`tests/scripts/lint-vocabulary.bats`.
 
 ### Info (candidate for review, not drift)
 
