@@ -171,6 +171,71 @@ Concretely:
 **Never** write a session learning as `derived: true` or promote it directly to
 `wiki/` without going through `_proposed/`. Provenance is structural (TEAM-BRIEF §5).
 
+## PDF sources (I4): `source_format: pdf`
+
+A PDF file under `raw/assets/` is ingested the same way as any other source —
+the difference is format-recording in the source note's frontmatter and the
+text-extraction step.
+
+### How the PDF ingest path works
+
+1. **The PDF lives immutably under `raw/assets/`.** It is append-only raw
+   material. Ingest READS it; it never modifies it. `protect-raw.sh` enforces
+   this invariant (`rules/raw-immutable.md`).
+2. **The LLM extracts content.** Text extraction is the LLM's responsibility —
+   the schema records the format and the attachment reference; it does not
+   prescribe the extraction mechanism. The model reads the PDF and treats the
+   extracted text as the source's content.
+3. **Create the source note with required fields.** The source note at
+   `wiki/_sources/<slug>.md` must carry:
+
+   ```yaml
+   source_format: pdf
+   attachment_path: "raw/assets/<file>.pdf"
+   extracted_at: <YYYY-MM-DD>
+   ```
+
+   `source_format: pdf` signals that the original is a PDF (not
+   markdown/plain text). `attachment_path` points to the PDF under
+   `raw/assets/` so the attachment is traceable. `extracted_at` records when
+   extraction occurred. Both `attachment_path` and `extracted_at` are
+   **required** when `source_format` is not `text` — `validate-frontmatter.sh`
+   enforces this and blocks the write if either field is absent.
+4. **Extract entities and concepts as usual.** Apply the Classification
+   checklist and the two-pass dedup exactly as for any source. The PDF format
+   does not change classification or dedup logic.
+5. **Provenance via `sources` is unchanged.** Every wiki page extracted from a
+   PDF source lists the source note in its `sources` field, tracing the claim
+   back to `raw/` exactly as for text or image sources.
+
+### Source note template for a PDF source
+
+```yaml
+---
+title: "Document Title"
+type: source
+source_type: paper  # or manual, book, policy, etc.
+source_format: pdf
+attachment_path: "raw/assets/<file>.pdf"
+extracted_at: 2026-06-05
+url: ""
+author: "Author Name"
+publisher: "Publisher"
+date_published: 2026-06-01
+date_ingested: 2026-06-05
+tags: []
+aliases: ["Document Title"]
+sources: []
+created: 2026-06-05
+updated: 2026-06-05
+status: active
+confidence: 1.0
+---
+```
+
+> **Deferred:** audio/video formats (`source_format: audio`, `transcript_path`)
+> are Phase 3 (I5). Do not implement until explicitly assigned.
+
 ## Hook enforcement
 
 Every Write triggers Layer 4 gates:

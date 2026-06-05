@@ -28,6 +28,14 @@ cascade into every page's `parent:` and `path:`, and into the Obsidian graph
 structure. Externalize the plan so the user can review or edit before any page
 is written.
 
+> **PDF sources (`source_format: pdf`):** when a source is a PDF under
+> `raw/assets/`, apply the PDF ingest path documented in
+> `skills/ingest/SKILL.md` — "PDF sources (I4): `source_format: pdf`" — before
+> planning the topic tree. The required fields (`source_format: pdf`,
+> `attachment_path`, `extracted_at`) must appear in the source note, and the
+> PDF remains immutable in `raw/assets/` throughout. Classification and dedup
+> proceed identically to text sources.
+
 ### 1.4a — Write the plan
 
 Write to `vault/output/_pipeline-plan-YYYY-MM-DD.md` (git-ignored; no frontmatter required). Structure:
