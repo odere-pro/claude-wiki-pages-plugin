@@ -103,3 +103,221 @@ set_vault_path() {
     return 0
   fi
 }
+
+# ── Multi-vault registry helpers ─────────────────────────────────────────────
+#
+# Registry shape (additive — old settings.json without "vaults" is valid):
+#   {
+#     "default_vault_path": "...",   ← unchanged, never written here
+#     "current_vault_path": "...",   ← sole active pointer, written by set_vault_path
+#     "vaults": [{"path":"...","name":"..."}]  ← NEW sidecar array
+#   }
+#
+# Invariant: current_vault_path MUST equal one vaults[].path.
+# Backfill: any operation that reads the registry adds current_vault_path to
+# vaults[] if the key is missing, keeping old settings files migration-safe.
+
+# Internal: read the vaults array from settings.json using python3.
+# Prints lines of "path|name" pairs; prints nothing if no vaults key.
+_vaults_read() {
+  [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
+  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null <<'PYEOF'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+    for v in data.get("vaults", []):
+        print(v.get("path","") + "|" + v.get("name",""))
+except Exception:
+    pass
+PYEOF
+}
+
+# Internal: rewrite the full settings.json with a new vaults array.
+# $1 = python3 list literal of {"path":…,"name":…} dicts as a JSON string
+# Preserves default_vault_path and current_vault_path exactly as-is.
+_vaults_write() {
+  local new_vaults_json="$1"
+  local tmp="${CLAUDE_WIKI_PAGES_SETTINGS}.tmp"
+  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" "$new_vaults_json" >"$tmp" 2>/dev/null <<'PYEOF'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+except Exception:
+    data = {}
+data["vaults"] = json.loads(sys.argv[2])
+print(json.dumps(data, indent=2))
+PYEOF
+  if [ $? -ne 0 ] || [ ! -s "$tmp" ]; then
+    printf '[claude-wiki-pages] WARN: cannot update vaults registry\n' >&2
+    rm -f "$tmp" 2>/dev/null
+    return 1
+  fi
+  mv "$tmp" "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null
+}
+
+# Internal: backfill vaults[] from current_vault_path if the key is missing.
+# Migration-safe: old settings files without vaults are valid.
+_vaults_backfill() {
+  init_vault_settings
+  if ! python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null <<'PYEOF'; then
+import json, sys
+data = json.load(open(sys.argv[1]))
+sys.exit(0 if "vaults" in data else 1)
+PYEOF
+    # vaults key absent — backfill from current_vault_path
+    local cur
+    cur=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+    [ -z "$cur" ] && cur="$CLAUDE_WIKI_PAGES_DEFAULT_VAULT"
+    local json
+    json=$(printf '[{"path":"%s","name":"main"}]' "$cur")
+    _vaults_write "$json" 2>/dev/null || true
+  fi
+}
+
+# vault_add <path> [name]: idempotent; append {path,name} to vaults[].
+# Does NOT change current_vault_path (add ≠ switch).
+vault_add() {
+  local new_path="$1"
+  local new_name="${2:-$(basename "$new_path")}"
+  init_vault_settings
+  _vaults_backfill
+
+  # Check if already present (idempotent)
+  local existing
+  existing=$(_vaults_read | awk -F'|' -v p="$new_path" '$1==p{print "yes"}')
+  if [ "$existing" = "yes" ]; then
+    return 0
+  fi
+
+  # Build updated array
+  local current_json
+  current_json=$(
+    python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null <<'PYEOF'
+import json, sys
+data = json.load(open(sys.argv[1]))
+print(json.dumps(data.get("vaults", [])))
+PYEOF
+  )
+  local new_entry
+  new_entry=$(printf '{"path":"%s","name":"%s"}' "$new_path" "$new_name")
+  local updated_json
+  updated_json=$(
+    python3 - "$current_json" "$new_entry" 2>/dev/null <<'PYEOF'
+import json, sys
+lst = json.loads(sys.argv[1])
+entry = json.loads(sys.argv[2])
+lst.append(entry)
+print(json.dumps(lst))
+PYEOF
+  )
+  _vaults_write "$updated_json"
+}
+
+# vault_remove <path|name>: deregisters a vault from the registry.
+# Invariants:
+#   - Refuses if it would empty the registry (min-one).
+#   - Refuses to remove the active vault (switch first).
+#   - NEVER deletes the vault directory on disk (deregister only).
+vault_remove() {
+  local target="$1"
+  init_vault_settings
+  _vaults_backfill
+
+  local active
+  active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+
+  # Resolve target to a path (match by path or name)
+  local resolved_path
+  resolved_path=$(_vaults_read | awk -F'|' -v t="$target" '$1==t || $2==t {print $1; exit}')
+  if [ -z "$resolved_path" ]; then
+    printf '[claude-wiki-pages] ERROR: vault "%s" is not registered\n' "$target" >&2
+    return 1
+  fi
+
+  # Refuse to remove the active vault
+  if [ "$resolved_path" = "$active" ]; then
+    printf '[claude-wiki-pages] ERROR: "%s" is the active vault; switch first, then remove\n' "$resolved_path" >&2
+    return 1
+  fi
+
+  # Refuse to empty the registry (min-one invariant)
+  local count
+  count=$(_vaults_read | wc -l | tr -d ' ')
+  if [ "${count:-0}" -le 1 ]; then
+    printf '[claude-wiki-pages] ERROR: cannot remove the last vault (min-one invariant); switch first to another vault, then remove\n' >&2
+    return 1
+  fi
+
+  # Build filtered array (exclude resolved_path)
+  local current_json
+  current_json=$(
+    python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null <<'PYEOF'
+import json, sys
+data = json.load(open(sys.argv[1]))
+print(json.dumps(data.get("vaults", [])))
+PYEOF
+  )
+  local filtered_json
+  filtered_json=$(
+    python3 - "$current_json" "$resolved_path" 2>/dev/null <<'PYEOF'
+import json, sys
+lst = json.loads(sys.argv[1])
+path = sys.argv[2]
+lst = [v for v in lst if v.get("path") != path]
+print(json.dumps(lst))
+PYEOF
+  )
+  _vaults_write "$filtered_json"
+}
+
+# vault_switch <path|name>: set current_vault_path to a REGISTERED vault.
+# Refuses if the target is not in the registry (no implicit add).
+vault_switch() {
+  local target="$1"
+  init_vault_settings
+  _vaults_backfill
+
+  # Resolve to a registered path
+  local resolved_path
+  resolved_path=$(_vaults_read | awk -F'|' -v t="$target" '$1==t || $2==t {print $1; exit}')
+  if [ -z "$resolved_path" ]; then
+    printf '[claude-wiki-pages] ERROR: vault "%s" is not registered; use vault_add first\n' "$target" >&2
+    return 1
+  fi
+
+  # Use the ONE writer: set_vault_path
+  set_vault_path "$resolved_path"
+}
+
+# vault_list: print the registry, marking the active vault with *.
+vault_list() {
+  init_vault_settings
+  _vaults_backfill
+
+  local active
+  active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+
+  local path name marker
+  while IFS='|' read -r path name; do
+    [ -z "$path" ] && continue
+    if [ "$path" = "$active" ]; then
+      marker="*"
+    else
+      marker=" "
+    fi
+    printf '%s %-40s  %s\n' "$marker" "$path" "$name"
+  done < <(_vaults_read)
+}
+
+# registry_other_vaults: print the registered vault roots EXCEPT the active one
+# (current_vault_path), one path per line. Used by the firewall hook to derive
+# its cross-vault confinement set from the registry itself, so the cross-vault
+# rule fires in the real PreToolUse hook with no env var required. Read-only:
+# does NOT backfill or otherwise mutate settings (the firewall hook must never
+# write). Prints nothing when there is no registry or only the active vault.
+registry_other_vaults() {
+  [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
+  local active
+  active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+  _vaults_read | awk -F'|' -v active="$active" '$1 != "" && $1 != active {print $1}'
+}

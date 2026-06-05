@@ -198,3 +198,247 @@ teardown() {
   assert_output_contains "WARN"
   assert_output_contains "/nonexistent/vault"
 }
+
+# ── S3: multi-vault registry lifecycle ──────────────────────────────────────────
+
+@test "vault_add: appends vault to registry without changing current_vault_path" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_add 'user/second-vault' 'second'
+  "
+
+  assert_success
+  # current_vault_path must NOT change
+  grep -q '"current_vault_path": "docs/vault"' "$SETTINGS_TMP"
+  # new vault appears in the registry
+  grep -q '"user/second-vault"' "$SETTINGS_TMP"
+}
+
+@test "vault_add: idempotent — adding the same path twice only appears once in vaults[]" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_add 'docs/vault' 'main'
+    vault_add 'docs/vault' 'main'
+  "
+
+  assert_success
+  # vaults array must have exactly 1 entry (idempotent — no duplicates added)
+  local vault_count
+  vault_count=$(python3 -c "
+import json, sys
+data = json.load(open('$SETTINGS_TMP'))
+print(len(data.get('vaults', [])))
+")
+  [ "$vault_count" -eq 1 ]
+}
+
+@test "vault_add: backfills vaults array when settings.json has no vaults key" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  # Old-format settings without vaults key
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_add 'user/new-vault' 'new'
+  "
+
+  assert_success
+  grep -q '"current_vault_path": "docs/vault"' "$SETTINGS_TMP"
+  grep -q '"user/new-vault"' "$SETTINGS_TMP"
+}
+
+@test "vault_switch: changes current_vault_path to a registered vault" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"user/second","name":"second"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_switch 'user/second'
+  "
+
+  assert_success
+  grep -q '"current_vault_path": "user/second"' "$SETTINGS_TMP"
+}
+
+@test "vault_switch: refuses unregistered vault" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_switch 'not/registered' 2>&1
+  "
+
+  # Must fail non-zero + print error to stderr
+  [ "$status" -ne 0 ]
+  assert_output_contains "not registered"
+}
+
+@test "vault_remove: deregisters vault and leaves files on disk" {
+  local VAULT_ON_DISK="$BATS_TEST_TMPDIR/real-vault"
+  mkdir -p "$VAULT_ON_DISK/wiki"
+  printf 'content\n' >"$VAULT_ON_DISK/wiki/page.md"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"%s","name":"real"}]\n}\n' "$VAULT_ON_DISK" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_remove '$VAULT_ON_DISK'
+  "
+
+  assert_success
+  # Files on disk MUST still exist
+  [ -f "$VAULT_ON_DISK/wiki/page.md" ]
+  # Vault must no longer be in the registry
+  run bash -c "grep -c '$VAULT_ON_DISK' '$SETTINGS_TMP' || true"
+  # current_vault_path must still be docs/vault
+  grep -q '"current_vault_path": "docs/vault"' "$SETTINGS_TMP"
+}
+
+@test "vault_remove: refuses to remove the last registered vault (min-one invariant)" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_remove 'docs/vault' 2>&1
+  "
+
+  [ "$status" -ne 0 ]
+  assert_output_contains "switch first"
+}
+
+@test "vault_remove: refuses to remove the active vault" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"user/second","name":"second"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_remove 'docs/vault' 2>&1
+  "
+
+  [ "$status" -ne 0 ]
+  assert_output_contains "switch first"
+}
+
+@test "vault_list: prints registry with active marker" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"user/second","name":"second"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_list
+  "
+
+  assert_success
+  assert_output_contains "docs/vault"
+  assert_output_contains "user/second"
+  # active vault must be marked
+  assert_output_contains "*"
+}
+
+@test "resolve_vault: output is UNCHANGED after vault_add (only switch moves it)" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_add 'user/extra' 'extra'
+    resolve_vault
+  "
+
+  assert_success
+  [ "$output" = "docs/vault" ]
+}
+
+@test "resolve_vault: output is UNCHANGED after vault_remove (only switch moves it)" {
+  local EXTRA="$BATS_TEST_TMPDIR/extra-vault"
+  mkdir -p "$EXTRA"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"%s","name":"extra"}]\n}\n' "$EXTRA" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    vault_remove '$EXTRA'
+    resolve_vault
+  "
+
+  assert_success
+  [ "$output" = "docs/vault" ]
+}
+
+@test "set-vault.sh add: registers a new vault without switching" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' add 'user/new' 'new-vault'
+  "
+
+  assert_success
+  grep -q '"current_vault_path": "docs/vault"' "$SETTINGS_TMP"
+  grep -q '"user/new"' "$SETTINGS_TMP"
+}
+
+@test "set-vault.sh switch: changes the active vault" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"user/second","name":"second"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' switch 'user/second'
+  "
+
+  assert_success
+  grep -q '"current_vault_path": "user/second"' "$SETTINGS_TMP"
+}
+
+@test "set-vault.sh list: prints registry" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' list
+  "
+
+  assert_success
+  assert_output_contains "docs/vault"
+}
+
+@test "set-vault.sh remove: deregisters a non-active vault" {
+  local EXTRA="$BATS_TEST_TMPDIR/remove-vault"
+  mkdir -p "$EXTRA"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"%s","name":"extra"}]\n}\n' "$EXTRA" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' remove '$EXTRA'
+  "
+
+  assert_success
+  # Files must still exist
+  [ -d "$EXTRA" ]
+}
