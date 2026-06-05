@@ -62,3 +62,69 @@ Read the effective config with `bash scripts/engine.sh config --json`.
 - `_proposed/` is outside every wiki-scoped hook, so drafts are not validated
   until promoted — that is intentional. Quality is enforced at review time.
 - The firewall still confines writes to the vault.
+
+## Local-ingest stub (`ingest-extract` capability tier) — Pc
+
+This section documents the **local-ingest stub**: a local-model ingest path
+scoped exclusively to the **`ingest-extract` capability tier**. It is the
+seam through which a local model (e.g. Ollama) contributes ingest-extract
+drafts without requiring human trust in the full ingest pipeline.
+
+### Tier scoping (decision #7)
+
+The stub is scoped to the `ingest-extract` tier **only**. Local-model scope
+is not widened beyond `ingest-extract` at this capability tier. Widening to
+later tiers (full ingest, curator heal, wiki writes) is gated on the local
+model meeting a defined quality threshold per the capability-progression
+plan. Do not extend this stub to cover wiki writes or post-extract steps
+without a quality-gate sign-off and an updated ADR.
+
+### The one `_proposed/` write channel
+
+A local-model run at `ingest-extract` tier **writes only to `_proposed/`**
+and never writes `wiki/` directly. There is exactly one `_proposed/` write
+channel (§6 one-X contract, `src/commands/propose/propose.ts`). This stub
+reuses it — it does not introduce a second write path.
+
+Output path mirrors the eventual wiki location:
+
+```
+vault/_proposed/wiki/<topic>/<page>.md
+```
+
+### Provenance — `proposed_by`
+
+Every draft produced by the local-ingest stub carries:
+
+```yaml
+proposed_by: "ollama:llama3"   # <provider>:<model>
+status: draft
+```
+
+`proposed_by` records which local model produced the draft so provenance
+is traceable. It is **dropped on promotion** — the promoted page in `wiki/`
+carries no `proposed_by` field. The value follows the `"<provider>:<model>"`
+format used throughout the `_proposed/` contract.
+
+### Promotion via the existing review gate
+
+Promotion is via **`/claude-wiki-pages:review`** (`propose approve`) under
+the existing review gate. This is the only sanctioned promotion path:
+
+```sh
+# List pending local-ingest-stub drafts
+bash scripts/engine.sh propose review --target <vault> --json
+
+# Promote an approved draft
+bash scripts/engine.sh propose approve \
+  --target <vault> \
+  --file _proposed/wiki/<topic>/<page>.md --json
+```
+
+Do not hand-copy draft content into `wiki/` — that bypasses the git
+checkpoint and the frontmatter rewrite that drops `proposed_by` and
+sets `status: active`.
+
+See `skills/review/SKILL.md` for the full `_proposed/` + `proposed_by`
+contract, the directory layout, the frontmatter lifecycle on promotion,
+and the post-approval maintenance loop.
