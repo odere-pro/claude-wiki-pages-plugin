@@ -9,6 +9,7 @@ This directory holds the ADRs for `llm-wiki-stack`. Each ADR captures the **rati
 | A1  | [Four-layer orchestrator](./ADR-0001-four-layer-orchestrator.md)                                            | §5, §9, §11       |
 | A2  | [Agent naming convention](./ADR-0002-agent-naming-convention.md)                                            | §11               |
 | A3  | [Polish-agent and Obsidian-side experience](./ADR-0003-polish-agent-and-obsidian-side.md)                   | §11               |
+| 0013 | [Design-drift gate — `validate-docs.sh` Check 5](./ADR-0013-design-drift-gate.md)                          | §2, §5, §6        |
 
 ## Conventions
 
