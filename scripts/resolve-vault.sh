@@ -351,6 +351,108 @@ vault_list() {
   done <<<"$vaults_out"
 }
 
+# vault_cross_log: read-time audit roll-up across all registered vaults (PM.3).
+#
+# Semi-public reader: called by `set-vault.sh cross-vault-log`. Enumerates vaults
+# via _vaults_read directly (ADR-0016 N8 — no registry_all_vaults wrapper).
+#
+# Behaviour:
+#   - On malformed/inconsistent registry (_vaults_read exits non-zero): emits its
+#     OWN "registry malformed" status to stderr + exits non-zero with zero entries.
+#     Never emits __FAIL_CLOSED__ (that token is firewall-internal, ADR-0016 Part A).
+#   - For each registered vault: folds wiki/log.md level-2 headings
+#     (## [DATE] verb | detail) into the output, vault-tagged with [name].
+#   - A vault with no wiki/log.md is skipped with a stderr WARN (not a hard error).
+#   - Entries are emitted date-sorted across vaults.
+#   - $1 = --last N (optional): limits entries collected per vault before sorting.
+#
+# NO-LEDGER invariant: this function creates no file; running it twice leaves
+# every vault's wiki/ working tree byte-identical.
+vault_cross_log() {
+  local last_n=0
+
+  # Parse --last N
+  if [ "${1:-}" = "--last" ]; then
+    if [ -z "${2:-}" ] || ! printf '%s' "${2:-}" | grep -qE '^[0-9]+$'; then
+      printf '[claude-wiki-pages] ERROR: --last requires a positive integer\n' >&2
+      return 1
+    fi
+    last_n="$2"
+  elif [ -n "${1:-}" ]; then
+    printf '[claude-wiki-pages] ERROR: unknown argument: %s\n' "$1" >&2
+    return 1
+  fi
+
+  # Read all registered vaults. On non-zero exit (malformed or inconsistent
+  # registry) report our own read-time status — do NOT emit __FAIL_CLOSED__.
+  # Capture only stdout; stderr (WARN messages) flows through to our caller's
+  # stderr naturally, matching the pattern used by registry_other_vaults.
+  # Use `|| rc=$?` to prevent set -e in the caller from aborting on failure
+  # before we can capture the exit code and emit our own diagnostic.
+  local vaults_out rc
+  rc=0
+  vaults_out=$(_vaults_read) || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    # Emit our own status; the WARN from _vaults_read already went to stderr.
+    printf '[claude-wiki-pages] ERROR: registry malformed or inconsistent — cannot produce roll-up\n' >&2
+    return 1
+  fi
+
+  if [ -z "$vaults_out" ]; then
+    # No vaults key — nothing to roll up; exit 0 (valid fresh project).
+    return 0
+  fi
+
+  # Collect entries from each vault into a temp accumulator.
+  # Each line: DATE<TAB>VAULTNAME<TAB>HEADING
+  local all_entries=""
+
+  while IFS='|' read -r vault_path vault_name; do
+    [ -z "$vault_path" ] && continue
+    local log_file="$vault_path/wiki/log.md"
+    if [ ! -f "$log_file" ]; then
+      printf '[claude-wiki-pages] WARN: no wiki/log.md for vault "%s" (%s) — skipping\n' \
+        "$vault_name" "$vault_path" >&2
+      continue
+    fi
+
+    # Extract level-2 headings of the form: ## [DATE] ...
+    # $2 is the bracketed date token "[YYYY-MM-DD]"; substr strips the brackets.
+    # Output lines: DATE<TAB>vault_name<TAB>full_heading_line
+    local vault_entries
+    vault_entries=$(awk -v name="$vault_name" '
+      /^## \[[0-9]/ && NF >= 2 {
+        date = substr($2, 2, 10)
+        print date "\t" name "\t" $0
+      }
+    ' "$log_file")
+
+    if [ -z "$vault_entries" ]; then
+      continue
+    fi
+
+    # Apply --last N limit per vault (keep the last N lines by date = tail)
+    if [ "$last_n" -gt 0 ]; then
+      vault_entries=$(printf '%s\n' "$vault_entries" | tail -n "$last_n")
+    fi
+
+    if [ -n "$all_entries" ]; then
+      all_entries="${all_entries}
+${vault_entries}"
+    else
+      all_entries="$vault_entries"
+    fi
+  done <<<"$vaults_out"
+
+  if [ -z "$all_entries" ]; then
+    return 0
+  fi
+
+  # Sort all entries by date (field 1), then emit with vault tag prepended.
+  printf '%s\n' "$all_entries" | sort -t "$(printf '\t')" -k1,1 |
+    awk -F'\t' '{ print "[" $2 "] " $3 }'
+}
+
 # registry_other_vaults: print the registered vault roots EXCEPT the active one
 # (current_vault_path), one path per line. Used by the firewall hook to derive
 # its cross-vault confinement set from the registry itself, so the cross-vault

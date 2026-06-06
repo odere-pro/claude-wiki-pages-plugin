@@ -24,6 +24,7 @@ _usage() {
   printf '       %s remove <path|name>\n' "$(basename "$0")" >&2
   printf '       %s switch <path|name>\n' "$(basename "$0")" >&2
   printf '       %s list\n' "$(basename "$0")" >&2
+  printf '       %s cross-vault-log [--last N]\n' "$(basename "$0")" >&2
 }
 
 if [ -z "${1:-}" ]; then
@@ -58,6 +59,12 @@ case "$1" in
     ;;
   list)
     vault_list
+    ;;
+  cross-vault-log)
+    # Read-time audit roll-up across all registered vaults (PM.3 / ADR-0016 Part C).
+    # Read-only: never creates or modifies any file under any vault's wiki/.
+    shift
+    vault_cross_log "$@"
     ;;
   *)
     # Back-compat: bare <vault-path> form
