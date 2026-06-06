@@ -8,10 +8,10 @@
   (one active vault; NO embeddings ever; DRY single-sourcing — "one mechanism per job, no second source
   of truth"; KISS/YAGNI); §6 (one mechanism per job — one resolver, one confinement-derivation path);
   decision #3 (one active vault with `add`/`remove`/`switch`); plan
-  `docs/plan/0005-software-3-0-deferred.md` decisions N4, N8 (and N5 sub-rows), PM.1/PM.2/PM.3
-- **Supersedes proposal:** `docs/plan/0005-software-3-0-deferred.md` (Phase M: PM.1, PM.2, PM.3) —
+  the SOFTWARE-3.0 deferred-work plan decisions N4, N8 (and N5 sub-rows), PM.1/PM.2/PM.3
+- **Supersedes proposal:** the SOFTWARE-3.0 deferred-work plan (Phase M: PM.1, PM.2, PM.3) —
   records the signed-off design before any PM.1 write path is written. **Subsumes** the predecessor
-  plan's separate multi-vault-ADR ask (PM.4 in `tmp/SOFTWARE-3-0-plan.md`).
+  plan's separate multi-vault-ADR ask (PM.4 in the predecessor SOFTWARE-3.0 plan).
 
 ## Context
 

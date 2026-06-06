@@ -8,8 +8,8 @@
   authoring, single-sourcing); §5 (NO embeddings ever; DRY single-sourcing — "a fact lives in exactly
   one page; one mechanism per job"; KISS/YAGNI; advertise one entry path); §6 (one mechanism per job —
   one ontology profile, one envelope); §11.1 (retrieval is 100% deterministic, no similarity over latent
-  vectors); plan `docs/plan/0005-software-3-0-deferred.md` decisions N1, N2, N3, N6 (and veto V1)
-- **Supersedes proposal:** `docs/plan/0005-software-3-0-deferred.md` (Phase 3: P3.1, P3.3) — records the
+  vectors); plan the SOFTWARE-3.0 deferred-work plan decisions N1, N2, N3, N6 (and veto V1)
+- **Supersedes proposal:** the SOFTWARE-3.0 deferred-work plan (Phase 3: P3.1, P3.3) — records the
   signed-off design before any capabilities/ontology code is written
 
 ## Context
@@ -18,7 +18,7 @@ Phase 3 makes the now-real deterministic engine **self-describing** for the agen
 agent should be able to ask the engine which verbs are safe to invoke (`capabilities --json`) and what
 the vault's ontology contains (`ontology --json`) without parsing prose or guessing. Both are net-new on
 an engine that already ships ten implemented verbs and a single structured envelope; neither is blocked
-any longer (`docs/plan/0005-software-3-0-deferred.md` "The re-baseline (engine is real)").
+any longer (the SOFTWARE-3.0 deferred-work plan "The re-baseline (engine is real)").
 
 Three drift hazards make this an Architect-owned, ADR-gated decision rather than a routine feature:
 
@@ -33,7 +33,7 @@ Three drift hazards make this an Architect-owned, ADR-gated decision rather than
    (`src/core/report.ts:19-44`), one `exitCode()` (`:60-63`), one `renderText()` (`:66-81`), emitted
    through the router's single `emit()` (`src/cli/cli.ts:110-112`). Only `verify` currently routes
    through it end-to-end; `doctor/fix/heal/migrate/firewall/propose` emit their own JSON shapes and exit
-   expressions inline (`docs/plan/0005-software-3-0-deferred.md` "Current-state baseline"). A blanket
+   expressions inline (the SOFTWARE-3.0 deferred-work plan "Current-state baseline"). A blanket
    "make every verb use `exitCode()`" mandate would be an L-effort retroactive refactor of six working
    verbs — out of scope, and risky for no Phase-3 gain.
 3. **The ontology is single-sourced in prose and must stay that way (veto V1).** `ontology-profile-v1`
@@ -207,7 +207,7 @@ enters user-facing prose, per the plan's glossary-debt note), `ontology` (the na
 surface, distinct from `ontology-profile-v1` the schema section), and `deterministic engine`. Per
 glossary-first (Brief §5), the `ontology` (artifact) and `deterministic engine` rows belong in
 `docs/GLOSSARY.md` before the prose/verb names ship; they are in the plan's glossary-debt list
-(`docs/plan/0005-software-3-0-deferred.md` "Glossary debt"). This ADR does not add the rows; Lane D owns
+(the SOFTWARE-3.0 deferred-work plan "Glossary debt"). This ADR does not add the rows; Lane D owns
 them (plan PM.6).
 
 ## Related decisions
