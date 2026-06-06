@@ -859,3 +859,121 @@ sys.exit(0 if data['current_vault_path'] == '$V2' else 1)
   [ "$(printf '%s\n' "$output" | wc -l | tr -d ' ')" -eq 1 ]
   assert_output_contains "resolve_vault()"
 }
+
+# ── QA-Adversarial: compact-JSON + non-string-name hardening ─────────────────
+#
+# MEDIUM: current_vault_path extractor must be line-independent.
+#   Compact (single-line) JSON: {"default_vault_path":"…/alpha","current_vault_path":"…/beta",…}
+#   The old awk -F'"' … print $4 returns field 4 of the WHOLE line, which is the
+#   FIRST quoted value (the default), not current_vault_path. The fix must return
+#   the CORRECT current vault regardless of whitespace/line layout.
+#
+# LOW: non-string name/path in vaults[] (e.g. name:42 or name:NaN) must produce
+#   an intentional WARN + non-zero exit — no Python traceback — and remain
+#   fail-closed (writes blocked).
+
+@test "MEDIUM compact-JSON: resolve_vault returns current_vault_path not default when settings.json is single-line" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  # Single-line compact JSON — this is the exact repro from QA-Adversarial.
+  printf '{"default_vault_path":"/tmp/alpha","current_vault_path":"/tmp/beta","vaults":[{"path":"/tmp/alpha","name":"a"},{"path":"/tmp/beta","name":"b"}]}' \
+    >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault
+  "
+
+  assert_success
+  # Must return the TRUE current vault (/tmp/beta), not the default (/tmp/alpha).
+  [ "$output" = "/tmp/beta" ]
+}
+
+@test "MEDIUM compact-JSON: multiline settings.json still resolves correctly (no regression)" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  # Canonical multi-line indented format — must continue to work after the fix.
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "my/custom/vault"\n}\n' \
+    >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault
+  "
+
+  assert_success
+  [ "$output" = "my/custom/vault" ]
+}
+
+@test "MEDIUM compact-JSON: registry_other_vaults reads active correctly from compact settings" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  local ALPHA="$BATS_TEST_TMPDIR/compact-alpha"
+  local BETA="$BATS_TEST_TMPDIR/compact-beta"
+  mkdir -p "$ALPHA" "$BETA"
+  # active = BETA; alpha is the other vault
+  printf '{"default_vault_path":"%s","current_vault_path":"%s","vaults":[{"path":"%s","name":"a"},{"path":"%s","name":"b"}]}' \
+    "$ALPHA" "$BETA" "$ALPHA" "$BETA" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    registry_other_vaults
+  "
+
+  assert_success
+  # Other vaults must contain ALPHA (not active), NOT BETA (the active one).
+  assert_output_contains "$ALPHA"
+  refute_output_contains "$BETA"
+}
+
+@test "LOW non-string-name: vaults[] entry with non-string name (integer) exits non-zero with WARN, no traceback" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  # Valid JSON but name is an integer — _vaults_read must WARN + exit 1, not traceback.
+  printf '{"default_vault_path":"/tmp/x","current_vault_path":"/tmp/x","vaults":[{"path":"/tmp/x","name":42}]}' \
+    >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    _vaults_read 2>&1
+  "
+
+  # Must exit non-zero (fail-closed)
+  [ "$status" -ne 0 ]
+  # Must contain WARN (intentional fail-closed, not an unhandled traceback)
+  assert_output_contains "WARN"
+  # Must NOT contain a Python traceback marker
+  refute_output_contains "Traceback"
+  refute_output_contains "TypeError"
+}
+
+@test "LOW non-string-name: vaults[] entry with NaN name exits non-zero with WARN, no traceback" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  # Python's json.load accepts bare NaN and parses it as float — the concatenation
+  # then raises TypeError. The fix must catch it with an explicit WARN + exit 1.
+  printf '{"default_vault_path":"/tmp/x","current_vault_path":"/tmp/x","vaults":[{"path":"/tmp/x","name":NaN}]}' \
+    >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    _vaults_read 2>&1
+  "
+
+  [ "$status" -ne 0 ]
+  assert_output_contains "WARN"
+  refute_output_contains "Traceback"
+  refute_output_contains "TypeError"
+}
+
+@test "LOW non-string-name: non-string name is fail-closed — no stale awk pattern extracts current_vault_path" {
+  # Structural guard: confirm no stale awk -F'"' ... print \$4 pattern for
+  # current_vault_path remains in resolve-vault.sh after the fix.
+  run bash -c "
+    grep -E \"awk -F'\\\"'\" '$REPO_ROOT/scripts/resolve-vault.sh' | grep 'current_vault_path'
+  "
+  # Must find ZERO matches — the stale pattern must be gone.
+  [ "$status" -ne 0 ] || [ -z "$output" ]
+}

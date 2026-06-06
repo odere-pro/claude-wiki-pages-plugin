@@ -24,6 +24,26 @@
 CLAUDE_WIKI_PAGES_DEFAULT_VAULT="docs/vault"
 CLAUDE_WIKI_PAGES_SETTINGS="${CLAUDE_WIKI_PAGES_SETTINGS_FILE:-.claude/claude-wiki-pages/settings.json}"
 
+# Internal: extract a top-level string field from a JSON file using python3.
+# Line-independent: works on compact (single-line) and multi-line/indented JSON.
+# Usage: _settings_get_field <file> <field_name>
+# Prints the field value on stdout, or nothing if the field is absent or not a string.
+# Exits 0 on success (including absent field); exits non-zero only on parse error.
+_settings_get_field() {
+  local settings_file="$1"
+  local field_name="$2"
+  python3 - "$settings_file" "$field_name" 2>/dev/null <<'PYEOF'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+except Exception:
+    sys.exit(1)
+val = data.get(sys.argv[2], "")
+if isinstance(val, str):
+    print(val)
+PYEOF
+}
+
 resolve_vault() {
   # Self-heal: ensure settings.json exists on every resolution. SessionStart
   # is the primary creation path, but it may miss (plugin reinstall mid-session,
@@ -41,7 +61,7 @@ resolve_vault() {
   # 2. Settings file current_vault_path
   if [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ]; then
     local path
-    path=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+    path=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
     if [ -n "$path" ]; then
       echo "$path"
       return
@@ -154,7 +174,16 @@ if current and not any(v.get("path", "") == current for v in vaults):
     sys.exit(1)
 
 for v in vaults:
-    print(v.get("path", "") + "|" + v.get("name", ""))
+    path_val = v.get("path", "")
+    name_val = v.get("name", "")
+    if not isinstance(path_val, str) or not isinstance(name_val, str):
+        sys.stderr.write(
+            "[claude-wiki-pages] WARN: registry malformed"
+            " (non-string name or path in vaults[]: path=%r name=%r)"
+            " — all writes blocked until repaired\n" % (path_val, name_val)
+        )
+        sys.exit(1)
+    print(path_val + "|" + name_val)
 PYEOF
 }
 
@@ -192,7 +221,7 @@ sys.exit(0 if "vaults" in data else 1)
 PYEOF
     # vaults key absent — backfill from current_vault_path
     local cur
-    cur=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+    cur=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
     [ -z "$cur" ] && cur="$CLAUDE_WIKI_PAGES_DEFAULT_VAULT"
     local json
     json=$(printf '[{"path":"%s","name":"main"}]' "$cur")
@@ -250,7 +279,7 @@ vault_remove() {
   _vaults_backfill
 
   local active
-  active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+  active=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
 
   # Resolve target to a path (match by path or name)
   local resolved_path
@@ -367,7 +396,7 @@ vault_list() {
   _vaults_backfill
 
   local active
-  active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+  active=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
 
   # Check registry consistency via _vaults_read (which enforces the invariant).
   # Run it once to detect any remaining inconsistency after backfill and warn.
@@ -531,7 +560,7 @@ ${vault_entries}"
 registry_other_vaults() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
   local active vaults_output rc
-  active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+  active=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
   # $() captures stdout only; _vaults_read stderr (WARN messages) flows through
   # to our caller's stderr naturally. Capture exit code after the subshell.
   vaults_output=$(_vaults_read)
