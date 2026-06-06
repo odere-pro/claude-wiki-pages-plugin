@@ -200,7 +200,11 @@ validate_marketplace() {
 }
 
 validate_plugin "$PLUGIN_JSON"
-validate_marketplace "$MARKETPLACE_JSON"
+# marketplace.json is intentionally not shipped (the plugin is listed via the
+# odere-pro registry, not its own marketplace); validate it only when present.
+if [ -f "$MARKETPLACE_JSON" ]; then
+  validate_marketplace "$MARKETPLACE_JSON"
+fi
 
 if [ "$errors" -gt 0 ]; then
   printf '\n%d manifest violation(s) found.\n' "$errors" >&2
@@ -208,4 +212,6 @@ if [ "$errors" -gt 0 ]; then
 fi
 
 printf 'OK: %s\n' "$PLUGIN_JSON"
-printf 'OK: %s\n' "$MARKETPLACE_JSON"
+if [ -f "$MARKETPLACE_JSON" ]; then
+  printf 'OK: %s\n' "$MARKETPLACE_JSON"
+fi
