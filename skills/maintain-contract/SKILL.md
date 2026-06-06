@@ -42,6 +42,45 @@ operate on a vault without corrupting it. It pairs with
 - Never delete page content; connect orphans instead.
 - Always read `vault/CLAUDE.md` first — it is the authoritative schema and wins any conflict.
 
+## Multi-vault operating rules
+
+When more than one vault is registered, every engine call must be explicitly scoped. These rules
+are derived from [ADR-0009](../../docs/adr/ADR-0009-multi-vault-confinement.md) and
+[ADR-0016](../../docs/adr/ADR-0016-simultaneous-multi-vault-management.md); the enforcement
+mechanism is the firewall twins (`scripts/firewall.sh` + `src/core/firewall.ts`) and the registry
+reader (`scripts/resolve-vault.sh`).
+
+**Rule 1 — Always target the active vault.**
+Pass `--target <active-vault-path>` to every engine call. Never omit `--target` when a registry is
+configured; the engine resolves the vault independently and may not agree with the hook's resolved
+path if the registry has changed between calls.
+
+**Rule 2 — Pass `--other-vaults` from the registry for confinement.**
+`scripts/resolve-vault.sh` exports `registry_other_vaults` — the registered vault roots minus the
+active one. Pass that set as `--other-vaults` to the engine's `firewall` command so both the bash
+twin and the TS twin enforce the `cross-vault` deny rule with the same root set. Do not hard-code
+vault paths; derive them from the registry at call time.
+
+**Rule 3 — Reads from a non-active registered vault are permitted.**
+An agent may read files (via `Read` tool or `grep`/`Glob` over a non-active vault path) when a
+cross-vault comparison is needed. Read operations are not governed by the firewall write-confinement
+boundary. No engine flag is required for reads.
+
+**Rule 4 — Writes to any non-active vault are firewall-BLOCKED regardless of `--other-vaults`.**
+The `cross-vault` deny rule fires before the `allowPaths` check (ADR-0009 precedence:
+deny → cross-vault → vault → allowPaths → outside-vault). Passing `--other-vaults` does not
+grant write access — it provides the root set the firewall uses to *identify and block* cross-vault
+writes. No `firewall.allowPaths` entry can override a `cross-vault` block. To write to a
+different vault, first switch the active vault via `scripts/set-vault.sh switch <path>`.
+
+**Rule 5 — A malformed or inconsistent registry resolves FAIL-CLOSED (zero writable roots).**
+If `registry_other_vaults` (`scripts/resolve-vault.sh`) exits non-zero — because the registry JSON
+is malformed or `current_vault_path ∉ vaults[]` — the firewall maps this to zero writable roots:
+neither the active vault nor any other vault is writable until the registry is repaired. This is
+not an error to work around; it is the security posture mandated by ADR-0016 (PM.2/N4). The
+fail-closed signal is an exit code, not a stdout sentinel; the `__FAIL_CLOSED__` token lives only
+inside `scripts/firewall.sh`. Run `bash scripts/set-vault.sh list` to diagnose the inconsistency.
+
 ## Specification anchor
 
 Contracts: [`docs/architecture.md`](../../docs/architecture.md) (command & agent contracts), [`SECURITY.md`](../../SECURITY.md) (security model).

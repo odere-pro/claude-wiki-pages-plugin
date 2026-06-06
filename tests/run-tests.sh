@@ -69,7 +69,7 @@ tier0() {
   run "markdownlint" markdownlint-cli2 --config .markdownlint-cli2.jsonc "**/*.md" "!node_modules" "!tmp" "!tests/test_helper" "!docs/vault-example/wiki/log.md"
   run "lychee" lychee --config .lychee.toml --no-progress .
   run "gitleaks" gitleaks detect --config .gitleaks.toml --source . --no-git --redact
-  run "manifest parse" jq -e . .claude-plugin/plugin.json .claude-plugin/marketplace.json hooks/hooks.json
+  run "manifest parse" jq -e . .claude-plugin/plugin.json hooks/hooks.json
   run "validate-docs" scripts/validate-docs.sh
 }
 

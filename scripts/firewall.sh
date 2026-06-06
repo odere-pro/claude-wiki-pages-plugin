@@ -16,6 +16,7 @@ VAULT=$(resolve_vault)
 
 CLI_FILE=""
 CLI_MODE=0
+JSON_MODE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --target)
@@ -27,6 +28,10 @@ while [ $# -gt 0 ]; do
       CLI_MODE=1
       shift 2
       ;;
+    --json)
+      JSON_MODE=1
+      shift
+      ;;
     *) shift ;;
   esac
 done
@@ -37,10 +42,24 @@ done
 # OVERRIDE: CLAUDE_WIKI_PAGES_OTHER_VAULTS (colon-separated) wins when set — used
 # by the parity gate and for explicit control. registry_other_vaults is
 # read-only (never mutates settings — the firewall hook must not write).
+#
+# Fail-closed (ADR-0016 N4): when registry_other_vaults exits non-zero (malformed
+# JSON or current_vault_path ∉ vaults[]), the __FAIL_CLOSED__ state is engaged:
+# OTHER_VAULTS is set to the active vault path so the cross-vault check fires for
+# every write — including to the active vault — yielding ZERO writable roots.
+# The __FAIL_CLOSED__ token is scoped entirely inside this script; it is NEVER
+# emitted from registry_other_vaults into the path-list stdout contract (N4).
+__FAIL_CLOSED__=0
 if [ -n "${CLAUDE_WIKI_PAGES_OTHER_VAULTS:-}" ]; then
   OTHER_VAULTS=$(printf '%s\n' "$CLAUDE_WIKI_PAGES_OTHER_VAULTS" | tr ':' '\n')
 else
-  OTHER_VAULTS=$(registry_other_vaults 2>/dev/null)
+  OTHER_VAULTS=$(registry_other_vaults)
+  if [ $? -ne 0 ]; then
+    __FAIL_CLOSED__=1
+    # Use the active vault path as a sentinel OTHER_VAULT so cross-vault fires
+    # for every write, including to the active vault — zero writable roots.
+    OTHER_VAULTS="$VAULT"
+  fi
 fi
 
 # ── config (project overrides user; defaults when absent) ───────────────────────
@@ -260,19 +279,40 @@ decide() {
   [ "$MODE" = "warn" ] && echo "allow outside-vault" || echo "block outside-vault"
 }
 
+# ── Early arg validation: --json requires --file ─────────────────────────────
+if [ "$JSON_MODE" -eq 1 ] && [ "$CLI_MODE" -eq 0 ]; then
+  exit 2
+fi
+
 # Resolve the vault to its PHYSICAL absolute path (pwd -P dereferences symlinks)
 # so it is compared in the same namespace as the physical write target. If it
 # does not exist, firewall cannot meaningfully confine to it (e.g. pre-scaffold)
 # — allow and exit.
 VAULT_ABS=$(cd "$VAULT" 2>/dev/null && pwd -P)
 if [ -z "$VAULT_ABS" ]; then
+  if [ "$JSON_MODE" -eq 1 ]; then
+    printf '{"findings":[]}\n'
+    exit 0
+  fi
   [ "$CLI_MODE" -eq 1 ] && echo "ALLOW [no-vault] $CLI_FILE (mode=$MODE)"
   exit 0
 fi
 
 # ── CLI mode ────────────────────────────────────────────────────────────────────
+
 if [ "$CLI_MODE" -eq 1 ]; then
   read -r verdict rule <<<"$(decide "$CLI_FILE")"
+  if [ "$JSON_MODE" -eq 1 ]; then
+    if [ "$verdict" = "allow" ]; then
+      printf '{"findings":[]}\n'
+      exit 0
+    fi
+    # Blocked: emit a Finding-shaped envelope using jq (firewall keeps its existing jq).
+    msg=$(printf 'firewall: write blocked by %s rule for path: %s (mode=%s)' "$rule" "$CLI_FILE" "$MODE")
+    jq -cn --arg sev "error" --arg check "firewall" --arg msg "$msg" --arg file "$CLI_FILE" \
+      '{"findings":[{"severity":$sev,"check":$check,"message":$msg,"file":$file}]}'
+    exit 1
+  fi
   if [ "$verdict" = "allow" ]; then
     echo "ALLOW [$rule] $CLI_FILE (mode=$MODE)"
     exit 0

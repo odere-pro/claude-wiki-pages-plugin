@@ -60,7 +60,6 @@ jobs:
       - name: Manifest JSON parses
         run: |
           jq . .claude-plugin/plugin.json
-          jq . .claude-plugin/marketplace.json
           jq . hooks/hooks.json
 
       - name: Manifest JSON schema

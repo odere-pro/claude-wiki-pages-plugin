@@ -24,6 +24,18 @@ output instead of eyeballing the vault. **Always pass `--json` for machine use.*
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh" <command> --target <vault> --json
 ```
 
+Global flags:
+
+- `--target <vault>` — the vault root to operate on. Always supply this when a vault registry is
+  configured; omitting it lets the engine resolve the vault independently, which may disagree with
+  the hook's resolved path.
+- `--other-vaults <colon-separated-paths>` — the registered vault roots other than the active one,
+  used by the `firewall` command to enforce the `cross-vault` deny rule. Derive this value from
+  `registry_other_vaults` in `scripts/resolve-vault.sh` rather than hard-coding paths. See
+  [Multi-vault operating rules](../maintain-contract/SKILL.md#multi-vault-operating-rules) for the
+  full confinement contract (ADR-0009 + ADR-0016).
+- `--json` — emit structured JSON output. Always pass this for machine use.
+
 If Bun is missing, the bridge prints a warning and exits 0 — degrade to the bash
 verifiers (`verify-ingest.sh`) rather than failing.
 
@@ -34,9 +46,21 @@ verifiers (`verify-ingest.sh`) rather than failing.
 Ports `verify-ingest.sh` CHECK 0–3. Returns a report; **exit 1 when any error**, else 0.
 
 ```json
-{ "command": "verify", "vault": "docs/vault",
-  "findings": [ { "severity": "error|warn|info", "check": "schema|index-duplicates|sources-format|moc|orphan-sources|topic-folder", "message": "…", "file": "…" } ],
-  "errors": 0, "warnings": 0, "clean": true }
+{
+  "command": "verify",
+  "vault": "docs/vault",
+  "findings": [
+    {
+      "severity": "error|warn|info",
+      "check": "schema|index-duplicates|sources-format|moc|orphan-sources|topic-folder",
+      "message": "…",
+      "file": "…"
+    }
+  ],
+  "errors": 0,
+  "warnings": 0,
+  "clean": true
+}
 ```
 
 Call it: before trusting the vault, and after every write-path as the closing gate.
@@ -48,7 +72,12 @@ Repairs only what has one correct value: index duplicates, missing `_index.md`,
 semantics. Running twice changes nothing. Exit 0.
 
 ```json
-{ "command": "fix", "vault": "…", "changes": [ { "file": "…", "action": "dedupe-index|create-index|sync-children" } ], "changed": 2 }
+{
+  "command": "fix",
+  "vault": "…",
+  "changes": [{ "file": "…", "action": "dedupe-index|create-index|sync-children" }],
+  "changed": 2
+}
 ```
 
 ### `heal` — git-checkpointed self-heal (the write-path closer)
@@ -82,9 +111,16 @@ idempotent (bumps `schema_version`, writes new templates, generates the source
 manifest). Rollback is `git revert <commit>` (printed on completion).
 
 ```json
-{ "command": "migrate", "vault": "…", "from": 1, "to": 2, "applied": true,
-  "changes": [ { "file": "…", "action": "bump-schema|add-template|generate-manifest" } ],
-  "checkpoint": "<sha>", "message": "Migrated schema_version 1 → 2 …" }
+{
+  "command": "migrate",
+  "vault": "…",
+  "from": 1,
+  "to": 2,
+  "applied": true,
+  "changes": [{ "file": "…", "action": "bump-schema|add-template|generate-manifest" }],
+  "checkpoint": "<sha>",
+  "message": "Migrated schema_version 1 → 2 …"
+}
 ```
 
 ### `search` — deterministic keyword retrieval
@@ -94,9 +130,21 @@ and returns `[[wikilink]]`-ready hits. Reproducible — same query, same ranking
 A candidate set, not a cited answer (use `query` for that).
 
 ```json
-{ "command": "search", "vault": "…", "query": "graph rag",
-  "hits": [ { "title": "Graph RAG", "wikilink": "[[Graph RAG]]", "file": "…",
-              "type": "concept", "score": 18, "snippet": "…" } ] }
+{
+  "command": "search",
+  "vault": "…",
+  "query": "graph rag",
+  "hits": [
+    {
+      "title": "Graph RAG",
+      "wikilink": "[[Graph RAG]]",
+      "file": "…",
+      "type": "concept",
+      "score": 18,
+      "snippet": "…"
+    }
+  ]
+}
 ```
 
 ### `backlog` — outstanding-maintenance probe
@@ -106,9 +154,15 @@ A candidate set, not a cited answer (use `query` for that).
 maintenance agent.
 
 ```json
-{ "command": "backlog", "vault": "…", "pendingRaw": ["raw/x.md"],
-  "lastIngest": "2026-05-20", "lastLint": "2026-05-21", "daysSinceLint": 9,
-  "needsCatchup": true }
+{
+  "command": "backlog",
+  "vault": "…",
+  "pendingRaw": ["raw/x.md"],
+  "lastIngest": "2026-05-20",
+  "lastLint": "2026-05-21",
+  "daysSinceLint": 9,
+  "needsCatchup": true
+}
 ```
 
 ### `propose` — human-in-the-loop draft review
@@ -119,15 +173,119 @@ promotes a draft into `wiki/` (status→active, drops `proposed_by`, git
 checkpoint); `propose reject --file <p>` deletes it under a checkpoint.
 
 ```json
-{ "command": "propose", "sub": "approve", "vault": "…",
-  "promoted": ["wiki/topics/x.md"], "checkpoint": "<sha>",
-  "message": "promoted … Next: curator heal + polish. Rollback: git revert <sha>" }
+{
+  "command": "propose",
+  "sub": "approve",
+  "vault": "…",
+  "promoted": ["wiki/topics/x.md"],
+  "checkpoint": "<sha>",
+  "message": "promoted … Next: curator heal + polish. Rollback: git revert <sha>"
+}
 ```
+
+### `capabilities` — agent-facing verb-surface manifest (ADR-0015)
+
+`capabilities --json` returns the engine's own dispatch table as a machine-readable
+manifest. Agents call this to discover which verbs are safe to invoke without parsing
+prose or guessing. The output is deterministic (same call, same result, every run).
+
+```json
+{
+  "command": "capabilities",
+  "vault": "",
+  "findings": [],
+  "errors": 0,
+  "warnings": 0,
+  "clean": true,
+  "manifest": {
+    "verbs": [
+      { "name": "verify", "status": "implemented" },
+      { "name": "fix", "status": "implemented" },
+      { "name": "heal", "status": "implemented" },
+      { "name": "doctor", "status": "implemented" },
+      { "name": "config", "status": "implemented" },
+      { "name": "migrate", "status": "implemented" },
+      { "name": "search", "status": "implemented" },
+      { "name": "firewall", "status": "implemented" },
+      { "name": "backlog", "status": "implemented" },
+      { "name": "propose", "status": "implemented" },
+      { "name": "capabilities", "status": "implemented" },
+      { "name": "index", "status": "planned" },
+      { "name": "link-suggest", "status": "planned" },
+      { "name": "checkpoint", "status": "planned" }
+    ]
+  }
+}
+```
+
+Exit 0 (clean). The `manifest.verbs` array is the authoritative list — every
+`status: "implemented"` verb has a live dispatch branch; every `status: "planned"`
+verb returns `{status:"not-implemented"}` until it ships. **Why-not-RAG:** exact
+enumeration of the engine's own in-code dispatch table — same input, same output,
+no corpus, no embeddings.
+
+**Note:** `capabilities` is an agent-facing term (ADR-0015 Glossary note). It is
+defined here (agent-facing skill) and must not appear in user-facing onboarding.
 
 ### Planned (return `{status:"not-implemented"}` until shipped)
 
 `index` (deterministic page/entity index), `link-suggest <page>` (exact auto-link
 candidates), `checkpoint`.
+
+## Graceful degradation for planned verbs
+
+When a planned verb is unavailable (returns `{status:"not-implemented"}`), fall
+back deterministically. Do not block the calling agent or return an error to the
+user — substitute the approved fallback listed below, then continue.
+
+| Planned verb   | Returns when called today    | Approved deterministic fallback                                                                                                                                                                                                          |
+| -------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index`        | `{status:"not-implemented"}` | Read `wiki/index.md` directly (the hand-maintained top-level catalog). Use `Glob` to enumerate `wiki/**/*.md` when a full page list is needed; never synthesize an index in memory.                                                      |
+| `link-suggest` | `{status:"not-implemented"}` | Use `grep`/`Glob` over `wiki/` to find typed wikilinks whose `[[title]]` matches the target term. Exact-string match only — no fuzzy or similarity search.                                                                               |
+| `checkpoint`   | `{status:"not-implemented"}` | Run `git commit` directly in the vault directory under a descriptive message (e.g. `chore: manual checkpoint — <reason>`). Confirm the vault is a git repo (`git rev-parse --git-dir`) before committing; surface an error if it is not. |
+
+Confirm which verbs are currently implemented before calling a planned one:
+`bash scripts/engine.sh capabilities --json` returns `.manifest.verbs[]` with
+`status:"implemented"` or `status:"planned"`. Check this once per session rather
+than hardcoding assumptions about the shipped set.
+
+## Ontology-aware write guard
+
+> **Gating note.** This section describes guidance that activates once P3.3
+> (the `ontology` verb, `src/commands/ontology/`) ships and `ontology --json`
+> is available. Until then, the `entity_type` allow-list is documented in
+> `docs/vault-example/CLAUDE.md` (the `ontology-profile-v1` section, enum table)
+> and must be read from there directly. Do not write `entity_type` values without
+> consulting the allow-list from one of these two sources.
+
+`entity_type` is the **only vault-extensible field** in the schema. Every other
+enum (`type`, `source_type`, `synthesis_type`, `project_status`, `source_format`,
+`status`) is closed-core and not owner-extensible — writing a value outside the
+core set for those fields is an error.
+
+For `entity_type`, the legal set is the core values **plus** any per-vault
+extensions the vault owner has declared. Once P3.3 ships, an agent resolves the
+live allow-list at write time by calling:
+
+```sh
+bash scripts/engine.sh ontology --json --target <vault>
+```
+
+and reading `.enums.entity_type[]` from the output. That array is the composed
+set (core ∪ `entity_type_extensions` from the vault's own `CLAUDE.md`), computed
+at read time by the engine. Do not cache it across vaults or across sessions.
+
+**Write-guard rule.** Before writing a page with an `entity_type` value, verify
+the value appears in `.enums.entity_type[]`. If the value is absent, stop and
+surface an error — do not write the page. If `ontology --json` is unavailable
+(P3.3 not yet shipped), read the core list from
+`docs/vault-example/CLAUDE.md` `ontology-profile-v1` enum table and apply the
+same membership check there.
+
+**No other `*_extensions` field composes.** Only `entity_type_extensions` is
+recognized. Any other `*_extensions` key in a vault's `CLAUDE.md` is ignored by
+the engine (D15; `docs/plan/0005-software-3-0-deferred.md` decision N7). Do not
+write, propagate, or reason over unrecognized extension keys.
 
 ## The rule for callers
 

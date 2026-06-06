@@ -32,6 +32,7 @@ shows the whole system on one screen. Come back for the rest when you need detai
 | **Teams & agents** | How the dev teams and the 7 runtime agents work | [04-teams-and-agents.md](./04-teams-and-agents.md) |
 | **Config · security · isolation** | How `.claude` config is set up, secured, and isolated | [05-claude-config-security.md](./05-claude-config-security.md) |
 | **Feature relations** | How Claude Code features connect (agents, hooks, rules, skills, MCP, scripts, plugins, commands, scheduled tasks, workflows, goals) | [06-feature-relations.md](./06-feature-relations.md) |
+| **Ontology classes and predicates** | What page classes exist and which typed predicates may connect them (ER-style, from `ontology-profile-v1`) | [07-ontology.md](./07-ontology.md) |
 
 ## Conventions
 
@@ -47,10 +48,10 @@ shows the whole system on one screen. Come back for the rest when you need detai
 
 ## What is NOT here yet (dev-team backlog)
 
-The deeper L3 sequences for the maintenance loop, the per-vault firewall decision tree, and an
-ER-style diagram of the ontology classes/predicates are tracked in
-`tmp/SOFTWARE-3-0-plan.md` (the diagram workstream). Add them
-here as they land.
+The deeper L3 sequences for the maintenance loop and the per-vault firewall decision tree are
+tracked in `tmp/SOFTWARE-3-0-plan.md` (the diagram workstream). Add them here as they land.
+
+The ER-style ontology diagram landed as [07-ontology.md](./07-ontology.md) (PM.7 — delivered).
 
 > **Gate status — honest note:** the "node grounding" and link-existence checks described above
 > are **planned, not yet built** (see the plan's Phase 0–1). Today only `validate-docs.sh` (glossary),

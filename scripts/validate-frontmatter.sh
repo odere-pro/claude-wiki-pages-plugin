@@ -23,6 +23,7 @@ set -euo pipefail
 source "$(dirname "$0")/resolve-vault.sh"
 VAULT=$(resolve_vault)
 TARGET_SET=0
+JSON_MODE=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --target)
@@ -30,10 +31,72 @@ while [ $# -gt 0 ]; do
       TARGET_SET=1
       shift 2
       ;; # explicit CLI flag overrides auto-detection
+    --json)
+      JSON_MODE=1
+      shift
+      ;;
     *) shift ;;
   esac
 done
 VAULT_NAME=$(basename "$VAULT")
+
+# ── JSON helpers (no jq dependency) ──────────────────────────────────────────
+# _json_escape: escape a plain string for embedding in a JSON string value.
+# Escapes: backslash → \\, double-quote → \", newline → \n, tab → \t,
+# carriage-return → \r, backspace → \b, form-feed → \f, and any remaining
+# C0 control character (0x01-0x1F) → \uXXXX (lowercase hex).
+# This satisfies RFC 8259 §7 which forbids unescaped control chars in strings.
+_json_escape() {
+  printf '%s' "$1" | LC_ALL=C awk '
+  BEGIN {
+    ORS = ""
+    # Build ord[] table: ord[char] = decimal byte value for all 256 bytes.
+    for (i = 0; i <= 255; i++) {
+      c = sprintf("%c", i)
+      ord[c] = i
+    }
+  }
+  {
+    n = split($0, chars, "")
+    for (i = 1; i <= n; i++) {
+      c = chars[i]
+      o = ord[c]
+      if      (c == "\\") { printf "%s", "\\\\" }
+      else if (c == "\"") { printf "%s", "\\\"" }
+      else if (o ==  8)   { printf "%s", "\\b"  }
+      else if (o ==  9)   { printf "%s", "\\t"  }
+      else if (o == 12)   { printf "%s", "\\f"  }
+      else if (o == 13)   { printf "%s", "\\r"  }
+      else if (o >= 1 && o <= 31) { printf "\\u%04x", o }
+      else { printf "%s", c }
+    }
+    # awk splits on RS (newline by default); emit \n between input lines
+    printf "%s", "\\n"
+  }
+  ' | sed 's/\\n$//'
+}
+
+# _json_finding_no_file: emit one Finding JSON object without a file field.
+# $1=severity  $2=check  $3=message
+_json_finding_no_file() {
+  local sev check msg
+  sev=$(_json_escape "$1")
+  check=$(_json_escape "$2")
+  msg=$(_json_escape "$3")
+  printf '{"severity":"%s","check":"%s","message":"%s"}' "$sev" "$check" "$msg"
+}
+
+# _json_finding_with_file: emit one Finding JSON object with a file field.
+# $1=severity  $2=check  $3=message  $4=file
+_json_finding_with_file() {
+  local sev check msg file
+  sev=$(_json_escape "$1")
+  check=$(_json_escape "$2")
+  msg=$(_json_escape "$3")
+  file=$(_json_escape "$4")
+  printf '{"severity":"%s","check":"%s","message":"%s","file":"%s"}' \
+    "$sev" "$check" "$msg" "$file"
+}
 
 # ── Schema-table reader (ADR-0014 Part A, amended) ───────────────────────────
 # _SCHEMA_FILE: the vault's CLAUDE.md.
@@ -234,6 +297,22 @@ validate_content() {
     fi
   fi
 
+  # NOTE (P3.4 / ADR-0015 N7): entity_type membership validation (checking that
+  # `entity_type:` holds a value from the composed set core ∪
+  # entity_type_extensions) is intentionally NOT implemented in this bash hook.
+  # It lives ONLY in the Bun engine (src/commands/verify/check-entity-type.ts),
+  # which calls parseOntologyProfile from src/commands/ontology/ontology.ts.
+  #
+  # Adding that check here would require calling the engine (a Bun dependency)
+  # on the hot PreToolUse hook path — which this script was designed to avoid.
+  # Re-implementing the parser inline would create a second source of truth for
+  # the entity_type core enum, violating the single-source invariant (TEAM-BRIEF
+  # §6, CLAUDE.md "no parallel enum file and no second list").
+  #
+  # This `case` statement is therefore a KNOWN Bun-absent fallback DRY exception:
+  # it checks path:/parent: consistency (filesystem-only logic) but does NOT
+  # validate entity_type values against the ontology enum. That gap is
+  # intentional and documented here so reviewers do not add enum logic here.
   case "$type" in
     entity | concept | topic | project | synthesis | index)
       local declared_path wiki_relative expected_path
@@ -255,6 +334,37 @@ validate_content() {
 if [ "$TARGET_SET" -eq 1 ]; then
   WIKI="$VAULT/wiki"
   ERRORS=0
+
+  # Validate the vault directory exists (exit 2 for bad args).
+  if [ ! -d "$WIKI" ]; then
+    if [ "$JSON_MODE" -eq 1 ]; then
+      printf '{"findings":[]}\n'
+    fi
+    exit 2
+  fi
+
+  if [ "$JSON_MODE" -eq 1 ]; then
+    # ── JSON mode: collect findings[], emit envelope, exit 0/1 ──────────────
+    FINDINGS_JSON=""
+    FINDING_SEP=""
+
+    while IFS= read -r -d '' file; do
+      wiki_rel="${file#${WIKI}/}"
+      err=$(validate_content "$wiki_rel" "$(cat "$file")")
+      if [ -n "$err" ]; then
+        finding=$(_json_finding_with_file "error" "frontmatter" "$err" "$wiki_rel")
+        FINDINGS_JSON="${FINDINGS_JSON}${FINDING_SEP}${finding}"
+        FINDING_SEP=","
+        ERRORS=$((ERRORS + 1))
+      fi
+    done < <(find "$WIKI" -name "*.md" -print0 2>/dev/null)
+
+    printf '{"findings":[%s]}\n' "$FINDINGS_JSON"
+    if [ "$ERRORS" -gt 0 ]; then
+      exit 1
+    fi
+    exit 0
+  fi
 
   red() { printf '\033[0;31mERROR: %s\033[0m\n' "$1"; }
   green() { printf '\033[0;32mOK:    %s\033[0m\n' "$1"; }

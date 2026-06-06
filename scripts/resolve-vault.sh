@@ -24,6 +24,26 @@
 CLAUDE_WIKI_PAGES_DEFAULT_VAULT="docs/vault"
 CLAUDE_WIKI_PAGES_SETTINGS="${CLAUDE_WIKI_PAGES_SETTINGS_FILE:-.claude/claude-wiki-pages/settings.json}"
 
+# Internal: extract a top-level string field from a JSON file using python3.
+# Line-independent: works on compact (single-line) and multi-line/indented JSON.
+# Usage: _settings_get_field <file> <field_name>
+# Prints the field value on stdout, or nothing if the field is absent or not a string.
+# Exits 0 on success (including absent field); exits non-zero only on parse error.
+_settings_get_field() {
+  local settings_file="$1"
+  local field_name="$2"
+  python3 - "$settings_file" "$field_name" 2>/dev/null <<'PYEOF'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+except Exception:
+    sys.exit(1)
+val = data.get(sys.argv[2], "")
+if isinstance(val, str):
+    print(val)
+PYEOF
+}
+
 resolve_vault() {
   # Self-heal: ensure settings.json exists on every resolution. SessionStart
   # is the primary creation path, but it may miss (plugin reinstall mid-session,
@@ -41,7 +61,7 @@ resolve_vault() {
   # 2. Settings file current_vault_path
   if [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ]; then
     local path
-    path=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+    path=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
     if [ -n "$path" ]; then
       echo "$path"
       return
@@ -106,29 +126,64 @@ set_vault_path() {
 
 # ── Multi-vault registry helpers ─────────────────────────────────────────────
 #
-# Registry shape (additive — old settings.json without "vaults" is valid):
-#   {
-#     "default_vault_path": "...",   ← unchanged, never written here
-#     "current_vault_path": "...",   ← sole active pointer, written by set_vault_path
-#     "vaults": [{"path":"...","name":"..."}]  ← NEW sidecar array
-#   }
-#
+# Registry shape and invariant are documented in docs/operations.md
+# ("Multi-vault registry" section) — that is the single canonical reference.
+# Summary: {default_vault_path, current_vault_path, vaults:[{path,name}]}.
 # Invariant: current_vault_path MUST equal one vaults[].path.
 # Backfill: any operation that reads the registry adds current_vault_path to
 # vaults[] if the key is missing, keeping old settings files migration-safe.
 
 # Internal: read the vaults array from settings.json using python3.
 # Prints lines of "path|name" pairs; prints nothing if no vaults key.
+#
+# Fail-closed contract (ADR-0016 N4/N5):
+#   - Exit 1 (with stderr WARN) on malformed JSON.
+#   - Exit 1 (with stderr WARN) when current_vault_path is present in the JSON
+#     but is NOT a member of vaults[].path — invariant violation.
+#   - Exit 0 and print nothing when the vaults key is entirely absent; this is
+#     a valid legacy/fresh single-vault project (tier-4 default-fallback intact).
 _vaults_read() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
-  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null <<'PYEOF'
+  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" <<'PYEOF'
 import json, sys
+
+settings_file = sys.argv[1]
 try:
-    data = json.load(open(sys.argv[1]))
-    for v in data.get("vaults", []):
-        print(v.get("path","") + "|" + v.get("name",""))
-except Exception:
-    pass
+    data = json.load(open(settings_file))
+except Exception as exc:
+    sys.stderr.write(
+        "[claude-wiki-pages] WARN: registry malformed (cannot parse %s: %s)"
+        " — all writes blocked until repaired\n" % (settings_file, exc)
+    )
+    sys.exit(1)
+
+# No vaults key — valid legacy project; tier-4 fallback applies.
+if "vaults" not in data:
+    sys.exit(0)
+
+vaults = data.get("vaults", [])
+current = data.get("current_vault_path", "")
+
+# Check invariant: current_vault_path must be a member of vaults[].path.
+if current and not any(v.get("path", "") == current for v in vaults):
+    sys.stderr.write(
+        "[claude-wiki-pages] WARN: registry inconsistent"
+        " (current_vault_path '%s' is not in vaults[])"
+        " — all writes blocked until repaired\n" % current
+    )
+    sys.exit(1)
+
+for v in vaults:
+    path_val = v.get("path", "")
+    name_val = v.get("name", "")
+    if not isinstance(path_val, str) or not isinstance(name_val, str):
+        sys.stderr.write(
+            "[claude-wiki-pages] WARN: registry malformed"
+            " (non-string name or path in vaults[]: path=%r name=%r)"
+            " — all writes blocked until repaired\n" % (path_val, name_val)
+        )
+        sys.exit(1)
+    print(path_val + "|" + name_val)
 PYEOF
 }
 
@@ -166,7 +221,7 @@ sys.exit(0 if "vaults" in data else 1)
 PYEOF
     # vaults key absent — backfill from current_vault_path
     local cur
-    cur=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+    cur=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
     [ -z "$cur" ] && cur="$CLAUDE_WIKI_PAGES_DEFAULT_VAULT"
     local json
     json=$(printf '[{"path":"%s","name":"main"}]' "$cur")
@@ -224,7 +279,7 @@ vault_remove() {
   _vaults_backfill
 
   local active
-  active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+  active=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
 
   # Resolve target to a path (match by path or name)
   local resolved_path
@@ -272,6 +327,18 @@ PYEOF
 
 # vault_switch <path|name>: set current_vault_path to a REGISTERED vault.
 # Refuses if the target is not in the registry (no implicit add).
+#
+# Pre-switch health-check gate (PM.4):
+#   - Exit 1 if the resolved path does not exist on disk (names the missing path).
+#   - Exit 1 if the resolved path has no CLAUDE.md that contains schema_version
+#     (the vault is not schema-valid).
+#   - WARN (but allow) if the resolved path lacks a wiki/ directory — the vault
+#     is schema-valid but not yet scaffolded; run /claude-wiki-pages:init to fix.
+#
+# Decision: a missing wiki/ is a WARN-with-remediation, not a hard block, because
+# the vault directory and CLAUDE.md are present and the schema is valid. Blocking
+# would prevent /claude-wiki-pages:init from being the natural next step in context.
+# A missing vault directory or schema marker is always a hard block (exit 1).
 vault_switch() {
   local target="$1"
   init_vault_settings
@@ -285,17 +352,63 @@ vault_switch() {
     return 1
   fi
 
+  # Health check 1: directory must exist
+  if [ ! -d "$resolved_path" ]; then
+    printf '[claude-wiki-pages] ERROR: vault directory "%s" does not exist on disk — switch aborted\n' "$resolved_path" >&2
+    return 1
+  fi
+
+  # Health check 2: CLAUDE.md with schema_version must be present
+  if ! grep -q 'schema_version' "$resolved_path/CLAUDE.md" 2>/dev/null; then
+    printf '[claude-wiki-pages] ERROR: vault "%s" has no CLAUDE.md with schema_version — not a valid vault; switch aborted\n' "$resolved_path" >&2
+    return 1
+  fi
+
+  # Health check 3: wiki/ directory should exist (WARN only — allows switch)
+  if [ ! -d "$resolved_path/wiki" ]; then
+    printf '[claude-wiki-pages] WARN: vault "%s" has no wiki/ directory — vault is not yet scaffolded; run /claude-wiki-pages:init to complete setup\n' "$resolved_path" >&2
+  fi
+
   # Use the ONE writer: set_vault_path
   set_vault_path "$resolved_path"
 }
 
 # vault_list: print the registry, marking the active vault with *.
+# Emits a WARN to stderr when the registry is inconsistent (malformed JSON or
+# current_vault_path ∉ vaults[]) so `set-vault.sh list` surfaces the problem
+# (ADR-0016 N5). Consistent with the fail-closed invariant: a WARN here tells
+# the operator why writes are blocked.
+#
+# With --status flag (opt-in, PM.4): adds two extra awk-parseable columns:
+#   raw-pending  — count of files under <vault>/raw/ (pending ingestion)
+#   last-op      — last log.md entry as "VERB YYYY-MM-DD" (or "-" if absent)
+# Bare list never reads log.md so it stays fast and works even when log.md
+# is absent. Output format (both modes):
+#   MARKER  PATH                                      NAME     [RAW  LAST-OP]
+# Field 1 = marker (*|' '), field 2 = path — awk-parseable with default FS.
 vault_list() {
+  local show_status=0
+  if [ "${1:-}" = "--status" ]; then
+    show_status=1
+  fi
+
   init_vault_settings
   _vaults_backfill
 
   local active
-  active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
+  active=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
+
+  # Check registry consistency via _vaults_read (which enforces the invariant).
+  # Run it once to detect any remaining inconsistency after backfill and warn.
+  # Use || true so set -e in the caller (set-vault.sh) does not abort the
+  # script when _vaults_read exits non-zero — we want to print the WARN and
+  # still show whatever entries are available.
+  local vaults_out rc
+  rc=0
+  vaults_out=$(_vaults_read) || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    printf '[claude-wiki-pages] WARN: registry is inconsistent — run `set-vault.sh switch <path>` to repair, or edit settings.json manually\n' >&2
+  fi
 
   local path name marker
   while IFS='|' read -r path name; do
@@ -305,8 +418,132 @@ vault_list() {
     else
       marker=" "
     fi
-    printf '%s %-40s  %s\n' "$marker" "$path" "$name"
-  done < <(_vaults_read)
+
+    if [ "$show_status" -eq 1 ]; then
+      # Count pending raw/ files (0 if raw/ absent)
+      local raw_count=0
+      if [ -d "$path/raw" ]; then
+        raw_count=$(find "$path/raw" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
+      fi
+
+      # Last log.md operation: extract last "## [YYYY-MM-DD] VERB" heading
+      local last_op="-"
+      local log_file="$path/wiki/log.md"
+      if [ -f "$log_file" ]; then
+        last_op=$(awk '/^## \[[0-9]/ && NF >= 3 { verb=$3; date=substr($2,2,10); last=verb " " date } END { print (last != "" ? last : "-") }' "$log_file")
+      fi
+
+      # Awk-parseable format: field 1 = marker (* or .), field 2 = path.
+      # Non-active uses '.' so field positions are stable for 'awk {print $2}'.
+      local awk_marker="$marker"
+      [ "$marker" = " " ] && awk_marker="."
+      printf '%s %-40s  %-20s  raw:%-4s  %s\n' "$awk_marker" "$path" "$name" "$raw_count" "$last_op"
+    else
+      printf '%s %-40s  %s\n' "$marker" "$path" "$name"
+    fi
+  done <<<"$vaults_out"
+}
+
+# vault_cross_log: read-time audit roll-up across all registered vaults (PM.3).
+#
+# Semi-public reader: called by `set-vault.sh cross-vault-log`. Enumerates vaults
+# via _vaults_read directly (ADR-0016 N8 — no registry_all_vaults wrapper).
+#
+# Behaviour:
+#   - On malformed/inconsistent registry (_vaults_read exits non-zero): emits its
+#     OWN "registry malformed" status to stderr + exits non-zero with zero entries.
+#     Never emits __FAIL_CLOSED__ (that token is firewall-internal, ADR-0016 Part A).
+#   - For each registered vault: folds wiki/log.md level-2 headings
+#     (## [DATE] verb | detail) into the output, vault-tagged with [name].
+#   - A vault with no wiki/log.md is skipped with a stderr WARN (not a hard error).
+#   - Entries are emitted date-sorted across vaults.
+#   - $1 = --last N (optional): limits entries collected per vault before sorting.
+#
+# NO-LEDGER invariant: this function creates no file; running it twice leaves
+# every vault's wiki/ working tree byte-identical.
+vault_cross_log() {
+  local last_n=0
+
+  # Parse --last N
+  if [ "${1:-}" = "--last" ]; then
+    if [ -z "${2:-}" ] || ! printf '%s' "${2:-}" | grep -qE '^[0-9]+$'; then
+      printf '[claude-wiki-pages] ERROR: --last requires a positive integer\n' >&2
+      return 1
+    fi
+    last_n="$2"
+  elif [ -n "${1:-}" ]; then
+    printf '[claude-wiki-pages] ERROR: unknown argument: %s\n' "$1" >&2
+    return 1
+  fi
+
+  # Read all registered vaults. On non-zero exit (malformed or inconsistent
+  # registry) report our own read-time status — do NOT emit __FAIL_CLOSED__.
+  # Capture only stdout; stderr (WARN messages) flows through to our caller's
+  # stderr naturally, matching the pattern used by registry_other_vaults.
+  # Use `|| rc=$?` to prevent set -e in the caller from aborting on failure
+  # before we can capture the exit code and emit our own diagnostic.
+  local vaults_out rc
+  rc=0
+  vaults_out=$(_vaults_read) || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    # Emit our own status; the WARN from _vaults_read already went to stderr.
+    printf '[claude-wiki-pages] ERROR: registry malformed or inconsistent — cannot produce roll-up\n' >&2
+    return 1
+  fi
+
+  if [ -z "$vaults_out" ]; then
+    # No vaults key — nothing to roll up; exit 0 (valid fresh project).
+    return 0
+  fi
+
+  # Collect entries from each vault into a temp accumulator.
+  # Each line: DATE<TAB>VAULTNAME<TAB>HEADING
+  local all_entries=""
+
+  while IFS='|' read -r vault_path vault_name; do
+    [ -z "$vault_path" ] && continue
+    local log_file="$vault_path/wiki/log.md"
+    if [ ! -f "$log_file" ]; then
+      printf '[claude-wiki-pages] WARN: no wiki/log.md for vault "%s" (%s) — skipping\n' \
+        "$vault_name" "$vault_path" >&2
+      continue
+    fi
+
+    # Extract level-2 headings of the form: ## [DATE] ...
+    # $2 is the bracketed date token "[YYYY-MM-DD]"; substr strips the brackets.
+    # Output lines: DATE<TAB>vault_name<TAB>full_heading_line
+    local vault_entries
+    vault_entries=$(awk -v name="$vault_name" '
+      /^## \[[0-9]/ && NF >= 2 {
+        date = substr($2, 2, 10)
+        print date "\t" name "\t" $0
+      }
+    ' "$log_file")
+
+    if [ -z "$vault_entries" ]; then
+      continue
+    fi
+
+    # Apply --last N limit per vault (keep the last N lines by date = tail)
+    if [ "$last_n" -gt 0 ]; then
+      vault_entries=$(printf '%s\n' "$vault_entries" | tail -n "$last_n")
+    fi
+
+    if [ -n "$all_entries" ]; then
+      all_entries="${all_entries}
+${vault_entries}"
+    else
+      all_entries="$vault_entries"
+    fi
+  done <<<"$vaults_out"
+
+  if [ -z "$all_entries" ]; then
+    return 0
+  fi
+
+  # Sort all entries by date (field 1), then emit with vault tag prepended.
+  printf '%s\n' "$all_entries" | sort -t "$(printf '\t')" -k1,1 |
+    awk -F'\t' '{ print "[" $2 "] " $3 }'
 }
 
 # registry_other_vaults: print the registered vault roots EXCEPT the active one
@@ -315,9 +552,21 @@ vault_list() {
 # rule fires in the real PreToolUse hook with no env var required. Read-only:
 # does NOT backfill or otherwise mutate settings (the firewall hook must never
 # write). Prints nothing when there is no registry or only the active vault.
+#
+# Fail-closed contract (ADR-0016 N4): propagates _vaults_read's exit code.
+# A non-zero exit means the registry is untrustworthy (malformed JSON or
+# current_vault_path ∉ vaults[]). The caller (firewall.sh) maps this to
+# zero writable roots — even the active vault is blocked.
 registry_other_vaults() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
-  local active
-  active=$(awk -F'"' '/"current_vault_path"/{print $4}' "$CLAUDE_WIKI_PAGES_SETTINGS")
-  _vaults_read | awk -F'|' -v active="$active" '$1 != "" && $1 != active {print $1}'
+  local active vaults_output rc
+  active=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
+  # $() captures stdout only; _vaults_read stderr (WARN messages) flows through
+  # to our caller's stderr naturally. Capture exit code after the subshell.
+  vaults_output=$(_vaults_read)
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    return $rc
+  fi
+  printf '%s\n' "$vaults_output" | awk -F'|' -v active="$active" '$1 != "" && $1 != active {print $1}'
 }

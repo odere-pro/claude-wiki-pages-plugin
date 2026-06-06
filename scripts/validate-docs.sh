@@ -663,6 +663,61 @@ else
     fi
   fi
 
+  # ── 5g: ontology predicate-node grounding ────────────────────────────────────
+  # Gated on docs/design/07-ontology.md being tracked.
+  # Extracts predicate names from the ontology-profile-v1 predicate table in
+  # docs/vault-example/CLAUDE.md (the "|`predicate`|..." rows), then extracts
+  # every edge-label token from mermaid fences in 07-ontology.md (the |label|
+  # form used by mermaid graph edges), and asserts every diagram predicate label
+  # exists in the grep-extracted authoritative set.
+  # Uses grep/awk ONLY — no Bun, no engine invocation (N12).
+  ONTOLOGY_DOC="docs/design/07-ontology.md"
+  if git ls-files -- "$ONTOLOGY_DOC" 2>/dev/null | grep -q .; then
+    # Extract predicate names directly from the ontology-profile-v1 predicate table.
+    # Table section starts at "### Predicate domain" and ends at the next "###".
+    # Data rows look like: | `parent` | domain | range | direction |
+    # Capture the backtick-quoted predicate name from column 1.
+    _AUTHORITY_PREDICATES=$(awk '
+      /### Predicate domain/ { in_table=1; next }
+      in_table && /^###/ { in_table=0 }
+      in_table && /^\|[[:space:]]*`[a-z_]+`/ {
+        match($0, /`[a-z_]+`/)
+        tok=substr($0, RSTART+1, RLENGTH-2)
+        print tok
+      }
+    ' docs/vault-example/CLAUDE.md 2>/dev/null | sort -u || true)
+
+    if [ -z "$_AUTHORITY_PREDICATES" ]; then
+      warn "5g: could not extract predicates from docs/vault-example/CLAUDE.md — skipping predicate-node grounding"
+    else
+      # Extract edge-label tokens from mermaid fences in 07-ontology.md.
+      # Mermaid graph edges with labels look like:  NodeA -->|label| NodeB
+      # Capture the text between the pipes.
+      _DIAGRAM_PREDICATES=$(awk \
+        '/^[[:space:]]*```mermaid/{f=1;next} /^[[:space:]]*```/{if(f)f=0;next} f' \
+        "$ONTOLOGY_DOC" 2>/dev/null |
+        grep -oE '\|[a-z_]+\|' |
+        sed 's/|//g' | sort -u || true)
+
+      PRED_HITS=0
+      while IFS= read -r pred; do
+        [ -z "$pred" ] && continue
+        if ! printf '%s\n' "$_AUTHORITY_PREDICATES" | grep -qxF "$pred"; then
+          err "5g: predicate node '$pred' in $ONTOLOGY_DOC is absent from the ontology-profile-v1 predicate table in docs/vault-example/CLAUDE.md"
+          PRED_HITS=$((PRED_HITS + 1))
+        fi
+      done <<<"$_DIAGRAM_PREDICATES"
+
+      if [ "$PRED_HITS" -eq 0 ]; then
+        ok "5g: all predicate nodes in $ONTOLOGY_DOC are grounded in ontology-profile-v1"
+      else
+        DRIFT_HITS=$((DRIFT_HITS + PRED_HITS))
+      fi
+    fi
+  else
+    ok "5g: $ONTOLOGY_DOC not yet tracked — predicate-node grounding TODO (not a CI failure)"
+  fi
+
   if [ "$DRIFT_HITS" -eq 0 ]; then
     ok "no design-drift violations"
   else

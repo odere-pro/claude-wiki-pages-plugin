@@ -23,7 +23,8 @@ _usage() {
   printf '       %s add <path> [name]\n' "$(basename "$0")" >&2
   printf '       %s remove <path|name>\n' "$(basename "$0")" >&2
   printf '       %s switch <path|name>\n' "$(basename "$0")" >&2
-  printf '       %s list\n' "$(basename "$0")" >&2
+  printf '       %s list [--status]\n' "$(basename "$0")" >&2
+  printf '       %s cross-vault-log [--last N]\n' "$(basename "$0")" >&2
 }
 
 if [ -z "${1:-}" ]; then
@@ -57,7 +58,14 @@ case "$1" in
     printf 'Active vault switched to: %s\n' "$2"
     ;;
   list)
-    vault_list
+    # Pass --status flag through if provided (PM.4 opt-in read-only status column).
+    vault_list "${2:-}"
+    ;;
+  cross-vault-log)
+    # Read-time audit roll-up across all registered vaults (PM.3 / ADR-0016 Part C).
+    # Read-only: never creates or modifies any file under any vault's wiki/.
+    shift
+    vault_cross_log "$@"
     ;;
   *)
     # Back-compat: bare <vault-path> form

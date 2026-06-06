@@ -14,6 +14,7 @@ import { checkIndex, checkSourcesFormat } from "../../core/index-check.ts";
 import { checkIndexConsistency, checkOrphanSources, checkTopicFolders } from "../../core/moc.ts";
 import { checkCitedSourceStaleness } from "../../core/staleness.ts";
 import { checkProvenance } from "../../core/provenance.ts";
+import { checkEntityType } from "./check-entity-type.ts";
 import { resolveVault } from "../../core/vault.ts";
 
 export interface VerifyOptions {
@@ -37,6 +38,11 @@ export function verify(opts: VerifyOptions = {}): Report {
   }
 
   const wiki = join(vault, "wiki");
+  // The vault's own CLAUDE.md is both the schema authority (ontology-profile-v1
+  // tables) and the extension source (entity_type_extensions). checkEntityType
+  // calls parseOntologyProfile which handles missing tables fail-open — so this
+  // check emits zero findings when the vault CLAUDE.md lacks the profile tables.
+  const vaultClaudeMd = join(vault, "CLAUDE.md");
   const findings = [
     ...checkSchema(vault),
     ...checkIndex(wiki),
@@ -46,6 +52,7 @@ export function verify(opts: VerifyOptions = {}): Report {
     ...checkTopicFolders(wiki),
     ...checkCitedSourceStaleness(wiki),
     ...checkProvenance(wiki),
+    ...checkEntityType(wiki, vaultClaudeMd, vaultClaudeMd),
   ];
 
   return buildReport("verify", vault, findings);
