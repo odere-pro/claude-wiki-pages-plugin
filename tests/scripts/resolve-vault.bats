@@ -257,17 +257,22 @@ print(len(data.get('vaults', [])))
 }
 
 @test "vault_switch: changes current_vault_path to a registered vault" {
+  # PM.4 health-check requires a real dir + CLAUDE.md(schema_version) + wiki/.
+  local V2="$BATS_TEST_TMPDIR/switch-second"
+  mkdir -p "$V2/wiki"
+  printf -- '---\nschema_version: 1\ntitle: Test\n---\n' >"$V2/CLAUDE.md"
+
   mkdir -p "$(dirname "$SETTINGS_TMP")"
-  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"user/second","name":"second"}]\n}\n' >"$SETTINGS_TMP"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"%s","name":"second"}]\n}\n' "$V2" >"$SETTINGS_TMP"
 
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
-    vault_switch 'user/second'
+    vault_switch '$V2'
   "
 
   assert_success
-  grep -q '"current_vault_path": "user/second"' "$SETTINGS_TMP"
+  grep -q "\"current_vault_path\": \"$V2\"" "$SETTINGS_TMP"
 }
 
 @test "vault_switch: refuses unregistered vault" {
@@ -401,16 +406,21 @@ print(len(data.get('vaults', [])))
 }
 
 @test "set-vault.sh switch: changes the active vault" {
+  # PM.4 health-check requires a real dir + CLAUDE.md(schema_version) + wiki/.
+  local V2="$BATS_TEST_TMPDIR/cli-switch-second"
+  mkdir -p "$V2/wiki"
+  printf -- '---\nschema_version: 1\ntitle: Test\n---\n' >"$V2/CLAUDE.md"
+
   mkdir -p "$(dirname "$SETTINGS_TMP")"
-  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"user/second","name":"second"}]\n}\n' >"$SETTINGS_TMP"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"%s","name":"second"}]\n}\n' "$V2" >"$SETTINGS_TMP"
 
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
-    bash '$REPO_ROOT/scripts/set-vault.sh' switch 'user/second'
+    bash '$REPO_ROOT/scripts/set-vault.sh' switch '$V2'
   "
 
   assert_success
-  grep -q '"current_vault_path": "user/second"' "$SETTINGS_TMP"
+  grep -q "\"current_vault_path\": \"$V2\"" "$SETTINGS_TMP"
 }
 
 @test "set-vault.sh list: prints registry" {
@@ -522,7 +532,11 @@ sys.exit(0 if 'vaults' in data else 1)
   local V1="$BATS_TEST_TMPDIR/vault-a"
   local V2="$BATS_TEST_TMPDIR/vault-b"
   local V3="$BATS_TEST_TMPDIR/vault-c"
-  mkdir -p "$V1" "$V2" "$V3"
+  # PM.4: vault_switch health-check requires dir + CLAUDE.md(schema_version) + wiki/
+  mkdir -p "$V1/wiki" "$V2/wiki" "$V3/wiki"
+  printf -- '---\nschema_version: 1\ntitle: A\n---\n' >"$V1/CLAUDE.md"
+  printf -- '---\nschema_version: 1\ntitle: B\n---\n' >"$V2/CLAUDE.md"
+  printf -- '---\nschema_version: 1\ntitle: C\n---\n' >"$V3/CLAUDE.md"
 
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"a"},{"path":"%s","name":"b"},{"path":"%s","name":"c"}]\n}\n' \
@@ -593,7 +607,11 @@ sys.exit(0 if data['current_vault_path'] == '$V2' else 1)
   local V1="$BATS_TEST_TMPDIR/vault-x"
   local V2="$BATS_TEST_TMPDIR/vault-y"
   local V3="$BATS_TEST_TMPDIR/vault-z"
-  mkdir -p "$V1" "$V2" "$V3"
+  # PM.4: vault_switch health-check requires dir + CLAUDE.md(schema_version) + wiki/
+  mkdir -p "$V1/wiki" "$V2/wiki" "$V3/wiki"
+  printf -- '---\nschema_version: 1\ntitle: X\n---\n' >"$V1/CLAUDE.md"
+  printf -- '---\nschema_version: 1\ntitle: Y\n---\n' >"$V2/CLAUDE.md"
+  printf -- '---\nschema_version: 1\ntitle: Z\n---\n' >"$V3/CLAUDE.md"
 
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"x"},{"path":"%s","name":"y"},{"path":"%s","name":"z"}]\n}\n' \
@@ -615,6 +633,210 @@ sys.exit(0 if data['current_vault_path'] == '$V2' else 1)
   star_count=$(printf '%s\n' "$output" | grep -c '^\*' || true)
   [ "$star_count" -eq 1 ]
   assert_output_contains "* $V2"
+}
+
+# ── PM.4: list --status + pre-switch health-check ──────────────────────────────
+#
+# Acceptance items:
+#   1. list --status N>=3: one row per vault, raw-pending count + last log op, active marked *.
+#   2. bare list unchanged: works even if a vault's log.md is absent (does NOT read log.md).
+#   3. switch <deleted-path>: exits 1 naming the missing path; active vault unchanged.
+#   4. switch <valid>: succeeds (dir exists + CLAUDE.md with schema_version + wiki/).
+#   5. switch <CLAUDE.md-no-wiki>: WARNs naming /claude-wiki-pages:init; switch allowed.
+#   Output format: awk-parseable columns separated by two or more spaces; fields must
+#   be stable enough that `awk '{print $1, $2}` yields marker and path.
+
+@test "PM.4 list --status: N=3 vaults prints one row per vault with raw-pending and last-op columns" {
+  local V1="$BATS_TEST_TMPDIR/status-v1"
+  local V2="$BATS_TEST_TMPDIR/status-v2"
+  local V3="$BATS_TEST_TMPDIR/status-v3"
+  mkdir -p "$V1/raw" "$V1/wiki"
+  mkdir -p "$V2/raw" "$V2/wiki"
+  mkdir -p "$V3/raw" "$V3/wiki"
+
+  # V1: 2 pending raw files, log.md with one entry
+  printf 'pending1\n' >"$V1/raw/doc1.md"
+  printf 'pending2\n' >"$V1/raw/doc2.md"
+  printf '# Log\n\n## [2026-03-01] ingest | first\n\ndetail\n' >"$V1/wiki/log.md"
+
+  # V2: 0 raw files, log.md with one entry (different verb)
+  printf '# Log\n\n## [2026-04-15] fix | fixed-something\n\ndetail\n' >"$V2/wiki/log.md"
+
+  # V3 (active): 1 raw file, no log.md (tests graceful empty status)
+  printf 'pending\n' >"$V3/raw/item.md"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"v1"},{"path":"%s","name":"v2"},{"path":"%s","name":"v3"}]\n}\n' \
+    "$V1" "$V3" "$V1" "$V2" "$V3" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' list --status
+  "
+
+  assert_success
+  # All three vault paths must appear
+  assert_output_contains "$V1"
+  assert_output_contains "$V2"
+  assert_output_contains "$V3"
+  # Exactly one active marker (V3 is active)
+  local star_count
+  star_count=$(printf '%s\n' "$output" | grep -c '^\*' || true)
+  [ "$star_count" -eq 1 ]
+  # Active vault row must be marked *
+  assert_output_contains "* $V3"
+  # raw-pending count must appear (V1 has 2, V3 has 1)
+  assert_output_contains "2"
+  # last log op for V1 must appear
+  assert_output_contains "ingest"
+  assert_output_contains "2026-03-01"
+}
+
+@test "PM.4 list --status: output is awk-parseable (field 1 = marker, field 2 = path)" {
+  local V1="$BATS_TEST_TMPDIR/awk-v1"
+  local V2="$BATS_TEST_TMPDIR/awk-v2"
+  local V3="$BATS_TEST_TMPDIR/awk-v3"
+  mkdir -p "$V1/raw" "$V1/wiki"
+  mkdir -p "$V2/raw" "$V2/wiki"
+  mkdir -p "$V3/raw" "$V3/wiki"
+  printf '# Log\n\n## [2026-01-01] ingest | x\n' >"$V1/wiki/log.md"
+  printf '# Log\n\n## [2026-02-01] fix | y\n' >"$V2/wiki/log.md"
+  printf '# Log\n\n## [2026-03-01] review | z\n' >"$V3/wiki/log.md"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"a1"},{"path":"%s","name":"a2"},{"path":"%s","name":"a3"}]\n}\n' \
+    "$V1" "$V1" "$V1" "$V2" "$V3" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' list --status | awk '{print \$2}'
+  "
+
+  assert_success
+  # field 2 of each row must be a vault path
+  assert_output_contains "$V1"
+  assert_output_contains "$V2"
+  assert_output_contains "$V3"
+}
+
+@test "PM.4 bare list: does NOT read log.md — works even when log.md is absent" {
+  local V1="$BATS_TEST_TMPDIR/nolog-v1"
+  local V2="$BATS_TEST_TMPDIR/nolog-v2"
+  # NO wiki/log.md created for either vault — bare list must still succeed
+  mkdir -p "$V1" "$V2"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"n1"},{"path":"%s","name":"n2"}]\n}\n' \
+    "$V1" "$V1" "$V1" "$V2" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' list
+  "
+
+  assert_success
+  assert_output_contains "$V1"
+  assert_output_contains "$V2"
+  assert_output_contains "*"
+  # Prove no log.md content bleeds through
+  refute_output_contains "ingest"
+  refute_output_contains "fix"
+}
+
+@test "PM.4 switch <deleted-path>: exits 1 naming missing path; active vault UNCHANGED" {
+  local V1="$BATS_TEST_TMPDIR/switch-v1"
+  local MISSING="$BATS_TEST_TMPDIR/does-not-exist-at-all"
+  mkdir -p "$V1"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"v1"},{"path":"%s","name":"missing"}]\n}\n' \
+    "$V1" "$V1" "$V1" "$MISSING" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' switch '$MISSING' 2>&1
+  "
+
+  # Must exit non-zero
+  [ "$status" -ne 0 ]
+  # Must name the missing path
+  assert_output_contains "$MISSING"
+  # Active vault must remain V1 — read settings.json directly
+  grep -q "\"current_vault_path\": \"$V1\"" "$SETTINGS_TMP"
+}
+
+@test "PM.4 switch <valid>: succeeds when dir + CLAUDE.md(schema_version) + wiki/ all present" {
+  local V1="$BATS_TEST_TMPDIR/hc-active"
+  local V2="$BATS_TEST_TMPDIR/hc-target"
+  mkdir -p "$V1" "$V2/wiki"
+  printf -- '---\nschema_version: 1\ntitle: Test\n---\n' >"$V2/CLAUDE.md"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"hc-a"},{"path":"%s","name":"hc-t"}]\n}\n' \
+    "$V1" "$V1" "$V1" "$V2" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' switch '$V2'
+  "
+
+  assert_success
+  grep -q "\"current_vault_path\": \"$V2\"" "$SETTINGS_TMP"
+}
+
+@test "PM.4 switch <no-wiki>: WARNs naming /claude-wiki-pages:init; switch is allowed" {
+  local V1="$BATS_TEST_TMPDIR/scaff-active"
+  local V2="$BATS_TEST_TMPDIR/scaff-target"
+  mkdir -p "$V1" "$V2"
+  # V2 has CLAUDE.md with schema_version but NO wiki/ directory
+  printf -- '---\nschema_version: 1\ntitle: Test\n---\n' >"$V2/CLAUDE.md"
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"sc-a"},{"path":"%s","name":"sc-t"}]\n}\n' \
+    "$V1" "$V1" "$V1" "$V2" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' switch '$V2' 2>&1
+  "
+
+  # Switch must succeed (WARN only, not blocked)
+  assert_success
+  # Must mention /claude-wiki-pages:init as remediation
+  assert_output_contains "/claude-wiki-pages:init"
+  # Must be clearly a WARN
+  assert_output_contains "WARN"
+  # Active vault must have switched to V2
+  grep -q "\"current_vault_path\": \"$V2\"" "$SETTINGS_TMP"
+}
+
+@test "PM.4 switch <no-CLAUDE.md>: treats as missing-dir-class, exits 1" {
+  # A vault registered but whose directory exists yet has no CLAUDE.md with schema_version
+  # is treated as an unscaffolded/invalid vault — exit 1.
+  local V1="$BATS_TEST_TMPDIR/noclaude-active"
+  local V2="$BATS_TEST_TMPDIR/noclaude-target"
+  mkdir -p "$V1" "$V2/wiki"
+  # V2 has wiki/ but NO CLAUDE.md at all
+
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "%s",\n  "current_vault_path": "%s",\n  "vaults": [{"path":"%s","name":"nc-a"},{"path":"%s","name":"nc-t"}]\n}\n' \
+    "$V1" "$V1" "$V1" "$V2" >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    bash '$REPO_ROOT/scripts/set-vault.sh' switch '$V2' 2>&1
+  "
+
+  # Missing CLAUDE.md with schema_version is a hard failure (vault is not schema-valid)
+  [ "$status" -ne 0 ]
+  # Active vault must remain V1
+  grep -q "\"current_vault_path\": \"$V1\"" "$SETTINGS_TMP"
+}
+
+@test "PM.4 list --status: set-vault.sh usage shows --status flag" {
+  run bash -c "bash '$REPO_ROOT/scripts/set-vault.sh' 2>&1"
+  assert_status 1
+  assert_output_contains "--status"
 }
 
 @test "PM.1 sole-resolver: resolve_vault is the only resolution function in resolve-vault.sh" {

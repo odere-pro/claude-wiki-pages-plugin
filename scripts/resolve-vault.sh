@@ -298,6 +298,18 @@ PYEOF
 
 # vault_switch <path|name>: set current_vault_path to a REGISTERED vault.
 # Refuses if the target is not in the registry (no implicit add).
+#
+# Pre-switch health-check gate (PM.4):
+#   - Exit 1 if the resolved path does not exist on disk (names the missing path).
+#   - Exit 1 if the resolved path has no CLAUDE.md that contains schema_version
+#     (the vault is not schema-valid).
+#   - WARN (but allow) if the resolved path lacks a wiki/ directory — the vault
+#     is schema-valid but not yet scaffolded; run /claude-wiki-pages:init to fix.
+#
+# Decision: a missing wiki/ is a WARN-with-remediation, not a hard block, because
+# the vault directory and CLAUDE.md are present and the schema is valid. Blocking
+# would prevent /claude-wiki-pages:init from being the natural next step in context.
+# A missing vault directory or schema marker is always a hard block (exit 1).
 vault_switch() {
   local target="$1"
   init_vault_settings
@@ -311,6 +323,23 @@ vault_switch() {
     return 1
   fi
 
+  # Health check 1: directory must exist
+  if [ ! -d "$resolved_path" ]; then
+    printf '[claude-wiki-pages] ERROR: vault directory "%s" does not exist on disk — switch aborted\n' "$resolved_path" >&2
+    return 1
+  fi
+
+  # Health check 2: CLAUDE.md with schema_version must be present
+  if ! grep -q 'schema_version' "$resolved_path/CLAUDE.md" 2>/dev/null; then
+    printf '[claude-wiki-pages] ERROR: vault "%s" has no CLAUDE.md with schema_version — not a valid vault; switch aborted\n' "$resolved_path" >&2
+    return 1
+  fi
+
+  # Health check 3: wiki/ directory should exist (WARN only — allows switch)
+  if [ ! -d "$resolved_path/wiki" ]; then
+    printf '[claude-wiki-pages] WARN: vault "%s" has no wiki/ directory — vault is not yet scaffolded; run /claude-wiki-pages:init to complete setup\n' "$resolved_path" >&2
+  fi
+
   # Use the ONE writer: set_vault_path
   set_vault_path "$resolved_path"
 }
@@ -320,7 +349,20 @@ vault_switch() {
 # current_vault_path ∉ vaults[]) so `set-vault.sh list` surfaces the problem
 # (ADR-0016 N5). Consistent with the fail-closed invariant: a WARN here tells
 # the operator why writes are blocked.
+#
+# With --status flag (opt-in, PM.4): adds two extra awk-parseable columns:
+#   raw-pending  — count of files under <vault>/raw/ (pending ingestion)
+#   last-op      — last log.md entry as "VERB YYYY-MM-DD" (or "-" if absent)
+# Bare list never reads log.md so it stays fast and works even when log.md
+# is absent. Output format (both modes):
+#   MARKER  PATH                                      NAME     [RAW  LAST-OP]
+# Field 1 = marker (*|' '), field 2 = path — awk-parseable with default FS.
 vault_list() {
+  local show_status=0
+  if [ "${1:-}" = "--status" ]; then
+    show_status=1
+  fi
+
   init_vault_settings
   _vaults_backfill
 
@@ -347,7 +389,29 @@ vault_list() {
     else
       marker=" "
     fi
-    printf '%s %-40s  %s\n' "$marker" "$path" "$name"
+
+    if [ "$show_status" -eq 1 ]; then
+      # Count pending raw/ files (0 if raw/ absent)
+      local raw_count=0
+      if [ -d "$path/raw" ]; then
+        raw_count=$(find "$path/raw" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
+      fi
+
+      # Last log.md operation: extract last "## [YYYY-MM-DD] VERB" heading
+      local last_op="-"
+      local log_file="$path/wiki/log.md"
+      if [ -f "$log_file" ]; then
+        last_op=$(awk '/^## \[[0-9]/ && NF >= 3 { verb=$3; date=substr($2,2,10); last=verb " " date } END { print (last != "" ? last : "-") }' "$log_file")
+      fi
+
+      # Awk-parseable format: field 1 = marker (* or .), field 2 = path.
+      # Non-active uses '.' so field positions are stable for 'awk {print $2}'.
+      local awk_marker="$marker"
+      [ "$marker" = " " ] && awk_marker="."
+      printf '%s %-40s  %-20s  raw:%-4s  %s\n' "$awk_marker" "$path" "$name" "$raw_count" "$last_op"
+    else
+      printf '%s %-40s  %s\n' "$marker" "$path" "$name"
+    fi
   done <<<"$vaults_out"
 }
 
