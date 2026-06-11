@@ -27,5 +27,10 @@
     // As-emitted ADR-0011 evidence: reformatting would change the scores and
     // break --verify-artifact reproduction.
     "tests/eval/runs",
+    // Vault content is data, not project prose: the dogfood vault, Obsidian
+    // config trees, and raw documents are never grouped or indexed by the
+    // normalization gates (same class as .claude/fixtures).
+    "docs/vault",
+    "**/.obsidian",
   ],
 }
