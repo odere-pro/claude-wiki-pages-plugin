@@ -15,14 +15,14 @@ children:
   - "[[Vault Location Resolution]]"
   - "[[Draft Review Gate]]"
 child_indexes: []
-tags: [operations]
+tags: [operations, index]
 created: 2026-06-11
 updated: 2026-06-11
 ---
 
 # Operations
 
-Navigation index for operating `claude-wiki-pages` day-to-day. Covers installation, getting started, the main entry verb, orchestrator routing, vault management, automation, offline mode, and the draft review gate.
+Navigation index for operating `claude-wiki-pages` day-to-day. Covers installation, getting started, the main entry verb, [[Orchestrator Routing]], vault management, automation, offline mode, and the draft review gate.
 
 ## Getting Started
 
@@ -33,7 +33,7 @@ Navigation index for operating `claude-wiki-pages` day-to-day. Covers installati
 ## Day-to-Day
 
 - [[One Advertised Path]] — `/claude-wiki-pages:wiki` as the single recommended entry
-- [[Orchestrator Routing]] — How the orchestrator decides which specialist to dispatch
+- [[Orchestrator Routing]] — How the [[claude-wiki-pages-orchestrator-agent]] decides which specialist to dispatch
 - [[Portable Markdown]] — Exporting wiki answers as portable markdown to `vault/output/`
 
 ## Automation

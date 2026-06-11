@@ -14,22 +14,22 @@ children:
   - "[[Ingest Data Flow]]"
   - "[[Agent Teams]]"
 child_indexes: []
-tags: [architecture]
+tags: [architecture, index]
 created: 2026-06-11
 updated: 2026-06-11
 ---
 
 # Architecture
 
-Navigation index for the `claude-wiki-pages` architecture topic. Covers the four-layer stack, all seven agents, skills, hooks, orchestration, provenance, and the two dev-only agent teams.
+Navigation index for the `claude-wiki-pages` architecture topic. Covers the [[Four-Layer Stack]], all seven agents, skills, hooks, orchestration, provenance, and the two dev-only agent teams.
 
 ## Core Architecture
 
 - [[Four-Layer Stack]] — The foundational four-layer structure (Data / Skills / Agents / Orchestration)
-- [[Layer 1 — Data]] — Immutable raw sources, typed wiki pages, vault schema
-- [[Layer 2 — Skills]] — 23 single-responsibility capabilities
-- [[Layer 3 — Agents]] — 7 multi-step executors
-- [[Layer 4 — Orchestration]] — Hooks, scripts, rules, slash commands
+- [[Layer 1 — Data]] — Immutable raw sources, typed wiki pages, vault schema; also covers [[Layer 2 — Skills]], [[Layer 3 — Agents]], [[Layer 4 — Orchestration]]
+- [[Provenance]] — Structural traceable chain from wiki pages to raw sources
+- [[Hook-Enforced Safety]] — Lifecycle hooks that enforce the schema on every write
+- [[Ingest Data Flow]] — The 11-step sequence for processing one raw source
 
 ## Agents
 
@@ -44,12 +44,6 @@ Navigation index for the `claude-wiki-pages` architecture topic. Covers the four
 ## Plugin Entity
 
 - [[claude-wiki-pages]] — The plugin identifier and top-level product
-
-## Quality and Safety
-
-- [[Provenance]] — Structural traceable chain from wiki pages to raw sources
-- [[Hook-Enforced Safety]] — Lifecycle hooks that enforce the schema on every write
-- [[Ingest Data Flow]] — The 11-step sequence for processing one raw source
 
 ## Development Teams
 
