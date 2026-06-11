@@ -60,9 +60,9 @@ schema_excerpt() { # echoes the required-fields table + enum list
 # ── prompt assembly ───────────────────────────────────────────────────────────
 build_system_prompt() {
   cat <<'EOF'
-You convert ONE raw source document into wiki pages for a provenance-tracked
-knowledge base. Output ONLY file blocks in exactly this protocol — no other
-prose, no markdown fences around the protocol:
+You convert ONE raw source document into pages of a provenance-tracked wiki.
+Output ONLY file blocks in exactly this protocol — no other prose, no
+markdown fences around the protocol:
 
 ===FILE: wiki/<relative path>.md===
 <complete file content, starting with --- YAML frontmatter>
@@ -143,54 +143,54 @@ parse_response() { # $1 = candidate vault dir
   declare -a seen=()
   while IFS= read -r line || [ -n "$line" ]; do
     case "$line" in
-    "===FILE: "*"===")
-      [ -n "$path" ] && {
-        rm -rf "$staging"
-        die "parse_response: new FILE block before previous closed"
-      }
-      path="${line#===FILE: }"
-      path="${path%===}"
-      # Strict allow-list: wiki/-rooted relative markdown paths only.
-      case "$path" in
-      wiki/*.md) : ;;
-      *)
-        rm -rf "$staging"
-        die "parse_response: path outside wiki/: $path"
-        ;;
-      esac
-      case "/$path/" in
-      */../*)
-        rm -rf "$staging"
-        die "parse_response: path traversal: $path"
-        ;;
-      esac
-      printf '%s' "$path" | grep -Eq '^wiki/[A-Za-z0-9._/-]+\.md$' || {
-        rm -rf "$staging"
-        die "parse_response: illegal characters in path: $path"
-      }
-      local dup
-      for dup in ${seen[@]+"${seen[@]}"}; do
-        [ "$dup" = "$path" ] && {
+      "===FILE: "*"===")
+        [ -n "$path" ] && {
           rm -rf "$staging"
-          die "parse_response: duplicate path: $path"
+          die "parse_response: new FILE block before previous closed"
         }
-      done
-      seen+=("$path")
-      mkdir -p "$staging/$(dirname "$path")"
-      : >"$staging/$path"
-      ;;
-    "===END FILE===")
-      [ -n "$path" ] || {
-        rm -rf "$staging"
-        die "parse_response: END FILE with no open block"
-      }
-      path=""
-      file_count=$((file_count + 1))
-      ;;
-    *)
-      # Content lines only inside an open block; chatter outside is ignored.
-      [ -n "$path" ] && printf '%s\n' "$line" >>"$staging/$path"
-      ;;
+        path="${line#===FILE: }"
+        path="${path%===}"
+        # Strict allow-list: wiki/-rooted relative markdown paths only.
+        case "$path" in
+          wiki/*.md) : ;;
+          *)
+            rm -rf "$staging"
+            die "parse_response: path outside wiki/: $path"
+            ;;
+        esac
+        case "/$path/" in
+          */../*)
+            rm -rf "$staging"
+            die "parse_response: path traversal: $path"
+            ;;
+        esac
+        printf '%s' "$path" | grep -Eq '^wiki/[A-Za-z0-9._/-]+\.md$' || {
+          rm -rf "$staging"
+          die "parse_response: illegal characters in path: $path"
+        }
+        local dup
+        for dup in ${seen[@]+"${seen[@]}"}; do
+          [ "$dup" = "$path" ] && {
+            rm -rf "$staging"
+            die "parse_response: duplicate path: $path"
+          }
+        done
+        seen+=("$path")
+        mkdir -p "$staging/$(dirname "$path")"
+        : >"$staging/$path"
+        ;;
+      "===END FILE===")
+        [ -n "$path" ] || {
+          rm -rf "$staging"
+          die "parse_response: END FILE with no open block"
+        }
+        path=""
+        file_count=$((file_count + 1))
+        ;;
+      *)
+        # Content lines only inside an open block; chatter outside is ignored.
+        [ -n "$path" ] && printf '%s\n' "$line" >>"$staging/$path"
+        ;;
     esac
   done
 
@@ -288,42 +288,42 @@ main() {
 
   while [ $# -gt 0 ]; do
     case "$1" in
-    --model)
-      MODEL="${2:-}"
-      shift 2
-      ;;
-    --case)
-      CASE="${2:-}"
-      shift 2
-      ;;
-    --out)
-      OUT_DIR="${2:-}"
-      shift 2
-      ;;
-    --endpoint)
-      ENDPOINT="${2:-}"
-      shift 2
-      ;;
-    --num-ctx)
-      NUM_CTX="${2:-}"
-      shift 2
-      ;;
-    --timeout)
-      TIMEOUT="${2:-}"
-      shift 2
-      ;;
-    --dry-run-prompt)
-      DRY_RUN=1
-      shift
-      ;;
-    --help | -h)
-      usage
-      exit 0
-      ;;
-    *)
-      usage >&2
-      die "unknown flag: $1"
-      ;;
+      --model)
+        MODEL="${2:-}"
+        shift 2
+        ;;
+      --case)
+        CASE="${2:-}"
+        shift 2
+        ;;
+      --out)
+        OUT_DIR="${2:-}"
+        shift 2
+        ;;
+      --endpoint)
+        ENDPOINT="${2:-}"
+        shift 2
+        ;;
+      --num-ctx)
+        NUM_CTX="${2:-}"
+        shift 2
+        ;;
+      --timeout)
+        TIMEOUT="${2:-}"
+        shift 2
+        ;;
+      --dry-run-prompt)
+        DRY_RUN=1
+        shift
+        ;;
+      --help | -h)
+        usage
+        exit 0
+        ;;
+      *)
+        usage >&2
+        die "unknown flag: $1"
+        ;;
     esac
   done
 
