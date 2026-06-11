@@ -86,3 +86,17 @@ Created [[Fail-Closed by Design: Architecture and Local-Model Governance]] from 
 Synthesis type: theme. Scope: Four-Layer Stack, Hook-Enforced Safety, Provenance, Capability Tier, Quality Gate, Zero Fabrication Floor, Answer Verification, Degraded Mode Routing, Per-Vault Write Confinement.
 
 ## [2026-06-11] lint | errors: 49 warnings: 13 info: 13
+
+## [2026-06-11] fix | Resolved all 49 lint errors and 13 warnings
+
+Aliases added to covering pages (`architecture/layers.md` for Layers 2-4, `architecture/agents.md` for the six specialist agents, `architecture/agent-teams.md` for both teams, the synthesis page for its own title). Glossary-term, script-path, and team-member pseudo-links in `_sources/` and this log demoted to code formatting. New entity page [[qwen3-coder:30b]]. Source-note titles renamed with a `(source)` suffix to break alias collisions; every `sources:` field re-pointed. Single-source pages capped at confidence 0.6.
+
+## [2026-06-11] curate | Enriched tags, related/depends_on, body wikilinks
+
+All wiki pages now carry 3+ topical tags; `related:`/`depends_on:` expanded within ontology-profile-v1 domain/range; first-mention body wikilinks added.
+
+## [2026-06-11] polish | Graph color groups + index regeneration
+
+Color groups applied per top-level folder (architecture, operations, local-models, _synthesis, _sources). `wiki/index.md` regenerated; per-folder `_index.md` children reconciled.
+
+## [2026-06-11] lint | errors: 0 warnings: 0 info: 0

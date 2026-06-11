@@ -6,13 +6,13 @@ aliases: ["qwen3-coder:30b", "qwen3-coder", "Qwen3 Coder 30b"]
 parent: "[[Local Models]]"
 path: "local-models"
 sources: ["[[Local Models (source)]]"]
-related: ["[[local-models/_index]]", "[[architecture/agents]]", "[[Degraded Mode Routing]]", "[[Quality Gate]]", "[[Approved Local Model]]"]
+related: ["[[claude-wiki-pages-orchestrator-agent]]", "[[Degraded Mode Routing]]", "[[Quality Gate]]", "[[Approved Local Model]]", "[[Capability Tier]]"]
 tags: [tool, local-model, ollama, llm, ingest-extract, query]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
 status: active
-confidence: 0.85
+confidence: 0.6
 ---
 
 # qwen3-coder:30b
@@ -29,6 +29,6 @@ Unlocked per the ADR-0011 governance process: committed, reproducible evidence i
 
 ## See Also
 
-- [[local-models/_index]] — full capability tier map and rejected model analysis
-- [[architecture/agents]] — how the [[claude-wiki-pages-ingest-agent]] and other agents interact with local model routing
+- [[Local Models]] — full capability tier map and rejected model analysis
+- [[claude-wiki-pages-orchestrator-agent]] — how the [[claude-wiki-pages-ingest-agent]] and other agents interact with local model routing
 - [[Degraded Mode Routing]] — how the engine `route` command decides claude/local/blocked
