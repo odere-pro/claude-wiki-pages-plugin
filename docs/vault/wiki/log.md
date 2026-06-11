@@ -69,3 +69,5 @@ New concepts: [[Brainstorming Team]], [[Engineering Team]], [[Agent Teams]]
 
 Created [[Fail-Closed by Design: Architecture and Local-Model Governance]] from 11 wiki pages across 5 sources.
 Synthesis type: theme. Scope: Four-Layer Stack, Hook-Enforced Safety, Provenance, Capability Tier, Quality Gate, Zero Fabrication Floor, Answer Verification, Degraded Mode Routing, Per-Vault Write Confinement.
+
+## [2026-06-11] lint | errors: 49 warnings: 13 info: 13

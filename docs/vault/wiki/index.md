@@ -23,9 +23,9 @@ Master catalog of every page in the wiki. Ingested from 9 raw sources on 2026-06
 
 ## Topic Tree
 
-- [[Architecture]] — Four-layer stack, agents, skills, hooks, provenance, agent teams (9 pages)
-- [[Operations]] — Installation, onboarding, day-to-day ops, automation, vault management, offline mode (9 pages)
-- [[Local Models]] — Capability tiers, quality gate, approved models, degraded mode routing (4 pages)
+- [[Architecture]] — Four-layer stack, agents, skills, hooks, provenance, agent teams (8 pages, last updated 2026-06-11)
+- [[Operations]] — Installation, onboarding, day-to-day ops, automation, vault management, offline mode (9 pages, last updated 2026-06-11)
+- [[Local Models]] — Capability tiers, quality gate, approved models, degraded mode routing (4 pages, last updated 2026-06-11)
 
 ## Architecture Pages
 
