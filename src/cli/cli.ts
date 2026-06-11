@@ -24,6 +24,7 @@ import { propose, type ProposeSub } from "../commands/propose/propose.ts";
 import { join as pathJoin } from "node:path";
 import { buildReport, renderText, exitCode, type Report } from "../core/report.ts";
 import { ontology, type OntologyReport } from "../commands/ontology/ontology.ts";
+import { route } from "../commands/route/route.ts";
 
 // ── One CAPABILITIES table — single source of truth (ADR-0015 N1, N2) ─────────
 //
@@ -77,6 +78,7 @@ export const CAPABILITIES: readonly CapabilityEntry[] = [
   { name: "propose", status: "implemented" },
   { name: "capabilities", status: "implemented" },
   { name: "ontology", status: "implemented" },
+  { name: "route", status: "implemented" },
   { name: "index", status: "planned" },
   { name: "link-suggest", status: "planned" },
   { name: "checkpoint", status: "planned" },
@@ -119,6 +121,10 @@ interface ParsedArgs {
   readonly graph: boolean;
   /** S3 cross-vault: colon-separated list of other registered vault roots. */
   readonly otherVaults: string | undefined;
+  /** route: Ollama reachability ("up" | "down" | "unprobed") from the probe. */
+  readonly ollama: string | undefined;
+  /** route: Claude API reachability ("reachable" | "unreachable" | "unprobed"). */
+  readonly claude: string | undefined;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -136,6 +142,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   let tag: string | undefined;
   let graph = false;
   let otherVaults: string | undefined;
+  let ollama: string | undefined;
+  let claude: string | undefined;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--json") json = true;
@@ -150,6 +158,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (a === "--tag") tag = argv[++i];
     else if (a === "--graph") graph = true;
     else if (a === "--other-vaults") otherVaults = argv[++i];
+    else if (a === "--ollama") ollama = argv[++i];
+    else if (a === "--claude") claude = argv[++i];
     else if (a && !a.startsWith("-") && command === undefined) command = a;
     else if (a && !a.startsWith("-") && sub === undefined) sub = a;
   }
@@ -168,6 +178,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     tag,
     graph,
     otherVaults,
+    ollama,
+    claude,
   };
 }
 
@@ -213,6 +225,8 @@ function main(): number {
     tag,
     graph,
     otherVaults,
+    ollama,
+    claude,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -412,6 +426,18 @@ function main(): number {
     const vaultClaudeMd = target ? pathJoin(target.replace(/\/+$/, ""), "CLAUDE.md") : undefined;
     const report: OntologyReport = ontology({ schemaPath, vaultClaudeMd });
     emit(report, json);
+    return exitCode(report);
+  }
+
+  // route verb — the deterministic degraded-mode routing decision (ADR-0018).
+  // Reachability is passed in (--ollama / --claude); the command never probes.
+  if (command === "route") {
+    const report = route({ ollama, claude });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else
+      process.stdout.write(
+        `${report.decision} [tier=${report.tier}, policy=${report.offlinePolicy}] ${report.reason}\n`,
+      );
     return exitCode(report);
   }
 
