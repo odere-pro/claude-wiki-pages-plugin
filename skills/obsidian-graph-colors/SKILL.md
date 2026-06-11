@@ -13,6 +13,25 @@ allowed-tools: Bash Read Glob Grep
 Apply per-topic color groups to the Obsidian graph view using the internal
 graph plugin API via `obsidian eval`.
 
+## Initial graph configuration (minimum scaffold)
+
+When `vault/.obsidian/graph.json` is absent (a fresh vault, or the polish
+agent's Step 1.3 "create the minimum scaffold" path), create it with these
+**initial filters** — the defaults the plugin ships in
+`skills/init/template/.obsidian/graph.json` and `docs/vault-example/.obsidian/graph.json`:
+
+| Filter               | Setting | `graph.json` field        | Why                                                                                  |
+| -------------------- | ------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| Search               | empty   | `"search": ""`            | No pre-filter; the whole wiki is visible.                                            |
+| Tags                 | off     | `"showTags": false`       | Tag nodes double every page and drown the topic structure.                           |
+| Attachments          | off     | `"showAttachments": false`| `raw/assets/` binaries are provenance payload, not knowledge nodes.                  |
+| Existing files only  | **on**  | `"hideUnresolved": true`  | Dangling wikilinks are lint errors, not graph nodes — the graph shows real pages.    |
+| Orphans              | **on**  | `"showOrphans": true`     | Orphan pages are a curator signal; hiding them would mask exactly what needs fixing. |
+
+`colorGroups` starts empty — per-topic colors and the layer pass are applied
+by the polish agent (Steps below), never hand-seeded. Preserve these filter
+values when editing color groups; the color workflow must not flip filters.
+
 ## How it works
 
 Obsidian's graph view supports **color groups** — search queries paired with

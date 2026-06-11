@@ -18,6 +18,12 @@ tmp/
 
 # Obsidian app state (applies to user vaults and vault-example/)
 **/.obsidian/
+# …except the plugin-shipped initial graph configuration (initial filters +
+# scaffold source for new vaults). Directory re-include first, then contents.
+!skills/init/template/.obsidian/
+!skills/init/template/.obsidian/graph.json
+!docs/vault-example/.obsidian/
+!docs/vault-example/.obsidian/graph.json
 **/.trash/
 **/.dataview/
 **/.smart-connections/
