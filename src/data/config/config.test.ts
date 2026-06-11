@@ -7,6 +7,7 @@ import {
   validateConfig,
   checkLocalModelApproval,
   APPROVED_LOCAL_MODELS,
+  APPROVED_LOCAL_MODELS_BY_TIER,
   DEFAULT_CONFIG,
   type Config,
 } from "./config.ts";
@@ -71,10 +72,72 @@ describe("validateConfig", () => {
   });
 });
 
-describe("checkLocalModelApproval (ADR-0011 / ADR-0017 measured allow-list)", () => {
-  const enabled = (model: string): Config => ({
+describe("localModel.tier + offlinePolicy wiring (ADR-0018)", () => {
+  test("defaults are the safest values", () => {
+    expect(DEFAULT_CONFIG.localModel.tier).toBe("draft");
+    expect(DEFAULT_CONFIG.localModel.offlinePolicy).toBe("off");
+  });
+
+  test("project config sets tier and offlinePolicy, survives the merge", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    mkdirSync(join(root, ".claude"), { recursive: true });
+    writeFileSync(
+      join(root, ".claude/claude-wiki-pages.json"),
+      JSON.stringify({ localModel: { tier: "ingest-extract", offlinePolicy: "prefer-local" } }),
+    );
+    const { config } = loadConfig({ cwd: root, env: { HOME: root } });
+    expect(config.localModel.tier).toBe("ingest-extract");
+    expect(config.localModel.offlinePolicy).toBe("prefer-local");
+    expect(config.localModel.endpoint).toBe("http://localhost:11434"); // untouched key survives
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("env overrides win for tier and offlinePolicy", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    const { config } = loadConfig({
+      cwd: root,
+      env: {
+        HOME: root,
+        CLAUDE_WIKI_PAGES_LOCALMODEL_TIER: "ingest-extract",
+        CLAUDE_WIKI_PAGES_LOCALMODEL_OFFLINEPOLICY: "strict",
+      },
+    });
+    expect(config.localModel.tier).toBe("ingest-extract");
+    expect(config.localModel.offlinePolicy).toBe("strict");
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("validateConfig flags out-of-enum tier and offlinePolicy", () => {
+    const schema = {
+      properties: {
+        localModel: {
+          type: "object",
+          properties: {
+            tier: { enum: ["draft", "ingest-extract"] },
+            offlinePolicy: { enum: ["strict", "prefer-local", "off"] },
+          },
+        },
+      },
+    };
+    const badTier = { ...DEFAULT_CONFIG, localModel: { ...DEFAULT_CONFIG.localModel, tier: "x" } };
+    expect(validateConfig(badTier, schema)[0]).toContain("localModel.tier");
+    const badPolicy = {
+      ...DEFAULT_CONFIG,
+      localModel: { ...DEFAULT_CONFIG.localModel, offlinePolicy: "maybe" },
+    };
+    expect(validateConfig(badPolicy, schema)[0]).toContain("localModel.offlinePolicy");
+  });
+});
+
+describe("checkLocalModelApproval (ADR-0011 / ADR-0017 / ADR-0018 per-tier allow-list)", () => {
+  // The approval helper tests the ingest-extract tier (the one qwen3-coder:30b
+  // is gate-approved for); tier defaults to "draft" which is BLOCKED.
+  const enabled = (
+    model: string,
+    tier: Config["localModel"]["tier"] = "ingest-extract",
+  ): Config => ({
     ...DEFAULT_CONFIG,
-    localModel: { ...DEFAULT_CONFIG.localModel, enabled: true, model },
+    localModel: { ...DEFAULT_CONFIG.localModel, enabled: true, model, tier },
   });
 
   test("no errors when localModel is disabled (default), whatever the model", () => {
@@ -86,13 +149,25 @@ describe("checkLocalModelApproval (ADR-0011 / ADR-0017 measured allow-list)", ()
     expect(checkLocalModelApproval(disabledButNamed)).toEqual([]);
   });
 
-  test("the measured-pass model is approved", () => {
+  test("the per-tier map keeps the back-compat allow-list as the ingest-extract row", () => {
     expect(APPROVED_LOCAL_MODELS).toContain("qwen3-coder:30b");
-    expect(checkLocalModelApproval(enabled("qwen3-coder:30b"))).toEqual([]);
+    expect(APPROVED_LOCAL_MODELS_BY_TIER["ingest-extract"]).toEqual(APPROVED_LOCAL_MODELS);
+    expect(APPROVED_LOCAL_MODELS_BY_TIER["draft"]).toEqual([]);
+  });
+
+  test("the measured-pass model is approved for the ingest-extract tier", () => {
+    expect(checkLocalModelApproval(enabled("qwen3-coder:30b", "ingest-extract"))).toEqual([]);
+  });
+
+  test("a tier with no cleared model is WIRED but BLOCKED, even for an approved model", () => {
+    const errs = checkLocalModelApproval(enabled("qwen3-coder:30b", "draft"));
+    expect(errs.length).toBeGreaterThan(0);
+    expect(errs[0]).toContain("draft"); // names the blocked tier
+    expect(errs[0]).toContain("ingest-extract"); // points at the unlocked tier
   });
 
   test("an enabled but unproven model fails closed with a teaching message", () => {
-    const errs = checkLocalModelApproval(enabled("gemma4:31b"));
+    const errs = checkLocalModelApproval(enabled("gemma4:31b", "ingest-extract"));
     expect(errs.length).toBeGreaterThan(0);
     expect(errs[0]).toContain("gemma4:31b");
     expect(errs[0]).toContain("qwen3-coder:30b"); // names the approved model
@@ -100,7 +175,7 @@ describe("checkLocalModelApproval (ADR-0011 / ADR-0017 measured allow-list)", ()
   });
 
   test("an enabled localModel with an empty model name fails closed", () => {
-    const errs = checkLocalModelApproval(enabled(""));
+    const errs = checkLocalModelApproval(enabled("", "ingest-extract"));
     expect(errs.length).toBeGreaterThan(0);
   });
 });

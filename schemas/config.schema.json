@@ -93,12 +93,14 @@
         "tier": {
           "type": "string",
           "enum": ["draft", "ingest-extract"],
-          "description": "Capability tier: 'draft' = local model produces _proposed/ drafts only; 'ingest-extract' = local model also runs source extraction during ingest. Consumed by modelHints at runtime."
+          "default": "draft",
+          "description": "Capability tier: 'draft' = local model produces _proposed/ drafts only; 'ingest-extract' = local model also runs source extraction during ingest. Gated per-tier (ADR-0018): a tier with no gate-approved model is WIRED but BLOCKED."
         },
         "offlinePolicy": {
           "type": "string",
           "enum": ["strict", "prefer-local", "off"],
-          "description": "Offline fallback behaviour: 'strict' = fail if Claude API is unreachable; 'prefer-local' = fall back to the configured local model; 'off' = no local fallback (default when localModel.enabled is false)."
+          "default": "off",
+          "description": "Offline fallback behaviour (ADR-0018): 'strict' = fail if Claude API is unreachable; 'prefer-local' = fall back to an approved local tier when Claude is unreachable; 'off' = no local fallback, no network probe (default)."
         }
       }
     },

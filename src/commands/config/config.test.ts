@@ -12,8 +12,8 @@ function projectWith(localModel: Record<string, unknown>): string {
 }
 
 describe("config command — local-model allow-list (fail-closed)", () => {
-  test("enabled + approved model: no localModelErrors, exit 0", () => {
-    const root = projectWith({ enabled: true, model: "qwen3-coder:30b" });
+  test("enabled + approved model at the unlocked tier: no localModelErrors, exit 0", () => {
+    const root = projectWith({ enabled: true, model: "qwen3-coder:30b", tier: "ingest-extract" });
     const report = config({ sub: "show", cwd: root });
     expect(report.localModelErrors).toEqual([]);
     expect(configExit(report)).toBe(0);
@@ -21,11 +21,20 @@ describe("config command — local-model allow-list (fail-closed)", () => {
   });
 
   test("enabled + unapproved model: localModelErrors set, exit 1 even on `show`", () => {
-    const root = projectWith({ enabled: true, model: "gemma4:31b" });
+    const root = projectWith({ enabled: true, model: "gemma4:31b", tier: "ingest-extract" });
     const report = config({ sub: "show", cwd: root });
     expect(report.localModelErrors.length).toBeGreaterThan(0);
     expect(report.localModelErrors[0]).toContain("gemma4:31b");
     // Fail-closed on every subcommand, not only `validate`.
+    expect(configExit(report)).toBe(1);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("enabled at a BLOCKED tier (draft): localModelErrors set, exit 1 (ADR-0018)", () => {
+    const root = projectWith({ enabled: true, model: "qwen3-coder:30b", tier: "draft" });
+    const report = config({ sub: "show", cwd: root });
+    expect(report.localModelErrors.length).toBeGreaterThan(0);
+    expect(report.localModelErrors[0]).toContain("draft");
     expect(configExit(report)).toBe(1);
     rmSync(root, { recursive: true, force: true });
   });
