@@ -155,6 +155,12 @@ describe("checkLocalModelApproval (ADR-0011 / ADR-0017 / ADR-0018 per-tier allow
     expect(APPROVED_LOCAL_MODELS_BY_TIER["draft"]).toEqual([]);
   });
 
+  test("the query tier exists in the map (ADR-0019)", () => {
+    // The row may be empty (BLOCKED) or populated (unlocked by a measured run) —
+    // what is pinned is that the tier is wired into the gate at all.
+    expect(APPROVED_LOCAL_MODELS_BY_TIER["query"]).toBeDefined();
+  });
+
   test("the measured-pass model is approved for the ingest-extract tier", () => {
     expect(checkLocalModelApproval(enabled("qwen3-coder:30b", "ingest-extract"))).toEqual([]);
   });

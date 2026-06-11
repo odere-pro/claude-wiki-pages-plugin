@@ -40,8 +40,8 @@ export interface Config {
     readonly endpoint: string;
     readonly model: string;
     readonly draftTarget: string;
-    /** Capability tier the local model runs at; gated per-tier (ADR-0018). */
-    readonly tier: "draft" | "ingest-extract";
+    /** Capability tier the local model runs at; gated per-tier (ADR-0018/0019). */
+    readonly tier: "draft" | "ingest-extract" | "query";
     /** Offline fallback behaviour when Claude is unreachable (ADR-0018). */
     readonly offlinePolicy: "strict" | "prefer-local" | "off";
   };
@@ -212,6 +212,11 @@ export const APPROVED_LOCAL_MODELS_BY_TIER: Readonly<
 > = {
   draft: [],
   "ingest-extract": ["qwen3-coder:30b"],
+  // Measured 2026-06-11 against the ADR-0019 query golden set (eval-query.sh):
+  // both cases pass with perfect scores (recall 1.0, quote coverage 1.0,
+  // coverage honest on the trap, fabricated 0). Evidence:
+  // tests/eval/runs/query/qwen3-coder-30b/.
+  query: ["qwen3-coder:30b"],
 };
 
 /**
@@ -234,13 +239,17 @@ export function checkLocalModelApproval(config: Config): string[] {
   const model = config.localModel.model;
   // A tier with no cleared model is WIRED but BLOCKED (ADR-0018).
   if (approved.length === 0) {
+    const unlocked = Object.entries(APPROVED_LOCAL_MODELS_BY_TIER)
+      .filter(([, models]) => models.length > 0)
+      .map(([t]) => `"${t}"`)
+      .join(", ");
     return [
       `localModel.tier "${tier}" is wired but BLOCKED: no local model has ` +
-        `cleared a quality gate for this tier yet. Only "ingest-extract" is ` +
-        `unlocked today (qwen3-coder:30b, ADR-0011). To unlock a tier, run its ` +
-        `golden-set eval, commit tests/eval/runs/ evidence, add the model to ` +
-        `APPROVED_LOCAL_MODELS_BY_TIER, and amend ADR-0011/ADR-0018. Until then ` +
-        `set localModel.enabled: false, or localModel.tier: "ingest-extract".`,
+        `cleared a quality gate for this tier yet. Unlocked tiers today: ` +
+        `${unlocked} (qwen3-coder:30b, ADR-0011/0019). To unlock a tier, run ` +
+        `its golden-set eval, commit tests/eval/runs/ evidence, add the model ` +
+        `to APPROVED_LOCAL_MODELS_BY_TIER, and amend the governing ADR. Until ` +
+        `then set localModel.enabled: false, or pick an unlocked tier.`,
     ];
   }
   if (approved.includes(model)) return [];
