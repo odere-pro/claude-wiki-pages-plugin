@@ -88,7 +88,12 @@ export function heal(opts: HealOptions = {}): HealReport {
     appendLog(vault, {
       verb: "heal",
       summary: `errors ${before.errors} → ${last.errors} in ${iterations} iteration(s)`,
-      details: ["rollback: git revert the heal commit below"],
+      details: [
+        // Paper trace: the checkpoint SHA is the rollback anchor, known before
+        // the heal commit exists (a commit cannot contain its own SHA).
+        ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
+        "rollback: git revert the heal commit below",
+      ],
       today: opts.today,
     });
   }

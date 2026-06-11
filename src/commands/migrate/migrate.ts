@@ -150,7 +150,10 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
   appendLog(vault, {
     verb: "migrate",
     summary: `schema_version ${from ?? "?"} → ${to} (${changes.length} change(s))`,
-    details: ["rollback: git revert the migrate commit below"],
+    details: [
+      ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
+      "rollback: git revert the migrate commit below",
+    ],
     today,
   });
   const migrateCommit = gitOn

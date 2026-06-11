@@ -38,6 +38,13 @@ tests; the wall clock supplies the defaults.
   user's unrelated dirty or staged files.
 - **`post` self-repairs coverage**: if the vault is somehow not in a work tree
   (pre skipped, degraded path), it runs `ensureRepo` before deciding cleanliness.
+- **Paper trace in `wiki/log.md`.** Before committing, `post` appends a
+  `## [date] snapshot | <label> (<opId>)` entry carrying the **pre-state SHA**
+  — the entry lands inside the snapshot commit itself. A commit cannot contain
+  its own SHA, so the log records the rollback anchor; the snapshot commit is
+  recovered with `git log --oneline -- wiki/log.md`. The same convention holds
+  for `heal`/`migrate`/`propose` (they log their checkpoint SHA) and the
+  SubagentStop backstop (pre-state SHA, only when `log.md` already exists).
 
 ## SnapshotReport
 

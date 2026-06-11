@@ -34,12 +34,19 @@ run_snap() {
 
 @test "snapshot: post commits the write phase with the label in the message" {
   run_snap pre --op op2
+  printf '%s\n' '---' 'title: log' '---' >"$VAULT/wiki/log.md"
   printf 'new page\n' >"$VAULT/wiki/page.md"
   run_snap post --op op2 --label '"curator judgment fixes"'
   assert_success
   assert_output_contains "snapshot post: committed"
   run git -C "$VAULT" log -1 --pretty=%s
   assert_output_contains "snapshot: curator judgment fixes op2"
+  # Paper trace: log entry with the pre-state SHA, committed in the same
+  # snapshot commit (tree clean afterwards).
+  run cat "$VAULT/wiki/log.md"
+  assert_output_contains "snapshot | curator judgment fixes (op2)"
+  assert_output_contains "pre-state:"
+  [ -z "$(git -C "$VAULT" status --porcelain)" ]
 }
 
 @test "snapshot: post on a clean vault skips without an empty commit" {

@@ -47,6 +47,9 @@ run_gate() {
 
 @test "commit-gate: dirty vault after ingest-agent → exactly one backstop commit" {
   init_vault_repo
+  printf '%s\n' '---' 'title: log' '---' >"$VAULT/wiki/log.md"
+  git_vault -c user.name=t -c user.email=t@t -c commit.gpgsign=false add -A
+  git_vault -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm log --no-verify
   before=$(git_vault rev-list --count HEAD)
   printf 'left dirty\n' >"$VAULT/wiki/leftover.md"
   run_gate "claude-wiki-pages-ingest-agent"
@@ -57,6 +60,11 @@ run_gate() {
   run git_vault log -1 --pretty=%s
   assert_output_contains "post-write backstop"
   [ -z "$(git_vault status --porcelain)" ]
+  # Paper trace: backstop entry with pre-state SHA landed in wiki/log.md and
+  # is committed inside the backstop commit.
+  run cat "$VAULT/wiki/log.md"
+  assert_output_contains "claude-wiki-pages-ingest-agent backstop"
+  assert_output_contains "pre-state:"
 }
 
 @test "commit-gate: clean vault → no commit, no output" {

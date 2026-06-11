@@ -155,7 +155,12 @@ export function propose(opts: ProposeOptions): ProposeReport {
 
   if (opts.sub === "reject") {
     rmSync(draftFull, { force: true });
-    appendLog(vault, { verb: "propose", summary: `reject ${relative(vault, draftFull)}`, today });
+    appendLog(vault, {
+      verb: "propose",
+      summary: `reject ${relative(vault, draftFull)}`,
+      ...(checkpointSha ? { details: [`checkpoint: ${checkpointSha}`] } : {}),
+      today,
+    });
     if (gitOn) commit(vault, `propose: reject ${relative(vault, draftFull)} ${opId}`);
     if (pushAuto) push(vault);
     return {
@@ -182,7 +187,10 @@ export function propose(opts: ProposeOptions): ProposeReport {
   appendLog(vault, {
     verb: "propose",
     summary: `approve ${info.target}`,
-    details: ["next: run curator (heal) + polish"],
+    details: [
+      ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
+      "next: run curator (heal) + polish",
+    ],
     today,
   });
   const c = gitOn ? commit(vault, `propose: approve ${info.target} ${opId}`) : null;

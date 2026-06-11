@@ -99,6 +99,18 @@ else
     echo "snapshot post: nothing to commit (vault clean)"
     exit 0
   fi
+  # Paper trace: record the pre-state SHA in wiki/log.md BEFORE committing so
+  # the entry lands inside the snapshot commit (a commit cannot contain its
+  # own SHA). Mirrors the engine's snapshot post behavior.
+  if [ -f "${VAULT}/wiki/log.md" ]; then
+    PRE=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "")
+    DAY=$(date -u +%Y-%m-%d 2>/dev/null || echo "0000-00-00")
+    {
+      printf '\n## [%s] snapshot | %s (%s)\n\n' "${DAY}" "${LABEL}" "${OP}"
+      [ -n "${PRE}" ] && printf -- '- pre-state: %s\n' "${PRE}"
+      printf -- '- rollback: git revert the snapshot commit below\n'
+    } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
+  fi
   "${GIT[@]}" add -A -- . >/dev/null 2>&1 || true
   "${GIT[@]}" commit --no-verify -m "snapshot: ${LABEL} ${OP}" -- . >/dev/null 2>&1 || true
   SHA=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "?")

@@ -1,6 +1,6 @@
 import { test, expect, describe, afterEach } from "bun:test";
 import { execFileSync } from "node:child_process";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { snapshot } from "./snapshot.ts";
 import { makeVault, CLEAN_VAULT } from "../../test-helpers/sandbox/vault.ts";
@@ -65,6 +65,10 @@ describe("snapshot post", () => {
     initRepo(sb.vault);
     writeFileSync(join(sb.vault, "wiki", "new-page.md"), "---\ntitle: New\n---\n");
 
+    const preState = execFileSync("git", ["rev-parse", "--short", "HEAD"], {
+      cwd: sb.vault,
+      encoding: "utf8",
+    }).trim();
     const report = snapshot({ sub: "post", target: sb.vault, label: "ingest alpha", ...opts });
     expect(report.skipped).toBe(false);
     expect(report.sha).not.toBeNull();
@@ -73,6 +77,17 @@ describe("snapshot post", () => {
       encoding: "utf8",
     });
     expect(msg).toContain("snapshot: ingest alpha snap-test");
+
+    // Paper trace: log entry with the pre-state SHA, committed INSIDE the
+    // snapshot commit (the working tree is clean afterwards).
+    const log = readFileSync(join(sb.vault, "wiki", "log.md"), "utf8");
+    expect(log).toContain("snapshot | ingest alpha (snap-test)");
+    expect(log).toContain(`pre-state: ${preState}`);
+    const status = execFileSync("git", ["status", "--porcelain"], {
+      cwd: sb.vault,
+      encoding: "utf8",
+    });
+    expect(status).toBe("");
     sb.cleanup();
   });
 

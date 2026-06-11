@@ -63,6 +63,18 @@ DIRTY=$(git -C "${VAULT}" status --porcelain -- . 2>/dev/null | head -1) || DIRT
 [ -z "${DIRTY}" ] && exit 0
 
 ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "?")
+# Paper trace: log the backstop with its pre-state SHA before committing, so
+# the entry lands inside the backstop commit (a commit cannot contain its own
+# SHA). Only appends when the log already exists — a hook never creates it.
+if [ -f "${VAULT}/wiki/log.md" ]; then
+  PRE=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "")
+  DAY=$(date -u +%Y-%m-%d 2>/dev/null || echo "0000-00-00")
+  {
+    printf '\n## [%s] snapshot | %s backstop (%s)\n\n' "${DAY}" "${AGENT_NAME}" "${ISO}"
+    [ -n "${PRE}" ] && printf -- '- pre-state: %s\n' "${PRE}"
+    printf -- '- rollback: git revert the backstop commit below\n'
+  } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
+fi
 "${GIT[@]}" add -A -- . >/dev/null 2>&1 || true
 "${GIT[@]}" commit --no-verify -m "snapshot: claude-wiki-pages ${AGENT_NAME} post-write backstop ${ISO}" -- . >/dev/null 2>&1 || true
 

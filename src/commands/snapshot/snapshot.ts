@@ -12,7 +12,16 @@
  */
 
 import { resolveVault } from "../../core/vault.ts";
-import { ensureRepo, applyCheckpointMode, commit, isClean, isRepo, push } from "../../core/git.ts";
+import {
+  ensureRepo,
+  applyCheckpointMode,
+  commit,
+  head,
+  isClean,
+  isRepo,
+  push,
+} from "../../core/git.ts";
+import { appendLog } from "../../core/log.ts";
 import { loadConfig } from "../../data/config/config.ts";
 
 export type SnapshotSub = "pre" | "post";
@@ -85,6 +94,19 @@ export function snapshot(opts: SnapshotOptions): SnapshotReport {
     };
   }
   const label = opts.label ?? "claude-wiki-pages write phase";
+  // Paper trace: record the pre-state SHA in wiki/log.md BEFORE committing so
+  // the entry lands inside the snapshot commit itself (a commit cannot contain
+  // its own SHA; the pre-state anchor + `git log -- wiki/log.md` recover it).
+  const preState = head(vault);
+  appendLog(vault, {
+    verb: "snapshot",
+    summary: `${label} (${opId})`,
+    details: [
+      ...(preState ? [`pre-state: ${preState}`] : []),
+      "rollback: git revert the snapshot commit below",
+    ],
+    today: opts.isoTime?.slice(0, 10),
+  });
   const sha = commit(vault, `snapshot: ${label} ${opId}`);
   if (sha && gitCfg.push === "auto") push(vault);
   return {
