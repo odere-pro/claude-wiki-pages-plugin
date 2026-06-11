@@ -114,6 +114,53 @@ setup() {
   [[ "$output" == *"git:"* ]]
 }
 
+# ── jq pre-flight (review 2026-06-11, fix 4) ────────────────────────────────
+# jq is a hard dependency of every JSON-parsing hook: without it the PreToolUse
+# guards (firewall, frontmatter, raw-protect) silently pass writes through
+# unchecked. Doctor must flag it like the git hard dependency (exit 1).
+
+@test "doctor: exit 1 when jq binary is absent" {
+  mkdir -p "$VAULT/raw" "$VAULT/wiki"
+  printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
+
+  # Hermetic sandbox PATH: everything doctor.sh needs except jq.
+  local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nojq"
+  mkdir -p "$SANDBOX_BIN"
+  local tool real
+  for tool in dirname basename find wc tr mkdir cat cp grep sed sort head git awk touch rm; do
+    real="$(command -v "$tool")" || continue
+    case "$real" in
+      /*) ln -s "$real" "$SANDBOX_BIN/$tool" ;;
+      *) skip "cannot resolve absolute path for required tool: $tool ($real)" ;;
+    esac
+  done
+  if PATH="$SANDBOX_BIN" command -v jq >/dev/null 2>&1; then
+    fail "jq leaked into sandbox PATH — check not exercised"
+  fi
+
+  run env -i PATH="$SANDBOX_BIN" HOME="$HOME" \
+    CLAUDE_PLUGIN_ROOT="$REPO_ROOT" \
+    CLAUDE_WIKI_PAGES_SETTINGS_FILE="$BATS_TEST_TMPDIR/settings.json" \
+    CLAUDE_WIKI_PAGES_VAULT="$VAULT" \
+    /bin/bash "$REPO_ROOT/$DOCTOR"
+
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"FAIL[1]"* ]]
+  [[ "$output" == *"jq"* ]]
+}
+
+@test "doctor: reports OK for jq when jq is present" {
+  command -v jq >/dev/null 2>&1 || skip "jq not installed on this machine"
+  mkdir -p "$VAULT/raw" "$VAULT/wiki"
+  printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
+  export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
+
+  run bash "$REPO_ROOT/$DOCTOR"
+
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"jq:"* ]]
+}
+
 @test "doctor: warns (not fatal) when vault is not a git repo" {
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
