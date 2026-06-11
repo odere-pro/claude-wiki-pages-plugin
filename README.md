@@ -20,7 +20,7 @@ The system is convention-driven: the schema lives in [`docs/vault-example/CLAUDE
 | **Skills**   | 12 short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`, `search`, `review`, `draft`) + `onboarding` + 5 agent-teaching (`engine-api`, `maintain-contract`, `analyst-modes`, `curator-fixes`, `ingest-pipeline`) + `obsidian-graph-colors` + `obsidian-vault` + 3 third-party `obsidian-*` (MIT, kepano) |  23   |
 | **Agents**   | Orchestrator (entry) + onboarding, ingest, curator, analyst, polish, maintenance — see [docs/operations.md](./docs/operations.md)                                                                                                                                                                                                                      |   7   |
 | **Commands** | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:onboarding`, `/claude-wiki-pages:doctor`                                                                                                                                                                                                                                                                |   3   |
-| **Hooks**    | `SessionStart` + `UserPromptSubmit` + 7 `PreToolUse` + 2 `PostToolUse` + 2 `SubagentStop` + `Stop` + `SessionEnd` (session-memory persistence)                                                                                                                                                                                                          |  15   |
+| **Hooks**    | `SessionStart` + `UserPromptSubmit` + 7 `PreToolUse` + 2 `PostToolUse` + 2 `SubagentStop` + `Stop` + `SessionEnd` (session-memory persistence)                                                                                                                                                                                                         |  15   |
 | **Rules**    | Path-scoped guidance under `rules/`                                                                                                                                                                                                                                                                                                                    |   4   |
 | **Tests**    | Five tiers — Tier 0 static, Tier 1 Bats unit, Tier 2 smoke, Tier 3 release, Tier 4 adversarial                                                                                                                                                                                                                                                         |   5   |
 
@@ -119,27 +119,54 @@ Full operations reference: [docs/operations.md](./docs/operations.md).
 
 </details>
 
+<details>
+<summary>Offline / local model (Ollama)</summary>
+
+The basic operations — **ingestion** and **querying** — also run with a local model, fully offline, with zero Claude. Both are gated: only a model that passed the per-tier quality gate runs (`qwen3-coder:30b` today), and a query answer is shown only after every citation verifies verbatim against the wiki — otherwise the plugin warns and denies the operation. `doctor` is deterministic and needs no model at all.
+
+```jsonc
+// .claude/claude-wiki-pages.json
+{
+  "localModel": {
+    "enabled": true,
+    "model": "qwen3-coder:30b",
+    "tier": "query",
+    "offlinePolicy": "prefer-local",
+  },
+}
+```
+
+```bash
+# With Claude Code stopped and `ollama serve` running:
+bash scripts/offline-draft.sh                          # ingest raw/ → _proposed/ drafts (tier: ingest-extract)
+bash scripts/offline-query.sh --question "<question>"  # verified, cited answer  (tier: query)
+```
+
+Drafts are promoted later via `/claude-wiki-pages:review`. Full story, tested models, and how tiers unlock: [docs/local-models.md](./docs/local-models.md).
+
+</details>
+
 ---
 
 ## Documentation
 
-| Topic                        | Guide                                                    |
-| ---------------------------- | -------------------------------------------------------- |
-| Install / update / uninstall | [docs/install.md](./docs/install.md)                     |
-| Day-to-day operations        | [docs/operations.md](./docs/operations.md)               |
+| Topic                        | Guide                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------- |
+| Install / update / uninstall | [docs/install.md](./docs/install.md)                                                   |
+| Day-to-day operations        | [docs/operations.md](./docs/operations.md)                                             |
 | Multiple vaults              | [docs/operations.md — Multi-vault registry](./docs/operations.md#multi-vault-registry) |
-| Local models (Ollama)        | [docs/local-models.md](./docs/local-models.md)           |
-| Features and comparison      | [docs/features.md](./docs/features.md)                   |
-| Architecture (four layers)   | [docs/architecture.md](./docs/architecture.md)           |
-| Glossary                     | [docs/GLOSSARY.md](./docs/GLOSSARY.md)                   |
-| Security and threat model    | [SECURITY.md](./SECURITY.md)                             |
-| Step-by-step user guides     | [docs/llm-wiki/](./docs/llm-wiki/index.md)               |
-| ADRs                         | [docs/adr/](./docs/adr/README.md)                        |
-| Agent teams (dev)            | [docs/teams.md](./docs/teams.md)                         |
-| Test harness                 | [tests/README.md](./tests/README.md)                     |
-| Contributing                 | [CONTRIBUTING.md](./CONTRIBUTING.md)                     |
-| Release log                  | [CHANGELOG.md](./CHANGELOG.md)                           |
-| Vulnerability disclosure     | [SECURITY.md](./SECURITY.md), [SUPPORT.md](./SUPPORT.md) |
+| Local models (Ollama)        | [docs/local-models.md](./docs/local-models.md)                                         |
+| Features and comparison      | [docs/features.md](./docs/features.md)                                                 |
+| Architecture (four layers)   | [docs/architecture.md](./docs/architecture.md)                                         |
+| Glossary                     | [docs/GLOSSARY.md](./docs/GLOSSARY.md)                                                 |
+| Security and threat model    | [SECURITY.md](./SECURITY.md)                                                           |
+| Step-by-step user guides     | [docs/llm-wiki/](./docs/llm-wiki/index.md)                                             |
+| ADRs                         | [docs/adr/](./docs/adr/README.md)                                                      |
+| Agent teams (dev)            | [docs/teams.md](./docs/teams.md)                                                       |
+| Test harness                 | [tests/README.md](./tests/README.md)                                                   |
+| Contributing                 | [CONTRIBUTING.md](./CONTRIBUTING.md)                                                   |
+| Release log                  | [CHANGELOG.md](./CHANGELOG.md)                                                         |
+| Vulnerability disclosure     | [SECURITY.md](./SECURITY.md), [SUPPORT.md](./SUPPORT.md)                               |
 
 ---
 

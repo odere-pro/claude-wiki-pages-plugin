@@ -27,7 +27,7 @@ what just happened, so the user learns the model by doing it once.
 ## Steps
 
 1. **Health check.** Run `/claude-wiki-pages:doctor` (or `bash scripts/doctor.sh`). If anything is red, run it with `--fix` and explain what was repaired. Confirm Bun is present (the engine) — if not, note that hooks still work and point to <https://bun.sh>.
-2. **Scaffold the vault.** If no vault exists, run the `init` skill to create `vault/` (immutable `raw/`, maintained `wiki/`, schema in `vault/CLAUDE.md`). Tell the user where it is and that `raw/` is for *their* sources.
+2. **Scaffold the vault.** If no vault exists, run the `init` skill to create `vault/` (immutable `raw/`, maintained `wiki/`, schema in `vault/CLAUDE.md`). Tell the user where it is and that `raw/` is for _their_ sources.
 3. **Add a first source.** Check whether `vault/raw/` already contains the bundled sample source (`sample-source.md`) — it is seeded there by the scaffold so first-time users can ingest immediately without providing their own material. Tell the user it is there. Ask whether they want to add their own file instead or alongside it; if so, ask them to drop it into `vault/raw/` and confirm it landed.
 4. **Ingest.** Run the ingest flow (`/claude-wiki-pages:wiki "ingest the new source"`). Explain that the plugin reads the source, writes cited wiki pages, and **auto-heals the wiki under a git checkpoint** (so it is always reversible with `git revert`). Show the new pages.
 5. **Ask a question.** Run `/claude-wiki-pages:query "<a question the source can answer>"`. Show the answer with its `[[wikilink]]` citations — this is the payoff: answers grounded in the user's own material.
@@ -41,6 +41,14 @@ End with a short "what you can do next" map:
 - Rollback: `git log` inside the vault.
 - Something feels wrong: `/claude-wiki-pages:doctor`.
 - Power users: `/claude-wiki-pages:engine-api` to drive the deterministic engine directly.
+- **Optional — work offline with a local model (Ollama).** If the user mentions
+  privacy, offline use, or Ollama: ingestion and querying also run with zero
+  Claude through a gate-approved local model (`qwen3-coder:30b` today). Point
+  them at `docs/local-models.md` for the two-line `localModel` config and the
+  `scripts/offline-draft.sh` / `scripts/offline-query.sh` commands. Mention the
+  safety net plainly: an unapproved model or tier is refused, and a query answer
+  is shown only after every citation verifies against their wiki — otherwise it
+  is denied with a warning. Do not set this up unprompted; it is an opt-in.
 
 ## Specification anchor
 

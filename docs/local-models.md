@@ -26,11 +26,12 @@ non-zero with a teaching message). The per-tier allow-list is
 `APPROVED_LOCAL_MODELS_BY_TIER` in
 [`src/data/config/config.ts`](../src/data/config/config.ts).
 
-| Tier                                      | Status               | Approved model(s) | Notes                                                                                                                   |
-| ----------------------------------------- | -------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `ingest-extract`                          | ✅ UNLOCKED          | `qwen3-coder:30b` | The one tier with measured golden-set evidence (ADR-0011).                                                              |
-| `draft`                                   | ⛔ WIRED but BLOCKED | — (none yet)      | No golden-set eval defined yet; enabling it fails closed.                                                               |
-| full ingest / curator / query / synthesis | ⛔ not wired         | —                 | Future tiers; each needs its own golden set, threshold, and ADR before it is added to the map. Claude-first until then. |
+| Tier                              | Status               | Approved model(s) | Notes                                                                                                                                                                                                                                                                                        |
+| --------------------------------- | -------------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ingest-extract`                  | ✅ UNLOCKED          | `qwen3-coder:30b` | Measured golden-set evidence (ADR-0011/0017).                                                                                                                                                                                                                                                |
+| `query`                           | ✅ UNLOCKED          | `qwen3-coder:30b` | Measured against the ADR-0019 query golden set (`tests/eval/runs/query/qwen3-coder-30b/` — both cases perfect: recall 1.0, quote coverage 1.0, honest on the trap, fabricated 0). Additionally protected by per-answer runtime verification — a non-verifying answer is denied, never shown. |
+| `draft`                           | ⛔ WIRED but BLOCKED | — (none yet)      | No golden-set eval defined yet; enabling it fails closed.                                                                                                                                                                                                                                    |
+| full ingest / curator / synthesis | ⛔ not wired         | —                 | Future tiers; each needs its own golden set, threshold, and ADR before it is added to the map. Claude-first until then.                                                                                                                                                                      |
 
 Unlocking a tier is the same governance act as adding a model (below): run the
 tier's eval, commit reproducible evidence, add the model to that tier's row in
@@ -38,9 +39,10 @@ tier's eval, commit reproducible evidence, add the model to that tier's row in
 
 ## Approved
 
-| Model                 | Tier             | Evidence                                                                                                                                                               |
-| --------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`qwen3-coder:30b`** | `ingest-extract` | [`tests/eval/runs/ingest-extract/qwen3-coder-30b/`](../tests/eval/runs/ingest-extract/qwen3-coder-30b/) — both golden-set cases pass, `--verify-artifact` reproducible |
+| Model                 | Tier             | Evidence                                                                                                                                                                                             |
+| --------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`qwen3-coder:30b`** | `ingest-extract` | [`tests/eval/runs/ingest-extract/qwen3-coder-30b/`](../tests/eval/runs/ingest-extract/qwen3-coder-30b/) — both golden-set cases pass, `--verify-artifact` reproducible                               |
+| **`qwen3-coder:30b`** | `query`          | [`tests/eval/runs/query/qwen3-coder-30b/`](../tests/eval/runs/query/qwen3-coder-30b/) — both ADR-0019 golden-set cases pass with perfect scores; runtime answer verification applies on every answer |
 
 ## Tested and rejected
 
