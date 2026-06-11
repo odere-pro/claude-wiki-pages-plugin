@@ -92,6 +92,11 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/subagent-ingest-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/subagent-commit-gate.sh",
+            "description": "Commit backstop: after a write-path agent (ingest/curator/polish/maintenance) returns, commit any vault changes left uncommitted so no LLM write escapes git coverage. Pathspec-scoped to the vault; honors gitCheckpoint.mode=off; never blocks (always exit 0). Runs last so the verify/lint gates report first."
           }
         ]
       }

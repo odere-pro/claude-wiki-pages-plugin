@@ -44,7 +44,7 @@ run top to bottom and the first block short-circuits the write.
 | `PreToolUse` | `Write\|Edit\|MultiEdit` | [`enforce-dmi.sh`](./enforce-dmi.sh) (path-filtered) |
 | `PreToolUse` | `Write\|Edit\|MultiEdit` | [`enforce-must-rule.sh`](./enforce-must-rule.sh) (path-filtered) |
 | `PostToolUse` | `Write\|Edit` | [`post-wiki-write.sh`](./post-wiki-write.sh), [`post-ingest-summary.sh`](./post-ingest-summary.sh) |
-| `SubagentStop` | — | [`subagent-lint-gate.sh`](./subagent-lint-gate.sh), [`subagent-ingest-gate.sh`](./subagent-ingest-gate.sh) |
+| `SubagentStop` | — | [`subagent-lint-gate.sh`](./subagent-lint-gate.sh), [`subagent-ingest-gate.sh`](./subagent-ingest-gate.sh), [`subagent-commit-gate.sh`](./subagent-commit-gate.sh) |
 | `Stop` | — | [`session-memory.sh`](./session-memory.sh) |
 | `SessionEnd` | — | [`session-memory.sh`](./session-memory.sh) |
 
@@ -104,6 +104,11 @@ run top to bottom and the first block short-circuits the write.
   agent reports unresolved errors.
 - [`subagent-ingest-gate.sh`](./subagent-ingest-gate.sh) — run verification and
   warn on a half-written wiki after the ingest agent stops.
+- [`subagent-commit-gate.sh`](./subagent-commit-gate.sh) — commit backstop:
+  after a write-path agent returns, commit any vault changes left uncommitted
+  (pathspec-scoped; honors `gitCheckpoint.mode=off`; creates the repo when
+  coverage is missing; always exits 0). Runs last so the verify/lint gates
+  report first.
 
 ### Verification and validation
 
