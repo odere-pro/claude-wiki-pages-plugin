@@ -268,7 +268,11 @@ ingest-extract quality gate. The authoritative schema lives in
 docs/vault-example/CLAUDE.md.
 EOF
 
-  printf '%s\n' "$content" | parse_response "$case_out"
+  # parse_response runs in a pipeline SUBSHELL — its die cannot stop this
+  # script, so the pipeline status must be checked explicitly (fail-closed;
+  # a protocol-violating response must never yield a "ready" candidate).
+  printf '%s\n' "$content" | parse_response "$case_out" ||
+    die "response did not follow the FILE protocol for $model × $case_name (raw kept at $response)"
   echo "[produce] candidate ready: $case_out"
 }
 

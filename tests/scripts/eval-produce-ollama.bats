@@ -249,6 +249,31 @@ EOF
   [ "$status" -ne 2 ]
 }
 
+@test "eval-produce-ollama: e2e fails closed when the model emits no FILE blocks" {
+  # Regression: parse_response dies inside the printf|parse pipeline SUBSHELL;
+  # without an explicit status check the driver continued and announced
+  # "candidate ready" for an empty candidate (observed live with gemma4:26b).
+  local fake_bin="$BATS_TEST_TMPDIR/fake-bin-noblocks"
+  local out="$BATS_TEST_TMPDIR/cand-noblocks"
+  mkdir -p "$fake_bin" "$out"
+  cat >"$fake_bin/curl" <<'EOF'
+#!/bin/bash
+for a in "$@"; do
+  case "$a" in
+    */api/tags) jq -n '{models:[{name:"fake-model"}]}'; exit 0 ;;
+  esac
+done
+jq -n '{message:{content:"I am a chatty model that ignored the FILE protocol entirely."}}'
+EOF
+  chmod +x "$fake_bin/curl"
+
+  run env PATH="$fake_bin:$PATH" bash "$DRIVER" \
+    --model fake-model --case extract-basic --out "$out"
+
+  assert_status 2
+  refute_output_contains "candidate ready"
+}
+
 @test "eval-produce-ollama: preflight fails closed when the model is not pulled" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-bin-nomodel"
   mkdir -p "$fake_bin"
