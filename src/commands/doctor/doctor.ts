@@ -11,12 +11,12 @@
  * registry. Adding a check is one entry in the array plus one function.
  */
 
-import { accessSync, constants, copyFileSync, mkdirSync, chmodSync } from "node:fs";
+import { accessSync, constants, copyFileSync, mkdirSync, chmodSync, realpathSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { readFileSafe, existsSync } from "../../core/fs.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { declaredSchemaVersion, SUPPORTED_SCHEMA_VERSIONS } from "../../core/schema.ts";
-import { isRepo, ensureRepo } from "../../core/git.ts";
+import { isRepo, ensureRepo, repoRoot } from "../../core/git.ts";
 import { verify } from "../verify/verify.ts";
 
 export type DoctorStatus = "pass" | "warn" | "fail" | "fixed" | "skip";
@@ -192,13 +192,20 @@ function checkHooks({ pluginRoot, fix }: DoctorContext): CheckResult {
 function checkGitRepo({ vault, fix }: DoctorContext): CheckResult {
   if (!existsSync(vault))
     return { id: "D05", title: "Vault under git", status: "skip", message: "no vault yet" };
-  if (isRepo(vault))
+  if (isRepo(vault)) {
+    const root = repoRoot(vault);
+    // realpath both sides: git canonicalises symlinks (/var → /private/var on
+    // macOS), plain resolve() does not.
+    const own = root !== null && realpathSync(root) === realpathSync(vault);
     return {
       id: "D05",
       title: "Vault under git",
       status: "pass",
-      message: "vault is a git repo (self-heal is reversible)",
+      message: own
+        ? "vault is its own git repo (self-heal is reversible)"
+        : `vault is covered by the repo at ${root ?? "?"} (self-heal is reversible; vault commits are pathspec-scoped)`,
     };
+  }
   if (fix) {
     ensureRepo(vault);
     return {

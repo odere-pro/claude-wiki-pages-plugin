@@ -6,19 +6,26 @@ import { dirname, join } from "node:path";
 
 export interface Sandbox {
   readonly vault: string;
+  /** The tmp directory containing the vault — the "project root" in nested fixtures. */
+  readonly root: string;
   cleanup(): void;
 }
 
+export interface MakeVaultOptions {
+  /** Vault path relative to the sandbox root (default "vault"); e.g. "docs/vault" to model a vault nested inside a project repo. */
+  readonly nest?: string;
+}
+
 /** Write each file (creating parent dirs) under a fresh tmp vault directory. */
-export function makeVault(files: Record<string, string>): Sandbox {
+export function makeVault(files: Record<string, string>, opts: MakeVaultOptions = {}): Sandbox {
   const root = mkdtempSync(join(tmpdir(), "cwp-test-"));
-  const vault = join(root, "vault");
+  const vault = join(root, opts.nest ?? "vault");
   for (const [rel, content] of Object.entries(files)) {
     const full = join(vault, rel);
     mkdirSync(dirname(full), { recursive: true });
     writeFileSync(full, content);
   }
-  return { vault, cleanup: () => rmSync(root, { recursive: true, force: true }) };
+  return { vault, root, cleanup: () => rmSync(root, { recursive: true, force: true }) };
 }
 
 /** A minimal clean vault: schema'd CLAUDE.md + empty index/log. */

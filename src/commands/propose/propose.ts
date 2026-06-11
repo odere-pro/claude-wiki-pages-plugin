@@ -20,7 +20,7 @@ import { dirname, join, relative, basename } from "node:path";
 import { existsSync, readFileSafe, listMarkdownRecursive } from "../../core/fs.ts";
 import { splitFrontmatter, parseFrontmatter, stringList } from "../../core/frontmatter.ts";
 import { resolveVault } from "../../core/vault.ts";
-import { ensureRepo, checkpoint, commit, push } from "../../core/git.ts";
+import { ensureRepo, applyCheckpointMode, commit, push } from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
 import { loadConfig } from "../../data/config/config.ts";
 
@@ -147,14 +147,16 @@ export function propose(opts: ProposeOptions): ProposeReport {
 
   const now = opts.isoTime ?? new Date().toISOString();
   const opId = opts.opId ?? `propose-${now.replace(/[^0-9]/g, "").slice(0, 14)}`;
-  const pushAuto = loadConfig({ cwd: opts.cwd }).config.gitCheckpoint.push === "auto";
-  ensureRepo(vault);
-  const checkpointSha = checkpoint(vault, opId, now, false);
+  const gitCfg = loadConfig({ cwd: opts.cwd }).config.gitCheckpoint;
+  const pushAuto = gitCfg.push === "auto";
+  const gitOn = gitCfg.mode !== "off";
+  if (gitOn) ensureRepo(vault);
+  const checkpointSha = applyCheckpointMode(vault, gitCfg.mode, opId, now);
 
   if (opts.sub === "reject") {
     rmSync(draftFull, { force: true });
     appendLog(vault, { verb: "propose", summary: `reject ${relative(vault, draftFull)}`, today });
-    commit(vault, `propose: reject ${relative(vault, draftFull)} ${opId}`);
+    if (gitOn) commit(vault, `propose: reject ${relative(vault, draftFull)} ${opId}`);
     if (pushAuto) push(vault);
     return {
       ...base,
@@ -183,7 +185,7 @@ export function propose(opts: ProposeOptions): ProposeReport {
     details: ["next: run curator (heal) + polish"],
     today,
   });
-  const c = commit(vault, `propose: approve ${info.target} ${opId}`);
+  const c = gitOn ? commit(vault, `propose: approve ${info.target} ${opId}`) : null;
   if (pushAuto) push(vault);
   return {
     ...base,

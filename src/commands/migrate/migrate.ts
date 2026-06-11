@@ -19,7 +19,7 @@ import { readFileSafe, existsSync } from "../../core/fs.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { declaredSchemaVersion, CURRENT_SCHEMA_VERSION } from "../../core/schema.ts";
 import { buildManifest, MANIFEST_RELATIVE } from "../../core/manifest.ts";
-import { ensureRepo, checkpoint, commit, push } from "../../core/git.ts";
+import { ensureRepo, applyCheckpointMode, commit, push } from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
 import { loadConfig } from "../../data/config/config.ts";
 import { TOPIC_TEMPLATE, PROJECT_TEMPLATE } from "../../data/templates.ts";
@@ -136,8 +136,10 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
   // Apply under a checkpoint so the migration is reversible.
   const now = opts.isoTime ?? new Date().toISOString();
   const opId = opts.opId ?? `migrate-${now.replace(/[^0-9]/g, "").slice(0, 14)}`;
-  ensureRepo(vault);
-  const checkpointSha = checkpoint(vault, opId, now, false);
+  const gitCfg = loadConfig({ cwd: opts.cwd }).config.gitCheckpoint;
+  const gitOn = gitCfg.mode !== "off";
+  if (gitOn) ensureRepo(vault);
+  const checkpointSha = applyCheckpointMode(vault, gitCfg.mode, opId, now);
 
   for (const p of planned) {
     mkdirSync(dirname(p.change.file), { recursive: true });
@@ -151,11 +153,10 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
     details: ["rollback: git revert the migrate commit below"],
     today,
   });
-  const migrateCommit = commit(
-    vault,
-    `migrate: claude-wiki-pages schema_version ${from ?? "?"} → ${to} ${opId}`,
-  );
-  if (loadConfig({ cwd: opts.cwd }).config.gitCheckpoint.push === "auto") push(vault);
+  const migrateCommit = gitOn
+    ? commit(vault, `migrate: claude-wiki-pages schema_version ${from ?? "?"} → ${to} ${opId}`)
+    : null;
+  if (gitCfg.push === "auto") push(vault);
 
   return report(
     vault,

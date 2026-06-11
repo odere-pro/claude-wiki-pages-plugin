@@ -131,6 +131,16 @@ what is missing.
    `READY: vault at …; N created, M preserved; git=<initialised|skipped(already-in-repo)>`)
    feeds the orientation summary in step 6. The vault is always a git repo
    upon completion (or was already covered by an outer repo).
+   **Assert, don't trust:** after the script returns, run
+   `git -C <vault> rev-parse --is-inside-work-tree` and require it to print
+   `true`. Both scaffold outcomes count as success —
+   `git=initialised` (vault got its own repo) and
+   `git=skipped(already-in-repo)` (covered by the parent project repo; vault
+   commits are pathspec-scoped to the vault). If the assertion fails, run
+   `bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh doctor --fix --target <vault>`
+   (or plain `git init` + an initial commit when Bun is absent) and re-assert
+   before continuing — git coverage is the safety net every later write
+   depends on.
 4. **Schema check.** Confirm `<project>/<vault>/CLAUDE.md` starts with
    `schema_version: 2`. Step 3 already copies it when absent; if it exists
    but is missing the version header, stamp the correct frontmatter; do not
