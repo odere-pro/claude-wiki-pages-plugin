@@ -6,6 +6,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ### Added
 
+- **Tier 4 prompt-injection corpus replay (deterministic).** New checked-in corpus `tests/fixtures/adversarial/*.json` (8 cases: out-of-vault `.ssh`/`.env` writes, edits to existing `raw/` sources, frontmatter spoofing, markdown-link smuggling — plus two `allow-*` cases pinning the structural/semantic boundary) and driver `tests/adversarial/replay-corpus.sh`, which replays each payload against the real PreToolUse hook chain in `hooks.json` order. No LLM or API key required; the `adversarial.yml` corpus-replay job now runs it live instead of printing `[SKIP]`. Self-tested by `tests/scripts/replay-corpus.bats`.
+- **jq pre-flight check.** `session-start.sh` now prints a NOTICE when `jq` is missing (the JSON-parsing hooks fail open without it — writes pass through unchecked), mirroring the existing Bun notice; `doctor.sh` treats a missing `jq` as a hard FAIL (exit 1, same class as a missing `git`).
+- **Maintenance-trigger regression pin.** New `session-start.bats` cases pin the `session-start.sh` → `heartbeat.sh` wiring (CATCHUP surfaces when `maintenance.enabled` and a backlog exists; silent by default), so the autonomous-maintenance trigger cannot be dropped silently.
+
 - **Schema version 2 (additive).** New page types `topic` (narrative topic landing page), `project` (goal/initiative with a `project_status` lifecycle), and `manifest` (source-processed tracker at `wiki/_sources/manifest.md`); new templates `topic.md` and `project.md`; optional claim-level provenance fields `source_quotes` and `derived` on any typed page. Version 2 is a strict superset of v1 — existing v1 vaults stay valid. `validate-frontmatter.sh`, `verify-ingest.sh`, and the engine `verify` accept both versions; `plugin.json` now declares `supported_schema_versions: [1, 2]`.
 - **`migrate` engine command.** `claude-wiki-pages migrate [--write]` upgrades a vault v1 → v2 in place: bumps `schema_version`, writes the new templates when absent, and generates the source manifest — additive, idempotent, and git-checkpointed (`git revert <checkpoint>` rolls it back). Dry-run by default.
 - **`search` engine command + skill.** Deterministic keyword retrieval over `wiki/` (title/alias > tag > body, ties by title) returning `[[wikilink]]`-ready hits with `--json`. New `/claude-wiki-pages:search` skill; wired into the analyst agent's search strategy. GraphRAG (`search --graph`) documented as the next phase.
@@ -26,6 +30,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ### Fixed
 
+- **README hook count.** The "What's inside" table now reports the real wiring — 15 hook scripts across 7 events, including the previously undocumented `Stop` and `SessionEnd` (session-memory persistence) — and links the multi-vault registry guide.
+- **Dangling `marketplace.json` in release-please config.** Removed the reference to the deleted `.claude-plugin/marketplace.json` from `extra-files`, which would have broken the first release PR.
 - **CD workflow failures.** Repaired three red workflows on `main` so continuous delivery is green again.
 - **Firewall test isolation.** `firewall.test.ts` now uses neutral absolute paths (gate-06), so the suite no longer depends on a machine-specific home directory.
 - **Doc/style gate scope.** `.claude/fixtures/` is excluded from the markdownlint, lychee, and glossary gates — fixture vaults intentionally contain defect cases that must not fail the doc gates.
