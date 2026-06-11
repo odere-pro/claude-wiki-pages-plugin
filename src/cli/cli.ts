@@ -414,6 +414,9 @@ function main(): number {
           `last ingest: ${report.lastIngest ?? "never"}`,
           `last lint:   ${report.lastLint ?? "never"}${report.daysSinceLint !== null ? ` (${report.daysSinceLint}d ago)` : ""}`,
           `needs catch-up: ${report.needsCatchup ? "yes" : "no"}`,
+          ...(report.wiredChanges ?? []).map(
+            (w) => `wired changes: ${w.name} ${w.changed} doc(s) since last sync`,
+          ),
           "",
         ].join("\n"),
       );

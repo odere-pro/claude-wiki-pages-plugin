@@ -10,9 +10,17 @@
  */
 
 import { basename, extname, join } from "node:path";
+import { execFileSync } from "node:child_process";
 import { readFileSafe, listMarkdownShallow } from "../../core/fs.ts";
 import { listRawFiles, MANIFEST_RELATIVE } from "../../core/manifest.ts";
 import { resolveVault } from "../../core/vault.ts";
+import { globToRegExp } from "../../core/firewall.ts";
+
+/** Per-wired-source change count since its last sync point. */
+export interface WiredChange {
+  readonly name: string;
+  readonly changed: number;
+}
 
 export interface BacklogReport {
   readonly command: "backlog";
@@ -24,6 +32,13 @@ export interface BacklogReport {
   /** Whole days between `today` and the last lint; null when never linted. */
   readonly daysSinceLint: number | null;
   readonly needsCatchup: boolean;
+  /**
+   * Changed docs per wired source (git diff vs lastSyncedCommit, filtered by
+   * the record's include/exclude globs); null when no wired sources are
+   * registered. Informational only — sync is manual, so wired changes never
+   * flip `needsCatchup`.
+   */
+  readonly wiredChanges: readonly WiredChange[] | null;
 }
 
 export interface BacklogOptions {
@@ -43,6 +58,65 @@ function lastEntryDate(log: string, verb: string): string | null {
   let last: string | null = null;
   for (const m of log.matchAll(re)) last = m[1] ?? last;
   return last;
+}
+
+interface WiredSourceRecord {
+  readonly name: string;
+  readonly path: string;
+  readonly include: readonly string[];
+  readonly exclude: readonly string[];
+  readonly lastSyncedCommit: string;
+}
+
+/** Parse wired_sources from settings.json; null when absent or malformed. */
+function readWiredSources(cwd: string): readonly WiredSourceRecord[] | null {
+  const settingsPath =
+    process.env["CLAUDE_WIKI_PAGES_SETTINGS_FILE"] ??
+    join(cwd, ".claude", "claude-wiki-pages", "settings.json");
+  const raw = readFileSafe(settingsPath);
+  if (raw === null) return null;
+  try {
+    const data = JSON.parse(raw) as { wired_sources?: unknown };
+    if (!Array.isArray(data.wired_sources) || data.wired_sources.length === 0) return null;
+    const records: WiredSourceRecord[] = [];
+    for (const w of data.wired_sources as Record<string, unknown>[]) {
+      if (typeof w["name"] !== "string" || typeof w["path"] !== "string") return null;
+      records.push({
+        name: w["name"],
+        path: w["path"],
+        include: Array.isArray(w["include"]) ? (w["include"] as string[]) : [],
+        exclude: Array.isArray(w["exclude"]) ? (w["exclude"] as string[]) : [],
+        lastSyncedCommit: typeof w["lastSyncedCommit"] === "string" ? w["lastSyncedCommit"] : "",
+      });
+    }
+    return records;
+  } catch {
+    return null;
+  }
+}
+
+/** Changed files in a wired repo since its sync point (empty on any git failure). */
+function gitChangedFiles(repo: string, lastCommit: string): readonly string[] {
+  try {
+    const args =
+      lastCommit === "" ? ["ls-files"] : ["diff", "--name-only", `${lastCommit}..HEAD`];
+    const out = execFileSync("git", ["-C", repo, ...args], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    return out.split("\n").filter((l) => l.length > 0);
+  } catch {
+    return [];
+  }
+}
+
+/** Count a wired source's changed docs after include/exclude glob filtering. */
+function countWiredChanges(rec: WiredSourceRecord): number {
+  const include = rec.include.map(globToRegExp);
+  const exclude = rec.exclude.map(globToRegExp);
+  return gitChangedFiles(rec.path, rec.lastSyncedCommit).filter(
+    (f) => include.some((re) => re.test(f)) && !exclude.some((re) => re.test(f)),
+  ).length;
 }
 
 /** Pending raw files from the manifest table (status = pending), if it exists. */
@@ -95,6 +169,14 @@ export function backlog(opts: BacklogOptions = {}): BacklogReport {
   const neverLinted = lastLint === null && (pendingRaw.length > 0 || lastIngest !== null);
   const needsCatchup = pendingRaw.length > 0 || lintStale || neverLinted;
 
+  // Wired-source changes are informational: sync is manual by design, so they
+  // are surfaced (heartbeat SYNC: line) but never flip needsCatchup.
+  const wiredRecords = readWiredSources(opts.cwd ?? process.cwd());
+  const wiredChanges =
+    wiredRecords === null
+      ? null
+      : wiredRecords.map((rec) => ({ name: rec.name, changed: countWiredChanges(rec) }));
+
   return {
     command: "backlog",
     vault,
@@ -103,5 +185,6 @@ export function backlog(opts: BacklogOptions = {}): BacklogReport {
     lastLint,
     daysSinceLint,
     needsCatchup,
+    wiredChanges,
   };
 }

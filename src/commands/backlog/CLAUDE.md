@@ -43,6 +43,17 @@ true when any of:
 - `lastLint === null` and there is something to lint (`pendingRaw` non-empty or a
   prior ingest exists) — never linted but work has happened.
 
+## Wired-source changes
+
+When `wired_sources` records exist in `.claude/claude-wiki-pages/settings.json`
+(see `scripts/wire-source.sh`), `backlog` also reports `wiredChanges`: per
+wired source, the count of docs changed since its `lastSyncedCommit`
+(`git diff --name-only`, filtered by the record's include/exclude globs using
+the ONE glob dialect exported from [`../../core/firewall.ts`](../../core/firewall.ts)).
+This is informational only — sync is manual by design, so wired changes never
+flip `needsCatchup`; the heartbeat surfaces them as a `SYNC:` notice instead.
+`wiredChanges` is `null` when no wired sources are registered.
+
 ## BacklogReport
 
 ```ts
@@ -54,6 +65,7 @@ interface BacklogReport {
   lastLint: string | null;
   daysSinceLint: number | null;  // null when never linted
   needsCatchup: boolean;
+  wiredChanges: readonly { name: string; changed: number }[] | null;
 }
 ```
 

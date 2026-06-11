@@ -1,4 +1,7 @@
-import { test, expect, describe } from "bun:test";
+import { test, expect, describe, afterEach } from "bun:test";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, writeFileSync, appendFileSync } from "node:fs";
+import { join } from "node:path";
 import { backlog } from "./backlog.ts";
 import { makeVault } from "../../test-helpers/sandbox/vault.ts";
 
@@ -56,6 +59,74 @@ describe("backlog", () => {
     });
     const r = backlog({ target: sb.vault, today: "2026-05-22", lintEveryDays: 7 });
     expect(r.needsCatchup).toBe(false);
+    sb.cleanup();
+  });
+
+  test("wiredChanges is null when no wired sources are registered", () => {
+    const sb = makeVault({ "wiki/log.md": "---\ntitle: log\n---\n" });
+    const r = backlog({ target: sb.vault, cwd: sb.root, today: "2026-06-12" });
+    expect(r.wiredChanges).toBeNull();
+    sb.cleanup();
+  });
+});
+
+describe("backlog — wired sources", () => {
+  afterEach(() => {
+    delete process.env["CLAUDE_WIKI_PAGES_SETTINGS_FILE"];
+  });
+
+  function gitC(repo: string, ...args: string[]): void {
+    execFileSync(
+      "git",
+      ["-C", repo, "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", ...args],
+      { stdio: "ignore" },
+    );
+  }
+
+  test("counts changed docs since lastSyncedCommit, glob-filtered; never flips needsCatchup", () => {
+    const sb = makeVault(
+      { "wiki/log.md": "---\ntitle: log\n---\n\n## [2026-06-11] lint | ok\n" },
+      { nest: "docs/vault" },
+    );
+    // The project repo wraps the vault; README + a source file at the root.
+    writeFileSync(join(sb.root, "README.md"), "# project\n");
+    mkdirSync(join(sb.root, "src"), { recursive: true });
+    writeFileSync(join(sb.root, "src", "app.ts"), "code\n");
+    gitC(sb.root, "init");
+    gitC(sb.root, "add", "-A");
+    gitC(sb.root, "commit", "-qm", "init", "--no-verify");
+    const synced = execFileSync("git", ["-C", sb.root, "rev-parse", "HEAD"], {
+      encoding: "utf8",
+    }).trim();
+
+    // Upstream change after the sync point: one doc, one source file.
+    appendFileSync(join(sb.root, "README.md"), "\nmore docs\n");
+    appendFileSync(join(sb.root, "src", "app.ts"), "more code\n");
+    gitC(sb.root, "add", "-A");
+    gitC(sb.root, "commit", "-qm", "change", "--no-verify");
+
+    const settings = join(sb.root, "settings.json");
+    writeFileSync(
+      settings,
+      JSON.stringify({
+        wired_sources: [
+          {
+            name: "proj",
+            path: sb.root,
+            vault: sb.vault,
+            include: ["README*", "*.md", "docs/**"],
+            exclude: ["docs/vault/**", "node_modules/**", ".git/**"],
+            lastSyncedCommit: synced,
+            lastSyncedAt: "2026-06-11T00:00:00Z",
+          },
+        ],
+      }),
+    );
+    process.env["CLAUDE_WIKI_PAGES_SETTINGS_FILE"] = settings;
+
+    const r = backlog({ target: sb.vault, cwd: sb.root, today: "2026-06-12" });
+    expect(r.wiredChanges).toEqual([{ name: "proj", changed: 1 }]); // README only
+    expect(r.needsCatchup).toBe(false); // wired changes are informational
     sb.cleanup();
   });
 });
