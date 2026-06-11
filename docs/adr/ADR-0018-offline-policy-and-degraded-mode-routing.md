@@ -1,6 +1,6 @@
 # ADR-0018: Offline policy and degraded-mode routing — the Claude→Ollama fallback machinery
 
-- **Status:** Proposed
+- **Status:** Accepted (2026-06-11)
 - **Date:** 2026-06-11
 - **Builds on:** [ADR-0011](./ADR-0011-local-model-quality-gate.md) (the per-tier quality gate) and [ADR-0017](./ADR-0017-fabrication-floor-verbatim-partition.md) (the fabrication floor)
 - **Anchor:** §5 (NO-RAG, absolute); §6 (one `_proposed/` write channel); §7 (provenance, non-negotiable); Decision #7 (local LLM draft-only now, full Claude→Ollama swap is the north star, gated)
