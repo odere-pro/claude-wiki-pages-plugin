@@ -38,6 +38,9 @@
 #
 # Usage:
 #   scripts/eval-ingest-extract.sh --score <candidate-vault> --gold <gold-vault> [--json]
+#       [--input <raw-input.md>]     # ADR-0017: partition extra claim pairs into
+#                                    # over-citation (verbatim in input, reported)
+#                                    # vs fabricated (invented, the FLOOR)
 #   scripts/eval-ingest-extract.sh --self-test
 #   scripts/eval-ingest-extract.sh --stamp --score <candidate> --gold <gold> \
 #       [--model-id <id>]            # emit a measured-run artifact (model id +
@@ -63,7 +66,9 @@ readonly FABRICATION_FLOOR=0
 readonly SCORED_FIELDS="type entity_type source_type title parent path sources"
 
 usage() {
-  sed -n '2,47p' "$0" | sed 's/^# \?//'
+  # Print the header comment block (everything up to `set -uo pipefail`) —
+  # pattern-bounded so header edits never silently truncate the help text.
+  sed -n '2,/^set -uo/p' "$0" | sed '$d' | sed 's/^# \?//'
 }
 
 # ── small utilities ────────────────────────────────────────────────────────────
@@ -258,25 +263,47 @@ count_set_diff() {
       if ($0 in b) both++
       else only_a++
     }
+    # print_only_a: emit each distinct A-only LINE (for downstream
+    # classification, ADR-0017) instead of a count.
+    op == "print_only_a" && !($0 in b) && seen_a[$0] == 1 { print }
     END {
       # only_b: distinct lines in B never seen in A.
       for (k in b) if (!(k in seen_a)) only_b++
       if (op == "only_a") print only_a + 0
       else if (op == "only_b") print only_b + 0
       else if (op == "both") print both + 0
+      else if (op == "print_only_a") { } # lines already streamed above
       else { print "BADOP" > "/dev/stderr"; exit 3 }
     }
   ' "$file_a"
 }
 
+# ── ADR-0017: verbatim partition of extra claim pairs ──────────────────────────
+# normalize_ws: collapse every whitespace run (incl. newlines from hard-wrapped
+# input files) to a single space, so a single-line quote matches its wrapped
+# original. Pure text transform — exact comparison after normalization, never
+# similarity (§5 NO-RAG holds).
+normalize_ws() {
+  tr '\n\t' '  ' | sed 's/   */ /g; s/  / /g; s/^ //; s/ $//'
+}
+
 # ── core scoring ───────────────────────────────────────────────────────────────
-# score_candidate <candidate-vault> <gold-vault> <emit: json|text>
+# score_candidate <candidate-vault> <gold-vault> <emit: json|text> [input-file]
 # Prints the scorecard to stdout and RETURNS the verdict exit code:
 #   0 = pass, 1 = fail. Internal errors die() with exit 2 (never fail-open).
+#
+# With the optional 4th arg (the case's raw input, ADR-0017): extra claim pairs
+# (candidate-not-in-gold) are PARTITIONED — a pair whose quote is a verbatim
+# (whitespace-normalized) substring of the raw input is OVER-CITATION (reported,
+# not floored); a pair whose quote is NOT in the input is FABRICATED (floor).
+# Without it, the strict legacy definition holds: every extra pair is fabricated.
 score_candidate() {
-  local candidate="$1" gold="$2" emit="$3"
+  local candidate="$1" gold="$2" emit="$3" input_file="${4:-}"
   [ -d "$candidate" ] || die "candidate vault not found: $candidate"
   [ -d "$gold" ] || die "gold vault not found: $gold"
+  if [ -n "$input_file" ] && [ ! -r "$input_file" ]; then
+    die "--input file not readable: $input_file"
+  fi
 
   # ── Metric 1: schema-validity (AS EMITTED, no auto-repair) ───────────────────
   # Per-page: a page is schema-valid iff it survives the plugin's own checkers.
@@ -362,6 +389,37 @@ score_candidate() {
     *[!0-9]*) die "claim-pair diff produced a non-integer count (fab=$fabricated drop=$dropped match=$matched)" ;;
   esac
   fidelity=$(ratio "$matched" "$gold_total")
+
+  # ── ADR-0017 partition: over-citation vs fabrication ─────────────────────────
+  # With a raw input, each extra (candidate-not-in-gold) pair is reclassified:
+  # quote verbatim in the input (whitespace-normalized EXACT substring — no
+  # similarity) → over_citation, NOT floored; quote absent from the input →
+  # fabricated (the floor). An empty quote can never be "verbatim" and stays
+  # fabricated. Any partition error die()s — the floor must never fail open.
+  local over_citation=0
+  if [ -n "$input_file" ] && [ "$fabricated" -gt 0 ]; then
+    local norm_input extra_lines pair quote norm_quote refab=0
+    norm_input=$(normalize_ws <"$input_file") || die "input normalization failed: $input_file"
+    [ -n "$norm_input" ] || die "--input file is empty: $input_file"
+    extra_lines=$(count_set_diff print_only_a "$tmp_c" "$tmp_g") || die "claim-pair set diff (print_only_a) failed"
+    while IFS= read -r pair; do
+      [ -z "$pair" ] && continue
+      quote="${pair#*$'\t'}"
+      norm_quote=$(printf '%s' "$quote" | normalize_ws) || die "quote normalization failed"
+      if [ -n "$norm_quote" ]; then
+        case "$norm_input" in
+          *"$norm_quote"*) over_citation=$((over_citation + 1)) ;;
+          *) refab=$((refab + 1)) ;;
+        esac
+      else
+        refab=$((refab + 1))
+      fi
+    done <<<"$extra_lines"
+    # The partition must account for every extra pair exactly once.
+    [ $((over_citation + refab)) -eq "$fabricated" ] ||
+      die "ADR-0017 partition mismatch: $over_citation over-cited + $refab fabricated != $fabricated extra pairs"
+    fabricated="$refab"
+  fi
 
   # ── Metric 2: frontmatter-field accuracy ─────────────────────────────────────
   # Over the pages present in BOTH candidate and gold (by relative path), compare
@@ -464,6 +522,7 @@ score_candidate() {
       --argjson frontmatter_field_accuracy "$field_accuracy" \
       --argjson dedup_correctness "$dedup_correctness" \
       --argjson fabricated_sourced_claims "$fabricated" \
+      --argjson over_citation "$over_citation" \
       --argjson dropped_claims "$dropped" \
       --argjson gold_claims "$gold_total" \
       --arg tier "ingest-extract" \
@@ -477,6 +536,7 @@ score_candidate() {
         frontmatter_field_accuracy: $frontmatter_field_accuracy,
         dedup_correctness: $dedup_correctness,
         fabricated_sourced_claims: $fabricated_sourced_claims,
+        over_citation: $over_citation,
         dropped_claims: $dropped_claims,
         gold_claims: $gold_claims,
         thresholds: $thresholds,
@@ -489,6 +549,7 @@ score_candidate() {
     printf 'frontmatter_field_accuracy:  %s  (bar >= %s)\n' "$field_accuracy" "$THRESH_FIELD_ACCURACY"
     printf 'dedup_correctness:           %s  (bar >= %s)\n' "$dedup_correctness" "$THRESH_DEDUP"
     printf 'fabricated_sourced_claims:   %s  (FLOOR == %s)\n' "$fabricated" "$FABRICATION_FLOOR"
+    printf 'over_citation:               %s  (verbatim-in-input extras; not floored — ADR-0017)\n' "$over_citation"
     printf 'dropped_claims:              %s / %s gold claims\n' "$dropped" "$gold_total"
     printf 'reasons:                     %s\n' "$reasons"
     if [ "$verdict" = "pass" ]; then
@@ -675,7 +736,7 @@ golden_set_sha() {
 # successfully-emitted artifact (emitting is not the gate; the recorded verdict
 # is the evidence). Internal errors die() (exit 2).
 stamp_artifact() {
-  local candidate="$1" gold="$2" model_id="$3"
+  local candidate="$1" gold="$2" model_id="$3" input_file="${4:-}"
   [ -n "$candidate" ] || die "--stamp requires --score <candidate>"
   [ -n "$gold" ] || die "--stamp requires --gold <gold>"
   [ -n "$model_id" ] || die "--stamp requires --model-id <id> or CLAUDE_WIKI_PAGES_EVAL_MODEL"
@@ -689,15 +750,18 @@ stamp_artifact() {
   recorded_at="$(date -u +%FT%TZ)"
   # Capture the scorecard JSON. score_candidate returns 0/1 (verdict) and only
   # die()s on internal error; either verdict yields a valid scorecard to stamp.
-  score_json="$(score_candidate "$candidate" "$gold" json)" || true
+  score_json="$(score_candidate "$candidate" "$gold" json "$input_file")" || true
   [ -n "$score_json" ] || die "scoring produced no scorecard to stamp"
   printf '%s' "$score_json" | jq -e . >/dev/null 2>&1 || die "scorecard is not valid JSON; cannot stamp"
 
-  # Record the candidate/gold paths relative to ROOT when possible so the
+  # Record the candidate/gold/input paths relative to ROOT when possible so the
   # artifact is portable and --verify-artifact can re-score the same inputs.
-  local cand_rel gold_rel
+  # input_path is "" when scored under the strict legacy definition (no --input);
+  # recording it pins WHICH floor definition produced the verdict (ADR-0017).
+  local cand_rel gold_rel input_rel=""
   cand_rel="${candidate#"$ROOT"/}"
   gold_rel="${gold#"$ROOT"/}"
+  [ -n "$input_file" ] && input_rel="${input_file#"$ROOT"/}"
 
   printf '%s' "$score_json" | jq \
     --arg model_id "$model_id" \
@@ -705,12 +769,14 @@ stamp_artifact() {
     --arg recorded_at "$recorded_at" \
     --arg candidate_path "$cand_rel" \
     --arg gold_path "$gold_rel" \
+    --arg input_path "$input_rel" \
     '. + {
       model_id: $model_id,
       golden_set_sha: $golden_set_sha,
       recorded_at: $recorded_at,
       candidate_path: $candidate_path,
-      gold_path: $gold_path
+      gold_path: $gold_path,
+      input_path: $input_path
     }' || die "jq failed to stamp artifact"
 }
 
@@ -764,13 +830,28 @@ verify_artifact() {
     printf 'VERIFY FAIL: recorded gold_path no longer exists: %s\n' "$gold" >&2
     return 1
   }
+  # ADR-0017: when the artifact records an input_path, the re-score must use the
+  # SAME floor definition the verdict was produced under. A recorded-but-missing
+  # input file fails closed (the evidence is no longer reproducible).
+  local input_rel input_abs=""
+  input_rel="$(jq -r '.input_path // ""' "$file")"
+  if [ -n "$input_rel" ]; then
+    input_abs="$ROOT/$input_rel"
+    [ -r "$input_abs" ] || {
+      printf 'VERIFY FAIL: recorded input_path no longer readable: %s\n' "$input_abs" >&2
+      return 1
+    }
+  fi
   local fresh
-  fresh="$(score_candidate "$cand" "$gold" json)" || true
+  fresh="$(score_candidate "$cand" "$gold" json "$input_abs")" || true
   [ -n "$fresh" ] || die "re-score produced no scorecard during --verify-artifact"
 
-  # Compare the recorded verdict + each gated metric to the fresh score.
+  # Compare the recorded verdict + each gated metric (and the ADR-0017
+  # over-citation count when recorded) to the fresh score.
+  local extra_keys=""
+  jq -e 'has("over_citation")' "$file" >/dev/null 2>&1 && extra_keys="over_citation"
   local key rec cur
-  for key in verdict schema_validity claim_source_fidelity frontmatter_field_accuracy dedup_correctness fabricated_sourced_claims; do
+  for key in verdict schema_validity claim_source_fidelity frontmatter_field_accuracy dedup_correctness fabricated_sourced_claims $extra_keys; do
     rec="$(jq -rc --arg k "$key" '.[$k]' "$file")"
     cur="$(printf '%s' "$fresh" | jq -rc --arg k "$key" '.[$k]')"
     if [ "$rec" != "$cur" ]; then
@@ -793,7 +874,7 @@ verify_artifact() {
 
 # ── entry point ────────────────────────────────────────────────────────────────
 main() {
-  local mode="" candidate="" gold="" emit="text" model_id="" artifact=""
+  local mode="" candidate="" gold="" emit="text" model_id="" artifact="" input_file=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
       -h | --help)
@@ -813,6 +894,12 @@ main() {
       --gold)
         gold="${2:-}"
         shift 2 || die "--gold requires a gold vault path"
+        ;;
+      --input)
+        # ADR-0017: the case's raw input; partitions extra claim pairs into
+        # over-citation (verbatim in input) vs fabricated (floor).
+        input_file="${2:-}"
+        shift 2 || die "--input requires a raw-input file path"
         ;;
       --json)
         emit="json"
@@ -846,13 +933,13 @@ main() {
     score)
       [ -n "$candidate" ] || die "--score requires a candidate vault path"
       [ -n "$gold" ] || die "--score requires --gold <gold-vault>"
-      score_candidate "$candidate" "$gold" "$emit"
+      score_candidate "$candidate" "$gold" "$emit" "$input_file"
       exit $?
       ;;
     stamp)
       [ -n "$candidate" ] || die "--stamp requires --score <candidate-vault>"
       [ -n "$gold" ] || die "--stamp requires --gold <gold-vault>"
-      stamp_artifact "$candidate" "$gold" "$model_id"
+      stamp_artifact "$candidate" "$gold" "$model_id" "$input_file"
       exit $?
       ;;
     verify-artifact)

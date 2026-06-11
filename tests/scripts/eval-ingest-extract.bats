@@ -543,3 +543,85 @@ _teardown_eval_artifact_repo() {
   [ "$status" -ne 0 ]
   assert_output_contains "missing required field"
 }
+
+# ---------------------------------------------------------------------------
+# ADR-0017: --input partitions extra claim pairs into over-citation (verbatim
+# in the raw input — NOT floor) vs fabricated (invented — floor). Without
+# --input the strict legacy definition is unchanged.
+# ---------------------------------------------------------------------------
+
+# Helper: gold copy + one EXTRA source_quotes entry quoting a verbatim input
+# sentence that gold did not select ("It supports exporting to PDF via a LaTeX
+# engine." is in cases/extract-basic/input.md but not in gold's quote set).
+_make_overciting_candidate() { # $1 = dest dir
+  cp -R "$CASES/extract-basic/expected" "$1"
+  # Insert the extra pair at the head of the existing source_quotes list.
+  sed -i '' 's|^source_quotes:$|source_quotes:\
+  - source: "[[Pandoc — Universal Document Converter]]"\
+    quote: "It supports exporting to PDF via a LaTeX engine."|' \
+    "$1/wiki/tools/pandoc.md"
+}
+
+@test "eval-ingest-extract: --input reclassifies a verbatim extra quote as over-citation (PASS)" {
+  local cand="$BATS_TEST_TMPDIR/overcite"
+  _make_overciting_candidate "$cand"
+
+  run bash "$DRIVER" --score "$cand" --gold "$CASES/extract-basic/expected" \
+    --input "$CASES/extract-basic/input.md" --json
+
+  assert_success
+  run jq -r '[.verdict, (.fabricated_sourced_claims|tostring), (.over_citation|tostring)] | join("|")' <<<"$output"
+  assert_output_contains "pass|0|1"
+}
+
+@test "eval-ingest-extract: --input still floors a truly invented quote (FAIL)" {
+  local cand="$BATS_TEST_TMPDIR/invented"
+  cp -R "$CASES/extract-basic/expected" "$cand"
+  sed -i '' 's|^source_quotes:$|source_quotes:\
+  - source: "[[Pandoc — Universal Document Converter]]"\
+    quote: "Pandoc costs 49 dollars per seat and is proprietary software."|' \
+    "$cand/wiki/tools/pandoc.md"
+
+  run bash "$DRIVER" --score "$cand" --gold "$CASES/extract-basic/expected" \
+    --input "$CASES/extract-basic/input.md" --json
+
+  [ "$status" -eq 1 ]
+  run jq -r '[.verdict, (.fabricated_sourced_claims|tostring)] | join("|")' <<<"$output"
+  assert_output_contains "fail|1"
+}
+
+@test "eval-ingest-extract: without --input the strict legacy definition is unchanged" {
+  local cand="$BATS_TEST_TMPDIR/overcite-legacy"
+  _make_overciting_candidate "$cand"
+
+  run bash "$DRIVER" --score "$cand" --gold "$CASES/extract-basic/expected" --json
+
+  [ "$status" -eq 1 ]
+  run jq -r '[.verdict, (.fabricated_sourced_claims|tostring)] | join("|")' <<<"$output"
+  assert_output_contains "fail|1"
+}
+
+@test "eval-ingest-extract: --input handles hard-wrapped input lines (whitespace-normalized match)" {
+  # "written in Haskell by\nJohn MacFarlane" is wrapped across lines in
+  # input.md; a single-line quote must still count as verbatim.
+  local cand="$BATS_TEST_TMPDIR/wrapped"
+  cp -R "$CASES/extract-basic/expected" "$cand"
+  sed -i '' 's|^source_quotes:$|source_quotes:\
+  - source: "[[Pandoc — Universal Document Converter]]"\
+    quote: "It converts files between markup formats such as Markdown, reStructuredText, HTML, LaTeX, and Microsoft Word docx."|' \
+    "$cand/wiki/tools/pandoc.md"
+
+  run bash "$DRIVER" --score "$cand" --gold "$CASES/extract-basic/expected" \
+    --input "$CASES/extract-basic/input.md" --json
+
+  assert_success
+  run jq -r '.over_citation' <<<"$output"
+  assert_output_contains "1"
+}
+
+@test "eval-ingest-extract: --input with an unreadable file fails closed (rc 2)" {
+  run bash "$DRIVER" --score "$CASES/extract-basic/expected" \
+    --gold "$CASES/extract-basic/expected" \
+    --input "$BATS_TEST_TMPDIR/no-such-input.md" --json
+  [ "$status" -eq 2 ]
+}
