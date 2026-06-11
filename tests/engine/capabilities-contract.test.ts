@@ -37,7 +37,8 @@ import { join } from "node:path";
 // This list is HARDCODED. It must NOT be derived from CAPABILITIES at runtime.
 // Updating it requires a deliberate one-line edit here — that is the point of
 // pinning it. The golden list reflects the CAPABILITIES table as committed
-// (P3.1 + P3.3 landed: 12 implemented + 3 planned = 15 verbs total).
+// (P3.1 + P3.3 landed: 12 implemented + 3 planned = 15 verbs; ADR-0018 added
+// `route` → 13 implemented + 3 planned = 16 verbs total).
 
 const GOLDEN_IMPLEMENTED = [
   "verify",
@@ -52,6 +53,7 @@ const GOLDEN_IMPLEMENTED = [
   "propose",
   "capabilities",
   "ontology",
+  "route",
 ] as const;
 
 const GOLDEN_PLANNED = ["index", "link-suggest", "checkpoint"] as const;
@@ -104,6 +106,8 @@ describe("(a) IMPLEMENTED verbs — every verb exits != 2 (live dispatch branch)
     propose: ["--json"],
     capabilities: ["--json"],
     ontology: ["--json"],
+    // route reads config (not a vault); reachability is passed as flags.
+    route: ["--json"],
   };
 
   for (const verb of GOLDEN_IMPLEMENTED) {
@@ -183,15 +187,15 @@ describe("(c) capabilities --json verb set set-equals the golden list", () => {
 // equality tests above.
 
 describe("golden list completeness — count guards", () => {
-  test("GOLDEN_IMPLEMENTED contains exactly 12 verbs", () => {
-    expect(GOLDEN_IMPLEMENTED).toHaveLength(12);
+  test("GOLDEN_IMPLEMENTED contains exactly 13 verbs", () => {
+    expect(GOLDEN_IMPLEMENTED).toHaveLength(13);
   });
 
   test("GOLDEN_PLANNED contains exactly 3 verbs", () => {
     expect(GOLDEN_PLANNED).toHaveLength(3);
   });
 
-  test("GOLDEN_ALL contains exactly 15 verbs", () => {
-    expect(GOLDEN_ALL).toHaveLength(15);
+  test("GOLDEN_ALL contains exactly 16 verbs", () => {
+    expect(GOLDEN_ALL).toHaveLength(16);
   });
 });

@@ -40,6 +40,10 @@ export interface Config {
     readonly endpoint: string;
     readonly model: string;
     readonly draftTarget: string;
+    /** Capability tier the local model runs at; gated per-tier (ADR-0018/0019). */
+    readonly tier: "draft" | "ingest-extract" | "query";
+    /** Offline fallback behaviour when Claude is unreachable (ADR-0018). */
+    readonly offlinePolicy: "strict" | "prefer-local" | "off";
   };
   readonly modelHints: Readonly<Record<string, string>>;
 }
@@ -67,6 +71,12 @@ export const DEFAULT_CONFIG: Config = {
     endpoint: "http://localhost:11434",
     model: "",
     draftTarget: "_proposed",
+    // Defaults are the SAFEST, not the most capable (ADR-0018): "off" never
+    // probes the network; "draft" is the narrowest tier and has no quality gate
+    // yet, so a default-enabled misconfiguration lands fail-closed (BLOCKED)
+    // rather than running an unmeasured local model.
+    tier: "draft",
+    offlinePolicy: "off",
   },
   modelHints: {},
 };
@@ -84,6 +94,8 @@ const ENV_MAP: Record<string, Leaf> = {
   CLAUDE_WIKI_PAGES_MAINTENANCE_LINTEVERYDAYS: ["maintenance", "lintEveryDays"],
   CLAUDE_WIKI_PAGES_LOCALMODEL_ENABLED: ["localModel", "enabled"],
   CLAUDE_WIKI_PAGES_LOCALMODEL_MODEL: ["localModel", "model"],
+  CLAUDE_WIKI_PAGES_LOCALMODEL_TIER: ["localModel", "tier"],
+  CLAUDE_WIKI_PAGES_LOCALMODEL_OFFLINEPOLICY: ["localModel", "offlinePolicy"],
 };
 
 export interface ConfigPaths {
@@ -173,6 +185,84 @@ export function loadConfig(
     paths,
     loaded: { user: existsSync(paths.user), project: existsSync(paths.project) },
   };
+}
+
+/**
+ * The capability-tier → approved-model map (ADR-0018, generalizing ADR-0011),
+ * the single source of truth for which local models the plugin will run at which
+ * tier.
+ *
+ * This is a per-tier ALLOW-LIST, not a recommendation: per ADR-0011 governance,
+ * a local model is unlocked for a tier only after it clears that tier's
+ * golden-set bar with committed, `--verify-artifact`-reproducible evidence under
+ * `tests/eval/runs/`. To add a model: run `scripts/eval-compare-ollama.sh`, and
+ * if it passes the tier's cases, commit its evidence and add its exact
+ * `name:tag` to that tier's row here in the same change (and amend the ADR).
+ * Removing a model that later regresses is the reverse of the same edit.
+ *
+ * A tier whose row is empty is WIRED but BLOCKED — its config is accepted but
+ * `checkLocalModelApproval` fails closed until a model earns its gate.
+ *
+ * Measured 2026-06-11 (Ollama 0.30.7): of six pulled models only qwen3-coder:30b
+ * passed the `ingest-extract` gate — see docs/local-models.md for the full table
+ * and per-model reasons. The `draft` tier has no eval yet, so it stays empty.
+ */
+export const APPROVED_LOCAL_MODELS_BY_TIER: Readonly<
+  Record<Config["localModel"]["tier"], readonly string[]>
+> = {
+  draft: [],
+  "ingest-extract": ["qwen3-coder:30b"],
+  // Measured 2026-06-11 against the ADR-0019 query golden set (eval-query.sh):
+  // both cases pass with perfect scores (recall 1.0, quote coverage 1.0,
+  // coverage honest on the trap, fabricated 0). Evidence:
+  // tests/eval/runs/query/qwen3-coder-30b/.
+  query: ["qwen3-coder:30b"],
+};
+
+/**
+ * Back-compat alias: the `ingest-extract` row, the only unlocked tier today.
+ * Retained so existing imports keep resolving; the per-tier map above is the
+ * source of truth.
+ */
+export const APPROVED_LOCAL_MODELS: readonly string[] =
+  APPROVED_LOCAL_MODELS_BY_TIER["ingest-extract"];
+
+/**
+ * Fail-closed approval check for the per-tier local-model allow-list. Returns a
+ * list of teaching errors (empty = approved). A disabled localModel is always
+ * fine — the gate only constrains a local model the plugin would actually run.
+ */
+export function checkLocalModelApproval(config: Config): string[] {
+  if (!config.localModel.enabled) return [];
+  const tier = config.localModel.tier;
+  const approved = APPROVED_LOCAL_MODELS_BY_TIER[tier] ?? [];
+  const model = config.localModel.model;
+  // A tier with no cleared model is WIRED but BLOCKED (ADR-0018).
+  if (approved.length === 0) {
+    const unlocked = Object.entries(APPROVED_LOCAL_MODELS_BY_TIER)
+      .filter(([, models]) => models.length > 0)
+      .map(([t]) => `"${t}"`)
+      .join(", ");
+    return [
+      `localModel.tier "${tier}" is wired but BLOCKED: no local model has ` +
+        `cleared a quality gate for this tier yet. Unlocked tiers today: ` +
+        `${unlocked} (qwen3-coder:30b, ADR-0011/0019). To unlock a tier, run ` +
+        `its golden-set eval, commit tests/eval/runs/ evidence, add the model ` +
+        `to APPROVED_LOCAL_MODELS_BY_TIER, and amend the governing ADR. Until ` +
+        `then set localModel.enabled: false, or pick an unlocked tier.`,
+    ];
+  }
+  if (approved.includes(model)) return [];
+  const named = model === "" ? "(none set)" : `"${model}"`;
+  return [
+    `localModel.model ${named} is not gate-approved for tier "${tier}". The ` +
+      `plugin runs a local model only after it clears the ADR-0011 quality gate ` +
+      `with committed evidence. Approved for "${tier}": ${approved.join(", ")}. ` +
+      `To add a model, run scripts/eval-compare-ollama.sh; if it passes both ` +
+      `golden-set cases, commit its tests/eval/runs/ evidence and add it to ` +
+      `APPROVED_LOCAL_MODELS_BY_TIER (see docs/local-models.md and ADR-0011). ` +
+      `Until then, set localModel.enabled: false to keep Claude primary.`,
+  ];
 }
 
 interface PropSpec {

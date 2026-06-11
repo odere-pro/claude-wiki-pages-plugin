@@ -36,6 +36,9 @@ exclude_path = [
   # contain planted hazards (e.g. an injection payload URL) that are data,
   # not real links to verify.
   ".claude/fixtures",
+  # As-emitted ADR-0011 measured-run evidence — model output is data, not
+  # prose; links inside it are not ours to fix.
+  "tests/eval/runs",
 ]
 
 # Only scan markdown and YAML for links in CI

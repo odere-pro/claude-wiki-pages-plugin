@@ -328,6 +328,100 @@ teardown() {
   refute_output_contains "CATCHUP:"
 }
 
+# Degraded-mode advisory (ADR-0018): opt-in only — silent unless localModel is
+# enabled with offlinePolicy != "off". The default config must emit no DEGRADED
+# line and make no network call.
+@test "session-start: no DEGRADED line and no network call by default" {
+  command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
+  local proj="$BATS_TEST_TMPDIR/deg-off"
+  local vault_dir="$proj/vault"
+  local fake_bin="$BATS_TEST_TMPDIR/deg-off-bin"
+  local marker="$BATS_TEST_TMPDIR/deg-off-curl-called"
+  mkdir -p "$vault_dir/wiki" "$proj/.claude/claude-wiki-pages" "$fake_bin"
+  cat >"$fake_bin/curl" <<EOF
+#!/bin/bash
+touch "$marker"
+exit 0
+EOF
+  chmod +x "$fake_bin/curl"
+  # No localModel config — offlinePolicy defaults to "off".
+
+  run bash -c "
+    cd '$proj'
+    export PATH=\"$fake_bin:\$PATH\"
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$proj/.claude/claude-wiki-pages/settings.json'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  refute_output_contains "DEGRADED:"
+  [ ! -e "$marker" ] # never probed the network in the default policy
+}
+
+@test "session-start: DEGRADED offline-available when Claude is unreachable and Ollama is up" {
+  command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
+  local proj="$BATS_TEST_TMPDIR/deg-avail"
+  local vault_dir="$proj/vault"
+  local fake_bin="$BATS_TEST_TMPDIR/deg-avail-bin"
+  mkdir -p "$vault_dir/wiki" "$proj/.claude/claude-wiki-pages" "$fake_bin"
+  # Approved model at the unlocked tier, with prefer-local fallback.
+  printf '%s\n' '{"localModel":{"enabled":true,"model":"qwen3-coder:30b","tier":"ingest-extract","offlinePolicy":"prefer-local"}}' \
+    >"$proj/.claude/claude-wiki-pages.json"
+  # Fake curl: Ollama up (/api/tags ok), Anthropic unreachable (HEAD errors).
+  cat >"$fake_bin/curl" <<'EOF'
+#!/bin/bash
+for a in "$@"; do
+  case "$a" in
+    */api/tags) exit 0 ;;
+    https://api.anthropic.com/*) exit 7 ;;
+  esac
+done
+exit 0
+EOF
+  chmod +x "$fake_bin/curl"
+
+  run bash -c "
+    cd '$proj'
+    export PATH=\"$fake_bin:\$PATH\"
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$proj/.claude/claude-wiki-pages/settings.json'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  assert_output_contains "DEGRADED:"
+  assert_output_contains "drafting is available offline"
+}
+
+@test "session-start: DEGRADED BLOCKED when the configured tier is not gate-approved" {
+  command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
+  local proj="$BATS_TEST_TMPDIR/deg-blocked"
+  local vault_dir="$proj/vault"
+  local fake_bin="$BATS_TEST_TMPDIR/deg-blocked-bin"
+  mkdir -p "$vault_dir/wiki" "$proj/.claude/claude-wiki-pages" "$fake_bin"
+  # tier "draft" is WIRED but BLOCKED (no gate-approved model), even for qwen3-coder:30b.
+  printf '%s\n' '{"localModel":{"enabled":true,"model":"qwen3-coder:30b","tier":"draft","offlinePolicy":"prefer-local"}}' \
+    >"$proj/.claude/claude-wiki-pages.json"
+  cat >"$fake_bin/curl" <<'EOF'
+#!/bin/bash
+exit 0
+EOF
+  chmod +x "$fake_bin/curl"
+
+  run bash -c "
+    cd '$proj'
+    export PATH=\"$fake_bin:\$PATH\"
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$proj/.claude/claude-wiki-pages/settings.json'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  assert_output_contains "DEGRADED:"
+  assert_output_contains "BLOCKED"
+}
+
 # P1.1: Output is plain stdout — no JSON envelope or hook-block object.
 @test "session-start: output is plain text, no JSON envelope" {
   local vault_dir="$BATS_TEST_TMPDIR/plain-text-vault"

@@ -79,22 +79,28 @@
     "localModel": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Optional local-model (Ollama/LM Studio) drafting into _proposed/ for human review. Off by default — Claude Code stays primary.",
+      "description": "Optional local-model (Ollama/LM Studio) drafting into _proposed/ for human review. Off by default — Claude Code stays primary. When enabled, 'model' must be on the ADR-0011 measured allow-list (see APPROVED_LOCAL_MODELS); 'config validate' fails closed otherwise.",
       "properties": {
         "enabled": { "type": "boolean", "default": false },
         "provider": { "type": "string", "enum": ["ollama", "lmstudio"], "default": "ollama" },
         "endpoint": { "type": "string", "default": "http://localhost:11434" },
-        "model": { "type": "string", "default": "" },
+        "model": {
+          "type": "string",
+          "default": "",
+          "description": "Local model id (e.g. qwen3-coder:30b). When localModel.enabled is true this must be a model that cleared the ADR-0011 ingest-extract quality gate (allow-list in src/data/config/config.ts; tested models in docs/local-models.md). An unproven model fails 'config validate' fail-closed."
+        },
         "draftTarget": { "type": "string", "default": "_proposed" },
         "tier": {
           "type": "string",
-          "enum": ["draft", "ingest-extract"],
-          "description": "Capability tier: 'draft' = local model produces _proposed/ drafts only; 'ingest-extract' = local model also runs source extraction during ingest. Consumed by modelHints at runtime."
+          "enum": ["draft", "ingest-extract", "query"],
+          "default": "draft",
+          "description": "Capability tier: 'draft' = local model produces _proposed/ drafts only; 'ingest-extract' = local model also runs source extraction during ingest; 'query' = local model composes cited answers (read-only, runtime-verified per ADR-0019). Gated per-tier (ADR-0018): a tier with no gate-approved model is WIRED but BLOCKED."
         },
         "offlinePolicy": {
           "type": "string",
           "enum": ["strict", "prefer-local", "off"],
-          "description": "Offline fallback behaviour: 'strict' = fail if Claude API is unreachable; 'prefer-local' = fall back to the configured local model; 'off' = no local fallback (default when localModel.enabled is false)."
+          "default": "off",
+          "description": "Offline fallback behaviour (ADR-0018): 'strict' = fail if Claude API is unreachable; 'prefer-local' = fall back to an approved local tier when Claude is unreachable; 'off' = no local fallback, no network probe (default)."
         }
       }
     },

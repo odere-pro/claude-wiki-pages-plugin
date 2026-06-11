@@ -60,3 +60,35 @@ fi
 # Surface a maintenance catch-up recommendation when enabled (maintenance.enabled).
 # Silent no-op by default; never mutates the vault.
 bash "$(dirname "$0")/heartbeat.sh" || true
+
+# Degraded-mode advisory (ADR-0018): when a local model is enabled AND an offline
+# policy is set, probe reachability and surface which tier is available or BLOCKED.
+# Strictly opt-in — silent unless localModel.enabled && offlinePolicy != "off" —
+# and best-effort: the probe has hard timeouts and the whole block is wrapped so a
+# miss never aborts the hook. No network is touched in the default (off) policy.
+if command -v bun >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  # `config` exits 1 when localModelErrors is non-empty; `|| true` keeps the
+  # captured JSON (command substitution captures stdout regardless of exit code).
+  _cfg=$(bash "$(dirname "$0")/engine.sh" config --json 2>/dev/null) || true
+  if [ -n "${_cfg}" ]; then
+    _lm_enabled=$(printf '%s' "${_cfg}" | jq -r '.config.localModel.enabled' 2>/dev/null) || _lm_enabled="false"
+    _policy=$(printf '%s' "${_cfg}" | jq -r '.config.localModel.offlinePolicy // "off"' 2>/dev/null) || _policy="off"
+    if [ "${_lm_enabled}" = "true" ] && [ "${_policy}" != "off" ]; then
+      _tier=$(printf '%s' "${_cfg}" | jq -r '.config.localModel.tier // "draft"' 2>/dev/null) || _tier="draft"
+      _endpoint=$(printf '%s' "${_cfg}" | jq -r '.config.localModel.endpoint // "http://localhost:11434"' 2>/dev/null) || _endpoint="http://localhost:11434"
+      _lm_errors=$(printf '%s' "${_cfg}" | jq -r '.localModelErrors | length' 2>/dev/null) || _lm_errors="0"
+      _reach=$(bash "$(dirname "$0")/reachability.sh" --policy "${_policy}" --endpoint "${_endpoint}" 2>/dev/null) || _reach=""
+      _ollama=$(printf '%s' "${_reach}" | jq -r '.ollama // "down"' 2>/dev/null) || _ollama="down"
+      _claude=$(printf '%s' "${_reach}" | jq -r '.claudeApi // "unreachable"' 2>/dev/null) || _claude="unreachable"
+      if [ "${_lm_errors}" != "0" ]; then
+        echo "DEGRADED: local-model tier '${_tier}' is BLOCKED (not gate-approved). Claude=${_claude}, Ollama=${_ollama}. Run 'bash scripts/engine.sh config validate' for the teaching message; keep localModel.enabled false to stay Claude-primary."
+      elif [ "${_claude}" = "unreachable" ] && [ "${_ollama}" = "up" ]; then
+        echo "DEGRADED: Claude unreachable, Ollama up — local '${_tier}' drafting is available offline. Run /claude-wiki-pages:draft, or 'bash scripts/offline-draft.sh' (drafts land in _proposed/ for review)."
+      elif [ "${_ollama}" != "up" ]; then
+        echo "DEGRADED: no local fallback — Ollama is ${_ollama} at ${_endpoint}. Claude=${_claude}. Start 'ollama serve' to enable offline '${_tier}' drafting."
+      else
+        echo "DEGRADED: offlinePolicy='${_policy}', tier='${_tier}' ready. Claude=${_claude}, Ollama=${_ollama}."
+      fi
+    fi
+  fi
+fi

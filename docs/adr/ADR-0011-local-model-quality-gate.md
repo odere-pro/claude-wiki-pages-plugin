@@ -92,6 +92,24 @@ on measured evidence; a model that later regresses below the bar on a golden-set
 tier to Claude-first. **Ratifying this gate is not greenlighting passage: the Ollama capability
 progression stays NO-GO until a measured pass lands.**
 
+> **Measured pass (2026-06-11).** `ollama:qwen3-coder:30b` cleared the bar on both golden-set
+> cases under the [ADR-0017](./ADR-0017-fabrication-floor-verbatim-partition.md) floor definition
+> (fabricated 0; over-citation 2/1 reported): schema 1.0, fidelity 1.0, fields 0.93, dedup 1.0.
+> Evidence: `tests/eval/runs/ingest-extract/qwen3-coder-30b/` (as-emitted candidate vaults, raw
+> responses, `--stamp` artifacts, all `--verify-artifact`-reproducible). The `ingest-extract`
+> tier is unlocked for **that model only**; every other tier stays Claude-first. Same run, for
+> the record: `gpt-oss:20b` failed broadly (schema 0.0), `gemma4:26b` went off-task (protocol
+> not followed), `qwen3.5:27b` timed out at 900 s.
+>
+> **Full re-run (2026-06-11, Ollama 0.30.7, all six pulled models).** Confirmed
+> `qwen3-coder:30b` as the only pass; `qwen3.5:27b` is the closest miss (perfect
+> schema/fidelity/fields, fails dedup), `gemma4:31b`/`gemma4:26b` fail dedup +
+> schema, `qwen3-vl:30b` is a vision model (fidelity 0.0), and `gpt-oss:20b` is
+> the only model that fabricated. Per-model detail: [`docs/local-models.md`](../local-models.md).
+> **Enforcement:** the result is now code, not just documentation — `APPROVED_LOCAL_MODELS`
+> in `src/data/config/config.ts` is the allow-list, and `config` fails closed
+> (exit 1, teaching message) when `localModel.enabled` names a model not on it.
+
 **Realization.** The implementation already exists, built to this bar:
 `scripts/eval-ingest-extract.sh` (the scoring driver, reusing `verify-ingest.sh` /
 `validate-frontmatter.sh` / the `Finding` model), the golden set under `tests/eval/ingest-extract/`
