@@ -38,12 +38,17 @@ git clone https://github.com/odere-pro/claude-wiki-pages-plugin
 Then in a Claude Code session:
 
 ```text
-/plugin marketplace add /path/to/claude-wiki-pages
+/plugin marketplace add /path/to/claude-wiki-pages-plugin
 /plugin install claude-wiki-pages
 /claude-wiki-pages:init
 ```
 
 Local source changes take effect on the next Claude Code session — no reinstall needed.
+
+> The repo ships its own dev marketplace as **`claude-wiki-pages-local`**
+> (`.claude-plugin/marketplace.json`) — deliberately named differently from the
+> published registry listing, so adding both the registry and a local clone
+> never collides. The plugin id is `claude-wiki-pages` in both.
 
 ## Update / reinstall
 
@@ -57,8 +62,8 @@ Local source changes take effect on the next Claude Code session — no reinstal
 **Local.** If `marketplace.json` or `plugin.json` changed, re-add the marketplace first:
 
 ```text
-/plugin marketplace remove claude-wiki-pages
-/plugin marketplace add /path/to/claude-wiki-pages
+/plugin marketplace remove claude-wiki-pages-local
+/plugin marketplace add /path/to/claude-wiki-pages-plugin
 /plugin uninstall claude-wiki-pages
 /plugin install claude-wiki-pages
 ```
