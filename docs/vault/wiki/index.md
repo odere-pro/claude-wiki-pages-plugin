@@ -1,4 +1,5 @@
 ---
+schema_version: 2
 title: "Wiki Index"
 type: index
 parent: ""
