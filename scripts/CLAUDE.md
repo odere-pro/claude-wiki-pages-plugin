@@ -145,6 +145,14 @@ run top to bottom and the first block short-circuits the write.
 - [`eval-ingest-extract.sh`](./eval-ingest-extract.sh) — local-model
   quality-gate measurement driver for the `ingest-extract` tier. Measurement
   apparatus only — model-neutral, no network call, flips no default.
+- [`eval-produce-ollama.sh`](./eval-produce-ollama.sh) — the model-specific
+  PRODUCE step the apparatus deliberately omits: asks a local Ollama model to
+  extract a golden-set input into a candidate vault under `tmp/eval-candidates/`
+  for the scorer to measure. Fail-closed parser; never scores, never reads the
+  gold `expected/` content into the prompt.
+- [`eval-compare-ollama.sh`](./eval-compare-ollama.sh) — matrix runner: loops
+  models × cases through produce + score and prints a summary table. A report,
+  not a gate — the scorer stays the only verdict authority.
 
 ### Health and dependencies
 

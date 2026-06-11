@@ -156,6 +156,8 @@ The produce step itself is out of scope here, by design:
 > [!note]
 > Producing candidate output from a model is a separate, model-specific step
 > that is intentionally **not** shipped here — keeping this apparatus neutral.
-> When that step is built for a given model, it writes candidate pages into a
-> scratch vault (the same shape `_proposed/` already uses), and this driver
-> scores them. The scoring contract above never changes.
+> For Ollama, that step is [`scripts/eval-produce-ollama.sh`](../../scripts/eval-produce-ollama.sh)
+> (with [`scripts/eval-compare-ollama.sh`](../../scripts/eval-compare-ollama.sh)
+> as the models × cases matrix runner). It writes candidate vaults under
+> `tmp/eval-candidates/`, and this driver scores them. The scoring contract
+> above never changes, and this apparatus stays model-neutral.
