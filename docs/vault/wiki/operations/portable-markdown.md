@@ -4,12 +4,12 @@ type: concept
 aliases: ["Portable Markdown", "portable markdown", "markdown export", "vault output"]
 parent: "[[Operations]]"
 path: "operations"
-sources: ["[[Getting Started]]", "[[Glossary]]", "[[Features]]"]
+sources: ["[[Getting Started (source)]]", "[[Glossary]]", "[[Features]]"]
 related: ["[[One Advertised Path]]", "[[Onboarding]]"]
 contradicts: []
 supersedes: []
 depends_on: []
-tags: [export, markdown, output]
+tags: [export, markdown, output, operations]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1

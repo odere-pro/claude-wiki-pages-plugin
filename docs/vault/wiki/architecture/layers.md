@@ -1,15 +1,15 @@
 ---
 title: "Layer 1 — Data"
 type: concept
-aliases: ["Layer 1 — Data", "Layer 1", "Data layer", "Layer 1 Data"]
+aliases: ["Layer 1 — Data", "Layer 1", "Data layer", "Layer 1 Data", "Layer 2 — Skills", "Layer 2 - Skills", "layer 2", "Layer 3 — Agents", "Layer 3 - Agents", "layer 3", "Layer 4 — Orchestration", "Layer 4 - Orchestration", "layer 4"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture]]", "[[Glossary]]", "[[Features]]"]
-related: ["[[Four-Layer Stack]]", "[[Provenance]]", "[[Hook-Enforced Safety]]"]
+sources: ["[[Architecture (source)]]", "[[Glossary]]", "[[Features]]"]
+related: ["[[Four-Layer Stack]]", "[[Provenance]]", "[[Hook-Enforced Safety]]", "[[Agent Teams]]"]
 contradicts: []
 supersedes: []
 depends_on: []
-tags: [architecture, data-layer]
+tags: [architecture, data-layer, skill, agent, orchestration]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -33,7 +33,7 @@ Every claim in every wiki page carries a `sources` field back to at least one `r
 
 ## Failure Mode
 
-Data corruption looks like a missing `sources` field or an orphan page. Caught by Layer 4 (`validate-frontmatter.sh`, lint) — the only layer where this failure can be observed.
+Data corruption looks like a missing `sources` field or an orphan page. Caught by [[Layer 4 — Orchestration]] (`validate-frontmatter.sh`, lint) — the only layer where this failure can be observed.
 
 ---
 

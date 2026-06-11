@@ -4,12 +4,12 @@ type: concept
 aliases: ["Automation", "automation", "vault automation", "autonomous maintenance"]
 parent: "[[Operations]]"
 path: "operations"
-sources: ["[[Automation]]", "[[Operations]]", "[[Glossary]]"]
-related: ["[[Backlog Detection]]", "[[Heartbeat]]", "[[Maintenance Loop]]", "[[claude-wiki-pages-maintenance-agent]]"]
+sources: ["[[Automation (source)]]", "[[Operations (source)]]", "[[Glossary]]"]
+related: ["[[Backlog Detection]]", "[[Heartbeat]]", "[[Maintenance Loop]]", "[[claude-wiki-pages-maintenance-agent]]", "[[One Advertised Path]]"]
 contradicts: []
 supersedes: []
 depends_on: []
-tags: [automation, maintenance]
+tags: [automation, maintenance, operations]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -57,7 +57,7 @@ Never ingests or mutates the vault. A cooldown stamp prevents repeating the noti
 
 ### 3. Maintenance Loop (The LLM Step)
 
-[[Maintenance Loop]] via `claude-wiki-pages-maintenance-agent`. When maintenance is enabled and a backlog exists, `/claude-wiki-pages:wiki` routes to the maintenance agent, which runs ingest (up to `maxPerRun`) → curator heal → polish → lint in one pass. Each step is git-checkpointed and reversible.
+[[Maintenance Loop]] via [[claude-wiki-pages-maintenance-agent]]. When maintenance is enabled and a backlog exists, `/claude-wiki-pages:wiki` routes to the maintenance agent, which runs ingest (up to `maxPerRun`) → curator heal → polish → lint in one pass. Each step is git-checkpointed and reversible.
 
 ## Safety
 

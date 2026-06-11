@@ -1,5 +1,5 @@
 ---
-title: "Installation"
+title: "Installation (source)"
 type: source
 source_type: manual
 source_format: text
@@ -8,7 +8,7 @@ publisher: "claude-wiki-pages"
 date_published: 2026-06-11
 date_ingested: 2026-06-11
 tags: [installation, setup, prerequisites]
-aliases: ["Installation"]
+aliases: ["Installation (source)"]
 sources: []
 created: 2026-06-11
 updated: 2026-06-11
@@ -39,5 +39,5 @@ Three installation paths: remote marketplace (default), local contributor/fork p
 ## Concepts Covered
 
 - [[Installation]]
-- [[Onboarding Wizard]]
+- `Onboarding Wizard`
 - [[Doctor]]

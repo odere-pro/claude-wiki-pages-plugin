@@ -1,5 +1,5 @@
 ---
-title: "Agent Teams"
+title: "Agent Teams (source)"
 type: source
 source_type: manual
 source_format: text
@@ -8,7 +8,7 @@ publisher: "claude-wiki-pages"
 date_published: 2026-06-11
 date_ingested: 2026-06-11
 tags: [teams, agents, development, brainstorming, engineering]
-aliases: ["Agent Teams"]
+aliases: ["Agent Teams (source)"]
 sources: []
 created: 2026-06-11
 updated: 2026-06-11
@@ -35,19 +35,19 @@ Documents two dev-only agent teams that plan and build the plugin: the brainstor
 
 ## Entities Mentioned
 
-- [[wiki-dev-manager]]
-- [[wiki-dev-pm]]
-- [[wiki-dev-architect]]
-- [[wiki-dev-eng-retrieval]]
-- [[wiki-dev-eng-schema]]
-- [[wiki-dev-eng-ingest]]
-- [[wiki-dev-eng-ux]]
-- [[wiki-dev-qa-functional]]
-- [[wiki-dev-qa-adversarial]]
+- `wiki-dev-manager`
+- `wiki-dev-pm`
+- `wiki-dev-architect`
+- `wiki-dev-eng-retrieval`
+- `wiki-dev-eng-schema`
+- `wiki-dev-eng-ingest`
+- `wiki-dev-eng-ux`
+- `wiki-dev-qa-functional`
+- `wiki-dev-qa-adversarial`
 
 ## Concepts Covered
 
 - [[Brainstorming Team]]
 - [[Engineering Team]]
 - [[Agent Teams]]
-- [[ADR]]
+- `ADR`

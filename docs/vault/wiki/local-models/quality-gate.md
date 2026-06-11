@@ -4,7 +4,7 @@ type: concept
 aliases: ["Quality Gate", "quality gate", "model quality gate", "ADR-0011", "Golden Set", "golden set", "Zero Fabrication Floor", "zero fabrication floor", "Answer Verification", "answer verification"]
 parent: "[[Local Models]]"
 path: "local-models"
-sources: ["[[Local Models]]", "[[Glossary]]"]
+sources: ["[[Local Models (source)]]", "[[Glossary]]"]
 related: ["[[Capability Tier]]", "[[Approved Local Model]]", "[[qwen3-coder:30b]]"]
 contradicts: []
 supersedes: []

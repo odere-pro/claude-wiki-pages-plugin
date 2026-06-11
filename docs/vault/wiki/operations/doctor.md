@@ -4,12 +4,12 @@ type: concept
 aliases: ["Doctor", "doctor", "/claude-wiki-pages:doctor", "health check", "environment health check"]
 parent: "[[Operations]]"
 path: "operations"
-sources: ["[[Operations]]", "[[Installation]]", "[[Glossary]]"]
+sources: ["[[Operations (source)]]", "[[Installation (source)]]", "[[Glossary]]"]
 related: ["[[Installation]]", "[[One Advertised Path]]", "[[Hook-Enforced Safety]]"]
 contradicts: []
 supersedes: []
 depends_on: []
-tags: [health-check, doctor, diagnostics]
+tags: [health-check, doctor, diagnostics, operations]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1

@@ -4,12 +4,12 @@ type: concept
 aliases: ["Ingest Data Flow", "ingest data flow", "ingest pipeline flow", "one ingest"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture]]", "[[Features]]", "[[Operations]]"]
+sources: ["[[Architecture (source)]]", "[[Features]]", "[[Operations (source)]]"]
 related: ["[[Four-Layer Stack]]", "[[Provenance]]", "[[Hook-Enforced Safety]]", "[[claude-wiki-pages-ingest-agent]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Four-Layer Stack]]"]
-tags: [ingest, data-flow, pipeline]
+tags: [ingest, data-flow, pipeline, architecture]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -19,7 +19,7 @@ confidence: 1.0
 
 # Ingest Data Flow
 
-The 11-step sequence that processes one raw source from drop to verified wiki state. All four layers are visible in the flow.
+The 11-step sequence that processes one raw source from drop to verified wiki state. All four layers of the [[Four-Layer Stack]] are visible in the flow.
 
 ## Steps
 
@@ -39,4 +39,4 @@ The 11-step sequence that processes one raw source from drop to verified wiki st
 
 - **Idempotency**: re-ingesting the same source updates existing pages rather than creating duplicates. The source manifest (`wiki/_sources/manifest.md`) tracks checksums for O(1) backlog detection.
 - **Prefer update**: the ingest rule is to update existing pages over creating new ones.
-- **Provenance**: every touched page links back to the new source.
+- **Provenance**: every touched page links back to the new source via [[Provenance]] chain.

@@ -9,6 +9,7 @@ children:
   - "[[Quality Gate]]"
   - "[[Approved Local Model]]"
   - "[[Degraded Mode Routing]]"
+  - "[[qwen3-coder:30b]]"
 child_indexes: []
 tags: [local-models, ollama]
 created: 2026-06-11

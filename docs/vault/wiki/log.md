@@ -10,6 +10,21 @@ updated: 2026-06-11
 
 Chronological record of every wiki operation. The onboarding skill stamps the initial entry; subsequent ingest, query, and lint operations append below.
 
+## [2026-06-11] fix | errors: 49→0 warnings: 13→0 info: 13→0
+
+### Changes
+- Added aliases to layers.md (Layer 2/3/4 coverage)
+- Added aliases to agents.md (6 missing agent names)
+- Added aliases to agent-teams.md (Brainstorming Team, Engineering Team)
+- Added aliases + title to fail-closed-by-design.md
+- Created wiki/local-models/qwen3-coder-30b.md (entity page, 6 dangling refs fixed)
+- Demoted glossary-term wikilinks to backticks in _sources/ and log.md
+- Demoted script-path wikilinks to backticks in _sources/
+- Demoted team-member wikilinks to backticks in _sources/teams.md
+- Fixed alias collisions: renamed _sources/ aliases to "(source)" suffix
+- Fixed agent-teams.md confidence: 1.0→0.6
+- Curated tags, wikilinks, related/depends_on on all wiki pages
+
 ## [2026-04-24] init | Vault scaffolded
 
 Empty vault created from `skills/llm-wiki/template/`. No sources ingested yet.
@@ -29,7 +44,7 @@ New concepts: [[Automation]], [[Backlog Detection]], [[Heartbeat]], [[Maintenanc
 ## [2026-06-11] ingest | Features
 
 Processed features.md. Updated 3 existing pages (architecture, hook-enforced-safety, provenance).
-New concepts: [[Typed Wiki Pages]], [[Test Harness]], [[Confidence Discipline]], [[MOC]], [[Synthesis Note]]
+New concepts: `Typed Wiki Pages`, `Test Harness`, `Confidence Discipline`, `MOC`, `Synthesis Note`
 
 ## [2026-06-11] ingest | Getting Started
 
@@ -40,7 +55,7 @@ New concepts: [[Onboarding]], [[One Advertised Path]], [[Portable Markdown]]
 ## [2026-06-11] ingest | Glossary
 
 Processed GLOSSARY.md. Updated 5 existing pages.
-New concepts: [[Ontology Profile v1]], [[GraphRAG]], [[Software 3.0]], [[Dual Entry Point]], [[Parity Gate]], [[Controlled Vocabulary]], [[Confidence Decay]], [[Staleness Signal]]
+New concepts: `Ontology Profile v1`, `GraphRAG`, `Software 3.0`, `Dual Entry Point`, `Parity Gate`, `Controlled Vocabulary`, `Confidence Decay`, `Staleness Signal`
 
 ## [2026-06-11] ingest | Installation
 

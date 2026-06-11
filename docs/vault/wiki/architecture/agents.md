@@ -2,12 +2,12 @@
 title: "claude-wiki-pages-orchestrator-agent"
 type: entity
 entity_type: tool
-aliases: ["claude-wiki-pages-orchestrator-agent", "orchestrator agent", "orchestrator"]
+aliases: ["claude-wiki-pages-orchestrator-agent", "orchestrator agent", "orchestrator", "claude-wiki-pages-ingest-agent", "claude-wiki-pages-curator-agent", "claude-wiki-pages-analyst-agent", "claude-wiki-pages-polish-agent", "claude-wiki-pages-maintenance-agent", "claude-wiki-pages-onboarding-agent"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture]]", "[[Glossary]]", "[[Operations]]"]
-related: ["[[Four-Layer Stack]]", "[[Layer 3 — Agents]]", "[[claude-wiki-pages-ingest-agent]]", "[[claude-wiki-pages-curator-agent]]", "[[Orchestrator Routing]]"]
-tags: [agent, orchestration]
+sources: ["[[Architecture (source)]]", "[[Glossary]]", "[[Operations (source)]]"]
+related: ["[[Four-Layer Stack]]", "[[Layer 3 — Agents]]", "[[Orchestrator Routing]]", "[[Agent Teams]]", "[[layers]]"]
+tags: [agent, orchestration, tool]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -17,7 +17,7 @@ confidence: 1.0
 
 # claude-wiki-pages-orchestrator-agent
 
-Top-level user-facing entry agent (`user-invocable: true`). Probes vault state and dispatches to exactly one specialist per invocation. Lives in `agents/`.
+Top-level user-facing entry agent (`user-invocable: true`). Probes vault state and dispatches to exactly one specialist per invocation. Lives in `agents/`. Part of the [[Four-Layer Stack]] at [[Layer 3 — Agents]].
 
 ## Routing Table
 

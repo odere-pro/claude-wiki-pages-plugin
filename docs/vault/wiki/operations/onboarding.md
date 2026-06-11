@@ -4,12 +4,12 @@ type: concept
 aliases: ["Onboarding", "onboarding", "onboarding wizard", "first run", "getting started"]
 parent: "[[Operations]]"
 path: "operations"
-sources: ["[[Getting Started]]", "[[Installation]]", "[[Operations]]"]
+sources: ["[[Getting Started (source)]]", "[[Installation (source)]]", "[[Operations (source)]]"]
 related: ["[[Installation]]", "[[One Advertised Path]]", "[[Doctor]]", "[[claude-wiki-pages-onboarding-agent]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Installation]]"]
-tags: [onboarding, first-run]
+tags: [onboarding, first-run, operations]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1

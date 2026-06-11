@@ -19,13 +19,13 @@ updated: 2026-06-11
 
 # Wiki Index
 
-Master catalog of every page in the wiki. Ingested from 9 raw sources on 2026-06-11.
+Master catalog of every page in the wiki. Ingested from 9 raw sources on 2026-06-11. Curator pass on 2026-06-11: resolved 49 dangling wikilinks, fixed 13 warnings, enriched tags and metadata.
 
 ## Topic Tree
 
 - [[Architecture]] — Four-layer stack, agents, skills, hooks, provenance, agent teams (8 pages, last updated 2026-06-11)
 - [[Operations]] — Installation, onboarding, day-to-day ops, automation, vault management, offline mode (9 pages, last updated 2026-06-11)
-- [[Local Models]] — Capability tiers, quality gate, approved models, degraded mode routing (4 pages, last updated 2026-06-11)
+- [[Local Models]] — Capability tiers, quality gate, approved models, degraded mode routing (5 pages, last updated 2026-06-11)
 
 ## Architecture Pages
 
@@ -56,10 +56,11 @@ Master catalog of every page in the wiki. Ingested from 9 raw sources on 2026-06
 - [[Quality Gate]] — Eval metric and pass threshold; covers [[Golden Set]], [[Zero Fabrication Floor]], [[Answer Verification]]
 - [[Approved Local Model]] — A model that cleared the quality gate; covers [[qwen3-coder:30b]]
 - [[Degraded Mode Routing]] — Engine `route` decision; covers [[Reachability Probe]]
+- [[qwen3-coder:30b]] — Only currently approved model; unlocked for ingest-extract and query tiers
 
 ## Sources (wiki/_sources/)
 
-Source summaries live in `wiki/_sources/`. Nine sources were ingested on 2026-06-11. Additional source pages not linked above: [[Features]], [[Getting Started]], [[Glossary]].
+Source summaries live in `wiki/_sources/`. Nine sources were ingested on 2026-06-11. Additional source pages not linked above: [[Features]], [[Getting Started (source)]], [[Glossary]].
 
 ## Synthesis
 

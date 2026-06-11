@@ -2,11 +2,11 @@
 title: "claude-wiki-pages"
 type: entity
 entity_type: product
-aliases: ["claude-wiki-pages", "Claude Wiki Pages", "the plugin"]
+aliases: ["claude-wiki-pages", "Claude Wiki Pages", "the plugin", "Karpathy LLM Wiki Pattern"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture]]", "[[Features]]", "[[Glossary]]", "[[Getting Started]]", "[[Installation]]", "[[Operations]]"]
-related: ["[[Four-Layer Stack]]", "[[Karpathy LLM Wiki Pattern]]", "[[claude-wiki-pages-orchestrator-agent]]"]
+sources: ["[[Architecture (source)]]", "[[Features]]", "[[Glossary]]", "[[Getting Started (source)]]", "[[Installation (source)]]", "[[Operations (source)]]"]
+related: ["[[Four-Layer Stack]]", "[[claude-wiki-pages-orchestrator-agent]]", "[[Hook-Enforced Safety]]"]
 tags: [plugin, product]
 created: 2026-06-11
 updated: 2026-06-11
@@ -18,7 +18,7 @@ confidence: 1.0
 # claude-wiki-pages
 
 > [!summary]
-> `claude-wiki-pages` is a Claude Code plugin that implements Karpathy's LLM Wiki pattern as a four-layer stack. It provides a typed, provenance-tracked Obsidian vault wiki maintained by an LLM, with hook-enforced structural guarantees.
+> `claude-wiki-pages` is a Claude Code plugin that implements Karpathy's LLM Wiki pattern as a [[Four-Layer Stack]]. It provides a typed, provenance-tracked Obsidian vault wiki maintained by an LLM, with hook-enforced structural guarantees via [[Hook-Enforced Safety]].
 
 ## Identity
 
@@ -30,7 +30,7 @@ confidence: 1.0
 ## Key Differentiators
 
 - Hook-enforced schema validation on every write.
-- Structural provenance: every wiki page cites at least one raw source via `[[wikilinks]]`.
+- Structural [[Provenance]]: every wiki page cites at least one raw source via `[[wikilinks]]`.
 - Seven specialist agents with a single orchestrator entry point.
 - Five-tier test harness (Tier 0–4).
 - Ships a security model (`SECURITY.md`).

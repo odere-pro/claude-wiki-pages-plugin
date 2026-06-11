@@ -1,15 +1,15 @@
 ---
 title: "Installation"
 type: concept
-aliases: ["Installation", "installation", "install", "setup"]
+aliases: ["Installation", "installation", "install", "setup", "Bun", "bun"]
 parent: "[[Operations]]"
 path: "operations"
-sources: ["[[Installation]]", "[[Getting Started]]"]
+sources: ["[[Installation (source)]]", "[[Getting Started (source)]]"]
 related: ["[[Onboarding]]", "[[Doctor]]", "[[One Advertised Path]]"]
 contradicts: []
 supersedes: []
 depends_on: []
-tags: [installation, setup, prerequisites]
+tags: [installation, setup, prerequisites, operations]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1

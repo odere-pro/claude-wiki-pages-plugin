@@ -1,5 +1,5 @@
 ---
-title: "Local Models"
+title: "Local Models (source)"
 type: source
 source_type: manual
 source_format: text
@@ -8,7 +8,7 @@ publisher: "claude-wiki-pages"
 date_published: 2026-06-11
 date_ingested: 2026-06-11
 tags: [local-models, ollama, quality-gate, capability-tiers]
-aliases: ["Local Models"]
+aliases: ["Local Models (source)"]
 sources: []
 created: 2026-06-11
 updated: 2026-06-11
@@ -36,7 +36,7 @@ Documents the local model (Ollama/LM Studio) allow-list and capability tiers. `q
 ## Entities Mentioned
 
 - [[qwen3-coder:30b]]
-- [[Ollama]]
+- `Ollama`
 
 ## Concepts Covered
 

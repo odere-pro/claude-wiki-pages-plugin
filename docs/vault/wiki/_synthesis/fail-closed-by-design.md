@@ -3,6 +3,7 @@ title: "Fail-Closed by Design: Architecture and Local-Model Governance"
 type: synthesis
 synthesis_type: theme
 path: "_synthesis"
+aliases: ["Fail-Closed by Design: Architecture and Local-Model Governance", "Fail-Closed by Design", "fail-closed-by-design"]
 scope:
   - "[[Four-Layer Stack]]"
   - "[[Hook-Enforced Safety]]"
@@ -14,10 +15,10 @@ scope:
   - "[[Degraded Mode Routing]]"
   - "[[Per-Vault Write Confinement]]"
 sources:
-  - "[[Architecture]]"
+  - "[[Architecture (source)]]"
   - "[[Features]]"
-  - "[[Local Models]]"
-  - "[[Operations]]"
+  - "[[Local Models (source)]]"
+  - "[[Operations (source)]]"
   - "[[Glossary]]"
 tags: [synthesis, architecture, local-models, safety, provenance]
 created: 2026-06-11
@@ -29,7 +30,7 @@ confidence: 0.85
 # Fail-Closed by Design: Architecture and Local-Model Governance
 
 > [!summary]
-> `claude-wiki-pages` is built around a single governing principle applied consistently across every layer and every feature: when in doubt, fail closed. This synthesis traces that principle from the four-layer architecture through local-model governance, showing that the same design posture that protects the wiki from structural corruption also protects it from model-generated fabrication.
+> `claude-wiki-pages` is built around a single governing principle applied consistently across every layer and every feature: when in doubt, fail closed. This synthesis traces that principle from the [[Four-Layer Stack]] through local-model governance, showing that the same design posture that protects the wiki from structural corruption also protects it from model-generated fabrication.
 
 ## Overview
 
@@ -45,7 +46,7 @@ Both systems — the four-layer architecture and the local-model governance proc
 
 2. **The local-model capability tier map mirrors the four-layer trust model.** Tier unlocks require committed, reproducible evidence, not subjective confidence. The `APPROVED_LOCAL_MODELS_BY_TIER` allow-list is enforced in code (`src/data/config/config.ts`), not in documentation. This is the same posture as the hook scripts: behavior is enforced structurally, not culturally.
 
-3. **`qwen3-coder:30b` cleared the gate because code-tuned models are structurally reliable.** The failure analysis of rejected models shows that five of six invent nothing — provenance discipline is widespread. The real wall is structural: dedup correctness (exact page-set), schema-validity (frontmatter as-emitted), and output-protocol stability. Code-tuned models are better at exact structured output, which is the same reason the plugin uses YAML frontmatter (not free-form JSON) as its schema format.
+3. **[[qwen3-coder:30b]] cleared the gate because code-tuned models are structurally reliable.** The failure analysis of rejected models shows that five of six invent nothing — provenance discipline is widespread. The real wall is structural: dedup correctness (exact page-set), schema-validity (frontmatter as-emitted), and output-protocol stability. Code-tuned models are better at exact structured output, which is the same reason the plugin uses YAML frontmatter (not free-form JSON) as its schema format.
 
 4. **Per-answer [[Answer Verification]] extends fail-closed to query-time output.** The [[Query Tier]] does not trust that a locally-generated answer is correct because the model passed the golden-set eval. Every answer is verified at runtime: each citation must name an existing wiki page, each quote must be verbatim. An unverified answer is denied, never shown. This closes the gap between batch eval (offline) and production (online).
 

@@ -39,21 +39,21 @@ Canonical term list for `claude-wiki-pages` enforced by `scripts/validate-docs.s
 ## Entities Mentioned
 
 - [[claude-wiki-pages]]
-- [[Obsidian]]
-- [[Karpathy LLM Wiki Pattern]]
+- `Obsidian`
+- `Karpathy LLM Wiki Pattern`
 
 ## Concepts Covered
 
-- [[Ontology Profile v1]]
-- [[Schema]]
+- `Ontology Profile v1`
+- `Schema`
 - [[Provenance]]
-- [[MOC]]
+- `MOC`
 - [[Four-Layer Stack]]
-- [[GraphRAG]]
-- [[Software 3.0]]
-- [[Dual Entry Point]]
-- [[Parity Gate]]
-- [[Controlled Vocabulary]]
-- [[Confidence Decay]]
-- [[Staleness Signal]]
+- `GraphRAG`
+- `Software 3.0`
+- `Dual Entry Point`
+- `Parity Gate`
+- `Controlled Vocabulary`
+- `Confidence Decay`
+- `Staleness Signal`
 - [[Capability Tier]]

@@ -1,20 +1,20 @@
 ---
 title: "Agent Teams"
 type: concept
-aliases: ["Agent Teams", "agent teams", "dev teams", "development teams"]
+aliases: ["Agent Teams", "agent teams", "dev teams", "development teams", "Brainstorming Team", "brainstorming team", "Engineering Team", "engineering team"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Agent Teams]]"]
-related: ["[[Brainstorming Team]]", "[[Engineering Team]]", "[[Four-Layer Stack]]"]
+sources: ["[[Agent Teams (source)]]"]
+related: ["[[Four-Layer Stack]]", "[[claude-wiki-pages-orchestrator-agent]]", "[[layers]]"]
 contradicts: []
 supersedes: []
 depends_on: []
-tags: [teams, development]
+tags: [teams, development, architecture, agent]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
 status: active
-confidence: 1.0
+confidence: 0.6
 ---
 
 # Agent Teams
@@ -28,8 +28,6 @@ Two dev-only agent teams that plan and build the plugin. Neither ships in the pl
 | Mode | Read-only on the plugin | Edits the plugin, lane by lane, behind gates |
 | Lives in | `.claude/teams/wiki-brainstorm/` | `.claude/teams/wiki-dev/` + `.claude/agents/wiki-dev-*.md` |
 | Headcount | 11 personas | 9 teammates |
-
-See [[Brainstorming Team]] and [[Engineering Team]] for details.
 
 ---
 
@@ -49,7 +47,7 @@ The `grill-me-interrogator` drives an external grill-me skill not in this repo.
 
 9 roles (`wiki-dev-*`); parallel by lane, sequential by phase.
 
-**Roles**: wiki-dev-manager (entry point), wiki-dev-pm, wiki-dev-architect, wiki-dev-eng-retrieval (Lane A), wiki-dev-eng-schema (Lane B), wiki-dev-eng-ingest (Lane C), wiki-dev-eng-ux (Lane D), wiki-dev-qa-functional, wiki-dev-qa-adversarial.
+**Roles**: `wiki-dev-manager` (entry point), `wiki-dev-pm`, `wiki-dev-architect`, `wiki-dev-eng-retrieval` (Lane A), `wiki-dev-eng-schema` (Lane B), `wiki-dev-eng-ingest` (Lane C), `wiki-dev-eng-ux` (Lane D), `wiki-dev-qa-functional`, `wiki-dev-qa-adversarial`.
 
 **Phase order**: Phase 0 → Phase 1 + Phase U (interleaved) → Phase 2 → Phase 3.
 

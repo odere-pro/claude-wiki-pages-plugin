@@ -4,12 +4,12 @@ type: concept
 aliases: ["Hook-Enforced Safety", "hook-enforced safety", "hooks", "lifecycle hooks"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture]]", "[[Features]]", "[[Operations]]", "[[Glossary]]"]
-related: ["[[Layer 4 — Orchestration]]", "[[Provenance]]", "[[Four-Layer Stack]]"]
+sources: ["[[Architecture (source)]]", "[[Features]]", "[[Operations (source)]]", "[[Glossary]]"]
+related: ["[[Layer 4 — Orchestration]]", "[[Provenance]]", "[[Four-Layer Stack]]", "[[Ingest Data Flow]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Layer 4 — Orchestration]]"]
-tags: [hooks, safety, orchestration]
+tags: [hooks, safety, orchestration, architecture]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -19,7 +19,7 @@ confidence: 1.0
 
 # Hook-Enforced Safety
 
-The set of lifecycle hooks wired in `hooks/hooks.json` that enforce the schema and safety contracts on every tool call. Blocking hooks reject writes via exit code 2.
+The set of lifecycle hooks wired in `hooks/hooks.json` that enforce the schema and safety contracts on every tool call. Blocking hooks reject writes via exit code 2. Part of [[Layer 4 — Orchestration]] in the [[Four-Layer Stack]].
 
 ## Hook Triggers
 

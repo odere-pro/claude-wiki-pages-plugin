@@ -4,7 +4,7 @@ type: concept
 aliases: ["Approved Local Model", "approved local model", "approved models", "model allow-list"]
 parent: "[[Local Models]]"
 path: "local-models"
-sources: ["[[Local Models]]", "[[Glossary]]"]
+sources: ["[[Local Models (source)]]", "[[Glossary]]"]
 related: ["[[Quality Gate]]", "[[Capability Tier]]", "[[qwen3-coder:30b]]", "[[Degraded Mode Routing]]"]
 contradicts: []
 supersedes: []
@@ -30,6 +30,8 @@ The allow-list is meant to grow as models are measured — it is not a fixed end
 | `qwen3-coder:30b` | `ingest-extract` | `tests/eval/runs/ingest-extract/qwen3-coder-30b/` — both golden-set cases pass, `--verify-artifact` reproducible |
 | `qwen3-coder:30b` | `query` | `tests/eval/runs/query/qwen3-coder-30b/` — both ADR-0019 golden-set cases pass; runtime answer verification on every answer |
 
+See [[qwen3-coder:30b]] for detailed evaluation results and governance history.
+
 ## Tested and Rejected (as of 2026-06-11)
 
 Measured on Ollama 0.30.7 (Apple M1 Pro, 32 GB).
@@ -44,10 +46,4 @@ Measured on Ollama 0.30.7 (Apple M1 Pro, 32 GB).
 
 ## The Pattern
 
-Five of six models invent nothing — provenance discipline is widespread among modern local models. The real wall is **structural**: producing exactly the right page-set (dedup) with schema-valid frontmatter as-emitted (schema-validity), and following the output protocol without drift. Code-tuned models (`qwen3-coder:30b`) are strong at exact structured output (YAML/frontmatter, file layout).
-
----
-
-# qwen3-coder:30b
-
-The only currently approved local model for `claude-wiki-pages`. Approved for both `ingest-extract` and `query` capability tiers. Tested on Ollama 0.30.7, Apple M1 Pro (32 GB). Code-tuned model; strong at exact structured output.
+Five of six models invent nothing — provenance discipline is widespread among modern local models. The real wall is **structural**: producing exactly the right page-set (dedup) with schema-valid frontmatter as-emitted (schema-validity), and following the output protocol without drift. Code-tuned models ([[qwen3-coder:30b]]) are strong at exact structured output (YAML/frontmatter, file layout).

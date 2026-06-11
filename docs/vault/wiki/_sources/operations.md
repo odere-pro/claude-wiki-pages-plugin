@@ -1,5 +1,5 @@
 ---
-title: "Operations"
+title: "Operations (source)"
 type: source
 source_type: manual
 source_format: text
@@ -8,7 +8,7 @@ publisher: "claude-wiki-pages"
 date_published: 2026-06-11
 date_ingested: 2026-06-11
 tags: [operations, commands, vault-management, hooks]
-aliases: ["Operations"]
+aliases: ["Operations (source)"]
 sources: []
 created: 2026-06-11
 updated: 2026-06-11
@@ -38,11 +38,11 @@ Day-to-day operating guide for `claude-wiki-pages`. Covers the single verb (`/cl
 
 - [[claude-wiki-pages]]
 - [[claude-wiki-pages-orchestrator-agent]]
-- [[scripts/resolve-vault.sh]]
-- [[scripts/firewall.sh]]
-- [[scripts/reachability.sh]]
-- [[scripts/offline-draft.sh]]
-- [[scripts/offline-query.sh]]
+- `scripts/resolve-vault.sh`
+- `scripts/firewall.sh`
+- `scripts/reachability.sh`
+- `scripts/offline-draft.sh`
+- `scripts/offline-query.sh`
 
 ## Concepts Covered
 

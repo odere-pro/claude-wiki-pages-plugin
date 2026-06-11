@@ -1,10 +1,10 @@
 ---
 title: "Draft Review Gate"
 type: concept
-aliases: ["Draft Review Gate", "draft review gate", "_proposed/", "proposed drafts", "review gate", "Offline Mode", "offline mode", "offline draft", "Offline Draft"]
+aliases: ["Draft Review Gate", "draft review gate", "_proposed/", "proposed drafts", "review gate", "Offline Mode", "offline mode"]
 parent: "[[Operations]]"
 path: "operations"
-sources: ["[[Operations]]", "[[Glossary]]", "[[Local Models]]"]
+sources: ["[[Operations (source)]]", "[[Glossary]]", "[[Local Models (source)]]"]
 related: ["[[Hook-Enforced Safety]]", "[[Degraded Mode Routing]]", "[[Vault Location Resolution]]"]
 contradicts: []
 supersedes: []
@@ -29,11 +29,13 @@ All drafted content — local-model drafts, durable-memory write-backs, local-in
 - Promotion via `/claude-wiki-pages:review` (backed by the engine `propose` command): sets `status: active`, clears `proposed_by`, stamps `updated`, runs under a git checkpoint.
 - Never hand-copy a draft into `wiki/`; promotion via `propose approve` is the only sanctioned path.
 
+For offline-produced drafts (via `scripts/offline-draft.sh`), see [[Degraded Mode Routing]] and [[Offline Draft]].
+
 ---
 
 # Offline Mode
 
-When the network or Claude API is unavailable, a gate-approved local model can stand in for basic operations. Opt-in, fail-closed; Claude stays primary by default. Governed by two `localModel` config fields:
+When the network or Claude API is unavailable, a gate-approved local model can stand in for basic operations. Opt-in, fail-closed; Claude stays primary by default. The only currently approved model for offline tiers is [[qwen3-coder:30b]]. Governed by two `localModel` config fields:
 
 - **`offlinePolicy`**: `off` (default — never probe, never fall back), `prefer-local` (fall back to approved local tier when Claude unreachable), `strict` (fail if Claude unreachable, no fallback).
 - **`tier`**: the capability tier the local model runs at; gated per-tier.

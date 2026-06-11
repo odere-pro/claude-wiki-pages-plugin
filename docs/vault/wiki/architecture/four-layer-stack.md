@@ -4,8 +4,8 @@ type: concept
 aliases: ["Four-Layer Stack", "four-layer stack", "four-layer architecture"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture]]", "[[Glossary]]", "[[Features]]"]
-related: ["[[Layer 1 — Data]]", "[[Layer 2 — Skills]]", "[[Layer 3 — Agents]]", "[[Layer 4 — Orchestration]]", "[[claude-wiki-pages]]"]
+sources: ["[[Architecture (source)]]", "[[Glossary]]", "[[Features]]"]
+related: ["[[Layer 1 — Data]]", "[[Layer 2 — Skills]]", "[[Layer 3 — Agents]]", "[[Layer 4 — Orchestration]]", "[[claude-wiki-pages]]", "[[Hook-Enforced Safety]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -37,7 +37,7 @@ confidence: 1.0
 
 Each layer fails differently:
 
-- **Data corruption** looks like a missing `sources` field or an orphan page. Caught by Layer 4 (`validate-frontmatter.sh`, lint).
+- **Data corruption** looks like a missing `sources` field or an orphan page. Caught by [[Layer 4 — Orchestration]] (`validate-frontmatter.sh`, lint).
 - **A skill misbehaving** looks like bad output for one command. Caught by the human re-running with different input.
 - **An agent misbehaving** looks like a half-written wiki after a long run. Caught by Layer 4's `SubagentStop` gates.
 - **Orchestration misbehaving** looks like hooks not firing. Caught by startup reminders and the health check.

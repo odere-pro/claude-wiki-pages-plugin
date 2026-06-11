@@ -1,5 +1,5 @@
 ---
-title: "Automation"
+title: "Automation (source)"
 type: source
 source_type: manual
 source_format: text
@@ -8,7 +8,7 @@ publisher: "claude-wiki-pages"
 date_published: 2026-06-11
 date_ingested: 2026-06-11
 tags: [automation, maintenance, heartbeat]
-aliases: ["Automation"]
+aliases: ["Automation (source)"]
 sources: []
 created: 2026-06-11
 updated: 2026-06-11
@@ -36,8 +36,8 @@ Describes the three-layer vault automation system: deterministic backlog detecti
 ## Entities Mentioned
 
 - [[claude-wiki-pages-maintenance-agent]]
-- [[scripts/heartbeat.sh]]
-- [[scripts/engine.sh]]
+- `scripts/heartbeat.sh`
+- `scripts/engine.sh`
 
 ## Concepts Covered
 

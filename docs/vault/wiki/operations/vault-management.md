@@ -4,12 +4,12 @@ type: concept
 aliases: ["Vault Location Resolution", "vault location resolution", "vault resolution", "resolve-vault", "Multi-Vault Registry", "multi-vault registry", "Per-Vault Write Confinement", "per-vault write confinement", "firewall", "Firewall"]
 parent: "[[Operations]]"
 path: "operations"
-sources: ["[[Operations]]", "[[Glossary]]"]
-related: ["[[Installation]]", "[[One Advertised Path]]", "[[Hook-Enforced Safety]]"]
+sources: ["[[Operations (source)]]", "[[Glossary]]"]
+related: ["[[Installation]]", "[[One Advertised Path]]", "[[Hook-Enforced Safety]]", "[[Draft Review Gate]]"]
 contradicts: []
 supersedes: []
 depends_on: []
-tags: [vault-management, multi-vault, firewall]
+tags: [vault-management, multi-vault, firewall, operations]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1

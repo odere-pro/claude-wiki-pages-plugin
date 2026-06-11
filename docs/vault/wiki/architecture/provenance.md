@@ -4,12 +4,12 @@ type: concept
 aliases: ["Provenance", "provenance", "structural provenance"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture]]", "[[Glossary]]", "[[Features]]"]
-related: ["[[Layer 1 — Data]]", "[[Hook-Enforced Safety]]", "[[Four-Layer Stack]]"]
+sources: ["[[Architecture (source)]]", "[[Glossary]]", "[[Features]]"]
+related: ["[[Layer 1 — Data]]", "[[Hook-Enforced Safety]]", "[[Four-Layer Stack]]", "[[Ingest Data Flow]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Layer 1 — Data]]"]
-tags: [provenance, core-concept]
+tags: [provenance, core-concept, architecture]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -19,7 +19,7 @@ confidence: 1.0
 
 # Provenance
 
-The traceable chain from a wiki page's `sources` frontmatter field through `wiki/_sources/` to raw content in `raw/`. Provenance is **structural** in this plugin — it is enforced by the schema and validated by `verify-ingest.sh`, not by convention alone.
+The traceable chain from a wiki page's `sources` frontmatter field through `wiki/_sources/` to raw content in `raw/`. Provenance is **structural** in this plugin — it is enforced by the schema and validated by `verify-ingest.sh`, not by convention alone. This is a foundational principle of the [[Four-Layer Stack]].
 
 ## How It Works
 

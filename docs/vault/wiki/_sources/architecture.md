@@ -1,5 +1,5 @@
 ---
-title: "Architecture"
+title: "Architecture (source)"
 type: source
 source_type: manual
 source_format: text
@@ -8,7 +8,7 @@ publisher: "claude-wiki-pages"
 date_published: 2026-06-11
 date_ingested: 2026-06-11
 tags: [architecture, four-layer-stack, plugin]
-aliases: ["Architecture"]
+aliases: ["Architecture (source)"]
 sources: []
 created: 2026-06-11
 updated: 2026-06-11

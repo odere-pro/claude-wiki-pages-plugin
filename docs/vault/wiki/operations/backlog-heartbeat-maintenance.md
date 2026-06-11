@@ -4,12 +4,12 @@ type: concept
 aliases: ["Backlog Detection", "backlog detection", "backlog", "Heartbeat", "heartbeat", "Maintenance Loop", "maintenance loop", "catch-up", "Catch-Up"]
 parent: "[[Operations]]"
 path: "operations"
-sources: ["[[Automation]]", "[[Glossary]]", "[[Operations]]"]
+sources: ["[[Automation (source)]]", "[[Glossary]]", "[[Operations (source)]]"]
 related: ["[[Automation]]", "[[claude-wiki-pages-maintenance-agent]]", "[[One Advertised Path]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Automation]]"]
-tags: [automation, backlog, heartbeat, maintenance]
+tags: [automation, backlog, heartbeat, maintenance, operations]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -45,7 +45,7 @@ CATCHUP: 3 pending source(s), 9 day(s) since lint — run /claude-wiki-pages:wik
 
 # Maintenance Loop
 
-The full catch-up loop run by `claude-wiki-pages-maintenance-agent`:
+The full catch-up loop run by [[claude-wiki-pages-maintenance-agent]]:
 
 1. Ingest (up to `maxPerRun` sources)
 2. Curator heal (audit and auto-repair)

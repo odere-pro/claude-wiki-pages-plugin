@@ -37,14 +37,14 @@ High-level feature overview of `claude-wiki-pages`: typed wiki pages with YAML f
 ## Entities Mentioned
 
 - [[claude-wiki-pages]]
-- [[Obsidian]]
+- `Obsidian`
 
 ## Concepts Covered
 
-- [[Typed Wiki Pages]]
+- `Typed Wiki Pages`
 - [[Provenance]]
-- [[MOC]]
-- [[Confidence Discipline]]
+- `MOC`
+- `Confidence Discipline`
 - [[Hook-Enforced Safety]]
-- [[Synthesis Note]]
-- [[Test Harness]]
+- `Synthesis Note`
+- `Test Harness`

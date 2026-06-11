@@ -4,12 +4,12 @@ type: concept
 aliases: ["Degraded Mode Routing", "degraded mode routing", "degraded mode", "engine route", "offline routing", "Offline Draft", "offline draft", "reachability probe", "Reachability Probe"]
 parent: "[[Local Models]]"
 path: "local-models"
-sources: ["[[Local Models]]", "[[Operations]]", "[[Glossary]]"]
-related: ["[[Capability Tier]]", "[[Approved Local Model]]", "[[Draft Review Gate]]", "[[Offline Mode]]"]
+sources: ["[[Local Models (source)]]", "[[Operations (source)]]", "[[Glossary]]"]
+related: ["[[Capability Tier]]", "[[Approved Local Model]]", "[[Draft Review Gate]]", "[[Offline Mode]]", "[[qwen3-coder:30b]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Capability Tier]]", "[[Approved Local Model]]"]
-tags: [local-models, offline, degraded-mode, routing]
+tags: [local-models, offline, degraded-mode, routing, local-model]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -20,6 +20,8 @@ confidence: 1.0
 # Degraded Mode Routing
 
 The deterministic routing decision (the engine `route` command) that, given the offline policy, the configured capability tier, model approval, and reachability, returns whether a task runs on Claude, on an approved local tier, or is BLOCKED. Lives in Layer 4; the orchestrator consults it and never re-derives the decision. Governed by ADR-0018.
+
+The only currently approved model for offline tiers is [[qwen3-coder:30b]], unlocked for [[Ingest-Extract]] (ADR-0017) and [[Query Tier]] (ADR-0019).
 
 ## `offlinePolicy` Values
 

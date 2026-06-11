@@ -1,5 +1,5 @@
 ---
-title: "Getting Started"
+title: "Getting Started (source)"
 type: source
 source_type: manual
 source_format: text
@@ -8,7 +8,7 @@ publisher: "claude-wiki-pages"
 date_published: 2026-06-11
 date_ingested: 2026-06-11
 tags: [getting-started, onboarding, quickstart]
-aliases: ["Getting Started"]
+aliases: ["Getting Started (source)"]
 sources: []
 created: 2026-06-11
 updated: 2026-06-11
@@ -40,6 +40,6 @@ Step-by-step CLI quickstart: run Claude Code, install the plugin via marketplace
 ## Concepts Covered
 
 - [[Onboarding]]
-- [[Vault Creation]]
+- `Vault Creation`
 - [[Portable Markdown]]
 - [[One Advertised Path]]

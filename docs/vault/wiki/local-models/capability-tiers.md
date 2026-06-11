@@ -4,12 +4,12 @@ type: concept
 aliases: ["Capability Tier", "capability tier", "capability tiers", "Ingest-Extract", "ingest-extract", "Query Tier", "query tier"]
 parent: "[[Local Models]]"
 path: "local-models"
-sources: ["[[Local Models]]", "[[Glossary]]", "[[Operations]]"]
-related: ["[[Quality Gate]]", "[[Approved Local Model]]", "[[Degraded Mode Routing]]", "[[Offline Mode]]"]
+sources: ["[[Local Models (source)]]", "[[Glossary]]", "[[Operations (source)]]"]
+related: ["[[Quality Gate]]", "[[Approved Local Model]]", "[[Degraded Mode Routing]]", "[[Offline Mode]]", "[[qwen3-coder:30b]]"]
 contradicts: []
 supersedes: []
 depends_on: []
-tags: [local-models, capability-tiers]
+tags: [local-models, capability-tiers, local-model, ingest, query]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -30,11 +30,11 @@ A named level of plugin functionality tied to the available LLM. Local-model sco
 | `draft` | WIRED but BLOCKED | — (none yet) | No golden-set eval defined yet |
 | full ingest / curator / synthesis | Not wired | — | Future tiers; each needs its own golden set, threshold, and ADR |
 
-The per-tier allow-list is `APPROVED_LOCAL_MODELS_BY_TIER` in `src/data/config/config.ts`.
+The per-tier allow-list is `APPROVED_LOCAL_MODELS_BY_TIER` in `src/data/config/config.ts`. The only currently approved model is [[qwen3-coder:30b]].
 
 ## Ingest-Extract Tier
 
-The sub-step of the ingest pipeline that reads a raw source and extracts structured entities, concepts, and claims before writing wiki pages. Distinct from the write step. Unlocked for `qwen3-coder:30b` via ADR-0011/0017.
+The sub-step of the ingest pipeline that reads a raw source and extracts structured entities, concepts, and claims before writing wiki pages. Distinct from the write step. Unlocked for [[qwen3-coder:30b]] via ADR-0011/0017.
 
 ## Query Tier
 

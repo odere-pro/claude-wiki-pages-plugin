@@ -4,12 +4,12 @@ type: concept
 aliases: ["One Advertised Path", "one advertised path", "default verb", "/claude-wiki-pages:wiki", "orchestrator routing", "Orchestrator Routing"]
 parent: "[[Operations]]"
 path: "operations"
-sources: ["[[Operations]]", "[[Features]]", "[[Glossary]]", "[[Getting Started]]"]
-related: ["[[claude-wiki-pages-orchestrator-agent]]", "[[Onboarding]]", "[[Doctor]]", "[[Hook-Enforced Safety]]"]
+sources: ["[[Operations (source)]]", "[[Features]]", "[[Glossary]]", "[[Getting Started (source)]]"]
+related: ["[[claude-wiki-pages-orchestrator-agent]]", "[[Onboarding]]", "[[Doctor]]", "[[Hook-Enforced Safety]]", "[[Automation]]"]
 contradicts: []
 supersedes: []
 depends_on: []
-tags: [ux, entry-point, routing]
+tags: [ux, entry-point, routing, operations, orchestration]
 created: 2026-06-11
 updated: 2026-06-11
 update_count: 1
@@ -24,7 +24,7 @@ The UX principle that exactly one verb is promoted as the entry point for each t
 ## Why One Entry Point
 
 - Reduces decision fatigue: users do not need to choose between ingest, curator, or analyst.
-- Enables automatic routing: the orchestrator probes vault state and picks the right specialist.
+- Enables automatic routing: the [[claude-wiki-pages-orchestrator-agent]] probes vault state and picks the right specialist.
 - Supports progressive disclosure: advanced bypasses exist but are documented below a fold.
 
 ## Orchestrator Routing
