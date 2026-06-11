@@ -10,13 +10,13 @@ That is the entry point. The orchestrator probes vault state and dispatches to t
 specialist — init wizard, ingest, curator, or analyst. Polish runs as a tail step after
 ingest or curator. You never need to pick the right specialist by hand.
 
-| State the orchestrator finds                            | What runs                           |
-| ------------------------------------------------------- | ----------------------------------- |
-| No vault or no `schema_version`                         | init wizard (scaffold + orient)     |
-| Files in `raw/` not yet in `wiki/log.md`                | ingest pipeline                     |
-| Previous ingest not followed by lint                    | curator (audit-and-repair)          |
-| Analytical prompt (`what`, `why`, `compare`, …)        | analyst                             |
-| Pending drafts in `_proposed/`                          | review gate                         |
+| State the orchestrator finds                    | What runs                       |
+| ----------------------------------------------- | ------------------------------- |
+| No vault or no `schema_version`                 | init wizard (scaffold + orient) |
+| Files in `raw/` not yet in `wiki/log.md`        | ingest pipeline                 |
+| Previous ingest not followed by lint            | curator (audit-and-repair)      |
+| Analytical prompt (`what`, `why`, `compare`, …) | analyst                         |
+| Pending drafts in `_proposed/`                  | review gate                     |
 
 Pass any free-form goal: `/claude-wiki-pages:wiki ingest the new papers` or
 `/claude-wiki-pages:wiki what does the wiki say about retrieval?`
@@ -50,21 +50,21 @@ scaffold, ingest, first cited answer. Safe to re-run; it resumes from wherever y
 
 ## Day-to-day verbs
 
-| Verb       | Slash command               | Notes                                                                      |
-| ---------- | --------------------------- | -------------------------------------------------------------------------- |
-| **Query**  | `/claude-wiki-pages:query`  | Direct query skill. Traverses MOCs; every answer cites `[[wikilinks]]`.    |
-| **Status** | `/claude-wiki-pages:status` | One-command status read of the last operations.                            |
+| Verb       | Slash command               | Notes                                                                   |
+| ---------- | --------------------------- | ----------------------------------------------------------------------- |
+| **Query**  | `/claude-wiki-pages:query`  | Direct query skill. Traverses MOCs; every answer cites `[[wikilinks]]`. |
+| **Status** | `/claude-wiki-pages:status` | One-command status read of the last operations.                         |
 
 ## Power-user bypasses
 
 When you already know the routing and want to skip the orchestrator's state probe, call the agents directly:
 
-| Slash command                                  | When to reach for it                                                                                                |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `/claude-wiki-pages:claude-wiki-pages-ingest-agent`  | Scripted batch ingest. Skips the orchestrator's probe and the polish tail-step.                                     |
-| `/claude-wiki-pages:claude-wiki-pages-curator-agent` | Direct audit-and-repair pass. Use when you want lint-fix without an ingest beforehand.                              |
+| Slash command                                        | When to reach for it                                                                                                         |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `/claude-wiki-pages:claude-wiki-pages-ingest-agent`  | Scripted batch ingest. Skips the orchestrator's probe and the polish tail-step.                                              |
+| `/claude-wiki-pages:claude-wiki-pages-curator-agent` | Direct audit-and-repair pass. Use when you want lint-fix without an ingest beforehand.                                       |
 | `/claude-wiki-pages:claude-wiki-pages-analyst-agent` | Direct query / synthesis / compile / extract / challenge. Use when the prompt is unambiguous and the routing is wasted work. |
-| `/claude-wiki-pages:claude-wiki-pages-polish-agent`  | Manually refresh graph colors + indexes after a direct agent call (which doesn't trigger polish).                   |
+| `/claude-wiki-pages:claude-wiki-pages-polish-agent`  | Manually refresh graph colors + indexes after a direct agent call (which doesn't trigger polish).                            |
 
 > **When in doubt, don't bypass.** The orchestrator's state probe is faster than picking the wrong specialist by hand. Bypass when: scripted workflows where routing is redundant, or operations where the polish tail-step would be wasted work.
 
@@ -72,21 +72,38 @@ When you already know the routing and want to skip the orchestrator's state prob
 
 For surgical operations on one slice of the pipeline:
 
-| Skill | Purpose |
-| ----- | ------- |
-| `/claude-wiki-pages:ingest`     | Process raw sources into wiki pages. No follow-on lint or synthesis. |
-| `/claude-wiki-pages:lint`       | Read-only audit. Reports drift; does not repair.                     |
-| `/claude-wiki-pages:fix`        | Auto-repairs what `lint` reports. Idempotent.               |
-| `/claude-wiki-pages:synthesize` | Write a cross-topic synthesis note.                                  |
-| `/claude-wiki-pages:index`      | Generate or refresh the vault MOC at `wiki/index.md`.                |
-| `/claude-wiki-pages:markdown`   | Render a wiki query as portable markdown into `vault/output/`.       |
-| `/claude-wiki-pages:obsidian-graph-colors` | Apply per-topic colors to Obsidian's graph view.                   |
+| Skill                                      | Purpose                                                              |
+| ------------------------------------------ | -------------------------------------------------------------------- |
+| `/claude-wiki-pages:ingest`                | Process raw sources into wiki pages. No follow-on lint or synthesis. |
+| `/claude-wiki-pages:lint`                  | Read-only audit. Reports drift; does not repair.                     |
+| `/claude-wiki-pages:fix`                   | Auto-repairs what `lint` reports. Idempotent.                        |
+| `/claude-wiki-pages:synthesize`            | Write a cross-topic synthesis note.                                  |
+| `/claude-wiki-pages:index`                 | Generate or refresh the vault MOC at `wiki/index.md`.                |
+| `/claude-wiki-pages:markdown`              | Render a wiki query as portable markdown into `vault/output/`.       |
+| `/claude-wiki-pages:obsidian-graph-colors` | Apply per-topic colors to Obsidian's graph view.                     |
 
 Contracts for each live in [`architecture.md`](./architecture.md).
 
 ## Draft review gate
 
 All drafted content (local-model drafts, durable-memory write-backs, local-ingest stubs) routes through a single `_proposed/` channel documented in [`skills/review/SKILL.md`](../skills/review/SKILL.md). The implementation lives in `src/commands/propose/propose.ts`.
+
+## Offline / degraded mode (ADR-0018)
+
+When the network or the Claude API is unavailable, a gate-approved local model can stand in for drafting. The fallback is opt-in and fail-closed; Claude stays primary by default. It is governed by two `localModel` config fields (see [`schemas/config.schema.json`](../schemas/config.schema.json) and [`docs/local-models.md`](./local-models.md)):
+
+- `offlinePolicy` — `off` (default; never probe, never fall back), `prefer-local` (fall back to an approved local tier when Claude is unreachable), or `strict` (fail if Claude is unreachable, no fallback).
+- `tier` — the capability tier the local model runs at; gated per-tier, so only `ingest-extract` is usable today.
+
+Three Layer 4 pieces implement it:
+
+| Piece                      | Role                                                                                                                                                                                                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `scripts/reachability.sh`  | Deterministic JSON probe of Ollama + Anthropic reachability. No network in the `off` policy; fails closed. The Anthropic check is an unauthenticated HEAD (the API key is never sent).                                                                       |
+| `scripts/engine.sh route`  | The pure, network-free routing decision (`claude` / `local` / `blocked`). Reachability is passed in via `--ollama` / `--claude`; the orchestrator consults it. See [`src/commands/route/CLAUDE.md`](../src/commands/route/CLAUDE.md).                        |
+| `scripts/offline-draft.sh` | True-offline drafting with Claude Code stopped — reads `raw/`, calls Ollama, writes `_proposed/` drafts (stamped `proposed_by` / `status: draft`) for review-gate promotion. Enforces `_proposed/`-only confinement itself, since hooks do not fire offline. |
+
+In-session, `session-start.sh` emits a one-line `DEGRADED:` advisory (only when `localModel.enabled` and `offlinePolicy != off`) naming which tier is available or BLOCKED and the reachability state.
 
 ## Vault location
 
@@ -112,17 +129,17 @@ the registry selects, the resolver confines (ADR-0016).
   "default_vault_path": "docs/vault",
   "current_vault_path": "projects/my-vault",
   "vaults": [
-    {"path": "projects/my-vault", "name": "my-vault"},
-    {"path": "projects/archive",  "name": "archive"}
+    { "path": "projects/my-vault", "name": "my-vault" },
+    { "path": "projects/archive", "name": "archive" }
   ]
 }
 ```
 
-| Field | Role |
-| ----- | ---- |
+| Field                | Role                                                      |
+| -------------------- | --------------------------------------------------------- |
 | `default_vault_path` | Factory default; never overwritten by lifecycle commands. |
-| `current_vault_path` | Sole active pointer; read by `resolve_vault()`. |
-| `vaults` | Array of `{path, name}` objects; all registered vaults. |
+| `current_vault_path` | Sole active pointer; read by `resolve_vault()`.           |
+| `vaults`             | Array of `{path, name}` objects; all registered vaults.   |
 
 **Invariant:** `current_vault_path` must equal exactly one `vaults[].path`. A registry that
 violates this invariant is treated as malformed: `_vaults_read` exits non-zero, all writes are
@@ -134,22 +151,22 @@ key. The `vaults` array is introduced only by the first `vault_add`. A fresh or 
 
 ### Lifecycle commands (`scripts/set-vault.sh`)
 
-| Command | Effect |
-| ------- | ------ |
-| `set-vault.sh add <path> [name]` | Register a vault without switching. |
+| Command                            | Effect                                                                                         |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `set-vault.sh add <path> [name]`   | Register a vault without switching.                                                            |
 | `set-vault.sh remove <path\|name>` | Deregister (never deletes data on disk). Refuses to remove the active vault or the last vault. |
-| `set-vault.sh switch <path\|name>` | Change `current_vault_path` to a registered vault. |
-| `set-vault.sh list` | Print the registry; active vault marked with `*`. |
+| `set-vault.sh switch <path\|name>` | Change `current_vault_path` to a registered vault.                                             |
+| `set-vault.sh list`                | Print the registry; active vault marked with `*`.                                              |
 
 ## What runs when
 
-| Event | Behaviour |
-| ----- | --------- |
-| `SessionStart` | `session-start.sh` reports vault status; creates `.claude/claude-wiki-pages/settings.json` on first run. |
-| `UserPromptSubmit` | `prompt-guard.sh` warns on phrasing that suggests editing `raw/` or destructive ops. |
-| Any Write or Edit | `validate-frontmatter.sh`, `check-wikilinks.sh`, `protect-raw.sh`, `validate-attachments.sh` block-or-allow. |
-| After Write or Edit | `post-wiki-write.sh` and `post-ingest-summary.sh` emit reminders and counts. |
-| Subagent finishes | `subagent-lint-gate.sh` and `subagent-ingest-gate.sh` block bad completions. |
+| Event               | Behaviour                                                                                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `SessionStart`      | `session-start.sh` reports vault status; creates `.claude/claude-wiki-pages/settings.json` on first run; emits a `DEGRADED:` advisory when a local model is enabled with an offline policy (ADR-0018). |
+| `UserPromptSubmit`  | `prompt-guard.sh` warns on phrasing that suggests editing `raw/` or destructive ops.                                                                                                                   |
+| Any Write or Edit   | `validate-frontmatter.sh`, `check-wikilinks.sh`, `protect-raw.sh`, `validate-attachments.sh` block-or-allow.                                                                                           |
+| After Write or Edit | `post-wiki-write.sh` and `post-ingest-summary.sh` emit reminders and counts.                                                                                                                           |
+| Subagent finishes   | `subagent-lint-gate.sh` and `subagent-ingest-gate.sh` block bad completions.                                                                                                                           |
 
 The full hook contract is documented in this guide.
 

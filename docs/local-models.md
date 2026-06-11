@@ -10,13 +10,36 @@ and the configured `model` is not on the list.
 Claude Code stays primary for every tier regardless; local-model use is opt-in,
 off by default, and (for drafting) always routed through the `_proposed/` human
 review gate. See [ADR-0011](./adr/ADR-0011-local-model-quality-gate.md) for the
-gate design and [ADR-0017](./adr/ADR-0017-fabrication-floor-verbatim-partition.md)
-for the fabrication-floor definition.
+gate design, [ADR-0017](./adr/ADR-0017-fabrication-floor-verbatim-partition.md)
+for the fabrication-floor definition, and
+[ADR-0018](./adr/ADR-0018-offline-policy-and-degraded-mode-routing.md) for the
+offline-policy + degraded-mode routing that lets a local model stand in when
+Claude is unreachable.
+
+## Capability tiers
+
+Local-model scope widens **one capability tier at a time**, each gated on its own
+measured evidence (ADR-0011/0018). A tier with no gate-approved model is **WIRED
+but BLOCKED**: its config is accepted, but the engine fails closed (the `draft`
+skill and `offline-draft.sh` refuse to run, `config validate` and `route` exit
+non-zero with a teaching message). The per-tier allow-list is
+`APPROVED_LOCAL_MODELS_BY_TIER` in
+[`src/data/config/config.ts`](../src/data/config/config.ts).
+
+| Tier                                      | Status               | Approved model(s) | Notes                                                                                                                   |
+| ----------------------------------------- | -------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `ingest-extract`                          | ✅ UNLOCKED          | `qwen3-coder:30b` | The one tier with measured golden-set evidence (ADR-0011).                                                              |
+| `draft`                                   | ⛔ WIRED but BLOCKED | — (none yet)      | No golden-set eval defined yet; enabling it fails closed.                                                               |
+| full ingest / curator / query / synthesis | ⛔ not wired         | —                 | Future tiers; each needs its own golden set, threshold, and ADR before it is added to the map. Claude-first until then. |
+
+Unlocking a tier is the same governance act as adding a model (below): run the
+tier's eval, commit reproducible evidence, add the model to that tier's row in
+`APPROVED_LOCAL_MODELS_BY_TIER`, and amend the ADR — all in one change.
 
 ## Approved
 
-| Model | Tier | Evidence |
-| --- | --- | --- |
+| Model                 | Tier             | Evidence                                                                                                                                                               |
+| --------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`qwen3-coder:30b`** | `ingest-extract` | [`tests/eval/runs/ingest-extract/qwen3-coder-30b/`](../tests/eval/runs/ingest-extract/qwen3-coder-30b/) — both golden-set cases pass, `--verify-artifact` reproducible |
 
 ## Tested and rejected
@@ -27,13 +50,13 @@ claim-source-fidelity ≥0.97 · frontmatter-field-accuracy ≥0.90 ·
 dedup-correctness ≥0.90 · **zero fabricated sourced claims** (hard floor). A
 model must clear **both** cases. Full report and raw scorecards: `tmp/eval-report/`.
 
-| Model | Verdict | Why it did not work |
-| --- | --- | --- |
-| `qwen3.5:27b` | ❌ rejected | The strongest near-miss. Perfect schema, fidelity, and field accuracy; invents nothing. Fails **dedup** (0.33 / 0.00): it emits **more pages than the gold page-set** — a page-cardinality problem, not a provenance one. The most promising future candidate; a dedup-focused prompt or a post-extract page-merge could plausibly clear it. |
-| `gemma4:31b` | ❌ rejected | **dedup 0.00 on both cases** — emits the wrong set of pages (extra/missing vs the expected 5) — and **schema-validity 0.63** on extract-basic (several pages have frontmatter that is invalid as-emitted). Reproduces the gold claims faithfully (fidelity 1.0) and invents nothing, but cannot produce the exact, schema-clean page structure the gate requires. |
-| `gemma4:26b` | ❌ rejected | **Output-protocol unstable**: on extract-basic it emitted a malformed file stream (an unterminated `===FILE:` block), which the fail-closed parser rejected outright (no scoreable candidate). On the case it did emit, **schema-validity 0.13** — almost every page invalid. Invents nothing, but is the least reliable at following the structured-output contract. |
-| `qwen3-vl:30b` | ❌ rejected | Wrong tool: a **vision-language** model on a pure-text extraction task. **claim-source-fidelity 0.00 on extract-basic** (reproduced none of the gold claims) and schema 0.43–0.71. Not a candidate for this workload. |
-| `gpt-oss:20b` | ❌ rejected | The **only model that fabricated** — it invented a sourced claim on `provenance-trap` (fell for the trap the case is designed to catch), tripping the zero-fabrication floor. Also weak structurally (schema 0.00–0.43). The least safe of the set for provenance specifically. |
+| Model          | Verdict     | Why it did not work                                                                                                                                                                                                                                                                                                                                                   |
+| -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `qwen3.5:27b`  | ❌ rejected | The strongest near-miss. Perfect schema, fidelity, and field accuracy; invents nothing. Fails **dedup** (0.33 / 0.00): it emits **more pages than the gold page-set** — a page-cardinality problem, not a provenance one. The most promising future candidate; a dedup-focused prompt or a post-extract page-merge could plausibly clear it.                          |
+| `gemma4:31b`   | ❌ rejected | **dedup 0.00 on both cases** — emits the wrong set of pages (extra/missing vs the expected 5) — and **schema-validity 0.63** on extract-basic (several pages have frontmatter that is invalid as-emitted). Reproduces the gold claims faithfully (fidelity 1.0) and invents nothing, but cannot produce the exact, schema-clean page structure the gate requires.     |
+| `gemma4:26b`   | ❌ rejected | **Output-protocol unstable**: on extract-basic it emitted a malformed file stream (an unterminated `===FILE:` block), which the fail-closed parser rejected outright (no scoreable candidate). On the case it did emit, **schema-validity 0.13** — almost every page invalid. Invents nothing, but is the least reliable at following the structured-output contract. |
+| `qwen3-vl:30b` | ❌ rejected | Wrong tool: a **vision-language** model on a pure-text extraction task. **claim-source-fidelity 0.00 on extract-basic** (reproduced none of the gold claims) and schema 0.43–0.71. Not a candidate for this workload.                                                                                                                                                 |
+| `gpt-oss:20b`  | ❌ rejected | The **only model that fabricated** — it invented a sourced claim on `provenance-trap` (fell for the trap the case is designed to catch), tripping the zero-fabrication floor. Also weak structurally (schema 0.00–0.43). The least safe of the set for provenance specifically.                                                                                       |
 
 ### The pattern
 
@@ -68,7 +91,8 @@ bash scripts/eval-ingest-extract.sh --verify-artifact \
   tests/eval/runs/ingest-extract/<slug>/<case>.artifact.json
 ```
 
-Then add the exact `name:tag` to `APPROVED_LOCAL_MODELS` in
+Then add the exact `name:tag` to the relevant tier's row in
+`APPROVED_LOCAL_MODELS_BY_TIER` in
 [`src/data/config/config.ts`](../src/data/config/config.ts), add a row to the
 **Approved** table above, and commit the evidence in the same change. Per
 ADR-0011 governance, the unlock is per-model and per-tier — no blanket "Ollama

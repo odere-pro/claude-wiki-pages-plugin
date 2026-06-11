@@ -37,13 +37,26 @@ Under `localModel` in `claude-wiki-pages.json`:
     "enabled": true,
     "provider": "ollama",
     "endpoint": "http://localhost:11434",
-    "model": "llama3",
-    "draftTarget": "_proposed"
+    "model": "qwen3-coder:30b",
+    "draftTarget": "_proposed",
+    "tier": "ingest-extract",
+    "offlinePolicy": "prefer-local"
   }
 }
 ```
 
 Read the effective config with `bash scripts/engine.sh config --json`.
+
+**`tier` is gated per capability (ADR-0018).** Only `ingest-extract` is unlocked
+today (with `qwen3-coder:30b`); `tier: "draft"` is WIRED but BLOCKED until a
+model clears its quality gate. `offlinePolicy` governs the Claude→local fallback:
+`off` (default) never falls back, `prefer-local` routes to the approved local
+tier when Claude is unreachable, `strict` fails instead of falling back. The
+deterministic decision lives in `bash scripts/engine.sh route` (see
+[`src/commands/route/CLAUDE.md`](../../src/commands/route/CLAUDE.md)); the
+orchestrator consults it. For **true-offline** drafting with Claude Code stopped,
+use `bash scripts/offline-draft.sh` — it applies the same gates and writes the
+same `_proposed/` drafts from a plain shell.
 
 **Gate-approved models only.** When `localModel.enabled` is true, the configured
 `model` must be on the ADR-0011 measured allow-list (`APPROVED_LOCAL_MODELS` in
@@ -106,7 +119,7 @@ vault/_proposed/wiki/<topic>/<page>.md
 Every draft produced by the local-ingest stub carries:
 
 ```yaml
-proposed_by: "ollama:llama3"   # <provider>:<model>
+proposed_by: "ollama:llama3" # <provider>:<model>
 status: draft
 ```
 
