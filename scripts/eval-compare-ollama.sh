@@ -11,9 +11,12 @@
 #   0  matrix completed (individual cells may be FAIL — read the table)
 #   2  usage / internal error
 #
+# Scoring uses the ADR-0017 floor definition (each case's raw input is passed
+# via --input, so verbatim extras report as over-citation, not fabrication).
+#
 # Usage:
 #   scripts/eval-compare-ollama.sh --models "m1,m2,..." [--cases "c1,c2,..."]
-#       [--out <dir>] [--timeout <sec>]
+#       [--out <dir>] [--timeout <sec>] [--retries <n>]
 #   scripts/eval-compare-ollama.sh --help
 set -uo pipefail
 
@@ -35,6 +38,7 @@ MODELS=""
 CASES=""
 OUT_DIR="$ROOT/tmp/eval-candidates"
 TIMEOUT=600
+RETRIES=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -52,6 +56,10 @@ while [ $# -gt 0 ]; do
       ;;
     --timeout)
       TIMEOUT="${2:-}"
+      shift 2
+      ;;
+    --retries)
+      RETRIES="${2:-}"
       shift 2
       ;;
     --help | -h)
@@ -95,27 +103,28 @@ for model in "${model_list[@]}"; do
   for c in "${case_list[@]}"; do
     c=$(printf '%s' "$c" | sed 's/^ *//; s/ *$//')
     echo "── $model × $c ──────────────────────────────────────────────"
-    if ! bash "$PRODUCE" --model "$model" --case "$c" --out "$OUT_DIR" --timeout "$TIMEOUT"; then
-      ROWS="${ROWS}${model}|${c}|-|-|-|-|-|PRODUCE_ERR\n"
+    if ! bash "$PRODUCE" --model "$model" --case "$c" --out "$OUT_DIR" --timeout "$TIMEOUT" --retries "$RETRIES"; then
+      ROWS="${ROWS}${model}|${c}|-|-|-|-|-|-|PRODUCE_ERR\n"
       continue
     fi
     cand="$OUT_DIR/$slug/$c"
     scores="$OUT_DIR/$slug/$c.scores.json"
-    bash "$SCORER" --score "$cand" --gold "$CASES_DIR/$c/expected" --json >"$scores"
+    bash "$SCORER" --score "$cand" --gold "$CASES_DIR/$c/expected" \
+      --input "$CASES_DIR/$c/input.md" --json >"$scores"
     rc=$?
     if [ "$rc" -ge 2 ] || [ ! -s "$scores" ]; then
-      ROWS="${ROWS}${model}|${c}|-|-|-|-|-|SCORE_ERR\n"
+      ROWS="${ROWS}${model}|${c}|-|-|-|-|-|-|SCORE_ERR\n"
       continue
     fi
     row=$(jq -r '[.schema_validity, .claim_source_fidelity, .frontmatter_field_accuracy,
-                  .dedup_correctness, .fabricated_sourced_claims, .verdict] | join("|")' \
-      "$scores" 2>/dev/null) || row="-|-|-|-|-|PARSE_ERR"
+                  .dedup_correctness, .fabricated_sourced_claims, .over_citation, .verdict] | join("|")' \
+      "$scores" 2>/dev/null) || row="-|-|-|-|-|-|PARSE_ERR"
     ROWS="${ROWS}${model}|${c}|${row}\n"
   done
 done
 
 echo ""
-echo "=== ingest-extract gate matrix (bar: schema>=0.98 fidelity>=0.97 fields>=0.90 dedup>=0.90 fabricated==0) ==="
+echo "=== ingest-extract gate matrix (bar: schema>=0.98 fidelity>=0.97 fields>=0.90 dedup>=0.90 fabricated==0; over-cite reported, not floored — ADR-0017) ==="
 # shellcheck disable=SC2059  # ROWS embeds literal \n separators by construction
-printf "model|case|schema|fidelity|fields|dedup|fabricated|verdict\n${ROWS}" |
+printf "model|case|schema|fidelity|fields|dedup|fabricated|overcite|verdict\n${ROWS}" |
   column -t -s '|'

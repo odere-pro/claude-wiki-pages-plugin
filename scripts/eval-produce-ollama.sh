@@ -31,6 +31,8 @@
 # Usage:
 #   scripts/eval-produce-ollama.sh --model <ollama-model> [--case <name>]
 #       [--out <dir>] [--endpoint <url>] [--num-ctx <n>] [--timeout <sec>]
+#       [--retries <n>]              # retry the chat call with exponential
+#                                    # timeout backoff (doubles per attempt)
 #       [--dry-run-prompt]
 #   scripts/eval-produce-ollama.sh --help
 set -uo pipefail
@@ -47,7 +49,7 @@ die() {
 usage() {
   sed -n '/^# Usage:/,/^set -uo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
   echo "Flags: --model <m> (required) --case <name> --out <dir> --endpoint <url>"
-  echo "       --num-ctx <n> --timeout <sec> --dry-run-prompt --help"
+  echo "       --num-ctx <n> --timeout <sec> --retries <n> --dry-run-prompt --help"
 }
 
 # ── schema excerpts (single-sourced from the authoritative schema doc) ────────
@@ -242,15 +244,27 @@ produce_case() { # $1 = model, $2 = case name
       messages:[{role:"system",content:$sys},{role:"user",content:$usr}]}' \
     >"$payload" || die "payload build failed"
 
-  echo "[produce] $model × $case_name → $case_out (timeout ${TIMEOUT}s)"
+  echo "[produce] $model × $case_name → $case_out (timeout ${TIMEOUT}s, retries ${RETRIES})"
   response="$OUT_DIR/$slug/$case_name.response.json"
-  curl -sS --fail --connect-timeout 5 --max-time "$TIMEOUT" \
-    -H 'Content-Type: application/json' -d @"$payload" \
-    "$ENDPOINT/api/chat" >"$response" || {
-    rm -f "$payload"
-    die "Ollama call failed for $model × $case_name"
-  }
+  # Exponential timeout backoff: stream:false means zero bytes arrive until the
+  # model finishes, so a slow model looks identical to a hung one — each retry
+  # doubles --max-time instead of hammering the same too-short budget.
+  local attempt=0 t="$TIMEOUT" got=0
+  while :; do
+    if curl -sS --fail --connect-timeout 5 --max-time "$t" \
+      -H 'Content-Type: application/json' -d @"$payload" \
+      "$ENDPOINT/api/chat" >"$response"; then
+      got=1
+      break
+    fi
+    attempt=$((attempt + 1))
+    [ "$attempt" -gt "$RETRIES" ] && break
+    t=$((t * 2))
+    echo "[produce] retry ${attempt}/${RETRIES} for $model × $case_name (timeout ${t}s — exponential backoff)"
+  done
   rm -f "$payload"
+  [ "$got" -eq 1 ] ||
+    die "Ollama call failed for $model × $case_name after $((attempt)) attempt(s) (last timeout ${t}s)"
 
   content=$(jq -er '.message.content // empty' "$response") ||
     die "empty/missing .message.content in response for $model × $case_name"
@@ -284,6 +298,7 @@ main() {
   ENDPOINT="${OLLAMA_HOST:-http://localhost:11434}"
   NUM_CTX=8192
   TIMEOUT=600
+  RETRIES=0
   DRY_RUN=0
 
   while [ $# -gt 0 ]; do
@@ -310,6 +325,10 @@ main() {
         ;;
       --timeout)
         TIMEOUT="${2:-}"
+        shift 2
+        ;;
+      --retries)
+        RETRIES="${2:-}"
         shift 2
         ;;
       --dry-run-prompt)

@@ -274,6 +274,66 @@ EOF
   refute_output_contains "candidate ready"
 }
 
+@test "eval-produce-ollama: --retries retries the chat call with exponential timeout backoff" {
+  # Fake curl: /api/tags always succeeds; the FIRST /api/chat call fails like a
+  # curl timeout (rc 28), the second succeeds. With --retries 1 the driver must
+  # recover, and the attempt log must show the doubled timeout.
+  local fake_bin="$BATS_TEST_TMPDIR/fake-bin-retry"
+  local out="$BATS_TEST_TMPDIR/cand-retry"
+  local marker="$BATS_TEST_TMPDIR/first-attempt-done"
+  mkdir -p "$fake_bin" "$out"
+  cat >"$fake_bin/curl" <<EOF
+#!/bin/bash
+for a in "\$@"; do
+  case "\$a" in
+    */api/tags) jq -n '{models:[{name:"fake-model"}]}'; exit 0 ;;
+  esac
+done
+if [ ! -e "$marker" ]; then
+  touch "$marker"
+  exit 28
+fi
+content=\$(printf '%s\n' \
+  '===FILE: wiki/index.md===' \
+  '---' \
+  'title: "Wiki Index"' \
+  '---' \
+  '# Wiki Index' \
+  '===END FILE===')
+jq -n --arg c "\$content" '{message:{content:\$c}}'
+EOF
+  chmod +x "$fake_bin/curl"
+
+  run env PATH="$fake_bin:$PATH" bash "$DRIVER" \
+    --model fake-model --case extract-basic --out "$out" --timeout 100 --retries 1
+
+  assert_success
+  [ -f "$out/fake-model/extract-basic/wiki/index.md" ]
+  # The retry attempt must announce the doubled timeout (exponential backoff).
+  assert_output_contains "retry"
+  assert_output_contains "200"
+}
+
+@test "eval-produce-ollama: --retries exhausted still fails closed (rc 2)" {
+  local fake_bin="$BATS_TEST_TMPDIR/fake-bin-always-timeout"
+  mkdir -p "$fake_bin"
+  cat >"$fake_bin/curl" <<'EOF'
+#!/bin/bash
+for a in "$@"; do
+  case "$a" in
+    */api/tags) jq -n '{models:[{name:"fake-model"}]}'; exit 0 ;;
+  esac
+done
+exit 28
+EOF
+  chmod +x "$fake_bin/curl"
+
+  run env PATH="$fake_bin:$PATH" bash "$DRIVER" \
+    --model fake-model --case extract-basic --out "$BATS_TEST_TMPDIR/o" \
+    --timeout 100 --retries 2
+  assert_status 2
+}
+
 @test "eval-produce-ollama: preflight fails closed when the model is not pulled" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-bin-nomodel"
   mkdir -p "$fake_bin"

@@ -556,10 +556,11 @@ _teardown_eval_artifact_repo() {
 _make_overciting_candidate() { # $1 = dest dir
   cp -R "$CASES/extract-basic/expected" "$1"
   # Insert the extra pair at the head of the existing source_quotes list.
-  sed -i '' 's|^source_quotes:$|source_quotes:\
+  sed -i.bak 's|^source_quotes:$|source_quotes:\
   - source: "[[Pandoc — Universal Document Converter]]"\
     quote: "It supports exporting to PDF via a LaTeX engine."|' \
     "$1/wiki/tools/pandoc.md"
+  rm -f "$1/wiki/tools/pandoc.md.bak"
 }
 
 @test "eval-ingest-extract: --input reclassifies a verbatim extra quote as over-citation (PASS)" {
@@ -577,10 +578,11 @@ _make_overciting_candidate() { # $1 = dest dir
 @test "eval-ingest-extract: --input still floors a truly invented quote (FAIL)" {
   local cand="$BATS_TEST_TMPDIR/invented"
   cp -R "$CASES/extract-basic/expected" "$cand"
-  sed -i '' 's|^source_quotes:$|source_quotes:\
+  sed -i.bak 's|^source_quotes:$|source_quotes:\
   - source: "[[Pandoc — Universal Document Converter]]"\
     quote: "Pandoc costs 49 dollars per seat and is proprietary software."|' \
     "$cand/wiki/tools/pandoc.md"
+  rm -f "$cand/wiki/tools/pandoc.md.bak"
 
   run bash "$DRIVER" --score "$cand" --gold "$CASES/extract-basic/expected" \
     --input "$CASES/extract-basic/input.md" --json
@@ -606,10 +608,11 @@ _make_overciting_candidate() { # $1 = dest dir
   # input.md; a single-line quote must still count as verbatim.
   local cand="$BATS_TEST_TMPDIR/wrapped"
   cp -R "$CASES/extract-basic/expected" "$cand"
-  sed -i '' 's|^source_quotes:$|source_quotes:\
+  sed -i.bak 's|^source_quotes:$|source_quotes:\
   - source: "[[Pandoc — Universal Document Converter]]"\
     quote: "It converts files between markup formats such as Markdown, reStructuredText, HTML, LaTeX, and Microsoft Word docx."|' \
     "$cand/wiki/tools/pandoc.md"
+  rm -f "$cand/wiki/tools/pandoc.md.bak"
 
   run bash "$DRIVER" --score "$cand" --gold "$CASES/extract-basic/expected" \
     --input "$CASES/extract-basic/input.md" --json
