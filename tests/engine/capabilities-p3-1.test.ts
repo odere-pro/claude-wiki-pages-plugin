@@ -116,7 +116,8 @@ describe("capabilitiesReport — JSON shape (ADR-0015 N3 named model)", () => {
   test("manifest contains all known planned verbs", () => {
     const r = capabilitiesReport();
     const planned = r.manifest.verbs.filter((v) => v.status === "planned").map((v) => v.name);
-    const expectedPlanned = ["index", "link-suggest", "checkpoint"];
+    // `checkpoint` shipped as the implemented `snapshot` verb.
+    const expectedPlanned = ["index", "link-suggest"];
     for (const v of expectedPlanned) {
       expect(planned).toContain(v);
     }
@@ -159,7 +160,8 @@ describe("usage() derives verb list from CAPABILITIES (no hardcoded literal)", (
 
   test("PLANNED array derives from CAPABILITIES (no independent array)", () => {
     const fromTable = CAPABILITIES.filter((e) => e.status === "planned").map((e) => e.name);
-    const expectedPlanned = ["index", "link-suggest", "checkpoint"];
+    // `checkpoint` shipped as the implemented `snapshot` verb.
+    const expectedPlanned = ["index", "link-suggest"];
     expect(fromTable.sort()).toEqual(expectedPlanned.sort());
   });
 });

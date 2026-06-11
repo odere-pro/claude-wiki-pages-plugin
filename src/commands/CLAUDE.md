@@ -27,6 +27,7 @@ contract.
 | `backlog`  | Probe outstanding maintenance (pending raw, days since lint).        | `BacklogReport`  |
 | `propose`  | Review / approve / reject drafted pages in `_proposed/`.             | `ProposeReport`  |
 | `route`    | Degraded-mode routing decision: Claude / local / blocked (ADR-0018). | `RouteReport`    |
+| `snapshot` | Git-bound an LLM write phase (`pre` checkpoint / `post` commit).     | `SnapshotReport` |
 
 ## Conventions
 
@@ -34,6 +35,8 @@ contract.
   report; the router owns all stdout and exit-code mapping.
 - Vault resolution always goes through [`resolveVault`](../core/vault.ts) so
   `--target` and the four-tier default behave identically everywhere.
-- Mutating verbs (`fix`, `heal`, `migrate`, `propose`) are idempotent and
-  git-bounded — a checkpoint commit makes every change reversible with
-  `git revert`.
+- Mutating verbs (`fix`, `heal`, `migrate`, `propose`, `snapshot`) are
+  idempotent and git-bounded — a checkpoint commit makes every change
+  reversible with `git revert`. All vault git operations are pathspec-scoped
+  (`-- .`), so a vault inheriting the parent project repo never stages the
+  user's unrelated files.

@@ -26,15 +26,16 @@ a four-step pipeline: `parseArgs → dispatch → emit → exitCode`. Tests live
 
 `--json` is universally supported. The rest are command-scoped: `--target
 <vault>` (override four-tier resolution), `--fix`, `--strict`, `--write`,
-`--file <path>`, `--type <t>`, `--folder <prefix>`, `--tag <t>`, `--graph`, and
+`--file <path>`, `--type <t>`, `--folder <prefix>`, `--tag <t>`, `--graph`,
 `--other-vaults <a:b:c>` (colon-separated sibling vault roots for the cross-vault
-firewall check).
+firewall check), and `--op <id>` / `--label <msg>` (snapshot operation id and
+commit-message label).
 
 ## Commands
 
-- **Implemented (10)** — `verify`, `fix`, `heal`, `doctor`, `config`, `migrate`,
-  `search`, `firewall`, `backlog`, `propose`. See
-  [`../commands/CLAUDE.md`](../commands/CLAUDE.md).
-- **Planned / declared** — `index`, `link-suggest`, `checkpoint`. They are listed
+- **Implemented (14)** — `verify`, `fix`, `heal`, `doctor`, `config`, `migrate`,
+  `search`, `firewall`, `backlog`, `propose`, `capabilities`, `ontology`,
+  `route`, `snapshot`. See [`../commands/CLAUDE.md`](../commands/CLAUDE.md).
+- **Planned / declared** — `index`, `link-suggest`. They are listed
   in usage and return a `not-implemented` stub (exit `0`) so the CLI surface is
   stable and discoverable before the later milestones fill them in.

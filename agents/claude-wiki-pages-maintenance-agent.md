@@ -56,8 +56,11 @@ In order, stopping at the first gate failure:
 4. **Lint** — final `bash engine.sh verify --target "$VAULT" --json`; surface any
    residual warnings.
 
-Each agent already checkpoints its own writes; this agent does not write vault
-content directly — it sequences specialists and reports.
+Each agent already git-bounds its own writes (`snapshot.sh pre`/`post` around
+its write phase, `engine.sh heal` for the structural slice), and the
+`SubagentStop` commit backstop sweeps up anything left dirty when a specialist
+returns. This agent therefore makes **no snapshot calls of its own** — it does
+not write vault content directly; it sequences specialists and reports.
 
 ## Step 3 — Report
 

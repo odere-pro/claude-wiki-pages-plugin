@@ -146,6 +146,13 @@ definitions) before applying** — the **`curator-fixes`** teaching skill
 1. `${CLAUDE_PLUGIN_ROOT}/skills/curator-fixes/SKILL.md` (plugin-install path — canonical).
 2. `skills/curator-fixes/SKILL.md` (in-repo contributor path).
 
+**Snapshot post — commit the judgment fixes.** `engine.sh heal` committed the
+structural slice; the Phase 3–4 fixes this agent applied through Write/Edit are
+not yet committed. At the end of Phase 4 run
+`bash ${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.sh post --target <vault> --label "curator judgment fixes"`
+so they land in their own revertible `snapshot:` commit (inline-git fallback
+when Bun is absent; always exits 0).
+
 ---
 
 ## Phase 5 — Re-verify
