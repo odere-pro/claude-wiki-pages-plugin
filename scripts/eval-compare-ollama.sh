@@ -38,30 +38,30 @@ TIMEOUT=600
 
 while [ $# -gt 0 ]; do
   case "$1" in
-  --models)
-    MODELS="${2:-}"
-    shift 2
-    ;;
-  --cases)
-    CASES="${2:-}"
-    shift 2
-    ;;
-  --out)
-    OUT_DIR="${2:-}"
-    shift 2
-    ;;
-  --timeout)
-    TIMEOUT="${2:-}"
-    shift 2
-    ;;
-  --help | -h)
-    usage
-    exit 0
-    ;;
-  *)
-    usage >&2
-    die "unknown flag: $1"
-    ;;
+    --models)
+      MODELS="${2:-}"
+      shift 2
+      ;;
+    --cases)
+      CASES="${2:-}"
+      shift 2
+      ;;
+    --out)
+      OUT_DIR="${2:-}"
+      shift 2
+      ;;
+    --timeout)
+      TIMEOUT="${2:-}"
+      shift 2
+      ;;
+    --help | -h)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      die "unknown flag: $1"
+      ;;
   esac
 done
 

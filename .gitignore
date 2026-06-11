@@ -8,6 +8,9 @@ Thumbs.db
 .claude/memory/
 .claude/claude-wiki-pages/
 .claude/calibration/
+# Per-machine plugin config (localModel endpoint/model choice) — never imposed
+# on contributors; see templates/default.config.json for the shape.
+.claude/claude-wiki-pages.json
 CLAUDE.local.md
 
 # Local scratch space (plans, drafts)
