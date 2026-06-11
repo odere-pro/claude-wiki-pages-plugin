@@ -141,6 +141,18 @@ what is missing.
    (or plain `git init` + an initial commit when Bun is absent) and re-assert
    before continuing — git coverage is the safety net every later write
    depends on.
+3c. **Offer to wire the project as a docs source (optional).** When the
+   project root is a git work tree, ask the user:
+   _"Wire this project as a docs source? The wiki will snapshot the project's
+   markdown docs (README, docs/, ADRs — never source code) into `raw/wired/`
+   and `/claude-wiki-pages:sync` will pick up future changes."_
+   On yes, run
+   `bash ${CLAUDE_PLUGIN_ROOT}/scripts/wire-source.sh add --vault <vault>`.
+   This registers the wired source in settings.json and runs the initial pull;
+   the snapshots land under `<vault>/raw/wired/<name>/`, so `ingest_pending`
+   flips true naturally and the orchestrator chains ingest on the next
+   `/claude-wiki-pages:wiki`. On no (or when the project is not a git repo),
+   skip silently — wiring is available later via the same command.
 4. **Schema check.** Confirm `<project>/<vault>/CLAUDE.md` starts with
    `schema_version: 2`. Step 3 already copies it when absent; if it exists
    but is missing the version header, stamp the correct frontmatter; do not
@@ -154,6 +166,8 @@ what is missing.
    - The path to the vault.
    - The schema version present in `<vault>/CLAUDE.md`.
    - Whether settings were created fresh, updated, or already correct.
+   - `wired=<name>` when Step 3c wired the project (with the snapshot count),
+     or `wired=none`.
    - Note that `<vault>/raw/sample-source.md` is the bundled sample source — it is
      ready to ingest so the user can see a real result immediately.
    - Three suggested next steps, in order of increasing commitment:
