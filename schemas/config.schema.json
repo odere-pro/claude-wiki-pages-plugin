@@ -79,12 +79,16 @@
     "localModel": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Optional local-model (Ollama/LM Studio) drafting into _proposed/ for human review. Off by default — Claude Code stays primary.",
+      "description": "Optional local-model (Ollama/LM Studio) drafting into _proposed/ for human review. Off by default — Claude Code stays primary. When enabled, 'model' must be on the ADR-0011 measured allow-list (see APPROVED_LOCAL_MODELS); 'config validate' fails closed otherwise.",
       "properties": {
         "enabled": { "type": "boolean", "default": false },
         "provider": { "type": "string", "enum": ["ollama", "lmstudio"], "default": "ollama" },
         "endpoint": { "type": "string", "default": "http://localhost:11434" },
-        "model": { "type": "string", "default": "" },
+        "model": {
+          "type": "string",
+          "default": "",
+          "description": "Local model id (e.g. qwen3-coder:30b). When localModel.enabled is true this must be a model that cleared the ADR-0011 ingest-extract quality gate (allow-list in src/data/config/config.ts; tested models in docs/local-models.md). An unproven model fails 'config validate' fail-closed."
+        },
         "draftTarget": { "type": "string", "default": "_proposed" },
         "tier": {
           "type": "string",

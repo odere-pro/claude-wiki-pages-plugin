@@ -298,6 +298,10 @@ function main(): number {
           : "INVALID:\n  - " + report.errors.join("\n  - ") + "\n",
       );
     else process.stdout.write(JSON.stringify(report.config, null, 2) + "\n");
+    // Fail-closed local-model allow-list: surface on stderr for any subcommand
+    // (text mode) so an unapproved enabled model is loud, not just in --json.
+    if (!json && report.localModelErrors.length > 0)
+      process.stderr.write("BLOCKED (local model):\n  - " + report.localModelErrors.join("\n  - ") + "\n");
     return configExit(report);
   }
 

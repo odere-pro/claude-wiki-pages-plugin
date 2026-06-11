@@ -128,6 +128,7 @@ Full operations reference: [docs/operations.md](./docs/operations.md).
 | Install / update / uninstall | [docs/install.md](./docs/install.md)                     |
 | Day-to-day operations        | [docs/operations.md](./docs/operations.md)               |
 | Multiple vaults              | [docs/operations.md — Multi-vault registry](./docs/operations.md#multi-vault-registry) |
+| Local models (Ollama)        | [docs/local-models.md](./docs/local-models.md)           |
 | Features and comparison      | [docs/features.md](./docs/features.md)                   |
 | Architecture (four layers)   | [docs/architecture.md](./docs/architecture.md)           |
 | Glossary                     | [docs/GLOSSARY.md](./docs/GLOSSARY.md)                   |

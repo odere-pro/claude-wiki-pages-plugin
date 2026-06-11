@@ -175,6 +175,43 @@ export function loadConfig(
   };
 }
 
+/**
+ * Models measured to clear the ADR-0011 ingest-extract quality gate, the single
+ * source of truth for which local models the plugin will run.
+ *
+ * This is an ALLOW-LIST, not a recommendation: per ADR-0011 governance, a local
+ * model is enabled only after it clears the golden-set bar with committed,
+ * `--verify-artifact`-reproducible evidence under `tests/eval/runs/`. To add a
+ * model: run `scripts/eval-compare-ollama.sh`, and if it passes both cases,
+ * commit its evidence and add its exact `name:tag` here in the same change.
+ * Removing a model that later regresses is the reverse of the same edit.
+ *
+ * Measured 2026-06-11 (Ollama 0.30.7): of six pulled models only qwen3-coder:30b
+ * passed — see docs/local-models.md for the full table and per-model reasons.
+ */
+export const APPROVED_LOCAL_MODELS: readonly string[] = ["qwen3-coder:30b"];
+
+/**
+ * Fail-closed approval check for the local-model allow-list. Returns a list of
+ * teaching errors (empty = approved). A disabled localModel is always fine —
+ * the gate only constrains a local model the plugin would actually run.
+ */
+export function checkLocalModelApproval(config: Config): string[] {
+  if (!config.localModel.enabled) return [];
+  const model = config.localModel.model;
+  if (APPROVED_LOCAL_MODELS.includes(model)) return [];
+  const named = model === "" ? "(none set)" : `"${model}"`;
+  return [
+    `localModel.model ${named} is not gate-approved. The plugin runs a local ` +
+      `model only after it clears the ADR-0011 ingest-extract quality gate with ` +
+      `committed evidence. Approved: ${APPROVED_LOCAL_MODELS.join(", ")}. ` +
+      `To add a model, run scripts/eval-compare-ollama.sh; if it passes both ` +
+      `golden-set cases, commit its tests/eval/runs/ evidence and add it to ` +
+      `APPROVED_LOCAL_MODELS (see docs/local-models.md and ADR-0011). ` +
+      `Until then, set localModel.enabled: false to keep Claude primary.`,
+  ];
+}
+
 interface PropSpec {
   readonly enum?: readonly unknown[];
   readonly type?: string;
