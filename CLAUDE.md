@@ -38,7 +38,7 @@ Long-form model: [`docs/architecture.md`](./docs/architecture.md).
 | Hook scripts      | `docs/operations.md`; `hooks/hooks.json` (scripts and wiring are coupled); `tests/scripts/`                                                        |
 | Frontmatter       | `docs/vault-example/CLAUDE.md`; `docs/vault-example/_templates/`                                                                                    |
 | User-facing prose | `docs/GLOSSARY.md`; `docs/llm-wiki/` for voice                                                                                                   |
-| Security          | `SECURITY.md` (threat model with per-threat test mapping); Tier 4 CI at `.github/workflows/adversarial.yml` (corpus replay stubbed)           |
+| Security          | `SECURITY.md` (threat model with per-threat test mapping); Tier 4 CI at `.github/workflows/adversarial.yml` (deterministic corpus replay: `tests/adversarial/replay-corpus.sh`)           |
 | Tests (Tier 0–4)  | `tests/README.md`; hook tests in `tests/scripts/*.bats`                                                                                            |
 
 If an edit introduces a new concept, add the term to `docs/GLOSSARY.md` with a rationale first — enforced by `scripts/validate-docs.sh` (the glossary gate, run in CI Tier 0).

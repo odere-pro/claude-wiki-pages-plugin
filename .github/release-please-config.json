@@ -8,10 +8,7 @@
       "include-v-in-tag": true,
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": false,
-      "extra-files": [
-        ".claude-plugin/plugin.json",
-        ".claude-plugin/marketplace.json"
-      ]
+      "extra-files": [".claude-plugin/plugin.json"]
     }
   },
   "changelog-sections": [

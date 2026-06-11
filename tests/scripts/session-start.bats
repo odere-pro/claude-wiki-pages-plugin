@@ -235,6 +235,99 @@ teardown() {
   refute_output_contains "INDEX:"
 }
 
+# jq pre-flight: when jq is absent the JSON-parsing hooks (firewall,
+# frontmatter, raw-protect) silently pass writes through unchecked, so the
+# session must surface a NOTICE — same teaching pattern as the Bun notice.
+@test "session-start: prints jq NOTICE when jq is absent" {
+  local vault_dir="$BATS_TEST_TMPDIR/jq-absent-vault"
+  mkdir -p "$vault_dir"
+
+  # Hermetic sandbox PATH that resolves everything session-start.sh needs but
+  # deliberately omits jq, so `command -v jq` fails inside the script.
+  local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nojq"
+  mkdir -p "$SANDBOX_BIN"
+  local tool real
+  for tool in bash dirname basename find wc tr mkdir cat cp grep sed sort head date; do
+    real="$(command -v "$tool")" || continue
+    case "$real" in
+      /*) ln -s "$real" "$SANDBOX_BIN/$tool" ;;
+      *) skip "cannot resolve absolute path for required tool: $tool ($real)" ;;
+    esac
+  done
+  # Sanity: jq must NOT resolve under the sandbox PATH.
+  if PATH="$SANDBOX_BIN" command -v jq >/dev/null 2>&1; then
+    fail "jq leaked into sandbox PATH — notice branch not exercised"
+  fi
+
+  run env -i PATH="$SANDBOX_BIN" HOME="$HOME" \
+    CLAUDE_WIKI_PAGES_SETTINGS_FILE="$SETTINGS_TMP" \
+    CLAUDE_WIKI_PAGES_VAULT="$vault_dir" \
+    /bin/bash "$REPO_ROOT/scripts/session-start.sh"
+
+  assert_success
+  assert_output_contains "NOTICE: jq is not installed"
+  # The notice must teach the consequence and the fix.
+  assert_output_contains "unchecked"
+  assert_output_contains "brew install jq"
+}
+
+@test "session-start: no jq NOTICE when jq is present" {
+  local vault_dir="$BATS_TEST_TMPDIR/jq-present-vault"
+  mkdir -p "$vault_dir"
+  command -v jq >/dev/null 2>&1 || skip "jq not installed on this machine"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  refute_output_contains "NOTICE: jq is not installed"
+}
+
+# Maintenance trigger wiring (review 2026-06-11, fix 5): session-start.sh is
+# the ONE invocation point for heartbeat.sh — the SessionStart hook is the
+# scheduled trigger of the autonomous-maintenance loop. This test pins that
+# wiring: if the heartbeat call is dropped from session-start.sh, it goes red.
+@test "session-start: surfaces heartbeat CATCHUP when maintenance enabled and backlog exists" {
+  local proj="$BATS_TEST_TMPDIR/hb-proj"
+  local vault_dir="$proj/vault"
+  mkdir -p "$vault_dir/raw" "$vault_dir/wiki/_sources" "$proj/.claude/claude-wiki-pages"
+  printf '%s\n' '---' 'title: log' '---' >"$vault_dir/wiki/log.md"
+  printf 'unprocessed source\n' >"$vault_dir/raw/new.md" # no _sources/new.md → pending
+  printf '{"maintenance":{"enabled":true}}\n' >"$proj/.claude/claude-wiki-pages.json"
+
+  run bash -c "
+    cd '$proj'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$proj/.claude/claude-wiki-pages/settings.json'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  assert_output_contains "CATCHUP:"
+  assert_output_contains "/claude-wiki-pages:wiki"
+}
+
+@test "session-start: no CATCHUP when maintenance is disabled (default)" {
+  local proj="$BATS_TEST_TMPDIR/hb-proj-off"
+  local vault_dir="$proj/vault"
+  mkdir -p "$vault_dir/raw" "$vault_dir/wiki/_sources" "$proj/.claude/claude-wiki-pages"
+  printf 'unprocessed source\n' >"$vault_dir/raw/new.md"
+  # No .claude/claude-wiki-pages.json — maintenance.enabled defaults to false.
+
+  run bash -c "
+    cd '$proj'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$proj/.claude/claude-wiki-pages/settings.json'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  refute_output_contains "CATCHUP:"
+}
+
 # P1.1: Output is plain stdout — no JSON envelope or hook-block object.
 @test "session-start: output is plain text, no JSON envelope" {
   local vault_dir="$BATS_TEST_TMPDIR/plain-text-vault"

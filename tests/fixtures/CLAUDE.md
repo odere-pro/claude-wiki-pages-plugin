@@ -35,6 +35,10 @@ Each file is a `Write`/`Edit` tool-call payload shaped like Claude Code's hook i
 | `write-invalid-markdown-link.json` | wiki body using `[text](file.md)` | wikilink block |
 | `write-to-raw.json` | `Edit` to `vault/raw/` | `protect-raw.sh` block |
 
+## `adversarial/`
+
+The Tier 4 prompt-injection corpus: `Write`/`Edit` tool-call payloads carrying real injection text, replayed against the full PreToolUse hook chain by [`../adversarial/replay-corpus.sh`](../adversarial/replay-corpus.sh). The filename prefix is the expected verdict — `block-*.json` cases must be blocked (out-of-vault `.ssh`/`.env` writes, edits to an existing `raw/` source, legacy-type frontmatter spoofing, markdown-link smuggling); `allow-*.json` cases pin the structural/semantic boundary (a new `raw/` source containing injection text is allowed by design). `{{VAULT}}` in a payload is substituted with a throwaway copy of `minimal-vault/` at replay time. Self-tested by [`../scripts/replay-corpus.bats`](../scripts/replay-corpus.bats); run weekly by `.github/workflows/adversarial.yml`.
+
 ## The immutability rule
 
 Fixtures are read-only inputs. Never edit `minimal-vault/` or `json/` to make a test pass — copy into `$BATS_TEST_TMPDIR`, mutate there, and assert against the copy. Tests stay deterministic (no network, no clocks) and idempotent (all mutation in the tmpdir, cleaned up in `teardown`).

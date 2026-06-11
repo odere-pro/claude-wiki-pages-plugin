@@ -50,6 +50,12 @@ fi
 if ! command -v bun >/dev/null 2>&1; then
   echo "NOTICE: Bun is not installed — the deterministic engine (verify/fix/heal/doctor/config) and git-checkpointed self-heal are disabled; hooks still enforce the schema. Install: curl -fsSL https://bun.sh/install | bash  (then restart the session). See /claude-wiki-pages:doctor."
 fi
+# jq pre-flight: unlike Bun, jq absence is NOT graceful — the JSON-parsing
+# PreToolUse guards (firewall, frontmatter, raw-protect) cannot read the
+# tool-call payload and pass writes through unchecked. Surface it loudly.
+if ! command -v jq >/dev/null 2>&1; then
+  echo "NOTICE: jq is not installed — the schema-enforcing hooks (firewall, frontmatter, raw-protect) cannot parse tool-call JSON and writes pass through unchecked. Install: brew install jq (macOS) or sudo apt-get install jq (Linux), then restart the session. See /claude-wiki-pages:doctor."
+fi
 
 # Surface a maintenance catch-up recommendation when enabled (maintenance.enabled).
 # Silent no-op by default; never mutates the vault.

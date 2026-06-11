@@ -5,8 +5,9 @@
 # Exit codes (catch first failure; do not mask later ones):
 #   0  healthy
 #   1  vault path unresolvable (no env var, no settings, no auto-detect, default
-#      missing) OR git binary absent (hard dependency since decision #4 — both
-#      are "environment cannot proceed" failures, so they share exit 1)
+#      missing) OR git binary absent (hard dependency since decision #4) OR jq
+#      binary absent (the JSON-parsing hooks fail open without it) — all are
+#      "environment cannot proceed" failures, so they share exit 1
 #   2  vault schema_version absent or unsupported
 #   3  raw/ unreadable or wiki/ unwritable
 #   4  hooks not executable (hooks/hooks.json references missing/non-+x scripts)
@@ -105,6 +106,14 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 green "git: binary present"
+# jq pre-flight (review 2026-06-11, fix 4): without jq the JSON-parsing hooks
+# (firewall, frontmatter, raw-protect) cannot read the tool-call payload and
+# pass writes through UNCHECKED — fail-open, so this is a hard failure.
+if ! command -v jq >/dev/null 2>&1; then
+  red 1 "jq:" "jq binary not found — schema-enforcing hooks pass writes through unchecked without it. Install: brew install jq (macOS) or sudo apt-get install jq (Linux)"
+  exit 1
+fi
+green "jq: binary present (hooks can parse tool-call JSON)"
 if git -C "$VAULT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   green "git: vault is a git repo (self-heal is reversible)"
 else
