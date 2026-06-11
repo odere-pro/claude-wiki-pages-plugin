@@ -98,8 +98,7 @@ function readWiredSources(cwd: string): readonly WiredSourceRecord[] | null {
 /** Changed files in a wired repo since its sync point (empty on any git failure). */
 function gitChangedFiles(repo: string, lastCommit: string): readonly string[] {
   try {
-    const args =
-      lastCommit === "" ? ["ls-files"] : ["diff", "--name-only", `${lastCommit}..HEAD`];
+    const args = lastCommit === "" ? ["ls-files"] : ["diff", "--name-only", `${lastCommit}..HEAD`];
     const out = execFileSync("git", ["-C", repo, ...args], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],

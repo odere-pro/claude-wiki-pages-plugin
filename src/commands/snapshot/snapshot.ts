@@ -12,14 +12,7 @@
  */
 
 import { resolveVault } from "../../core/vault.ts";
-import {
-  ensureRepo,
-  applyCheckpointMode,
-  commit,
-  isClean,
-  isRepo,
-  push,
-} from "../../core/git.ts";
+import { ensureRepo, applyCheckpointMode, commit, isClean, isRepo, push } from "../../core/git.ts";
 import { loadConfig } from "../../data/config/config.ts";
 
 export type SnapshotSub = "pre" | "post";

@@ -78,7 +78,17 @@ describe("backlog — wired sources", () => {
   function gitC(repo: string, ...args: string[]): void {
     execFileSync(
       "git",
-      ["-C", repo, "-c", "user.name=t", "-c", "user.email=t@t", "-c", "commit.gpgsign=false", ...args],
+      [
+        "-C",
+        repo,
+        "-c",
+        "user.name=t",
+        "-c",
+        "user.email=t@t",
+        "-c",
+        "commit.gpgsign=false",
+        ...args,
+      ],
       { stdio: "ignore" },
     );
   }
