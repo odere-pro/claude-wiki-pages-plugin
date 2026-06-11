@@ -167,7 +167,7 @@ key. The `vaults` array is introduced only by the first `vault_add`. A fresh or 
 | `UserPromptSubmit`  | `prompt-guard.sh` warns on phrasing that suggests editing `raw/` or destructive ops.                                                                                                                   |
 | Any Write or Edit   | `validate-frontmatter.sh`, `check-wikilinks.sh`, `protect-raw.sh`, `validate-attachments.sh` block-or-allow.                                                                                           |
 | After Write or Edit | `post-wiki-write.sh` and `post-ingest-summary.sh` emit reminders and counts.                                                                                                                           |
-| Subagent finishes   | `subagent-lint-gate.sh` and `subagent-ingest-gate.sh` block bad completions.                                                                                                                           |
+| Subagent finishes   | `subagent-lint-gate.sh` and `subagent-ingest-gate.sh` block bad completions; `subagent-commit-gate.sh` then commits any vault changes a write-path agent left uncommitted (the commit backstop — never blocks). |
 
 The full hook contract is documented in this guide.
 

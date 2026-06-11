@@ -103,7 +103,7 @@ The plugin's structure. Contracts in [`architecture.md`](./architecture.md).
 | deterministic engine    | The Bun CLI (`src/cli/cli.ts`) that validates the vault and runs quality checks. Same input always produces the same result; requires Bun ≥ 1.2. Self-describes via `capabilities --json` and `ontology --json`; no embeddings, no inference — every operation is a deterministic parse or check. |
 | four-layer stack        | The architecture. Four layers, each catching a different class of failure.                                                                                                                                                                                                                        |
 | Layer 1 — Data          | The vault: raw content, wiki, vault schema. Passive — holds the material.                                                                                                                                                                                                                         |
-| Layer 2 — Skills        | Single-responsibility slash commands. Twenty-three ship (12 verbs + onboarding + 5 agent-teaching + obsidian-graph-colors + obsidian-vault + 3 third-party obsidian-\*).                                                                                                                          |
+| Layer 2 — Skills        | Single-responsibility slash commands. Twenty-four ship (13 verbs + onboarding + 5 agent-teaching + obsidian-graph-colors + obsidian-vault + 3 third-party obsidian-\*).                                                                                                                           |
 | Layer 3 — Agents        | Multi-step executors composing skills. Seven ship: orchestrator, onboarding, ingest, curator, analyst, polish, maintenance.                                                                                                                                                                       |
 | Layer 4 — Orchestration | Hooks, scripts, rules. Enforce the schema at every tool call.                                                                                                                                                                                                                                     |
 | skill                   | A capability under `skills/`. Entry point is `/claude-wiki-pages:<name>`.                                                                                                                                                                                                                         |
@@ -129,6 +129,8 @@ The plugin's structure. Contracts in [`architecture.md`](./architecture.md).
 | review                  | The promote/reject gate (`/claude-wiki-pages:review` + engine `propose`). The only sanctioned path from a draft to the wiki; runs under a git checkpoint.                                                                                                                                         |
 | local model             | Optional Ollama/LM Studio drafting into `_proposed/` (`/claude-wiki-pages:draft`, `localModel` config). Off by default — Claude Code stays primary.                                                                                                                                               |
 | layer coloring          | An optional graph-color pass (raw→green, wiki→blue, schema→orange) layered after per-topic colors, so the three-layer structure is visible at a glance. Applied by the polish agent via `obsidian-graph-colors`.                                                                                  |
+| snapshot                | Git-bounding an LLM write phase: the engine `snapshot` command (`pre` = checkpoint, `post` = commit) and its degradation wrapper `scripts/snapshot.sh`. Write-path agents call it around their write phases so every vault mutation lands in a revertible commit. Honors `gitCheckpoint.mode`.    |
+| commit backstop         | The `SubagentStop` safety net (`scripts/subagent-commit-gate.sh`): after a write-path agent returns, any vault changes left uncommitted are committed as one labelled backstop commit. Pathspec-scoped to the vault; never blocks.                                                                |
 
 ### Skill and agent naming
 
@@ -201,6 +203,7 @@ Lowercase in body prose; capitalize at the start of a heading. Each logs an entr
 | synthesize | Write a cross-topic synthesis note under `wiki/_synthesis/`.                     |
 | markdown   | Render a query answer as portable markdown under `vault/output/`.                |
 | status     | One-command health check. Exercises every hook path. Leaves the vault unchanged. |
+| sync       | Pull docs changes from a wired source into `raw/` as immutable snapshots, mark superseded source notes, and queue re-ingest. Manual: the heartbeat recommends it, never runs it. |
 
 ### Operator concepts
 
@@ -257,6 +260,7 @@ Concepts for the deterministic, embedding-free retrieval path (§5 non-negotiabl
 | per-vault write confinement | The firewall invariant that agent and tool writes are restricted to the active vault plus its explicit `allowPaths`. Cross-vault writes are blocked. Enforced by `scripts/firewall.sh` and `src/core/firewall.ts`.                                                                                                               |
 | registered vault roots      | The set of vault root paths currently enrolled in the vault registry. A vault root becomes registered via the `add` lifecycle command and is eligible to be made the active vault. Alias for the membership dimension of `vault registry`.                                                                                       |
 | cross-vault                 | Describes any operation that would read from or write to a vault other than the currently active one. Cross-vault writes are unconditionally blocked by the firewall (`scripts/firewall.sh`); cross-vault reads are also prohibited unless explicitly permitted. The confinement rule enforced by `per-vault write confinement`. |
+| wired source                | A git work tree (typically the host project) registered as a docs-only ingest source via `scripts/wire-source.sh`. Its record (include/exclude globs, `lastSyncedCommit`) lives in `.claude/claude-wiki-pages/settings.json`; `sync` snapshots its changed docs into `raw/wired/<name>/`.                                       |
 
 ### Ingest and memory terms
 
@@ -268,6 +272,7 @@ Concepts for the deterministic, embedding-free retrieval path (§5 non-negotiabl
 | local-ingest-stub        | A lightweight ingest path (`/claude-wiki-pages:draft` with `localModel.enabled`) that routes new content through `_proposed/` for human review rather than writing directly to `wiki/`. Pc in the roadmap. |
 | provenance-completeness  | The property of a wiki page that every claim traceable to a raw source carries an explicit `sources` entry (and optionally `source_quotes`). Checked by the provenance-completeness lint rule (I3).        |
 | classification checklist | The structured prompt or rule (I1) that ensures an ingested entity is evaluated against the `entity_type` enum and assigned to the correct class before a wiki page is written.                            |
+| superseded               | A source note whose document has a newer snapshot: `sync` adds optional frontmatter `superseded_by: "[[New Source]]"` to the older `_sources/` note. History stays intact — provenance is never rewritten; ingest's additive merge appends the new source when pages refresh.                       |
 
 ### Capability and model terms
 

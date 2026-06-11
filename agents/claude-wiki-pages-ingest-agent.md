@@ -46,6 +46,11 @@ Before Step 1:
 
    Cache the resolved path as `$VERIFY`. If none is executable, the pipeline can still run — record the absence and skip the re-check in Step 2.
 4. Read `vault/CLAUDE.md` into context. Everything below defers to it.
+5. **Snapshot pre.** Run
+   `bash ${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.sh pre --target <vault>`.
+   This git-checkpoints the pre-ingest state (honoring `gitCheckpoint.mode`;
+   inline-git fallback when Bun is absent) so every write this agent makes is
+   reversible. The script always exits 0 — never abort on its output.
 
 ---
 
@@ -120,6 +125,15 @@ New entities: ...
 New concepts: ...
 ```
 
+### 1.9 Snapshot post — commit the ingest writes
+
+Run
+`bash ${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.sh post --target <vault> --label "ingest <source titles>"`.
+This commits everything Step 1 wrote (source summaries, wiki pages, indexes,
+log) as one revertible `snapshot:` commit before the heal pass starts, so the
+ingest writes and the heal fixes land as separate, individually revertible
+commits. Always exits 0; a clean vault is reported, not an error.
+
 ---
 
 ## Step 2 — Auto-heal (git-checkpointed)
@@ -180,6 +194,13 @@ Add synthesis notes under `## Synthesis` in `wiki/index.md`. Append to `log.md`:
 ## [YYYY-MM-DD] synthesize | <Topic>
 Created [[Synthesis Title]] from N wiki pages across M sources.
 ```
+
+### 4.4 Snapshot post — commit the synthesis writes
+
+Run
+`bash ${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.sh post --target <vault> --label "synthesize <topic>"`.
+Commits the synthesis notes and index/log updates as their own revertible
+`snapshot:` commit. Always exits 0.
 
 ---
 

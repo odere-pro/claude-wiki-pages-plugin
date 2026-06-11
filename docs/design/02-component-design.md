@@ -35,6 +35,7 @@ graph LR
     post --> p_pi["post-ingest-summary.sh"]
     sub --> p_lg["subagent-lint-gate.sh"]
     sub --> p_ig["subagent-ingest-gate.sh"]
+    sub --> p_cg["subagent-commit-gate.sh<br/>commit backstop"]
     stop --> p_sm["session-memory.sh"]
     send --> p_sm
 ```

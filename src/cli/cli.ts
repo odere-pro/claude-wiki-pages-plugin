@@ -21,6 +21,7 @@ import { search } from "../commands/search/search.ts";
 import { firewallCheck } from "../commands/firewall/firewall.ts";
 import { backlog } from "../commands/backlog/backlog.ts";
 import { propose, type ProposeSub } from "../commands/propose/propose.ts";
+import { snapshot, type SnapshotSub } from "../commands/snapshot/snapshot.ts";
 import { join as pathJoin } from "node:path";
 import { buildReport, renderText, exitCode, type Report } from "../core/report.ts";
 import { ontology, type OntologyReport } from "../commands/ontology/ontology.ts";
@@ -79,9 +80,9 @@ export const CAPABILITIES: readonly CapabilityEntry[] = [
   { name: "capabilities", status: "implemented" },
   { name: "ontology", status: "implemented" },
   { name: "route", status: "implemented" },
+  { name: "snapshot", status: "implemented" },
   { name: "index", status: "planned" },
   { name: "link-suggest", status: "planned" },
-  { name: "checkpoint", status: "planned" },
 ] as const;
 
 // Derived views — no independent Set/array that can drift from the table.
@@ -125,6 +126,10 @@ interface ParsedArgs {
   readonly ollama: string | undefined;
   /** route: Claude API reachability ("reachable" | "unreachable" | "unprobed"). */
   readonly claude: string | undefined;
+  /** snapshot: operation id stamped into the commit message. */
+  readonly op: string | undefined;
+  /** snapshot post: human-readable label for the committed write phase. */
+  readonly label: string | undefined;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -144,6 +149,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   let otherVaults: string | undefined;
   let ollama: string | undefined;
   let claude: string | undefined;
+  let op: string | undefined;
+  let label: string | undefined;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--json") json = true;
@@ -160,6 +167,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (a === "--other-vaults") otherVaults = argv[++i];
     else if (a === "--ollama") ollama = argv[++i];
     else if (a === "--claude") claude = argv[++i];
+    else if (a === "--op") op = argv[++i];
+    else if (a === "--label") label = argv[++i];
     else if (a && !a.startsWith("-") && command === undefined) command = a;
     else if (a && !a.startsWith("-") && sub === undefined) sub = a;
   }
@@ -180,6 +189,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     otherVaults,
     ollama,
     claude,
+    op,
+    label,
   };
 }
 
@@ -227,6 +238,8 @@ function main(): number {
     otherVaults,
     ollama,
     claude,
+    op,
+    label,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -376,6 +389,20 @@ function main(): number {
       : 0;
   }
 
+  // snapshot verb — git-bound an LLM write phase (pre = checkpoint, post = commit).
+  // Reports only; always exits 0 so a wrapper or agent is never blocked by it.
+  if (command === "snapshot") {
+    const allowed: SnapshotSub[] = ["pre", "post"];
+    if (!allowed.includes(sub as SnapshotSub)) {
+      process.stderr.write("snapshot: requires a subcommand — pre | post\n");
+      return 2;
+    }
+    const report = snapshot({ sub: sub as SnapshotSub, target, opId: op, label });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else process.stdout.write(report.message + "\n");
+    return 0;
+  }
+
   if (command === "backlog") {
     const report = backlog({ target });
     if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
@@ -387,6 +414,9 @@ function main(): number {
           `last ingest: ${report.lastIngest ?? "never"}`,
           `last lint:   ${report.lastLint ?? "never"}${report.daysSinceLint !== null ? ` (${report.daysSinceLint}d ago)` : ""}`,
           `needs catch-up: ${report.needsCatchup ? "yes" : "no"}`,
+          ...(report.wiredChanges ?? []).map(
+            (w) => `wired changes: ${w.name} ${w.changed} doc(s) since last sync`,
+          ),
           "",
         ].join("\n"),
       );

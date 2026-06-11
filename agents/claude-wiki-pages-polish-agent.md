@@ -16,6 +16,15 @@ tools: Bash, Read, Write, Edit, Glob, Grep
 
 Single-pass, no destructive ops. Run after any agent that writes to `vault/wiki/`. The user never invokes this directly; the orchestrator calls it as the tail of every successful ingest or curator run.
 
+**Git-bounding.** Before Step 1, run
+`bash ${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.sh pre --target <vault>`; after
+Step 3 (before the final report), run
+`bash ${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.sh post --target <vault> --label "polish"`.
+This commits the polish writes (graph colors, index refresh, MOC reconciliation)
+as one revertible `snapshot:` commit. Both calls always exit 0 and honor
+`gitCheckpoint.mode=off`; an idempotent no-change run reports
+`nothing to commit` — that is the expected steady state, not a failure.
+
 ## Contract
 
 | Item                 | Value                                                                                         |

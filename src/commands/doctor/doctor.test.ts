@@ -27,6 +27,23 @@ describe("doctor", () => {
     expect(doctorExit(report, false)).toBe(0);
   });
 
+  test("D05 distinguishes a vault covered by a parent repo from its own repo", () => {
+    const sb = makeVault({ ...CLEAN_VAULT, "raw/.gitkeep": "" });
+    execFileSync("git", ["init"], { cwd: sb.vault, stdio: "ignore" });
+    const own = doctor({ target: sb.vault, pluginRoot: sb.vault });
+    expect(own.results.find((c) => c.id === "D05")?.message).toContain("its own git repo");
+    sb.cleanup();
+
+    // Vault nested inside a project repo: D05 still passes, names the parent root.
+    const sb2 = makeVault({ ...CLEAN_VAULT, "raw/.gitkeep": "" }, { nest: "docs/vault" });
+    execFileSync("git", ["init"], { cwd: sb2.root, stdio: "ignore" });
+    const inherited = doctor({ target: sb2.vault, pluginRoot: sb2.vault });
+    const d05 = inherited.results.find((c) => c.id === "D05");
+    expect(d05?.status).toBe("pass");
+    expect(d05?.message).toContain("covered by the repo at");
+    sb2.cleanup();
+  });
+
   test("--fix initialises git (D05) on a non-repo vault", () => {
     const sb = makeVault(CLEAN_VAULT);
     const before = doctor({ target: sb.vault, pluginRoot: sb.vault });

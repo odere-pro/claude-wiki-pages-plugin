@@ -21,11 +21,11 @@ operate on a vault without corrupting it. It pairs with
 
 1. **Ground, then judge, then verify.** Compute facts with the engine (verify, fix, and the planned link-suggest/search) before reasoning. The LLM makes only judgment calls — topic placement, prose, what to synthesize — over engine-computed facts, never from memory. Close every write with `verify`/`heal`.
 2. **`raw/` is immutable.** Never write, move, or delete anything under `vault/raw/`. Sources are the provenance anchor. The `protect-raw` hook enforces this; do not fight it.
-3. **Git is the safety net, not approval.** Self-heal is automatic. Before structural changes, a checkpoint commit is written; rollback is `git revert <healCommit>`. Do not prompt the user for permission to fix structure.
+3. **Git is the safety net, not approval.** Self-heal is automatic. Before structural changes, a checkpoint commit is written; rollback is `git revert <healCommit>`. Do not prompt the user for permission to fix structure. Write phases that happen outside the engine (ingest writes, judgment fixes, polish) are bounded the same way: `snapshot.sh pre` before the phase, `snapshot.sh post` after it, and the `SubagentStop` commit backstop sweeps up anything left dirty — no LLM write escapes git coverage.
 
 ## Ingest (add knowledge)
 
-1. Read each source in `raw/` completely. 2. Write cited wiki pages (`sources:` as `[[wikilinks]]` to `_sources/` summaries). 3. Run `engine.sh heal` — it checkpoints, then verify→fix→re-verify, then commits. 4. Surface only what needs editorial intent (ambiguous merges, deletions).
+1. `snapshot.sh pre` — checkpoint the pre-write state. 2. Read each source in `raw/` completely. 3. Write cited wiki pages (`sources:` as `[[wikilinks]]` to `_sources/` summaries), then `snapshot.sh post --label "ingest …"`. 4. Run `engine.sh heal` — it checkpoints, then verify→fix→re-verify, then commits. 5. Surface only what needs editorial intent (ambiguous merges, deletions).
 
 ## Retrieve (answer questions)
 

@@ -12,7 +12,13 @@
 import { verify } from "../verify/verify.ts";
 import { fix, type FixChange } from "../fix/fix.ts";
 import { resolveVault } from "../../core/vault.ts";
-import { ensureRepo, checkpoint, commitHeal, push } from "../../core/git.ts";
+import {
+  ensureRepo,
+  applyCheckpointMode,
+  commitHeal,
+  push,
+  type CheckpointMode,
+} from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
 import { loadConfig } from "../../data/config/config.ts";
 
@@ -48,6 +54,10 @@ export function heal(opts: HealOptions = {}): HealReport {
   const maxIterations = opts.maxIterations ?? DEFAULT_MAX_ITERATIONS;
   const now = opts.isoTime ?? new Date().toISOString();
   const opId = opts.opId ?? `op-${now.replace(/[^0-9]/g, "").slice(0, 14)}`;
+  const gitCfg = loadConfig({ cwd: opts.cwd }).config.gitCheckpoint;
+  // The test-only checkpointBranch option forces branch creation on top of the
+  // configured mode; gitCheckpoint.mode is the production control.
+  const mode: CheckpointMode = opts.checkpointBranch ? "both" : gitCfg.mode;
 
   const before = verify({ target: vault });
 
@@ -56,8 +66,8 @@ export function heal(opts: HealOptions = {}): HealReport {
     return base(vault, before.errors, before.errors, 0, true, null, null, [], []);
   }
 
-  ensureRepo(vault);
-  const checkpointSha = checkpoint(vault, opId, now, opts.checkpointBranch ?? false);
+  if (mode !== "off") ensureRepo(vault);
+  const checkpointSha = applyCheckpointMode(vault, mode, opId, now);
 
   const changes: FixChange[] = [];
   let iterations = 0;
@@ -78,12 +88,17 @@ export function heal(opts: HealOptions = {}): HealReport {
     appendLog(vault, {
       verb: "heal",
       summary: `errors ${before.errors} → ${last.errors} in ${iterations} iteration(s)`,
-      details: ["rollback: git revert the heal commit below"],
+      details: [
+        // Paper trace: the checkpoint SHA is the rollback anchor, known before
+        // the heal commit exists (a commit cannot contain its own SHA).
+        ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
+        "rollback: git revert the heal commit below",
+      ],
       today: opts.today,
     });
   }
-  const healSha = clean ? commitHeal(vault, opId, iterations) : null;
-  if (healSha && loadConfig({ cwd: opts.cwd }).config.gitCheckpoint.push === "auto") push(vault);
+  const healSha = clean && mode !== "off" ? commitHeal(vault, opId, iterations) : null;
+  if (healSha && gitCfg.push === "auto") push(vault);
   const unresolved = clean
     ? []
     : last.findings.filter((x) => x.severity === "error").map((x) => x.message);

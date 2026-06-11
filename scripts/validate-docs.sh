@@ -62,6 +62,19 @@ SEO_EXEMPT=(
   ".claude/fixtures/*"
 )
 
+# ─── Prose file lister ───────────────────────────────────────────────────────
+
+# Vault content is data, not project prose. The dogfood vault (docs/vault/),
+# Obsidian config trees (.obsidian/), and raw documents are never grouped or
+# indexed by the normalization gates — external authors do not follow our
+# glossary, and wiki pages are LLM-maintained artifacts, not repo prose.
+# (docs/vault-example/ stays scanned: it is the authored parity anchor; its
+# raw/ is already exempted per-check.)
+ls_prose() {
+  git ls-files -- "$@" 2>/dev/null |
+    grep -vE '^docs/vault/|(^|/)\.obsidian/|^docs/vault-example/raw/' || true
+}
+
 # ─── Patterns ────────────────────────────────────────────────────────────────
 
 # Strings retired from the glossary in schema version 1. Banned in every
@@ -129,7 +142,7 @@ while IFS= read -r file; do
     printf '%s\n' "$hits" | sed 's/^/    /'
     BAN_HITS=$((BAN_HITS + 1))
   fi
-done < <(git ls-files -- '*.md' '*.json' '*.sh' '*.yml' '*.yaml' 2>/dev/null)
+done < <(ls_prose '*.md' '*.json' '*.sh' '*.yml' '*.yaml')
 
 if [ "$BAN_HITS" -eq 0 ]; then
   ok "no banned strings"
@@ -159,7 +172,7 @@ while IFS= read -r file; do
     printf '%s\n' "$hits" | sed 's/^/    /'
     RETIRED_HITS=$((RETIRED_HITS + 1))
   fi
-done < <(git ls-files -- '*.md' 2>/dev/null)
+done < <(ls_prose '*.md')
 
 if [ "$RETIRED_HITS" -eq 0 ]; then
   ok "no retired \`llm-wiki\` skill references"
@@ -180,7 +193,7 @@ while IFS= read -r file; do
     printf '%s\n' "$hits" | sed 's/^/    /'
     SEO_HITS=$((SEO_HITS + 1))
   fi
-done < <(git ls-files -- '*.md' '*.json' '*.sh' '*.yml' '*.yaml' 2>/dev/null)
+done < <(ls_prose '*.md' '*.json' '*.sh' '*.yml' '*.yaml')
 
 if [ "$SEO_HITS" -eq 0 ]; then
   ok "no SEO-register leaks"
@@ -204,7 +217,7 @@ while IFS= read -r file; do
     printf '%s\n' "$hits" | sed 's/^/    /'
     LAYER_HITS=$((LAYER_HITS + 1))
   fi
-done < <(git ls-files -- '*.md' 2>/dev/null)
+done < <(ls_prose '*.md')
 
 if [ "$LAYER_HITS" -eq 0 ]; then
   ok "layer references are capitalized"
@@ -232,7 +245,7 @@ while IFS= read -r file; do
     printf '%s\n' "$hits" | sed 's/^/    /'
     BARE_HITS=$((BARE_HITS + 1))
   fi
-done < <(git ls-files -- '*.md' 2>/dev/null)
+done < <(ls_prose '*.md')
 
 if [ "$BARE_HITS" -eq 0 ]; then
   ok "all slash commands use the claude-wiki-pages: namespace"
@@ -245,7 +258,7 @@ fi
 header "Slash-command references"
 
 # Collect every unique /claude-wiki-pages:<name> referenced anywhere in markdown.
-REFS=$(git ls-files -- '*.md' 2>/dev/null |
+REFS=$(ls_prose '*.md' |
   xargs grep -ohE '/claude-wiki-pages:[a-z][a-z0-9-]+' 2>/dev/null |
   sort -u || true)
 

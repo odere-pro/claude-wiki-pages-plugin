@@ -39,6 +39,11 @@ exclude_path = [
   # As-emitted ADR-0011 measured-run evidence — model output is data, not
   # prose; links inside it are not ours to fix.
   "tests/eval/runs",
+  # Vault content is data, not project prose: the dogfood vault, Obsidian
+  # config trees, and raw documents are never grouped or indexed by the
+  # normalization gates.
+  "docs/vault",
+  ".obsidian",
 ]
 
 # Only scan markdown and YAML for links in CI

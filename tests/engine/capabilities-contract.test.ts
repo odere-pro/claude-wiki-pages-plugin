@@ -38,7 +38,8 @@ import { join } from "node:path";
 // Updating it requires a deliberate one-line edit here — that is the point of
 // pinning it. The golden list reflects the CAPABILITIES table as committed
 // (P3.1 + P3.3 landed: 12 implemented + 3 planned = 15 verbs; ADR-0018 added
-// `route` → 13 implemented + 3 planned = 16 verbs total).
+// `route` → 13 implemented; the planned `checkpoint` verb shipped as
+// `snapshot` → 14 implemented + 2 planned = 16 verbs total).
 
 const GOLDEN_IMPLEMENTED = [
   "verify",
@@ -54,9 +55,10 @@ const GOLDEN_IMPLEMENTED = [
   "capabilities",
   "ontology",
   "route",
+  "snapshot",
 ] as const;
 
-const GOLDEN_PLANNED = ["index", "link-suggest", "checkpoint"] as const;
+const GOLDEN_PLANNED = ["index", "link-suggest"] as const;
 
 const GOLDEN_ALL = [...GOLDEN_IMPLEMENTED, ...GOLDEN_PLANNED] as const;
 
@@ -108,6 +110,9 @@ describe("(a) IMPLEMENTED verbs — every verb exits != 2 (live dispatch branch)
     ontology: ["--json"],
     // route reads config (not a vault); reachability is passed as flags.
     route: ["--json"],
+    // snapshot requires a subcommand (pre|post); without one it exits 2 by
+    // design (usage error), which is NOT a missing dispatch branch.
+    snapshot: ["pre", "--json", "--target", "/nonexistent"],
   };
 
   for (const verb of GOLDEN_IMPLEMENTED) {
@@ -187,12 +192,12 @@ describe("(c) capabilities --json verb set set-equals the golden list", () => {
 // equality tests above.
 
 describe("golden list completeness — count guards", () => {
-  test("GOLDEN_IMPLEMENTED contains exactly 13 verbs", () => {
-    expect(GOLDEN_IMPLEMENTED).toHaveLength(13);
+  test("GOLDEN_IMPLEMENTED contains exactly 14 verbs", () => {
+    expect(GOLDEN_IMPLEMENTED).toHaveLength(14);
   });
 
-  test("GOLDEN_PLANNED contains exactly 3 verbs", () => {
-    expect(GOLDEN_PLANNED).toHaveLength(3);
+  test("GOLDEN_PLANNED contains exactly 2 verbs", () => {
+    expect(GOLDEN_PLANNED).toHaveLength(2);
   });
 
   test("GOLDEN_ALL contains exactly 16 verbs", () => {

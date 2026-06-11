@@ -3,7 +3,7 @@ name: engine-api
 description: >
   The LLM-facing contract for the deterministic claude-wiki-pages Bun engine —
   how ANY agent should call it. Documents each subcommand (verify, fix, heal,
-  doctor, config, migrate, search; plus planned index/link-suggest), its `--json` output shape, exit
+  doctor, config, migrate, search, snapshot; plus planned index/link-suggest), its `--json` output shape, exit
   codes, and when to call it on a write-path. Trigger when an agent or user
   asks "how do I call the engine", "what does the engine return", "how do I
   verify/heal programmatically", or invokes /claude-wiki-pages:engine-api. This
@@ -183,6 +183,33 @@ checkpoint); `propose reject --file <p>` deletes it under a checkpoint.
 }
 ```
 
+### `snapshot` — git-bound an LLM write phase
+
+`snapshot pre` checkpoints the vault before a write phase; `snapshot post`
+commits whatever the phase wrote. Use it around any write phase that happens
+OUTSIDE the engine (ingest, curator judgment fixes, polish) — engine verbs
+checkpoint themselves. Prefer the wrapper
+`bash "${CLAUDE_PLUGIN_ROOT}/scripts/snapshot.sh" <pre|post> --target <vault> [--label <msg>]`,
+which falls back to inline git when Bun is absent. Honors `gitCheckpoint.mode`
+(`off` → no-op) and is pathspec-scoped to the vault. **Always exits 0 — it
+reports, it never gates.**
+
+```json
+{
+  "command": "snapshot",
+  "sub": "post",
+  "vault": "…",
+  "mode": "commit",
+  "sha": "<sha>",
+  "skipped": false,
+  "reason": null,
+  "message": "snapshot post: committed <sha> (ingest …; rollback: git revert <sha>)"
+}
+```
+
+A clean vault on `post` returns `skipped: true, reason: "clean"` — expected
+after an idempotent pass, not an error.
+
 ### `capabilities` — agent-facing verb-surface manifest (ADR-0015)
 
 `capabilities --json` returns the engine's own dispatch table as a machine-readable
@@ -210,9 +237,11 @@ prose or guessing. The output is deterministic (same call, same result, every ru
       { "name": "backlog", "status": "implemented" },
       { "name": "propose", "status": "implemented" },
       { "name": "capabilities", "status": "implemented" },
+      { "name": "ontology", "status": "implemented" },
+      { "name": "route", "status": "implemented" },
+      { "name": "snapshot", "status": "implemented" },
       { "name": "index", "status": "planned" },
-      { "name": "link-suggest", "status": "planned" },
-      { "name": "checkpoint", "status": "planned" }
+      { "name": "link-suggest", "status": "planned" }
     ]
   }
 }
@@ -230,7 +259,7 @@ defined here (agent-facing skill) and must not appear in user-facing onboarding.
 ### Planned (return `{status:"not-implemented"}` until shipped)
 
 `index` (deterministic page/entity index), `link-suggest <page>` (exact auto-link
-candidates), `checkpoint`.
+candidates).
 
 ## Graceful degradation for planned verbs
 
@@ -242,7 +271,10 @@ user — substitute the approved fallback listed below, then continue.
 | -------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `index`        | `{status:"not-implemented"}` | Read `wiki/index.md` directly (the hand-maintained top-level catalog). Use `Glob` to enumerate `wiki/**/*.md` when a full page list is needed; never synthesize an index in memory.                                                      |
 | `link-suggest` | `{status:"not-implemented"}` | Use `grep`/`Glob` over `wiki/` to find typed wikilinks whose `[[title]]` matches the target term. Exact-string match only — no fuzzy or similarity search.                                                                               |
-| `checkpoint`   | `{status:"not-implemented"}` | Run `git commit` directly in the vault directory under a descriptive message (e.g. `chore: manual checkpoint — <reason>`). Confirm the vault is a git repo (`git rev-parse --git-dir`) before committing; surface an error if it is not. |
+
+(The former planned `checkpoint` verb shipped as `snapshot`; its degradation
+path lives inside `scripts/snapshot.sh` itself — the wrapper falls back to
+inline git when Bun is absent, so callers never need a manual fallback.)
 
 Confirm which verbs are currently implemented before calling a planned one:
 `bash scripts/engine.sh capabilities --json` returns `.manifest.verbs[]` with

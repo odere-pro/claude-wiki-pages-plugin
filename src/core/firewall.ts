@@ -45,8 +45,13 @@ export interface FirewallDecision {
   readonly mode: FirewallMode;
 }
 
-/** Translate a simple glob (`*` within a segment, `**` across segments) to a RegExp. */
-function globToRegExp(glob: string): RegExp {
+/**
+ * Translate a simple glob (`*` within a segment, `**` across segments) to a
+ * RegExp. Exported as the ONE glob dialect — backlog's wired-source filter
+ * reuses it so no second dialect appears (bash twin: scripts/firewall.sh
+ * glob_to_regex, pinned by gate-11).
+ */
+export function globToRegExp(glob: string): RegExp {
   let re = "";
   for (let i = 0; i < glob.length; i++) {
     const c = glob[i];

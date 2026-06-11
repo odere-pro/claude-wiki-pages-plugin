@@ -75,8 +75,22 @@ else
   [ "$PENDING" -gt 0 ] && NEEDS="true" || NEEDS="false"
 fi
 
+EMITTED=0
 if [ "$NEEDS" = "true" ]; then
   echo "CATCHUP: ${PENDING} pending source(s), ${DAYS} day(s) since lint — run /claude-wiki-pages:wiki to process the backlog."
-  [ "$NOW" -ne 0 ] && printf '%s' "$NOW" >"$STAMP" 2>/dev/null
+  EMITTED=1
 fi
+
+# Wired-source notice (informational; sync is manual by design, so it never
+# flips needsCatchup). Engine-only: the degraded no-bun probe skips it.
+if [ -n "$JSON" ] && command -v jq >/dev/null 2>&1; then
+  while IFS='|' read -r wname wcount; do
+    [ -z "$wname" ] && continue
+    [ "${wcount:-0}" -gt 0 ] || continue
+    echo "SYNC: wired source \"${wname}\" has ${wcount} changed doc(s) — run /claude-wiki-pages:sync to snapshot them."
+    EMITTED=1
+  done < <(printf '%s' "$JSON" | jq -r '(.wiredChanges // [])[] | "\(.name)|\(.changed)"' 2>/dev/null)
+fi
+
+[ "$EMITTED" -eq 1 ] && [ "$NOW" -ne 0 ] && printf '%s' "$NOW" >"$STAMP" 2>/dev/null
 exit 0

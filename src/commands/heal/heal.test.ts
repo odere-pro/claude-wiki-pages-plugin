@@ -64,4 +64,37 @@ describe("heal", () => {
     expect(gitLog(sb.vault)).toBe(before); // no new commits
     sb.cleanup();
   });
+
+  test("gitCheckpoint.mode=off heals without any git operation", () => {
+    const sb = makeVault(DIRTY);
+    initRepo(sb.vault);
+    const before = gitLog(sb.vault);
+
+    process.env["CLAUDE_WIKI_PAGES_GITCHECKPOINT_MODE"] = "off";
+    try {
+      const report = heal({ target: sb.vault, ...opts });
+      expect(report.clean).toBe(true);
+      expect(report.errorsAfter).toBe(0);
+      expect(report.checkpoint).toBeNull();
+      expect(report.healCommit).toBeNull();
+      expect(gitLog(sb.vault)).toBe(before); // fixes applied, nothing committed
+    } finally {
+      delete process.env["CLAUDE_WIKI_PAGES_GITCHECKPOINT_MODE"];
+    }
+    sb.cleanup();
+  });
+
+  test("checkpointBranch option pins a rollback branch on top of the configured mode", () => {
+    const sb = makeVault(DIRTY);
+    initRepo(sb.vault);
+
+    const report = heal({ target: sb.vault, ...opts, checkpointBranch: true });
+    expect(report.checkpoint).not.toBeNull();
+    const branches = execFileSync("git", ["branch", "--list", "cwp/checkpoint/test-op"], {
+      cwd: sb.vault,
+      encoding: "utf8",
+    });
+    expect(branches).toContain("cwp/checkpoint/test-op");
+    sb.cleanup();
+  });
 });
