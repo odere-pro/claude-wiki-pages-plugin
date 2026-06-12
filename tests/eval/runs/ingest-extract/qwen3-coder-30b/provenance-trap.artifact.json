@@ -18,8 +18,8 @@
   },
   "reasons": "all thresholds met and zero fabricated sourced claims",
   "model_id": "ollama:qwen3-coder:30b",
-  "golden_set_sha": "ae039bfdb369f9f07582accb0618e346bec6fcde",
-  "recorded_at": "2026-06-11T11:04:56Z",
+  "golden_set_sha": "185df9735dafb9510b8ff8bc8d044fc7bdda9838",
+  "recorded_at": "2026-06-12T07:13:59Z",
   "candidate_path": "tests/eval/runs/ingest-extract/qwen3-coder-30b/provenance-trap",
   "gold_path": "tests/eval/ingest-extract/cases/provenance-trap/expected",
   "input_path": "tests/eval/ingest-extract/cases/provenance-trap/input.md"

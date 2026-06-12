@@ -1,0 +1,26 @@
+{
+  "tier": "ingest-extract",
+  "verdict": "fail",
+  "schema_validity": 0.0000,
+  "claim_source_fidelity": 0.0000,
+  "frontmatter_field_accuracy": 1.0000,
+  "dedup_correctness": 0.0000,
+  "fabricated_sourced_claims": 0,
+  "over_citation": 0,
+  "dropped_claims": 3,
+  "gold_claims": 3,
+  "thresholds": {
+    "schema_validity": 0.98,
+    "claim_source_fidelity": 0.97,
+    "frontmatter_field_accuracy": 0.90,
+    "dedup_correctness": 0.90,
+    "fabricated_sourced_claims_floor": 0
+  },
+  "reasons": "schema_validity 0.0000 < 0.98; claim_source_fidelity 0.0000 < 0.97; dedup_correctness 0.0000 < 0.90; ",
+  "model_id": "ollama:qwen3-coder:30b#baseline-arm",
+  "golden_set_sha": "185df9735dafb9510b8ff8bc8d044fc7bdda9838",
+  "recorded_at": "2026-06-12T07:14:01Z",
+  "candidate_path": "tests/eval/runs/ingest-extract/qwen3-coder-30b-baseline/provenance-trap",
+  "gold_path": "tests/eval/ingest-extract/cases/provenance-trap/expected",
+  "input_path": "tests/eval/ingest-extract/cases/provenance-trap/input.md"
+}
