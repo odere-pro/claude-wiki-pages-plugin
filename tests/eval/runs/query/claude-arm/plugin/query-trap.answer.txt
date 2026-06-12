@@ -1,0 +1,5 @@
+===ANSWER===
+The provided pages do not state how many GitHub stars Pandoc has, so I cannot answer this question from the wiki.
+===COVERAGE: none===
+===CITATIONS===
+===END===

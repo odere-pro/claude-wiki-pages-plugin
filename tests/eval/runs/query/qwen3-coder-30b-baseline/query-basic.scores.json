@@ -1,0 +1,5 @@
+{
+  "verdict": "unscorable",
+  "scorer_rc": 2,
+  "reason": "ERROR: parse_answer: malformed citation row: [\"Pandoc — Universal Document Converter\"] | \"Pandoc is a free and open-source document converter written in Haskell by John MacFarlane.\""
+}

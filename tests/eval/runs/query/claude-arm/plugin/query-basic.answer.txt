@@ -1,0 +1,6 @@
+===ANSWER===
+Pandoc was written by John MacFarlane, and it is written in Haskell.
+===COVERAGE: full===
+===CITATIONS===
+[[Pandoc]] | "Pandoc is a free and open-source document converter written in Haskell by John MacFarlane."
+===END===

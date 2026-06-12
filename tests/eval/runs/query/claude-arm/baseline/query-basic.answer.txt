@@ -1,0 +1,6 @@
+===ANSWER===
+Pandoc was written by John MacFarlane, and it is written in the Haskell programming language.
+===COVERAGE: full===
+===CITATIONS===
+[[Pandoc]] | "Written in Haskell by John MacFarlane."
+===END===

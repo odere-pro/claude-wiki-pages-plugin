@@ -628,3 +628,24 @@ _make_overciting_candidate() { # $1 = dest dir
     --input "$BATS_TEST_TMPDIR/no-such-input.md" --json
   [ "$status" -eq 2 ]
 }
+
+# ---------------------------------------------------------------------------
+# Scaffolding-ablation robustness (ADR-0020): a baseline-arm-shaped candidate
+# (well-organized notes, NO frontmatter at all) must be a MEASURED FAIL (rc 1
+# with a full scorecard), never unscorable (rc 2) — otherwise the ablation
+# cannot put a number on what the scaffolding buys.
+# ---------------------------------------------------------------------------
+
+@test "eval-ingest-extract: a frontmatter-less baseline-shaped candidate scores rc 1, never rc 2" {
+  run bash "$DRIVER" --score "$CASES/extract-basic/candidate-baseline-shape" \
+    --gold "$CASES/extract-basic/expected" \
+    --input "$CASES/extract-basic/input.md" --json
+
+  assert_status 1
+  echo "$output" | jq -e '.verdict == "fail"'
+  echo "$output" | jq -e '.schema_validity < 0.98'
+  # No source_quotes at all → nothing sourced → the floor is VACUOUSLY clean.
+  # Baseline headline metrics are schema/fidelity, not the floor (ADR-0020).
+  echo "$output" | jq -e '.fabricated_sourced_claims == 0'
+  echo "$output" | jq -e '.claim_source_fidelity < 0.97'
+}
