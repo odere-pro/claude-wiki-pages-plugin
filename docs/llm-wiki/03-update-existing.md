@@ -83,7 +83,7 @@ Sometimes you know exactly what to change (fix a fact, add a related link):
 3. Update `updated:` to today's date (`YYYY-MM-DD`).
 4. If new sources back the change, append them to `sources:` as `[[wikilinks]]`.
 
-The `post-wiki-write.sh` hook will remind you to touch the per-folder MOC (`_index.md`) and the vault MOC (`wiki/index.md`) if either needs updating.
+The `post-wiki-write.sh` hook will remind you to touch the per-folder MOC (the folder note) and the vault MOC (`wiki/index.md`) if either needs updating.
 
 ## DRY rules for new pages
 

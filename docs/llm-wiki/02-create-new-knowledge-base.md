@@ -77,7 +77,7 @@ It probes the vault, sees the new file in `raw/`, and dispatches to the ingest p
 1. Reads `vault/CLAUDE.md` (the schema) before reading the source.
 2. Dispatches by file extension (text vs image; PDFs are deferred — export to markdown first).
 3. Writes a source summary in `wiki/_sources/`.
-4. Extracts entities and concepts into the correct topic folder (creates the folder + `_index.md` if missing — e.g., a source about Obsidian lands under `tools/`, a source about the LLM Wiki pattern lands under `patterns/`).
+4. Extracts entities and concepts into the correct topic folder (creates the folder + its folder note if missing — e.g., a source about Obsidian lands under `tools/`, a source about the LLM Wiki pattern lands under `patterns/`).
 5. Updates `wiki/index.md` and appends to `wiki/log.md`.
 6. On completion, the `SubagentStop` gate runs `verify-ingest.sh` and a lint pass.
 

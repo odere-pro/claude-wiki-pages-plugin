@@ -27,7 +27,7 @@ Agents chain skills and tools. `claude-wiki-pages-orchestrator-agent` is the use
 
 ### 4. Orchestration
 
-Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/claude-wiki-pages:wiki`); it delegates to the orchestrator agent. `commands/doctor.md` wraps `scripts/doctor.sh` for environment health (`/claude-wiki-pages:doctor`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update `_index.md` and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
+Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/claude-wiki-pages:wiki`); it delegates to the orchestrator agent. `commands/doctor.md` wraps `scripts/doctor.sh` for environment health (`/claude-wiki-pages:doctor`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update the folder note and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
 
 ## Why four layers
 
@@ -63,7 +63,7 @@ claude-wiki-pages/
 5. Layer 4 hooks fire: `validate-frontmatter.sh`, `check-wikilinks.sh`, `validate-attachments.sh`.
 6. Skill extracts entities/concepts, updates existing wiki pages, creates new ones in topic folders.
 7. Every touched page gets `sources` updated, `update_count` incremented, `updated` date set.
-8. `_index.md` files in touched folders get new `children` entries.
+8. Folder notes in touched folders get new `children` entries.
 9. `wiki/index.md` gets new pages.
 10. `wiki/log.md` gets a `## [YYYY-MM-DD] ingest | Source Title` entry.
 11. `SubagentStop` hook runs `verify-ingest.sh` — the human sees any drift immediately.

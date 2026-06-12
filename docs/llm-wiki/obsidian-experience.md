@@ -1,6 +1,6 @@
 # Obsidian-side experience
 
-When you switch to Obsidian after running `/claude-wiki-pages:wiki`, the vault should already look right — graph view colored by topic, `wiki/index.md` reflecting current page counts, every per-folder `_index.md` matching its actual children. You should never have to type a second command to make Obsidian "catch up."
+When you switch to Obsidian after running `/claude-wiki-pages:wiki`, the vault should already look right — graph view colored by topic, `wiki/index.md` reflecting current page counts, every per-folder folder note matching its actual children. You should never have to type a second command to make Obsidian "catch up."
 
 This page describes how that happens, what the polish-agent does for you, and what to check if something looks off.
 
@@ -26,7 +26,7 @@ If `obsidian-cli` is not installed (the agent depends on it for the `obsidian ev
 
 ### 2. Index refresh
 
-`wiki/index.md` is regenerated from the per-folder `_index.md` files. Each top-level topic gets a line listing its current page count and last-updated date, in stable alphabetical order:
+`wiki/index.md` is regenerated from the per-folder folder notes. Each top-level topic gets a line listing its current page count and last-updated date, in stable alphabetical order:
 
 ```
 - [[Patterns — Index]] — 12 pages, last updated 2026-05-02
@@ -39,10 +39,10 @@ The agent only advances `updated:` in the frontmatter when the body actually cha
 
 ### 3. Per-folder MOC consistency
 
-For every folder containing an `_index.md`:
+For every folder containing a folder note (or a legacy `_index.md`):
 
 - The `children:` field is reconciled against actual `.md` siblings. Any sibling not yet in `children:` is appended.
-- The `child_indexes:` field is reconciled against actual subfolder `_index.md` files. Any subfolder not yet in `child_indexes:` is appended.
+- The `child_indexes:` field is reconciled against actual subfolder folder notes. Any subfolder not yet in `child_indexes:` is appended.
 
 **Polish never deletes**. A page that no longer exists may be a temporary state during a manual refactor. The curator agent — not polish — owns explicit removal flows. If you delete a page outside of the curator's workflow, polish preserves the orphaned `children:` entry; running curator picks up the cleanup.
 
@@ -71,10 +71,10 @@ POLISH:
 
 ### `wiki/index.md` page count looks wrong
 
-- Polish counts `*.md` files in each topic folder excluding `_index.md`. If a count looks low, verify the missing files actually exist in that folder (a `git status` may show untracked candidates).
+- Polish counts `*.md` files in each topic folder excluding the folder note (and any legacy `_index.md`). If a count looks low, verify the missing files actually exist in that folder (a `git status` may show untracked candidates).
 - Polish does not count files under `_synthesis/` or `_sources/` — those are special folders. If you expected them in the count, you have hit polish's design intent: synthesis and source pages are accounted for in the `## Synthesis` and `## Sources` sections of `wiki/index.md`, not under their topic folder lines.
 
-### `_index.md` `children:` field has entries for pages that no longer exist
+### The folder note's `children:` field has entries for pages that no longer exist
 
 - This is by design — polish is append-only. Run `/claude-wiki-pages:wiki <topic>` (or `/claude-wiki-pages:fix` directly) to dispatch the curator agent, which owns explicit removal flows and will prune the stale entry with your approval.
 

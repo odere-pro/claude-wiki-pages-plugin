@@ -2,7 +2,7 @@
 
 ## Schema
 
-`schema_version: 2`
+`schema_version: 3`
 
 This file is the authoritative schema for any wiki operation. Skills and agents override their own defaults when those defaults conflict with the rules below.
 
@@ -36,13 +36,13 @@ vault/
 │   ├── _sources/                # one summary per ingested source
 │   ├── _synthesis/              # cross-topic analysis
 │   ├── <topic-a>/               # first-level topic cluster
-│   │   ├── _index.md            # index for this branch
+│   │   ├── <topic-a>.md         # folder note — index for this branch
 │   │   ├── <entity-or-concept>.md
 │   │   └── <subtopic>/          # nested subtopic
-│   │       ├── _index.md
+│   │       ├── <subtopic>.md    # folder note
 │   │       └── <entity-or-concept>.md
 │   └── <topic-b>/
-│       ├── _index.md
+│       ├── <topic-b>.md         # folder note
 │       └── ...
 ├── _proposed/                   # optional staging for drafts awaiting review (schema v2)
 ├── output/                      # optional scratch space for deliverables (git-ignored)
@@ -56,13 +56,18 @@ All paths in this document are relative to `vault/`.
 
 The wiki is organized as a **topic tree**, not by note type.
 Each topic gets a folder under `wiki/`. Subtopics nest as child folders.
-Every folder contains a `_index.md` that lists and links all notes in that folder and its children.
+Every folder contains a folder note that lists and links all notes in that folder and its children.
+
+> [!important] Folder notes (normative)
+> The per-folder index is a **folder note** named exactly after its folder (`wiki/<topic>/<topic>.md`, `type: index`); the root index is always `wiki/index.md`; a legacy `_index.md` is accepted but flagged `legacy-index-filename` at schema_version 3 (remediation: `bash scripts/engine.sh migrate --write`).
+>
+> The hierarchy fields `parent:`, `children:`, and `child_indexes:` MUST be quoted `"[[wikilink]]"` values — a plain title string produces no graph edge and is a lint finding.
 
 - Tree depth must not exceed **four levels**. Deeper nesting signals a need to split into a sibling topic.
 - When ingesting a new source, determine which topic folder the extracted concepts and entities belong to.
-- If no folder exists for a topic, create one with a `_index.md`.
-- If a concept spans two topics, place it in the more specific one and add a `[[wikilink]]` from the other topic's `_index.md`.
-- The `parent` frontmatter field links each note to its folder's `_index.md`, making the tree navigable both through folders and through wikilinks.
+- If no folder exists for a topic, create one with its folder note.
+- If a concept spans two topics, place it in the more specific one and add a `[[wikilink]]` from the other topic's folder note.
+- The `parent` frontmatter field links each note to its folder's folder note, making the tree navigable both through folders and through wikilinks.
 - Two special folders break the topic pattern:
   - `wiki/_sources/` holds source summaries (one per ingested source)
   - `wiki/_synthesis/` holds cross-topic analysis
@@ -74,8 +79,8 @@ Every note in the vault carries YAML frontmatter. Type lives in frontmatter, not
 
 Nine allowed types: `source`, `entity`, `concept`, `topic`, `project`, `synthesis`, `index`, `manifest`, `log`. (`vault/output/` files are plain markdown — no frontmatter required, not tracked by this schema.)
 
-> [!note] Schema version 2
-> `topic`, `project`, and `manifest` were added in schema_version 2, along with the optional claim-level provenance fields `source_quotes` and `derived` (available on every typed page). A vault that declares `schema_version: 1` remains valid — version 2 is a strict superset. Upgrade an existing vault with `bash scripts/engine.sh migrate --target <vault> --write`.
+> [!note] Schema versions 2 and 3
+> `topic`, `project`, and `manifest` were added in schema_version 2, along with the optional claim-level provenance fields `source_quotes` and `derived` (available on every typed page). Schema_version 3 changes only the per-folder index convention: the index file is a **folder note** named after its folder (`wiki/<topic>/<topic>.md`) instead of `_index.md`, and the wikilink form of `parent`/`children`/`child_indexes` is normative. Vaults declaring `schema_version: 1` or `2` remain valid — each version is a strict superset of the previous one. Upgrade an existing vault with `bash scripts/engine.sh migrate --target <vault> --write`; the v2→v3 `rename-index` action renames each `_index.md` to its folder-note name and rewrites the wikilinks that pointed at it (name conflict ⇒ report + skip).
 
 The `log` type is used only for `wiki/log.md` (the operations log). It requires minimal frontmatter: `title`, `type`, `created`, `updated`. Log entries may use `[[wikilinks]]` to reference real pages (e.g., `[[LLM Wiki Pattern]]`), but when describing old/fixed/invalid link patterns, use backtick code formatting instead (e.g., `` `_index` `` not `[[_index]]`) — otherwise Obsidian creates ghost nodes in the graph.
 
@@ -174,7 +179,7 @@ confidence: 0.8
 
 ### Topic notes (type: `topic`, placed in topic folders) — schema v2
 
-A topic page is a narrative landing page for a topic — distinct from the folder's `_index.md` (which is a mechanical Map of Content listing children). Use a topic page when a topic needs a curated overview that orients the reader before they descend into the entity/concept pages. Optional; not every folder needs one.
+A topic page is a narrative landing page for a topic — distinct from the folder's folder note (which is a mechanical Map of Content listing children; the folder note keeps `type: index`, never `type: topic`). Use a topic page when a topic needs a curated overview that orients the reader before they descend into the entity/concept pages. Optional; not every folder needs one.
 
 ```yaml
 ---
@@ -245,9 +250,9 @@ confidence: 0.7
 ---
 ```
 
-### Index notes (`wiki/*/_index.md`)
+### Index notes — folder notes (`wiki/<topic>/<topic>.md`)
 
-Every topic folder contains a `_index.md` that serves as the navigable index for that branch of the tree.
+Every topic folder contains a **folder note** — a note named exactly after its folder (filename stem == parent directory name, `type: index`) — that serves as the navigable index for that branch of the tree. The root index is always `wiki/index.md`. A legacy `_index.md` is accepted but flagged `legacy-index-filename` at schema_version 3 (run `bash scripts/engine.sh migrate --write` to rename it).
 
 ```yaml
 ---
@@ -265,6 +270,8 @@ updated: 2026-04-16
 ```
 
 **`aliases`** — every index must include aliases that reflect the topic it represents. Use the topic name in common variations (lowercase slug, title case, abbreviations). This ensures wikilinks resolve when other pages reference the topic by any name variant.
+
+**`children` / `child_indexes`** — MUST be quoted `"[[wikilink]]"` values, like `parent`; a plain title string produces no graph edge. On the root `wiki/index.md`, `child_indexes` entries are filename links to the folder notes — e.g. `"[[agents]]"`, not a prose title — so the root MOC's edges land on the real index nodes.
 
 ### Source manifest (`wiki/_sources/manifest.md`) — schema v2
 
@@ -291,13 +298,21 @@ Because `_proposed/` is a sibling of `wiki/`, drafts are **outside every wiki-sc
 
 ### Graph coloring
 
-Topic branches are color-coded in Obsidian's graph view via the internal graph plugin API. The `/claude-wiki-pages:obsidian-graph-colors` skill manages this programmatically using `obsidian eval`. Each topic folder gets a `path:` query mapped to a unique color. No frontmatter field needed — colors are applied at the Obsidian graph engine level.
+Topic branches are color-coded in Obsidian's graph view via the internal graph plugin API. The `/claude-wiki-pages:obsidian-graph-colors` skill manages this programmatically using `obsidian eval`. No frontmatter field needed — colors are applied at the Obsidian graph engine level.
+
+The canonical group order (first match wins, top-down) is **topics → specials → layers**:
+
+1. **Topics** — one `path:wiki/<topic>` query per top-level topic folder, each a unique color. Folder notes inherit their topic's color (there is no `file:_index` catch-all group).
+2. **Specials** — `_sources` gray, `_synthesis` yellow.
+3. **Layers** — `path:raw` green, `path:wiki` blue, `path:_templates` orange.
+
+When `obsidian eval` is unavailable (no CLI, no running Obsidian), the skill's documented HEADLESS FALLBACK writes `.obsidian/graph.json` directly, touching only `colorGroups`/`collapse-color-groups`. Trade-off: a running Obsidian can clobber a direct file write with its in-memory state — restart Obsidian after a headless write.
 
 When creating a new top-level topic folder, run `/claude-wiki-pages:obsidian-graph-colors` (or the ingest pipeline handles it automatically in step 1.7). The `claude-wiki-pages-curator-agent` agent also checks for missing color groups and applies them.
 
 ### Field: `parent` placeholder form
 
-Every non-root page has a `parent` wikilink that points to the containing folder's `_index.md`. Use the actual index title when it is known (e.g., `"[[Patterns — Index]]"`, `"[[Tools — Index]]"`). Use `"[[Parent Index]]"` only as a placeholder in templates.
+Every non-root page has a `parent` wikilink that points to the containing folder's folder note. Use the actual index title when it is known (e.g., `"[[Patterns — Index]]"`, `"[[Tools — Index]]"`). Use `"[[Parent Index]]"` only as a placeholder in templates.
 
 ### Output files (`output/`) — not part of the schema
 
@@ -311,7 +326,7 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 - Query reads `entity`, `concept`, `topic`, `project`, `synthesis`.
 - Lint scans all wiki types. Files in `vault/output/` are out of scope.
 
-**`parent`** links a note to its folder's `_index.md`. Makes the tree navigable through wikilinks, not just the filesystem. Every note except top-level indexes must have a `parent`.
+**`parent`** links a note to its folder's folder note. Makes the tree navigable through wikilinks, not just the filesystem. Every note except top-level indexes must have a `parent`. Like `children` and `child_indexes`, the value MUST be a quoted `"[[wikilink]]"` — a plain title string produces no graph edge.
 
 **`path`** records the folder path relative to `wiki/`. Enables Dataview queries scoped to a subtree.
 
@@ -386,7 +401,7 @@ When processing a new source from `raw/`:
 
 1. Create a source summary in `wiki/_sources/` with correct frontmatter.
 2. Extract entities and concepts from the source.
-3. Determine which topic folder each entity/concept belongs to. Create the folder and `_index.md` if it does not exist.
+3. Determine which topic folder each entity/concept belongs to. Create the folder and its folder note (`wiki/<topic>/<topic>.md`) if it does not exist.
 4. Search the wiki for existing pages on each entity/concept.
 5. **Update existing pages rather than creating duplicates.** This is the entity distribution model — ingesting one source rewrites/extends multiple existing pages rather than creating one summary.
 6. Place new pages in the correct topic folder. Set the `parent` and `path` frontmatter fields.
@@ -394,18 +409,19 @@ When processing a new source from `raw/`:
 8. Increment `update_count` on every page touched.
 9. Update `updated` date on every page touched.
 10. Update `confidence`: reinforce if confirming existing claims, weaken if contradicting.
-11. Update the relevant `_index.md` files (add new pages to `children`, add new child folders to `child_indexes`).
+11. Update the relevant folder notes (add new pages to `children`, add new child folders to `child_indexes` — quoted `"[[wikilink]]"` values).
 12. Update `wiki/index.md` with any new pages.
 13. Append to `wiki/log.md`: `## [YYYY-MM-DD] ingest | Source Title`
 
 ## Query rules
 
 1. Read `wiki/index.md` first to find relevant pages.
-2. For topic-scoped queries, start from the relevant `_index.md` and traverse downward.
+2. For topic-scoped queries, start from the relevant folder note and traverse downward.
 3. Read matching pages. Follow wikilinks to gather context.
 4. Synthesize an answer with `[[wikilink]]` citations to specific wiki pages.
-5. If the answer is valuable and novel, offer to file it as a new synthesis page in `wiki/_synthesis/`.
-6. Append to `wiki/log.md`: `## [YYYY-MM-DD] query | Question summary`
+5. End every answer with a `## Sources` section — numbered, research-paper style: one entry per consulted wiki page, as a `[[wikilink]]` plus the raw source file path(s) from that page's `sources:` frontmatter. If no pages were consulted, say so explicitly instead of omitting the section.
+6. If the answer is valuable and novel, offer to file it as a new synthesis page in `wiki/_synthesis/`.
+7. Append to `wiki/log.md`: `## [YYYY-MM-DD] query | Question summary`
 
 ## Lint rules
 
@@ -418,8 +434,10 @@ Check for:
 - **Missing pages** — concepts mentioned in prose but lacking their own page.
 - **Missing frontmatter fields** — every field in the schema must be present.
 - **Low confidence** — `confidence` below 0.5 (flag for review or removal).
-- **Index consistency** — every note in a folder is listed in its `_index.md`; every `_index.md` links to its parent index.
-- **Index aliases** — every `_index.md` must have `aliases` reflecting the topic (slug, title case, abbreviations).
+- **Index consistency** — every note in a folder is listed in its folder note; every folder note links to its parent index.
+- **Index aliases** — every folder note must have `aliases` reflecting the topic (slug, title case, abbreviations).
+- **Legacy index filename** — a `_index.md` in a schema_version 3 vault (verify WARN `legacy-index-filename`; remediation: run `bash scripts/engine.sh migrate --write`).
+- **Plain-string hierarchy links** — `parent`/`children`/`child_indexes` values that are not quoted `"[[wikilink]]"`s (no graph edge is produced).
 - **Missing parent/path** — notes with missing or incorrect `parent`/`path` fields.
 - **Excessive nesting** — folders deeper than four levels (signal to refactor).
 - **Index consistency** — `wiki/index.md` matches actual wiki contents.
@@ -456,7 +474,7 @@ These rules keep pages scannable in Obsidian and in plain-markdown viewers. They
 - Filenames use kebab-case: `article-title-here.md`
 - Page titles inside files use Title Case: `# Article Title Here`
 - Wikilinks reference page titles: `[[Entity Name]]`
-- Index files are always named `_index.md`
+- The per-folder index is a folder note named exactly after its folder: `<topic>.md` inside `wiki/<topic>/`. The root index is always `wiki/index.md`. (`_index.md` is the legacy pre-v3 name — accepted, but flagged `legacy-index-filename`.)
 - Source summaries match source title in kebab-case
 
 ## What does NOT belong in the wiki
@@ -482,7 +500,7 @@ Before writing an ADR, proposal, or making a decision, query the wiki with a cha
 
 ## Scaling milestones
 
-- **0–50 pages**: `index.md` plus `_index.md` per folder is sufficient. Focus on frontmatter consistency.
+- **0–50 pages**: `index.md` plus a folder note per folder is sufficient. Focus on frontmatter consistency.
 - **50–200 pages**: Install obsidian-wikilink-types for typed links. Run synthesize for cross-branch connections.
 - **200–500 pages**: Install qmd for local search. Confidence decay and stale detection become essential. Prune folders with 30+ notes.
 - **500+ pages**: Consider splitting into multiple vaults by research domain.
@@ -505,8 +523,8 @@ These skills were written for a **flat** directory layout: `wiki/sources/`, `wik
 | `sources` as plain strings                                    | `sources` as `[[wikilinks]]`                 | Always use wikilink syntax in the `sources` field                                |
 | No `type` field                                               | `type` required on every page                | Always include `type` in frontmatter                                             |
 | No `parent` / `path` fields                                   | Required on all pages except top-level index | Always set `parent` and `path`                                                   |
-| No `_index.md` files                                          | Required in every topic folder               | Create `_index.md` when creating a topic folder                                  |
-| No `aliases` on indexes                                       | Required on every `_index.md`                | Add topic name variants (slug, title case, abbreviations)                        |
+| No per-folder index files                                     | A folder note in every topic folder          | Create the folder note (`wiki/<topic>/<topic>.md`) when creating a topic folder  |
+| No `aliases` on indexes                                       | Required on every folder note                | Add topic name variants (slug, title case, abbreviations)                        |
 
 When running `/claude-wiki-pages:ingest`: follow the 13-step ingest rules in this document, not the skill's simpler defaults. The skill provides the workflow structure; this document provides the schema.
 
@@ -517,7 +535,7 @@ When running `/claude-wiki-pages:lint`: check everything the skill checks PLUS t
 These skills were written for **project-folder vaults** (folders with `README.md` files), not wiki-structured vaults. Use them with these overrides:
 
 - **synthesize**: Write output to `wiki/_synthesis/`, not the vault root. Use the synthesis frontmatter schema from this document, not the skill's default frontmatter.
-- **index**: Use only for generating an overview of the full topic tree. Write output to `wiki/`, not the vault root. The per-folder `_index.md` files are maintained by the ingest workflow, not by this skill.
+- **index**: Use only for generating an overview of the full topic tree. Write output to `wiki/`, not the vault root. The per-folder folder notes are maintained by the ingest workflow, not by this skill.
 
 ### obsidian-markdown, obsidian-bases, obsidian-cli
 

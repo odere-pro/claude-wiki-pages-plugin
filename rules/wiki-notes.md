@@ -33,10 +33,10 @@ Read `vault/CLAUDE.md` for the full frontmatter schema per type before creating 
 - Kebab-case: `article-title-here.md`.
 - Forbidden characters in filenames: `: * ? " < > | # ^ [ ] \`.
 - No dotfiles. Max 200 characters.
-- Index files are always `_index.md` in topic folders; the root index is `wiki/index.md`.
+- The per-folder index is a folder note named exactly after its folder (`wiki/<topic>/<topic>.md`, `type: index`); the root index is `wiki/index.md`. A legacy `_index.md` is accepted but flagged `legacy-index-filename` at schema_version 3.
 
 ## After creating or editing a wiki page
 
 - Update `wiki/index.md` if a new page was created.
-- Update the folder's `_index.md` if the page is in a topic folder.
+- Update the folder's folder note if the page is in a topic folder.
 - Append to `wiki/log.md` for ingest/query/lint operations.

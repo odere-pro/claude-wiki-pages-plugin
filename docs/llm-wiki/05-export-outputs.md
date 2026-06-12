@@ -22,7 +22,7 @@ Typical phrasing:
 
 The agent:
 
-1. Reads the vault MOC (`wiki/index.md`) and relevant per-folder MOCs (`_index.md`).
+1. Reads the vault MOC (`wiki/index.md`) and relevant per-folder MOCs (the folder notes).
 2. Pulls the named entities, concepts, and synthesis notes.
 3. Writes plain markdown to `vault/output/<slug>.md`.
 4. Cites every claim with a `[[wikilink]]` back to its wiki page so Obsidian can resolve it.
