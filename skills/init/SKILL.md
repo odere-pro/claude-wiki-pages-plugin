@@ -78,7 +78,12 @@ The vault root is resolved in this order (first match wins):
 3. **Auto-detect** — scan the project (up to 4 levels deep) for a directory that
    contains both `CLAUDE.md` (declaring `schema_version`) and a `wiki/`
    subdirectory. Use the first match.
-4. **Default** — `docs/vault` relative to the project root.
+4. **Default** — `docs/vault` relative to the project root. (This is the
+   read-side default for existing vaults. When this wizard scaffolds a
+   **new** vault with no path named anywhere, it instead derives
+   `docs/<root-slug>-vault` from the project root folder name — see Workflow
+   step 1 — and persists it via `set-vault.sh`, so later sessions resolve it
+   at tier 2.)
 
 The shell scripts implement this via `scripts/resolve-vault.sh`. Claude should
 follow the same logic when deciding where to read or write vault files:
@@ -111,7 +116,18 @@ what is missing.
    2. `CLAUDE_WIKI_PAGES_VAULT` env var.
    3. `.claude/claude-wiki-pages/settings.json` → `current_vault_path`.
    4. Auto-detected directory (CLAUDE.md with `schema_version` + `wiki/` sibling).
-   5. Default: `docs/vault`.
+   5. Existing default: `docs/vault` — use it when it already exists
+      (back-compat; never rename an existing vault).
+   6. **New vault:** `docs/<root-slug>-vault`, the project root folder name
+      slugified (lowercase, non-alphanumerics → `-`, repeats collapsed) —
+      `default_new_vault_path` in `scripts/resolve-vault.sh`:
+      `bash -c 'source ${CLAUDE_PLUGIN_ROOT}/scripts/resolve-vault.sh && default_new_vault_path'`.
+      Obsidian displays the vault's folder name, so project `my-project/`
+      shows up as **my-project-vault** instead of a generic "vault". Step 2
+      persists the path, so every later session resolves it at tier 3 of the
+      read-side order; the multi-vault registry picks up the same folder name
+      automatically (`vault_add` defaults the registry `name` to the path's
+      basename).
 2. **Persist path (always).** Run
    `bash ${CLAUDE_PLUGIN_ROOT}/scripts/set-vault.sh <vault>`.
    This creates `<project>/.claude/claude-wiki-pages/settings.json` with defaults

@@ -24,6 +24,30 @@
 CLAUDE_WIKI_PAGES_DEFAULT_VAULT="docs/vault"
 CLAUDE_WIKI_PAGES_SETTINGS="${CLAUDE_WIKI_PAGES_SETTINGS_FILE:-.claude/claude-wiki-pages/settings.json}"
 
+# Slugify a string into a directory-name-safe form: lowercase, every run of
+# non-alphanumerics collapses to a single "-", leading/trailing "-" trimmed.
+# Usage: slugify <string>
+slugify() {
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]\{1,\}/-/g; s/^-//; s/-$//'
+}
+
+# Default path for a NEW vault: docs/<project-root-slug>-vault. Obsidian
+# displays the vault's FOLDER name, so "my-project/" scaffolds
+# docs/my-project-vault and shows up as "my-project-vault" instead of every
+# project's vault reading as a generic "vault". Used by the init wizard when
+# the user names no path and no vault exists yet; resolution tier 4 (the
+# read-side default for EXISTING vaults) stays docs/vault for back-compat.
+# Falls back to docs/vault when the slug comes out empty.
+default_new_vault_path() {
+  local slug
+  slug=$(slugify "$(basename "$(pwd)")")
+  if [ -z "$slug" ]; then
+    echo "$CLAUDE_WIKI_PAGES_DEFAULT_VAULT"
+    return 0
+  fi
+  echo "docs/${slug}-vault"
+}
+
 # Internal: extract a top-level string field from a JSON file using python3.
 # Line-independent: works on compact (single-line) and multi-line/indented JSON.
 # Usage: _settings_get_field <file> <field_name>
