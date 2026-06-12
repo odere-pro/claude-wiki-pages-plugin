@@ -977,3 +977,39 @@ sys.exit(0 if data['current_vault_path'] == '$V2' else 1)
   # Must find ZERO matches — the stale pattern must be gone.
   [ "$status" -ne 0 ] || [ -z "$output" ]
 }
+
+# ── slugify + default_new_vault_path (Obsidian-visible vault name) ──────────
+# Obsidian displays the vault's folder name; new vaults default to
+# docs/<root-slug>-vault so each project's vault is distinguishable.
+
+@test "slugify: lowercases, collapses non-alphanumerics, trims hyphens" {
+  run bash -c "source '$REPO_ROOT/scripts/resolve-vault.sh'; slugify 'My Project'"
+  assert_success
+  assert_output_contains "my-project"
+  run bash -c "source '$REPO_ROOT/scripts/resolve-vault.sh'; slugify '--Weird__Name!! 2.0--'"
+  assert_success
+  assert_output_contains "weird-name-2-0"
+}
+
+@test "default_new_vault_path: docs/<root-slug>-vault from the cwd basename" {
+  local proj="$BATS_TEST_TMPDIR/My Cool Project"
+  mkdir -p "$proj"
+  run bash -c "cd '$proj'; source '$REPO_ROOT/scripts/resolve-vault.sh'; default_new_vault_path"
+  assert_success
+  assert_output_contains "docs/my-cool-project-vault"
+}
+
+@test "default_new_vault_path: falls back to docs/vault on an empty slug" {
+  local proj="$BATS_TEST_TMPDIR/---"
+  mkdir -p "$proj"
+  run bash -c "cd '$proj'; source '$REPO_ROOT/scripts/resolve-vault.sh'; default_new_vault_path"
+  assert_success
+  assert_output_contains "docs/vault"
+}
+
+@test "default_new_vault_path: read-side resolve_vault default is unchanged (docs/vault)" {
+  # The new-vault naming must not leak into tier-4 resolution for existing flows.
+  run bash -c "cd '$BATS_TEST_TMPDIR'; source '$REPO_ROOT/scripts/resolve-vault.sh'; resolve_vault"
+  assert_success
+  assert_output_contains "docs/vault"
+}
