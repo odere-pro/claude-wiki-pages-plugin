@@ -51,6 +51,10 @@ tests/test_helper/bats-file/
 vault/output/
 **/vault-example/output/
 
+# Generated dogfood vault — local working artifact, regenerated per run, never tracked.
+# Parity anchor is docs/vault-example/ (kept). Resolver pointer is local-only.
+docs/claude-wiki-pages-plugin-vault/
+
 # Large binary assets in raw/
 **/raw/assets/*.pdf
 **/raw/assets/*.mp3
