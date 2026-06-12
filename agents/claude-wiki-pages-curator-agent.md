@@ -134,10 +134,19 @@ missing graph color groups.
 Restructures (flat folders >12), title-collision renames, body-wikilink
 densification, and near-duplicate merges apply **automatically** — no approval
 prompt, because the preflight checkpoint makes every change reversible with
-`git revert <healCommit>`. Record actions in `vault/output/_heal-log-YYYY-MM-DD.md`,
-execute with `git mv` + frontmatter/index updates, re-run `engine.sh verify --json`,
-and surface only residual items that need editorial intent (deletions, ambiguous
-merges). Tell the user the rollback point (`git revert <healCommit>`).
+`git revert <healCommit>`. Record actions in `vault/output/_heal-log-YYYY-MM-DD.md`.
+
+For renames and moves, try the backlink-safe path first:
+`bash ${CLAUDE_PLUGIN_ROOT}/scripts/obsidian-rename.sh --target <vault> --from <old> --to <new>`
+— exit 0 means Obsidian updated every backlink (skip the manual body-wikilink
+rewrite for that page); exit 3 (`[skip] cli-rename: …`) means fall back to
+`git mv` + the manual rewrite. CLI writes bypass the PreToolUse hooks, so the
+Phase 5 re-verify is mandatory after any CLI rename. Frontmatter
+(`parent:`/`path:`) and index updates are yours in both branches.
+
+Then re-run `engine.sh verify --json`, and surface only residual items that
+need editorial intent (deletions, ambiguous merges). Tell the user the
+rollback point (`git revert <healCommit>`).
 
 **Read the full step-by-step procedure for Phases 3–4 (and the Phase 1.2 check
 definitions) before applying** — the **`curator-fixes`** teaching skill

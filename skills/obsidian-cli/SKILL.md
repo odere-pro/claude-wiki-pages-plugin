@@ -59,6 +59,22 @@ obsidian backlinks file="My Note"
 
 Use `--copy` on any command to copy output to clipboard. Use `silent` to prevent files from opening. Use `total` on list commands to get a count.
 
+## Backlink-safe rename
+
+There is no dedicated rename command; use `eval` with `app.fileManager.renameFile()`, which updates every `[[wikilink]]` backlink from the metadata cache:
+
+```bash
+obsidian eval code='await app.fileManager.renameFile(app.vault.getAbstractFileByPath("old/path.md"), "new/path.md")' --vault /path/to/vault
+```
+
+For wiki-page renames in this plugin, prefer the wrapped helper — it resolves the vault, confines paths to `wiki/`, and verifies the rename on disk (exit 0 = renamed + backlinks updated; exit 3 = skip, fall back to `git mv`):
+
+```bash
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/obsidian-rename.sh --from wiki/topic/old.md --to wiki/topic/new.md [--target <vault>]
+```
+
+Note: CLI writes bypass the plugin's PreToolUse hooks — always re-verify (`engine.sh verify`) after a CLI rename.
+
 ## Plugin development
 
 ### Develop/test cycle

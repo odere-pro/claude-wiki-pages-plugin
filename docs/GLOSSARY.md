@@ -131,6 +131,7 @@ The plugin's structure. Contracts in [`architecture.md`](./architecture.md).
 | layer coloring          | An optional graph-color pass (raw→green, wiki→blue, schema→orange) layered after per-topic colors, so the three-layer structure is visible at a glance. Applied by the polish agent via `obsidian-graph-colors`.                                                                                  |
 | snapshot                | Git-bounding an LLM write phase: the engine `snapshot` command (`pre` = checkpoint, `post` = commit) and its degradation wrapper `scripts/snapshot.sh`. Write-path agents call it around their write phases so every vault mutation lands in a revertible commit. Honors `gitCheckpoint.mode`.    |
 | commit backstop         | The `SubagentStop` safety net (`scripts/subagent-commit-gate.sh`): after a write-path agent returns, any vault changes left uncommitted are committed as one labelled backstop commit. Pathspec-scoped to the vault; never blocks.                                                                |
+| backlink-safe rename    | Renaming/moving a wiki page via `scripts/obsidian-rename.sh` (Obsidian's `app.fileManager.renameFile()`), which updates every `[[wikilink]]` backlink from the metadata cache. Exit 0 = renamed + verified on disk; exit 3 = skip, caller falls back to `git mv` + manual link rewrite.           |
 
 ### Skill and agent naming
 

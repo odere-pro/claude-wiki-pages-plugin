@@ -170,8 +170,13 @@ Options:
 Only after explicit confirmation:
 
 1. Create subtopic folders with `_index.md` each.
-2. `git mv` each page into the correct subtopic.
-3. Update each moved page's `parent:` and `path:`.
+2. Move each page into the correct subtopic — try the backlink-safe path first:
+   `bash ${CLAUDE_PLUGIN_ROOT}/scripts/obsidian-rename.sh --target <vault> --from <old-rel.md> --to <new-rel.md>`.
+   On exit 3 (`[skip] cli-rename: …`), fall back to `git mv`. Exit 0 means
+   Obsidian also updated any path-form backlinks; title-form `[[wikilinks]]`
+   are unaffected by moves in either branch.
+3. Update each moved page's `parent:` and `path:` (both branches — Obsidian
+   does not know our frontmatter schema).
 4. Update the parent `_index.md`: remove moved children from `children:`, add subfolder entries to `child_indexes:`.
 5. Update `wiki/index.md` to reflect new locations.
 6. Add obvious `related:` cross-links (pages sharing 2+ sources, pages in the same new subtopic, pages referenced in body text).
