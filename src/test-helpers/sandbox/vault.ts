@@ -40,8 +40,19 @@ export const DIRTY_VAULT: Record<string, string> = {
   "CLAUDE.md": "# Vault\nNo schema here.\n",
   "wiki/index.md": "---\ntitle: index\n---\n- [[Alpha]]\n- [[Alpha]]\n",
   "wiki/log.md": "---\ntitle: log\n---\n",
-  "wiki/topics/_index.md": '---\ntitle: _index\nchildren: ["[[Ghost Page]]"]\n---\n',
+  "wiki/topics/topics.md":
+    '---\ntitle: Topics Index\ntype: index\nchildren: ["[[Ghost Page]]"]\n---\n',
   "wiki/topics/real-page.md": '---\ntitle: Real Page\nsources: ["plain-not-a-link"]\n---\nbody\n',
   "wiki/_sources/orphan.md": "---\ntitle: Orphan Source\n---\n",
   "wiki/empty-topic/loose.md": "---\ntitle: Loose\n---\n",
 };
+
+/**
+ * DIRTY_VAULT with the per-folder index under its legacy `_index.md` name —
+ * pins that the engine and the bash twin accept BOTH names at any version.
+ */
+export const DIRTY_VAULT_LEGACY_INDEX: Record<string, string> = Object.fromEntries(
+  Object.entries(DIRTY_VAULT).map(([rel, content]) =>
+    rel === "wiki/topics/topics.md" ? ["wiki/topics/_index.md", content] : [rel, content],
+  ),
+);

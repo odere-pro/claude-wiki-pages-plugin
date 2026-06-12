@@ -103,10 +103,16 @@ PAGES_CHECKED=0
 
 while IFS= read -r filepath; do
   BASENAME=$(basename "$filepath" .md)
-  # Skip bookkeeping files — exempt from template requirements
+  # Skip bookkeeping files — exempt from template requirements. Folder notes
+  # (stem == parent dir name + type: index, schema v3) classify the same as
+  # legacy _index.md; they are also caught by the `type: index` exemption below.
   case "$BASENAME" in
     index | log | dashboard | manifest | _index | .gitkeep) continue ;;
   esac
+  if [ "$BASENAME" = "$(basename "$(dirname "$filepath")")" ] &&
+    grep -Eq '^type:[[:space:]]*["'\'']?index["'\'']?[[:space:]]*$' "$filepath"; then
+    continue
+  fi
   # Skip _proposed/ drafts
   case "$filepath" in
     */_proposed/*) continue ;;

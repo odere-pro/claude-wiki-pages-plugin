@@ -27,15 +27,29 @@ case "$BASENAME" in
   index.md | log.md | dashboard.md | _index.md) exit 0 ;;
 esac
 
+FOLDER=$(dirname "$FILE_PATH")
+FOLDER_NAME=$(basename "$FOLDER")
+CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
+
+# Folder note (schema v3): stem equals the parent folder name AND frontmatter
+# declares `type: index` — bookkeeping, same as legacy _index.md.
+_fn_type_index() { grep -Eq '^type:[[:space:]]*["'\'']?index["'\'']?[[:space:]]*$' "$@"; }
+if [ "${BASENAME%.md}" = "$FOLDER_NAME" ]; then
+  if printf '%s\n' "$CONTENT" | _fn_type_index - ||
+    { [ -f "$FILE_PATH" ] && _fn_type_index "$FILE_PATH"; }; then
+    exit 0
+  fi
+fi
+
 REMINDERS=""
 
-# Check if this file's folder has an _index.md
-FOLDER=$(dirname "$FILE_PATH")
+# Check if this file's folder has an index file (folder note or legacy _index.md)
 case "$FOLDER" in
   *_sources* | *_synthesis*) ;;
   *)
-    if [ ! -f "$FOLDER/_index.md" ]; then
-      REMINDERS="${REMINDERS}Topic folder $(basename "$FOLDER") has no _index.md — create one. "
+    if [ ! -f "$FOLDER/_index.md" ] &&
+      ! { [ -f "$FOLDER/$FOLDER_NAME.md" ] && _fn_type_index "$FOLDER/$FOLDER_NAME.md"; }; then
+      REMINDERS="${REMINDERS}Topic folder $FOLDER_NAME has no index file — create the folder note $FOLDER_NAME/$FOLDER_NAME.md. "
     fi
     ;;
 esac

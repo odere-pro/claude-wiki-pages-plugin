@@ -16,7 +16,7 @@ Empty vault created from the onboarding template. No sources ingested yet.
 
 ## [2026-04-24] ingest | Getting Started
 
-Processed `raw/01-getting-started.md`. Created 1 source summary and 1 entity page ([[Claude Code]]). Introduced topic folder `tools/` with its `_index.md`.
+Processed `raw/01-getting-started.md`. Created 1 source summary and 1 entity page ([[Claude Code]]). Introduced topic folder `tools/` with its folder note `tools.md`.
 
 - New source: [[Getting Started]]
 - New entity: [[Claude Code]]

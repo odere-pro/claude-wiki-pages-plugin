@@ -29,7 +29,7 @@
  */
 
 import { basename, join } from "node:path";
-import { listMarkdownRecursive, readFileSafe } from "./fs.ts";
+import { listMarkdownRecursive, readFileSafe, isBookkeepingFile } from "./fs.ts";
 import { parseFrontmatter, stringList, titleOf } from "./frontmatter.ts";
 import type { Finding } from "./report.ts";
 
@@ -51,10 +51,8 @@ export function checkProvenance(wiki: string): Finding[] {
   const findings: Finding[] = [];
 
   for (const filepath of listMarkdownRecursive(wiki)) {
-    const stem = basename(filepath, ".md");
-
-    // Skip bookkeeping files by name.
-    if (["index", "log", "dashboard", "manifest", "_index", ".gitkeep"].includes(stem)) continue;
+    // Skip bookkeeping files (by name, or a folder note).
+    if (isBookkeepingFile(filepath)) continue;
 
     // Skip _sources/ and _synthesis/ directories.
     if (SKIP_DIRS.some((d) => filepath.includes(`${join(wiki, d)}/`))) continue;

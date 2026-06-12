@@ -6,7 +6,7 @@ What `claude-wiki-pages` actually gives you.
 
 - **Typed wiki pages** with YAML frontmatter — six page types (`source`, `entity`, `concept`, `synthesis`, `index`, `log`) and strict schema validation on every write.
 - **Provenance by construction** — every non-source page carries a `sources:` field with `[[wikilinks]]` back to immutable raw content under `raw/`. Plain strings are a lint error.
-- **Map of Content (MOC)** — per-folder `_index.md` and vault-level `wiki/index.md`, auto-maintained by the pipeline.
+- **Map of Content (MOC)** — a per-folder folder note (`wiki/<topic>/<topic>.md`, schema v3) and vault-level `wiki/index.md`, auto-maintained by the pipeline.
 - **Confidence discipline** — `confidence ≥ 0.8` requires two corroborating sources; `1.0` requires a direct quote.
 - **Cross-topic synthesis notes** with explicit `scope:` and `synthesis_type` (`comparison`, `theme`, `contradiction`, `gap`, `timeline`).
 

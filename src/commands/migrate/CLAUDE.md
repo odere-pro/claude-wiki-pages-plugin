@@ -4,7 +4,11 @@
 supports. The upgrade is strictly additive and git-bounded: from v1 → v2 it (1)
 bumps the `schema_version` in `vault/CLAUDE.md`, (2) writes the new `topic` and
 `project` templates into `_templates/` when absent, and (3) generates the source
-manifest at `wiki/_sources/manifest.md` when absent. The new optional fields
+manifest at `wiki/_sources/manifest.md` when absent. From v2 → v3 it additionally
+renames each legacy `wiki/**/_index.md` to its folder note `<dir>/<dirname>.md`
+and rewrites the `[[…/_index]]` wikilink forms across `wiki/`; a rename whose
+target filename already exists is reported and skipped (the leftover `_index.md`
+then carries verify's `legacy-index-filename` WARN). The new optional fields
 (`source_quotes`, `derived`) are NOT backfilled into existing pages — they are
 optional, so untouched pages stay valid, and ingest adds them lazily. The plan is a
 dry-run by default; `--write` applies it under a checkpoint commit. The handler in
@@ -28,6 +32,8 @@ deterministic tests.
 | `bump-schema` | `bumpSchemaVersion` in [`migrate.ts`](./migrate.ts) | `from === null` or `from < to` |
 | `add-template` | `TOPIC_TEMPLATE` / `PROJECT_TEMPLATE` from [`../../data/templates.ts`](../../data/templates.ts) | template file absent |
 | `generate-manifest` | `buildManifest` from [`../../core/manifest.ts`](../../core/manifest.ts) | `wiki/_sources/` exists and manifest absent |
+| `rename-index` | `planIndexRenames` in [`migrate.ts`](./migrate.ts) | a legacy `wiki/**/_index.md` exists and its folder-note target `<dir>/<dirname>.md` is free (v3); conflicts are reported and skipped |
+| `rewrite-links` | `rewriteIndexLinks` in [`migrate.ts`](./migrate.ts) | a wiki page contains `[[…/_index]]`, `[[…/_index\|label]]`, or bare `[[_index]]` links into a renamed folder |
 
 The target version is `CURRENT_SCHEMA_VERSION` from
 [`../../core/schema.ts`](../../core/schema.ts); the declared starting version is

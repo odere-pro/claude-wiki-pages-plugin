@@ -137,6 +137,11 @@ while IFS= read -r f; do
   case "$base" in
     index.md | log.md | dashboard.md | _index.md) continue ;;
   esac
+  # Folder note (schema v3): stem == parent dir name + type: index — bookkeeping.
+  if [ "${base%.md}" = "$(basename "$(dirname "$f")")" ] &&
+    grep -Eq '^type:[[:space:]]*["'"'"']?index["'"'"']?[[:space:]]*$' "$f"; then
+    continue
+  fi
   sources=$(sources_entries "$f")
 
   # Empty or absent sources are allowed on source notes themselves.

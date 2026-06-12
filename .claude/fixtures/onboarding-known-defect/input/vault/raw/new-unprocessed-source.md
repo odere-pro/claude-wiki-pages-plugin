@@ -4,7 +4,7 @@ Once the wiki holds at least one ingested source, you can ask it questions and g
 
 ## Asking a question
 
-Run `/claude-wiki-pages:query` and type a natural-language question. The query workflow reads `wiki/index.md` first, traverses the relevant `_index.md`, reads matching pages, and synthesizes an answer with `[[wikilink]]` citations back to specific wiki pages.
+Run `/claude-wiki-pages:query` and type a natural-language question. The query workflow reads `wiki/index.md` first, traverses the relevant topic folder note, reads matching pages, and synthesizes an answer with `[[wikilink]]` citations back to specific wiki pages.
 
 ## Citations
 

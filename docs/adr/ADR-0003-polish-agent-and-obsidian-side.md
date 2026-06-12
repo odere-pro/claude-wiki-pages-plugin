@@ -1,6 +1,7 @@
 # ADR-0003: Polish-agent — centralise the Obsidian-side experience
 
 - **Status:** Proposed
+- **Amended by:** [ADR-0022](./ADR-0022-folder-notes-and-graph-quality.md) (headless graph-color fallback)
 - **Date:** 2026-05-02
 - **SPEC anchor:** §11 (agent contracts), §5 (Layer 2 — `obsidian-graph-colors`)
 

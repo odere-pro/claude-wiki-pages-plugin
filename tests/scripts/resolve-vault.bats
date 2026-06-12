@@ -1013,3 +1013,208 @@ sys.exit(0 if data['current_vault_path'] == '$V2' else 1)
   assert_success
   assert_output_contains "docs/vault"
 }
+
+# ── PATH-degraded resolver hardening ─────────────────────────────────────────
+#
+# Regression suite for the silent-wrong-vault bug: in a PATH-degraded hook
+# shell, resolve_vault returned the tier-4 default even though settings.json
+# carried a non-empty current_vault_path. Root causes pinned here:
+#   (a) _settings_get_field shelled out to python3 with stderr discarded, so a
+#       missing/broken python3 looked identical to "field absent" (tier 2
+#       silently fell through);
+#   (b) tier 3's `find | sort` died when sort was missing, so auto-detect also
+#       yielded nothing;
+#   (c) the function then landed on the default with zero warning.
+# Masking technique: a shim binary that exits 127 placed FIRST in PATH —
+# `command -v` still resolves it, but exec fails exactly like a stripped PATH.
+
+# Shared shim builder: creates $BATS_TEST_TMPDIR/<dirname> with exit-127 shims
+# for each named binary and echoes the shim dir path.
+_make_shim_dir() {
+  local dirname="$1"
+  shift
+  local shim_dir="$BATS_TEST_TMPDIR/$dirname"
+  mkdir -p "$shim_dir"
+  local bin
+  for bin in "$@"; do
+    printf '#!/bin/bash\nexit 127\n' >"$shim_dir/$bin"
+    chmod +x "$shim_dir/$bin"
+  done
+  printf '%s\n' "$shim_dir"
+}
+
+@test "degraded: python3 broken — tier 2 still resolves current_vault_path from settings.json" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "degraded/from-settings"\n}\n' >"$SETTINGS_TMP"
+
+  local shim_dir
+  shim_dir=$(_make_shim_dir "shim-py" python3)
+
+  # stdout only — the resolved path must be exactly the settings value,
+  # NOT the tier-4 default.
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    export PATH='$shim_dir':\"\$PATH\"
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault 2>/dev/null
+  "
+
+  assert_success
+  [ "$output" = "degraded/from-settings" ]
+}
+
+@test "degraded: python3 broken — stderr carries the degraded-parser WARN" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "degraded/from-settings"\n}\n' >"$SETTINGS_TMP"
+
+  local shim_dir
+  shim_dir=$(_make_shim_dir "shim-py-warn" python3)
+
+  # stderr only (stdout discarded) — the WARN must be present and explicit.
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    export PATH='$shim_dir':\"\$PATH\"
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault 2>&1 >/dev/null
+  "
+
+  assert_success
+  assert_output_contains "WARN: python3 unavailable"
+  assert_output_contains "degraded settings parser"
+}
+
+@test "degraded: python3 broken + compact single-line JSON — degraded parser still extracts the value" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  # Compact layout: no spaces, no newlines — the grep/sed fallback must handle it.
+  printf '{"default_vault_path":"docs/vault","current_vault_path":"compact/degraded-vault"}' >"$SETTINGS_TMP"
+
+  local shim_dir
+  shim_dir=$(_make_shim_dir "shim-py-compact" python3)
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    export PATH='$shim_dir':\"\$PATH\"
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault 2>/dev/null
+  "
+
+  assert_success
+  [ "$output" = "compact/degraded-vault" ]
+}
+
+@test "degraded: sort broken — tier 3 auto-detect still finds the vault instead of tier-4 default" {
+  # A project whose only resolution signal is auto-detect: CLAUDE.md with
+  # schema_version + wiki/ sibling, 2 levels down.
+  local proj="$BATS_TEST_TMPDIR/sortless-proj"
+  mkdir -p "$proj/docs/found-vault/wiki"
+  printf -- '---\nschema_version: 1\ntitle: T\n---\n' >"$proj/docs/found-vault/CLAUDE.md"
+
+  # Block settings creation so tier 2 cannot satisfy resolution (otherwise
+  # init_vault_settings reifies current_vault_path=docs/vault and masks tier 3).
+  local blocker="$BATS_TEST_TMPDIR/sort-blocker"
+  printf 'not-a-dir\n' >"$blocker"
+
+  local shim_dir
+  shim_dir=$(_make_shim_dir "shim-sort" sort)
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$blocker/settings.json'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    export PATH='$shim_dir':\"\$PATH\"
+    cd '$proj'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault 2>/dev/null
+  "
+
+  assert_success
+  # Pre-fix behavior was the tier-4 default 'docs/vault'; the fix must return
+  # the auto-detected vault from the (unsorted) find output.
+  [ "$output" = "./docs/found-vault" ]
+}
+
+@test "degraded: python3 AND sort broken — settings value still wins over tier-4 default (silent-wrong-vault repro)" {
+  # The exact user-reported scenario: PATH-degraded shell, settings.json
+  # present with an explicit current_vault_path. Resolution must return that
+  # value, never silently land on docs/vault.
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/claude-wiki-pages-plugin-vault"\n}\n' >"$SETTINGS_TMP"
+
+  local shim_dir
+  shim_dir=$(_make_shim_dir "shim-both" python3 sort)
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    export PATH='$shim_dir':\"\$PATH\"
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault 2>/dev/null
+  "
+
+  assert_success
+  [ "$output" = "docs/claude-wiki-pages-plugin-vault" ]
+}
+
+@test "hardening: stripped PATH — tier 2 still resolves the settings value via the scoped tool path" {
+  # A hook shell arriving with a PATH that contains none of the standard tool
+  # dirs. The scoped hardened lookup PATH (_CLAUDE_WIKI_PAGES_TOOL_PATH) must
+  # make python3 reachable so tier 2 resolves normally — without mutating the
+  # caller's PATH.
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "stripped/path-vault"\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    export PATH='/nonexistent-bin'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault 2>/dev/null
+  "
+
+  assert_success
+  [ "$output" = "stripped/path-vault" ]
+}
+
+@test "hardening: sourcing NEVER mutates the caller PATH (scoped lookup, not global prepend)" {
+  # Sourced-safety guard: this file is sourced by every hook script, so a
+  # global PATH prepend would change the CALLER's tool resolution (e.g.
+  # re-introduce /usr/bin/jq into a deliberately curated sandbox PATH —
+  # session-start.bats relies on this). PATH must be byte-identical after
+  # sourcing AND after a resolution, even when /usr/bin is absent from it.
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    export PATH='/nonexistent-bin'
+    before=\"\$PATH\"
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault >/dev/null 2>&1
+    [ \"\$PATH\" = \"\$before\" ] && echo unchanged
+  "
+
+  assert_success
+  assert_output_contains "unchanged"
+}
+
+@test "degraded: normal PATH behavior unchanged — python3 path still authoritative for malformed JSON" {
+  # With a working python3, malformed JSON must keep its current behavior:
+  # _settings_get_field exits non-zero, prints nothing, and emits NO
+  # degraded-parser WARN (the fallback is for missing tools, not bad JSON).
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{ this is not json' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    _settings_get_field '$SETTINGS_TMP' 'current_vault_path' 2>&1
+    echo \"rc=\$?\"
+  "
+
+  assert_success
+  assert_output_contains "rc=1"
+  refute_output_contains "degraded settings parser"
+}

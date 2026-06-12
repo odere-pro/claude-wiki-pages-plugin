@@ -43,6 +43,7 @@ exclude_path = [
   # config trees, and raw documents are never grouped or indexed by the
   # normalization gates.
   "docs/vault",
+  "docs/claude-wiki-pages-plugin-vault",
   ".obsidian",
 ]
 

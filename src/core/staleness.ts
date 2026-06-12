@@ -15,7 +15,12 @@
  */
 
 import { basename, join } from "node:path";
-import { listMarkdownRecursive, listMarkdownShallow, readFileSafe } from "./fs.ts";
+import {
+  listMarkdownRecursive,
+  listMarkdownShallow,
+  readFileSafe,
+  isBookkeepingFile,
+} from "./fs.ts";
 import { parseFrontmatter, stringList, stripWikilink, titleOf } from "./frontmatter.ts";
 import type { Finding } from "./report.ts";
 
@@ -73,9 +78,8 @@ export function checkCitedSourceStaleness(wiki: string): Finding[] {
     });
 
   for (const filepath of listMarkdownRecursive(wiki)) {
-    const stem = basename(filepath, ".md");
-    // Skip bookkeeping pages; _sources/ are the targets, not the checkers.
-    if (["index", "log", "dashboard", "manifest", "_index", ".gitkeep"].includes(stem)) continue;
+    // Skip bookkeeping pages (by name, or a folder note); _sources/ are the targets, not the checkers.
+    if (isBookkeepingFile(filepath)) continue;
     if (filepath.includes(`${sourcesDir}/`)) continue;
     if (filepath.includes(`${join(wiki, "_synthesis")}/`)) continue;
 

@@ -27,6 +27,11 @@ contracts) and [`vault-example/CLAUDE.md`](../vault-example/CLAUDE.md) (the sche
 | 0014 | [Single-source required fields; duplicate-claim WARN in review](./ADR-0014-single-source-required-fields-and-duplicate-claim-warning.md) |
 | 0015 | [Engine self-description surfaces — `capabilities`/`ontology --json`](./ADR-0015-engine-self-description-surfaces.md) |
 | 0016 | [Simultaneous multi-vault management — fail-closed registry, audit roll-up](./ADR-0016-simultaneous-multi-vault-management.md) |
+| 0017 | [Fabrication floor — verbatim partition](./ADR-0017-fabrication-floor-verbatim-partition.md) |
+| 0018 | [Offline policy and degraded-mode routing](./ADR-0018-offline-policy-and-degraded-mode-routing.md) |
+| 0019 | [Query tier and answer verification](./ADR-0019-query-tier-and-answer-verification.md) |
+| 0020 | [The scaffolding ablation](./ADR-0020-scaffolding-ablation-eval.md) |
+| 0022 | [Folder notes and graph quality](./ADR-0022-folder-notes-and-graph-quality.md) |
 
 ## Conventions
 

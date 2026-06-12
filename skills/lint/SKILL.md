@@ -53,8 +53,9 @@ verify, the rule is out of scope for lint and belongs in fix.
 - **Plain-string sources.** `sources:` entries not in `[[wikilink]]` form.
 - **Missing `parent` / `path`.** Required on every page except the vault MOC.
 - **MOC missing members.** A page exists under a folder but does not appear
-  in the folder's `_index.md` `children:`. A subfolder exists but does not
-  appear in `child_indexes:`.
+  in the folder note's `children:` (the per-folder index is the folder note
+  `<folder>/<folder>.md`, or legacy `_index.md` if present). A subfolder
+  exists but does not appear in `child_indexes:`.
 - **Banned legacy values.** `type: moc`, references to `_MOC.md`, field name
   `child_mocs:` — all retired in schema version 1.
 - **Missing sources (provenance-completeness).** A page whose `type:` is
@@ -77,8 +78,12 @@ verify, the rule is out of scope for lint and belongs in fix.
   in `sources:`. Allowed only for direct quotes or settled facts.
 - **Vault MOC drift.** `wiki/index.md` lists pages that no longer exist, or
   omits pages that do.
-- **MOC missing aliases.** Per-folder `_index.md` lacks `aliases:` covering
+- **MOC missing aliases.** A per-folder index note lacks `aliases:` covering
   the folder topic's common display variants.
+- **Legacy index filename.** A per-folder index still named `_index.md`
+  instead of the folder-note name (`<folder>/<folder>.md`). Mirrors the
+  engine verify WARN `legacy-index-filename`; remediation is
+  `bash scripts/engine.sh migrate --write` (lint never renames).
 - **Excessive nesting.** A folder more than four levels deep under `wiki/`.
 - **Derived high confidence (provenance-consistency).** A page with
   `derived: true` signals LLM inference synthesised across sources rather than

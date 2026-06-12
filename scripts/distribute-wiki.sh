@@ -129,8 +129,18 @@ if [ "$CLEAN" -eq 1 ] && [ -f "$OUT" ]; then
   rm -f "$OUT"
 fi
 
-# Section order: index.md, log.md, topic folders (sorted) with _index.md
-# first then children (sorted), then _sources/, then _synthesis/.
+# Folder note (schema v3): stem equals its parent directory name AND the
+# frontmatter declares `type: index` — the per-folder index, like _index.md.
+_dw_is_folder_note() {
+  local f="$1"
+  [ -f "$f" ] || return 1
+  [ "$(basename "$f" .md)" = "$(basename "$(dirname "$f")")" ] || return 1
+  grep -Eq '^type:[[:space:]]*["'\'']?index["'\'']?[[:space:]]*$' "$f"
+}
+
+# Section order: index.md, log.md, topic folders (sorted) with the folder's
+# index file (folder note or legacy _index.md) first then children (sorted),
+# then _sources/, then _synthesis/.
 collect_paths() {
   local top="$WIKI"
   # Always-first files.
@@ -142,8 +152,17 @@ collect_paths() {
     local name
     name="$(basename "$dir")"
     case "$name" in _sources | _synthesis | _*) continue ;; esac
-    [ -f "$dir/_index.md" ] && printf '%s\n' "$dir/_index.md" || true
-    find "$dir" -type f -name '*.md' ! -name '_index.md' 2>/dev/null | sort
+    if _dw_is_folder_note "$dir/$name.md"; then
+      printf '%s\n' "$dir/$name.md"
+    elif [ -f "$dir/_index.md" ]; then
+      printf '%s\n' "$dir/_index.md"
+    fi
+    local f
+    while IFS= read -r f; do
+      [ -z "$f" ] && continue
+      _dw_is_folder_note "$f" && continue
+      printf '%s\n' "$f"
+    done < <(find "$dir" -type f -name '*.md' ! -name '_index.md' 2>/dev/null | sort)
   done < <(find "$top" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
   # Meta folders last.
   [ -d "$top/_sources" ] && find "$top/_sources" -type f -name '*.md' 2>/dev/null | sort || true

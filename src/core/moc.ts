@@ -10,8 +10,11 @@ import {
   listSubdirs,
   readFileSafe,
   existsSync,
+  isFolderNote,
+  indexFileOf,
 } from "./fs.ts";
 import { parseFrontmatter, stringList, stripWikilink, titleOf } from "./frontmatter.ts";
+import { declaredSchemaVersion } from "./schema.ts";
 import type { Finding } from "./report.ts";
 
 const SPECIAL_TOPIC_FOLDERS = new Set(["_sources", "_synthesis"]);
@@ -21,20 +24,23 @@ function titleAtPath(path: string): string {
   return titleOf(content, path);
 }
 
-/** CHECK 3: each `_index.md` must agree with its folder's pages and subfolders. */
+/** CHECK 3: each index file (folder note or legacy `_index.md`) must agree with its folder's pages and subfolders. */
 export function checkIndexConsistency(wiki: string): Finding[] {
   const findings: Finding[] = [];
-  const indexFiles = listMarkdownRecursive(wiki).filter((p) => basename(p) === "_index.md");
+  const indexFiles = listMarkdownRecursive(wiki).filter(
+    (p) => basename(p) === "_index.md" || isFolderNote(p),
+  );
 
   for (const indexFile of indexFiles) {
     const folder = dirname(indexFile);
     const folderName = basename(folder);
+    const indexName = basename(indexFile);
     const content = readFileSafe(indexFile) ?? "";
     const fm = parseFrontmatter(content);
     const children = stringList(fm["children"]).map(stripWikilink);
 
     const actualFiles = listMarkdownShallow(folder)
-      .filter((p) => basename(p) !== "_index.md")
+      .filter((p) => basename(p) !== "_index.md" && !isFolderNote(p))
       .map(titleAtPath);
     const actualSubdirs = listSubdirs(folder).map((d) => basename(d));
 
@@ -45,7 +51,7 @@ export function checkIndexConsistency(wiki: string): Finding[] {
           findings.push({
             severity: "warn",
             check: "moc",
-            message: `Page "${title}" in ${folderName}/ but not in ${folderName}/_index.md children`,
+            message: `Page "${title}" in ${folderName}/ but not in ${folderName}/${indexName} children`,
             file: indexFile,
           });
         }
@@ -53,7 +59,7 @@ export function checkIndexConsistency(wiki: string): Finding[] {
         findings.push({
           severity: "warn",
           check: "moc",
-          message: `Page "${title}" in ${folderName}/ but _index.md has empty children list`,
+          message: `Page "${title}" in ${folderName}/ but ${indexName} has empty children list`,
           file: indexFile,
         });
       }
@@ -80,13 +86,13 @@ export function checkIndexConsistency(wiki: string): Finding[] {
       }
     }
 
-    // Every subfolder must carry its own _index.md.
+    // Every subfolder must carry its own index file (folder note or legacy _index.md).
     for (const subdir of actualSubdirs) {
-      if (!existsSync(join(folder, subdir, "_index.md"))) {
+      if (indexFileOf(join(folder, subdir)) === null) {
         findings.push({
           severity: "error",
           check: "moc",
-          message: `Subfolder ${folderName}/${subdir}/ has no _index.md`,
+          message: `Subfolder ${folderName}/${subdir}/ has no index file (folder note or _index.md)`,
           file: indexFile,
         });
       }
@@ -135,20 +141,38 @@ export function checkOrphanSources(wiki: string): Finding[] {
   return findings;
 }
 
-/** Trailing check: each top-level topic folder (besides _sources/_synthesis) needs an _index.md. */
+/** Trailing check: each top-level topic folder (besides _sources/_synthesis) needs an index file. */
 export function checkTopicFolders(wiki: string): Finding[] {
   const findings: Finding[] = [];
   for (const dir of listSubdirs(wiki)) {
     const name = basename(dir);
     if (SPECIAL_TOPIC_FOLDERS.has(name)) continue;
-    if (!existsSync(join(dir, "_index.md"))) {
+    if (indexFileOf(dir) === null) {
       findings.push({
         severity: "error",
         check: "topic-folder",
-        message: `Topic folder ${name}/ has no _index.md`,
+        message: `Topic folder ${name}/ has no index file (folder note or _index.md)`,
         file: dir,
       });
     }
   }
   return findings;
+}
+
+/**
+ * Schema v3 deprecation: at `schema_version >= 3`, every remaining legacy
+ * `wiki/**\/_index.md` gets a WARN pointing at the folder-note rename that
+ * `migrate --write` applies. Older vaults (v1/v2) emit nothing — back-compat.
+ */
+export function checkLegacyIndexFilename(vault: string, wiki: string): Finding[] {
+  const declared = declaredSchemaVersion(join(vault, "CLAUDE.md"));
+  if (declared === null || declared < 3) return [];
+  return listMarkdownRecursive(wiki)
+    .filter((p) => basename(p) === "_index.md")
+    .map((p) => ({
+      severity: "warn" as const,
+      check: "legacy-index-filename",
+      message: `legacy-index-filename: ${p} uses the legacy _index.md name — rename to the folder note ${basename(dirname(p))}.md (run: bash scripts/engine.sh migrate --write)`,
+      file: p,
+    }));
 }

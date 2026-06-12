@@ -1,0 +1,46 @@
+{
+  "schema_version": 2,
+  "vault_name": "claude-wiki-pages-plugin-vault",
+  "graphColors": {
+    "architecture": {
+      "query": "path:wiki/architecture",
+      "color": { "a": 1, "rgb": 14031612 }
+    },
+    "agents": {
+      "query": "path:wiki/agents",
+      "color": { "a": 1, "rgb": 16744272 }
+    },
+    "skills": {
+      "query": "path:wiki/skills",
+      "color": { "a": 1, "rgb": 5601918 }
+    },
+    "adrs": {
+      "query": "path:wiki/adrs",
+      "color": { "a": 1, "rgb": 16737843 }
+    },
+    "operations": {
+      "query": "path:wiki/operations",
+      "color": { "a": 1, "rgb": 4286945 }
+    },
+    "local-models": {
+      "query": "path:wiki/local-models",
+      "color": { "a": 1, "rgb": 12517631 }
+    },
+    "automation": {
+      "query": "path:wiki/automation",
+      "color": { "a": 1, "rgb": 16751001 }
+    },
+    "features": {
+      "query": "path:wiki/features",
+      "color": { "a": 1, "rgb": 16711782 }
+    },
+    "glossary": {
+      "query": "path:wiki/glossary",
+      "color": { "a": 1, "rgb": 10040166 }
+    },
+    "design": {
+      "query": "path:wiki/design",
+      "color": { "a": 1, "rgb": 16763904 }
+    }
+  }
+}

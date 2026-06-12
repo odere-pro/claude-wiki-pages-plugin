@@ -21,9 +21,10 @@ Or without the argument:
 The skill:
 
 1. Reads the vault MOC (`wiki/index.md`) to find relevant pages.
-2. Traverses the topic tree from the relevant per-folder MOCs (`_index.md`).
+2. Traverses the topic tree from the relevant per-folder MOCs (the folder notes).
 3. Synthesizes an answer with inline `[[wikilinks]]` back to specific wiki pages.
-4. Appends a `## [YYYY-MM-DD] query | Question summary` entry to `wiki/log.md` so the query is recorded.
+4. Ends the answer with a `## Sources` section — numbered, research-paper style: each consulted wiki page as a `[[wikilink]]`, plus the raw source file path(s) from that page's `sources:` frontmatter.
+5. Appends a `## [YYYY-MM-DD] query | Question summary` entry to `wiki/log.md` so the query is recorded.
 
 ## Deeper / cross-topic queries → the analyst agent
 

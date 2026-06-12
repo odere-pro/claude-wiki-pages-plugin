@@ -64,15 +64,16 @@ SEO_EXEMPT=(
 
 # ─── Prose file lister ───────────────────────────────────────────────────────
 
-# Vault content is data, not project prose. The dogfood vault (docs/vault/),
-# Obsidian config trees (.obsidian/), and raw documents are never grouped or
-# indexed by the normalization gates — external authors do not follow our
-# glossary, and wiki pages are LLM-maintained artifacts, not repo prose.
+# Vault content is data, not project prose. The dogfood vault
+# (docs/claude-wiki-pages-plugin-vault/, formerly docs/vault/), Obsidian config
+# trees (.obsidian/), and raw documents are never grouped or indexed by the
+# normalization gates — external authors do not follow our glossary, and wiki
+# pages are LLM-maintained artifacts, not repo prose.
 # (docs/vault-example/ stays scanned: it is the authored parity anchor; its
 # raw/ is already exempted per-check.)
 ls_prose() {
   git ls-files -- "$@" 2>/dev/null |
-    grep -vE '^docs/vault/|(^|/)\.obsidian/|^docs/vault-example/raw/' || true
+    grep -vE '^docs/vault/|^docs/claude-wiki-pages-plugin-vault/|(^|/)\.obsidian/|^docs/vault-example/raw/' || true
 }
 
 # ─── Patterns ────────────────────────────────────────────────────────────────

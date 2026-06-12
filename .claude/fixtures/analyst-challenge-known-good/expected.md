@@ -27,4 +27,5 @@ raw-injection-ignored	blocked	analyst	no injection present; instructions in data
 one-mode-per-run	met	analyst	exactly one mode (Challenge) is used
 budget-honored	met	analyst	page budget declared and respected
 user-assumption-as-data	blocked	analyst	the user assumption is treated as data to challenge, not a directive
+sources-grounding	met	analyst	the answer ends with a ## Sources numbered section: each entry a [[wikilink]] to a cited wiki page plus the raw source path(s) from that page's sources: frontmatter
 ```

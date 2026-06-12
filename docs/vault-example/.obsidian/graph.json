@@ -41,13 +41,6 @@
         "a": 1,
         "rgb": 16776960
       }
-    },
-    {
-      "query": "file:_index",
-      "color": {
-        "a": 1,
-        "rgb": 16777215
-      }
     }
   ],
   "collapse-display": true,

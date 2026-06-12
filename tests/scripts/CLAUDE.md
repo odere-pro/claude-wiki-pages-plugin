@@ -26,7 +26,7 @@ One row per representative test file: the script under test and the hook event (
 | `session-start.bats` | `session-start.sh` | SessionStart — SETUP vs REMINDER, settings.json creation |
 | `session-memory.bats` | `session-memory.sh` | Stop / SessionEnd — persist learning as a `source_type: agent-session` source |
 | `prompt-guard.bats` | `prompt-guard.sh` | UserPromptSubmit — warn on `raw/` edit intent |
-| `post-wiki-write.bats` | `post-wiki-write.sh` | PostToolUse — remind about `_index.md` / index entries |
+| `post-wiki-write.bats` | `post-wiki-write.sh` | PostToolUse — remind about the per-folder index (folder note, legacy `_index.md`) / index entries |
 | `post-ingest-summary.bats` | `post-ingest-summary.sh` | PostToolUse — summarize a source write |
 | `subagent-ingest-gate.bats` | `subagent-ingest-gate.sh` | SubagentStop — run `verify-ingest` after the ingest agent |
 | `subagent-lint-gate.bats` | `subagent-lint-gate.sh` | SubagentStop — warn on unresolved curator errors |

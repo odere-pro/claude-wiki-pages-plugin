@@ -36,7 +36,7 @@ prompt. Safety is git: every run is reversible with `git revert <heal-commit>`.
 ## Preflight
 
 1. Verify `vault/CLAUDE.md` exists. If missing, abort.
-2. **Deterministic heal first.** Run `bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh heal --json` against the vault. This creates a git checkpoint commit, then loops verify → fix → re-verify until the structural errors (index duplicates, missing `_index.md`, children drift) are cleared, and commits the result as a single `heal:` commit. Parse the JSON: if `clean` is true, the structural errors are already resolved and you only handle the judgment items below; if `unresolved` is non-empty, those need your judgment. If Bun is unavailable the script warns and exits 0 — fall back to the manual diagnosis path. Everything from here is reversible with `git revert <healCommit>`.
+2. **Deterministic heal first.** Run `bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh heal --json` against the vault. This creates a git checkpoint commit, then loops verify → fix → re-verify until the structural errors (index duplicates, missing folder notes, children drift) are cleared, and commits the result as a single `heal:` commit. Parse the JSON: if `clean` is true, the structural errors are already resolved and you only handle the judgment items below; if `unresolved` is non-empty, those need your judgment. If Bun is unavailable the script warns and exits 0 — fall back to the manual diagnosis path. Everything from here is reversible with `git revert <healCommit>`.
 3. Resolve `verify-ingest.sh`. Check in order:
    1. `${CLAUDE_PLUGIN_ROOT}/scripts/verify-ingest.sh` (plugin-install path — canonical).
    2. `.claude/scripts/verify-ingest.sh` (user-linked copy).
@@ -57,7 +57,7 @@ Collect every issue before changing anything.
 "$VERIFY" vault/
 ```
 
-Capture full output. Parse each ERROR and WARN line into a structured issue list. The script already covers: schema_version, index.md duplicates, pages missing from index, `sources:` plain strings, `_index.md` children drift, missing `_index.md` in topic folders, orphan source summaries.
+Capture full output. Parse each ERROR and WARN line into a structured issue list. The script already covers: schema_version, index.md duplicates, pages missing from index, `sources:` plain strings, folder-note children drift, topic folders missing their folder note (`<folder>/<folder>.md`; legacy `_index.md` accepted but flagged WARN `legacy-index-filename`), orphan source summaries.
 
 **Do not re-implement these checks.** If a new check is needed, extend the script in a separate change; do not re-derive in prose.
 
@@ -75,8 +75,8 @@ Group into three severities. Use the exact classification below:
 
 | Severity   | Issue types                                                                                                                                                                                                                                |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **ERROR**  | Broken wikilinks, missing required frontmatter, title collisions, `verify-ingest.sh` errors, index lists non-existent page, topic folder missing `_index.md`                                                                               |
-| **WARN**   | Orphans, plain-string sources, missing `parent`/`path`, index drift, flat folder sprawl (> 12), excessive nesting (> 4), `child_indexes` drift, title missing from `aliases`, missing graph color group, high-confidence single-source |
+| **ERROR**  | Broken wikilinks, missing required frontmatter, title collisions, `verify-ingest.sh` errors, index lists non-existent page, topic folder missing its folder note                                                                               |
+| **WARN**   | Orphans, plain-string sources, missing `parent`/`path`, index drift, legacy `_index.md` filename (`legacy-index-filename` — remediation is `engine.sh migrate --write`, not a curator rename), flat folder sprawl (> 12), excessive nesting (> 4), `child_indexes` drift, title missing from `aliases`, missing graph color group, high-confidence single-source |
 | **INFO**   | Body text mentions entity/concept without wikilink, stale confidence, ghost wikilinks in `log.md`                                                                                                                                          |
 
 Print the full issue list to the user before applying any fixes. Format:
@@ -105,7 +105,7 @@ Every issue falls into one of three classes:
 
 | Class          | Action                                          | Examples                                                                       |
 | -------------- | ----------------------------------------------- | ------------------------------------------------------------------------------ |
-| **Engine**     | Already repaired by `engine.sh heal` in preflight | Index duplicates, missing `_index.md`, `_index.md` children drift              |
+| **Engine**     | Already repaired by `engine.sh heal` in preflight | Index duplicates, missing folder notes, folder-note children drift              |
 | **Auto**       | Apply automatically under the git checkpoint    | Wrap plain-string `sources:` in `[[...]]`; fill missing `parent:`/`path:`; add `title` to `aliases`; replace ghost `[[...]]` in `log.md` with backticks |
 | **Judgment**   | Apply automatically under the checkpoint (no approval prompt) — safety is `git revert` | Restructure flat folders (> 12 children), densify body wikilinks, merge near-duplicate pages, resolve title collisions |
 | **Report**     | Surface for the user; do not guess at intent    | Orphan pages that may need deletion, broken wikilinks with no fuzzy match, single-source pages (editorial call) |
@@ -122,7 +122,7 @@ Repaired by engine: N    Auto-applied: N    Judgment fixes applied: N    Surface
 
 Apply the nine safe, idempotent, content-preserving auto-fixes **in order**:
 3.1 wrap plain-string `sources:` (and other link fields) in wikilinks · 3.2 fill
-missing `parent:`/`path:` · 3.3 add `title` to `aliases` · 3.4 repair `_index.md`
+missing `parent:`/`path:` · 3.3 add `title` to `aliases` · 3.4 repair folder-note
 children drift · 3.5 repair `wiki/index.md` · 3.6 clean ghost wikilinks in
 `log.md` · 3.7 resolve broken wikilinks (alias/unique-fuzzy only) · 3.8 connect
 orphans link-only — **never auto-edit `sources:` to connect `type: source`

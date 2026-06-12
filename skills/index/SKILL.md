@@ -5,7 +5,7 @@ description: >
   catalog of every topic folder and synthesis note in the vault. Trigger when
   the user says "refresh the index", "rebuild the vault MOC", "update the
   catalog", or after adding a new top-level topic or synthesis. Per-folder
-  _index.md files are owned by the ingest workflow, not by this skill.
+  folder notes are owned by the ingest workflow, not by this skill.
 allowed-tools: Read Write Edit Glob Grep
 disable-model-invocation: true
 ---
@@ -14,7 +14,8 @@ disable-model-invocation: true
 
 Refresh `vault/wiki/index.md` — the vault MOC.
 
-Per-folder `_index.md` files (inside topic folders) are maintained by
+Per-folder folder notes (`wiki/<topic>/<topic>.md`, `type: index`; legacy
+`_index.md` where still present) are maintained by
 `/claude-wiki-pages:ingest` during ingest. This skill does not touch
 them.
 
@@ -31,8 +32,8 @@ them.
 - `vault/wiki/` — the full tree, specifically:
   - Top-level topic folders (children of `wiki/`).
   - `wiki/_synthesis/*.md` — the synthesis notes.
-  - Each top-level folder's `_index.md` — to pull its topic `title` and the
-    aliases the vault MOC should expose.
+  - Each top-level folder's folder note (or legacy `_index.md`) — to pull its
+    topic `title` and the aliases the vault MOC should expose.
 
 ## Writing contract
 
@@ -45,7 +46,9 @@ vault/wiki/index.md
 With frontmatter matching the `index` type schema, and a body that:
 
 - Lists every top-level topic folder under a `## Topics` heading, one line
-  per folder, format `- [[<Topic Name>]] — <one-line summary from the folder's _index.md>`.
+  per folder, format `- [[<folder>]] — <one-line summary from the folder note>`
+  (filename wikilink to the folder note, matching the quoted `"[[<folder>]]"`
+  form the schema requires in the root `child_indexes:`).
 - Lists every synthesis note under `## Syntheses`, one line per file, format
   `- [[<Title>]] — <synthesis_type>`.
 - Ends with an auto-generated timestamp: `_Generated <YYYY-MM-DD>._`
@@ -58,7 +61,7 @@ Plus one log append:
 
 This skill MUST NOT:
 
-- Touch per-folder `_index.md` files (`wiki/<topic>/_index.md`). Ever.
+- Touch per-folder folder notes (`wiki/<topic>/<topic>.md`, or legacy `_index.md`). Ever.
 - Write any page other than `wiki/index.md` and `wiki/log.md`.
 - Reorder entries non-deterministically — ordering must be stable, so
   repeated runs on an unchanged tree produce no diff.
@@ -77,8 +80,9 @@ These are the conventions; document any project-specific override in
 1. **Schema.** Read `vault/CLAUDE.md`.
 2. **Enumerate.** List top-level folders under `wiki/` (excluding
    underscore-prefixed). List files under `wiki/_synthesis/`.
-3. **Summarize.** For each topic folder, read its `_index.md` frontmatter
-   `title:` and first-line summary. For each synthesis, read `title:` and
+3. **Summarize.** For each topic folder, read its folder note's frontmatter
+   `title:` and first-line summary (fall back to a legacy `_index.md` when no
+   folder note exists). For each synthesis, read `title:` and
    `synthesis_type:`.
 4. **Render.** Build `wiki/index.md` per the frontmatter schema and the body
    format above.

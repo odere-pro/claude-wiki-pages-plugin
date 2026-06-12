@@ -20,7 +20,7 @@ done
 WIKI="$VAULT/wiki"
 INDEX="$WIKI/index.md"
 VAULT_CLAUDE_MD="$VAULT/CLAUDE.md"
-SUPPORTED_SCHEMA_VERSIONS=(1 2)
+SUPPORTED_SCHEMA_VERSIONS=(1 2 3)
 
 ERRORS=0
 WARNINGS=0
@@ -29,6 +29,29 @@ red() { printf '\033[0;31mERROR: %s\033[0m\n' "$1"; }
 yellow() { printf '\033[0;33mWARN:  %s\033[0m\n' "$1"; }
 green() { printf '\033[0;32mOK:    %s\033[0m\n' "$1"; }
 header() { printf '\n\033[1m=== %s ===\033[0m\n' "$1"; }
+
+# Folder note (schema v3): filename stem equals its parent directory name AND
+# frontmatter declares `type: index`. Twin of isFolderNote in src/core/fs.ts —
+# both names (folder note and legacy _index.md) classify as index files
+# identically at any schema version.
+_is_folder_note() {
+  local f="$1"
+  [ -f "$f" ] || return 1
+  local stem dir
+  stem=$(basename "$f" .md)
+  dir=$(basename "$(dirname "$f")")
+  [ "$stem" = "$dir" ] || return 1
+  grep -Eq '^type:[[:space:]]*["'\'']?index["'\'']?[[:space:]]*$' "$f"
+}
+
+# The folder's index file exists: folder note when present, else legacy
+# _index.md. Twin of indexFileOf in src/core/fs.ts.
+_has_index_file() {
+  local d="$1" name
+  name=$(basename "$d")
+  if [ -f "$d/$name.md" ] && _is_folder_note "$d/$name.md"; then return 0; fi
+  [ -f "$d/_index.md" ]
+}
 
 if [ ! -d "$VAULT" ]; then
   red "Vault directory not found at '$VAULT'"
@@ -41,6 +64,7 @@ fi
 # ──────────────────────────────────────────────
 header "Schema version"
 
+DECLARED=""
 if [ -f "$VAULT_CLAUDE_MD" ]; then
   # Match both `schema_version: 1` and backtick forms like `schema_version: 1`.
   DECLARED=$(grep -oE '`?schema_version`?:[[:space:]]*`?[0-9]+`?' "$VAULT_CLAUDE_MD" | head -1 |
@@ -96,10 +120,11 @@ else
   # Check for pages in wiki that are NOT in the index
   while IFS= read -r filepath; do
     BASENAME=$(basename "$filepath" .md)
-    # Skip bookkeeping files
+    # Skip bookkeeping files (by name, or a folder note)
     case "$BASENAME" in
       index | log | dashboard | manifest | _index | .gitkeep) continue ;;
     esac
+    if _is_folder_note "$filepath"; then continue; fi
     # Extract the title from frontmatter
     TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$filepath")
     if [ -z "$TITLE" ]; then
@@ -125,6 +150,7 @@ while IFS= read -r filepath; do
   case "$BASENAME" in
     index | log | dashboard | manifest | _index | .gitkeep) continue ;;
   esac
+  if _is_folder_note "$filepath"; then continue; fi
 
   # Extract frontmatter block
   FRONTMATTER=$(sed -n '/^---$/,/^---$/p' "$filepath")
@@ -186,13 +212,25 @@ else
 fi
 
 # ──────────────────────────────────────────────
-# CHECK 3: _index.md consistency with folder contents
+# CHECK 3: per-folder index (folder note or legacy _index.md) consistency
+# with folder contents
 # ──────────────────────────────────────────────
 header "Index consistency"
+
+# All per-folder index files: legacy _index.md plus folder notes.
+_list_index_files() {
+  local f
+  while IFS= read -r f; do
+    if [ "$(basename "$f")" = "_index.md" ] || _is_folder_note "$f"; then
+      printf '%s\n' "$f"
+    fi
+  done < <(find "$WIKI" -name '*.md' -type f | sort)
+}
 
 while IFS= read -r index_file; do
   FOLDER=$(dirname "$index_file")
   FOLDER_NAME=$(basename "$FOLDER")
+  INDEX_BASENAME=$(basename "$index_file")
 
   # Get children listed in the index frontmatter
   INDEX_FRONTMATTER=$(sed -n '/^---$/,/^---$/p' "$index_file")
@@ -245,9 +283,10 @@ while IFS= read -r index_file; do
     }
   ')
 
-  # Get actual .md files in this folder (excluding _index.md itself)
+  # Get actual .md files in this folder (excluding the index files themselves)
   ACTUAL_FILES=""
   while IFS= read -r f; do
+    if _is_folder_note "$f"; then continue; fi
     TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$f")
     if [ -n "$TITLE" ]; then
       ACTUAL_FILES="${ACTUAL_FILES}${TITLE}"$'\n'
@@ -266,11 +305,11 @@ while IFS= read -r index_file; do
     [ -z "$title" ] && continue || true
     if [ -n "$INDEX_CHILDREN" ]; then
       if ! echo "$INDEX_CHILDREN" | grep -qxF "$title"; then
-        yellow "Page \"$title\" in $FOLDER_NAME/ but not in $FOLDER_NAME/_index.md children"
+        yellow "Page \"$title\" in $FOLDER_NAME/ but not in $FOLDER_NAME/$INDEX_BASENAME children"
         WARNINGS=$((WARNINGS + 1))
       fi
     else
-      yellow "Page \"$title\" in $FOLDER_NAME/ but _index.md has empty children list"
+      yellow "Page \"$title\" in $FOLDER_NAME/ but $INDEX_BASENAME has empty children list"
       WARNINGS=$((WARNINGS + 1))
     fi
   done <<<"$ACTUAL_FILES"
@@ -292,15 +331,15 @@ while IFS= read -r index_file; do
   # Check: subdirectories should have corresponding child_indexes entries
   while IFS= read -r subdir; do
     [ -z "$subdir" ] && continue || true
-    if [ ! -f "$FOLDER/$subdir/_index.md" ]; then
-      red "Subfolder $FOLDER_NAME/$subdir/ has no _index.md"
+    if ! _has_index_file "$FOLDER/$subdir"; then
+      red "Subfolder $FOLDER_NAME/$subdir/ has no index file (folder note or _index.md)"
       ERRORS=$((ERRORS + 1))
     fi
   done <<<"$ACTUAL_SUBDIRS"
 
-  green "$FOLDER_NAME/_index.md checked"
+  green "$FOLDER_NAME/$INDEX_BASENAME checked"
 
-done < <(find "$WIKI" -name '_index.md' -type f | sort)
+done < <(_list_index_files)
 
 # CHECK 3b: Source summaries referenced by at least one wiki page
 header "Orphan source summaries"
@@ -329,7 +368,7 @@ else
   yellow "No _sources/ directory found"
 fi
 
-# Also check for topic folders that lack an _index.md entirely
+# Also check for topic folders that lack an index file entirely
 while IFS= read -r dir; do
   [ -z "$dir" ] && continue || true
   DIRNAME=$(basename "$dir")
@@ -337,11 +376,24 @@ while IFS= read -r dir; do
   case "$DIRNAME" in
     _sources | _synthesis) continue ;;
   esac
-  if [ ! -f "$dir/_index.md" ]; then
-    red "Topic folder $DIRNAME/ has no _index.md"
+  if ! _has_index_file "$dir"; then
+    red "Topic folder $DIRNAME/ has no index file (folder note or _index.md)"
     ERRORS=$((ERRORS + 1))
   fi
 done < <(find "$WIKI" -mindepth 1 -maxdepth 1 -type d | sort)
+
+# ──────────────────────────────────────────────
+# Legacy index filename (schema v3): at schema_version >= 3, a remaining
+# wiki/**/_index.md is deprecated — folder notes (<dir>/<dirname>.md) are the
+# v3 name. WARN with the migrate remediation; older vaults emit nothing.
+# ──────────────────────────────────────────────
+if [ -n "$DECLARED" ] && [ "$DECLARED" -ge 3 ]; then
+  while IFS= read -r legacy_file; do
+    [ -z "$legacy_file" ] && continue || true
+    yellow "legacy-index-filename: $legacy_file uses the legacy _index.md name — rename to the folder note $(basename "$(dirname "$legacy_file")").md (run: bash scripts/engine.sh migrate --write)"
+    WARNINGS=$((WARNINGS + 1))
+  done < <(find "$WIKI" -name '_index.md' -type f | sort)
+fi
 
 # ──────────────────────────────────────────────
 # CHECK 4: S4-derivation — staleness from updated vs newest cited-source date

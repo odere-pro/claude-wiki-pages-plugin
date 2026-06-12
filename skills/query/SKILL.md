@@ -33,7 +33,8 @@ wiki.
 - `vault/CLAUDE.md` — the schema. Read first.
 - `vault/wiki/index.md` — the top-level catalog. First pass to shortlist
   candidate pages.
-- `vault/wiki/**/_index.md` — per-folder MOCs. Second pass to narrow.
+- `vault/wiki/<topic>/<topic>.md` — per-folder MOCs (folder notes; legacy
+  `_index.md` where still present). Second pass to narrow.
 - `vault/wiki/<topic>/*.md` — candidate typed pages, plus any pages reached by
   following `[[wikilinks]]` from them.
 - `vault/wiki/_synthesis/*.md` — prior syntheses, if relevant.
@@ -170,10 +171,32 @@ Prefer this structure:
 
 ### Caveats
 - <contradictions, low-confidence claims, gaps>
+
+## Sources
+
+1. [[Page A]] — raw/<path-to-underlying-source>.md
+2. [[Page B]] — raw/<path>.md, raw/<other-path>.md
 ```
 
 Omit "Caveats" if there are none. Keep the direct answer tight — long prose
 belongs in a synthesis note, not a query response.
+
+### The `## Sources` grounding ledger (mandatory tail section)
+
+Every answer ends with a `## Sources` section, research-paper style — the
+grounding ledger. Inline `[[wikilink]]` citations stay; the tail section
+traces them to raw evidence:
+
+- Numbered entries, one per unique wiki page cited in the answer, in
+  first-citation order.
+- Each entry cites the wiki page as a `[[wikilink]]` plus the underlying raw
+  source path(s) taken from that page's `sources:` frontmatter (resolved
+  through its `_sources/` summary to the `raw/` file), e.g.
+  `1. [[Offline Policy]] — raw/adr/ADR-0018-offline-policy-and-degraded-mode-routing.md`.
+- Never invent a raw path. If a cited page's source chain does not resolve to
+  a `raw/` file, write `(no raw source resolved)` — visible, not silent.
+- Verbatim-quote and fabrication rules are unchanged; the ledger adds
+  traceability, not new claims.
 
 ## Completion signal
 

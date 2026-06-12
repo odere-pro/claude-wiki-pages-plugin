@@ -24,7 +24,7 @@ The underlying `verify-ingest.sh` checks:
 - `sources:` fields using plain strings instead of `[[wikilinks]]`.
 - MOC `children:` / `child_indexes:` drift against the filesystem.
 - Source summaries that no wiki page cites (orphan sources).
-- Topic folders missing a per-folder MOC (`_index.md`).
+- Topic folders missing a per-folder MOC (the folder note).
 
 Green across the board means clean. Red means the status report points at the script that flagged the issue — fix the trivial cases by hand and hand the rest to Level 2.
 

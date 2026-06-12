@@ -37,7 +37,7 @@ export function replaceYamlListField(
   return [...lines.slice(0, start), ...replacement, ...lines.slice(end + 1)].join("\n");
 }
 
-/** Set the `children:` frontmatter list of an `_index.md` to `titles` (as `[[Title]]`). */
+/** Set the `children:` frontmatter list of an index file (folder note or legacy `_index.md`) to `titles` (as `[[Title]]`). */
 export function syncChildren(content: string, titles: readonly string[]): string {
   const { frontmatter, body } = splitFrontmatter(content);
   if (frontmatter === null) return content;
@@ -67,7 +67,7 @@ export function dedupeIndexLinks(content: string): string {
   return frontmatter === null ? newBody : `---\n${frontmatter}\n---\n${newBody}`;
 }
 
-/** Build a minimal, schema-shaped `_index.md` for a topic folder lacking one. */
+/** Build a minimal, schema-shaped index page (written as the folder note `<folder>/<folder>.md`) for a topic folder lacking one. */
 export function buildIndexStub(
   folderName: string,
   childTitles: readonly string[],

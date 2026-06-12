@@ -1,6 +1,6 @@
 # LLM Wiki — Schema (fixture pointer)
 
-`schema_version: 1`
+`schema_version: 2`
 
 This file is the authoritative schema for any wiki operation in this vault.
 

@@ -45,7 +45,7 @@ Writes are confined to these paths:
 | ----------------------------- | ------------------------------------------------------------------------ |
 | `vault/wiki/_sources/<slug>.md` | One new summary per never-before-seen source.                            |
 | `vault/wiki/<topic>/*.md`     | New or updated typed pages (`entity` or `concept`).                      |
-| `vault/wiki/<topic>/_index.md` | Backfill `children:` and `child_indexes:` for every folder this skill touches. |
+| `vault/wiki/<topic>/<topic>.md` (folder note; legacy `_index.md` if present) | Backfill `children:` and `child_indexes:` (quoted `"[[wikilink]]"` entries) for every folder this skill touches. |
 | `vault/wiki/index.md`         | Append new top-level pages to the vault MOC.                             |
 | `vault/wiki/log.md`           | Append `## [YYYY-MM-DD] ingest \| <Source Title>` at the bottom.          |
 
@@ -145,7 +145,10 @@ version:
    e. Add the new source to each touched page's `sources:`.
    f. Increment `update_count`; advance `updated`.
    g. Recalculate `confidence` per the confidence-discipline rules.
-   h. Update per-folder `_index.md` `children:` / `child_indexes:`.
+   h. Update the per-folder folder note's `children:` / `child_indexes:`
+      (create new folders' indexes at the folder-note name
+      `<folder>/<folder>.md`; update a legacy `_index.md` in place when one
+      already exists — never create a new `_index.md`).
 4. Append to `wiki/log.md`.
 5. Print a summary table: sources processed, pages created, pages updated,
    folders touched.
@@ -246,8 +249,8 @@ Every Write triggers Layer 4 gates:
 - `validate-attachments.sh` rejects source pages referencing missing files
   under `raw/assets/`.
 - `protect-raw.sh` rejects any accidental write under `raw/`.
-- `post-wiki-write.sh` prints a reminder about `_index.md` upkeep after every
-  page write.
+- `post-wiki-write.sh` prints a reminder about folder-note (per-folder index)
+  upkeep after every page write.
 
 If any hook returns exit 2, surface the error verbatim. Do not retry the write
 unchanged — adjust the content to satisfy the hook.

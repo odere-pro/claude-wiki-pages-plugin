@@ -11,7 +11,12 @@ import { existsSync } from "../../core/fs.ts";
 import { buildReport, type Report } from "../../core/report.ts";
 import { checkSchema } from "../../core/schema.ts";
 import { checkIndex, checkSourcesFormat } from "../../core/index-check.ts";
-import { checkIndexConsistency, checkOrphanSources, checkTopicFolders } from "../../core/moc.ts";
+import {
+  checkIndexConsistency,
+  checkOrphanSources,
+  checkTopicFolders,
+  checkLegacyIndexFilename,
+} from "../../core/moc.ts";
 import { checkCitedSourceStaleness } from "../../core/staleness.ts";
 import { checkProvenance } from "../../core/provenance.ts";
 import { checkEntityType } from "./check-entity-type.ts";
@@ -50,6 +55,7 @@ export function verify(opts: VerifyOptions = {}): Report {
     ...checkIndexConsistency(wiki),
     ...checkOrphanSources(wiki),
     ...checkTopicFolders(wiki),
+    ...checkLegacyIndexFilename(vault, wiki),
     ...checkCitedSourceStaleness(wiki),
     ...checkProvenance(wiki),
     ...checkEntityType(wiki, vaultClaudeMd, vaultClaudeMd),

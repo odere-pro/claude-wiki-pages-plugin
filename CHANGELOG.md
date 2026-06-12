@@ -6,6 +6,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ### Added
 
+- **Folder notes — schema version 3 (ADR-0022).** The per-folder wiki index is now a **folder note** named exactly after its folder (`wiki/<topic>/<topic>.md`, `type: index`) instead of `_index.md`, so index nodes render under their topic's name in Obsidian's graph instead of as identical `_index` blobs; the root MOC stays `wiki/index.md`. The engine accepts both names indefinitely — a remaining `_index.md` in a v3 vault is a verify WARN `legacy-index-filename` (remediation: `engine.sh migrate --write`), never an error. `migrate` gains a v2→v3 `rename-index` action: rename each `_index.md` to its folder-note name and rewrite the `[[…/_index]]` wikilinks that pointed at it (name conflict ⇒ report + skip; idempotent; git-checkpointed).
+- **Wikilink hierarchy codification (ADR-0022).** `parent:`, `children:`, and `child_indexes:` are now normatively REQUIRED to be quoted `"[[wikilink]]"` values — a plain title string produces no graph edge and is a lint finding (the same class as plain-string `sources`). Root `wiki/index.md` `child_indexes` entries become filename links to the folder notes (`"[[agents]]"`), so the root MOC's edges land on real nodes.
+- **Graph color groups: topics → specials → layers, plus a headless fallback (ADR-0022).** The white `file:_index` catch-all group is dropped (folder notes made it meaningless); the canonical order is per-topic `path:wiki/<topic>` groups, then `_sources` gray + `_synthesis` yellow, then the layer pass (`path:raw` green, `path:wiki` blue, `path:_templates` orange). The `obsidian-graph-colors` skill gains a documented HEADLESS FALLBACK: when `obsidian eval` is unavailable, write `.obsidian/graph.json` directly, touching only `colorGroups`/`collapse-color-groups` — with the documented trade-off that a running Obsidian can clobber direct writes (restart required).
+- **`## Sources` grounding contract on query answers (ADR-0022).** Every analyst/query answer now ends with a Sources section — numbered, research-paper style — citing each consulted wiki page as a `[[wikilink]]` plus the raw source file path(s) from that page's `sources:` frontmatter, so the answer's evidence is auditable in one place.
+
 - **`snapshot` engine verb + wrapper — every LLM write phase is git-bounded.** The planned `checkpoint` verb shipped as `snapshot`: `snapshot pre` checkpoints the vault under `gitCheckpoint.mode`, `snapshot post` commits whatever a write phase wrote (clean vault → skip; never an empty commit; always exit 0 — reports, never gates). New `scripts/snapshot.sh` is the single agent-facing entry with an inline-git fallback when Bun is absent. The ingest, curator, and polish agents now call it around their write phases.
 - **SubagentStop commit backstop.** New `scripts/subagent-commit-gate.sh` (last in the `SubagentStop` chain): after a write-path agent returns, any vault changes left uncommitted are committed as one labelled backstop commit — no LLM write escapes git coverage, even on degraded paths (it creates the repo when coverage is missing). Pathspec-scoped; honors `gitCheckpoint.mode=off`; never blocks.
 - **`gitCheckpoint.mode` is finally consumed.** `heal`, `migrate`, `propose`, and `snapshot` route through the new `applyCheckpointMode` helper: `off` skips all git ops, `branch`/`both` pin a `cwp/checkpoint/<opId>` rollback branch.
@@ -46,6 +51,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ### Fixed
 
+- **`resolve-vault.sh` degrades cleanly on a minimal `PATH`.** Vault resolution no longer breaks when invoked with a degraded `PATH` (e.g. from hooks or CI environments that don't inherit the user's shell profile).
 - **Vault git ops are pathspec-scoped.** `git add -A` / commits in `src/core/git.ts` (and the bash twins) now carry `-- .`, so a vault inheriting the parent project repo never stages or swallows the user's unrelated dirty/staged files; `isClean` likewise ignores dirt outside the vault. Doctor D05 now names the covering parent repo when the vault is nested.
 - **README hook count.** The "What's inside" table now reports the real wiring — 15 hook scripts across 7 events, including the previously undocumented `Stop` and `SessionEnd` (session-memory persistence) — and links the multi-vault registry guide.
 - **Dangling `marketplace.json` in release-please config.** Removed the reference to the deleted `.claude-plugin/marketplace.json` from `extra-files`, which would have broken the first release PR.
@@ -59,7 +65,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ### Glossary changes
 
-- Added (minor): **snapshot**, **commit backstop**, **backlink-safe rename**, **link parity** (Architecture terms); **sync** (User-facing verbs); **wired source** (Vault management terms); **superseded** (Ingest and memory terms); **scaffolding ablation**, **plugin arm**, **baseline arm** (Capability and model terms).
+- Added (minor): **snapshot**, **commit backstop**, **backlink-safe rename**, **link parity** (Architecture terms); **sync** (User-facing verbs); **wired source** (Vault management terms); **superseded** (Ingest and memory terms); **scaffolding ablation**, **plugin arm**, **baseline arm** (Capability and model terms); **folder note** (Schema terms); **Sources section** (Retrieval terms).
+- Changed: **schema version** (current: 3), **migrate** (v1 → v2 → v3, `rename-index`), **MOC** / **topic page** (per-folder MOC is the folder note), **layer coloring** (ordered after topics and specials; `path:_templates` orange) — per ADR-0022.
 
 ## [1.0.0] — 2026-06-01
 
