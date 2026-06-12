@@ -6,6 +6,7 @@ description: >
   "update graph colors", "add topic color", or after creating new topic
   folders that need a color assignment.
 allowed-tools: Bash Read Glob Grep
+disable-model-invocation: true
 ---
 
 # Graph Colors
@@ -29,10 +30,24 @@ agent's Step 1.3 "create the minimum scaffold" path), create it with these
 | Existing files only  | **on**  | `"hideUnresolved": true`  | Dangling wikilinks are lint errors, not graph nodes — the graph shows real pages.    |
 | Orphans              | **on**  | `"showOrphans": true`     | Orphan pages are a curator signal; hiding them would mask exactly what needs fixing. |
 
-`colorGroups` starts empty — per-topic colors and the layer pass are applied
-by the polish agent (Steps below) through the apply contract. Preserve these
-filter values when editing color groups; the color workflow must not flip
-filters.
+`colorGroups` starts empty — per-topic colors are applied by the polish agent
+(Steps below) through the apply contract. Preserve these filter values when
+editing color groups; the color workflow must not flip filters.
+
+Alongside `graph.json`, the scaffold also asserts the **wiki-only exclusions**
+in `vault/.obsidian/app.json`:
+
+```json
+{ "userIgnoreFilters": ["raw/", "_templates/", "_proposed/"] }
+```
+
+This is Obsidian's "Excluded files" setting: `raw/` (provenance payload),
+`_templates/` (scaffolding), and `_proposed/` (unreviewed drafts) disappear
+from the graph, search, and link autocomplete — the Obsidian experience shows
+only generated wiki pages. If `app.json` is absent, create it with exactly
+this content. If it exists, **merge**: append any missing entry to
+`userIgnoreFilters`, never remove user entries, and preserve every other key
+unchanged.
 
 ## Apply contract — two tiers
 
@@ -125,12 +140,15 @@ consistency — extend it when more topics are added:
 
 ### 4. Build the color groups array
 
-Rules for ordering — **topics → specials → layers**:
+Rules for ordering — **topics → specials**:
 
 - **Subtopic paths before parent paths** (e.g., `path:wiki/topic/subtopic` before `path:wiki/topic`)
 - **`_sources` and `_synthesis`** after the topic groups (they are cross-cutting specials)
-- **Layer groups last** (see "Layer coloring" below) — broad fallbacks that
-  must not shadow any topic group
+
+Every group queries a `path:wiki/...` — the graph colors only generated wiki
+pages. Never add groups for `raw/`, `_templates/`, or `_proposed/`: those
+paths are excluded from Obsidian's index entirely (see the wiki-only
+exclusions above), so a group matching them is dead weight.
 
 There is no index catch-all group: folder notes are topic-named files inside
 their topic folder and take the topic's color via its `path:` group.
@@ -185,7 +203,7 @@ When a new top-level topic folder is created during ingest:
 
 1. Read current color groups via `obsidian eval` (or from `graph.json` on the fallback tier)
 2. Pick the next unused color from the palette
-3. Insert the new group BEFORE the `_sources`/`_synthesis` special groups and the layer groups
+3. Insert the new group BEFORE the `_sources`/`_synthesis` special groups
 4. Apply and save per the apply contract
 
 ## Removing a topic color
@@ -196,31 +214,27 @@ When a topic folder is deleted or merged:
 2. Filter out entries matching the removed path
 3. Apply and save
 
-## Layer coloring (optional pass)
+## Regenerate from scratch — graph config is cache, not state
 
-Beyond per-topic colors, you can color the graph by **layer** — the at-a-glance
-view from the LLM Wiki pattern: raw sources, wiki pages, and schema files each
-get one color, so the three-layer structure is visible at a glance.
+`.obsidian/graph.json` and the plugin-owned keys of `.obsidian/app.json`
+(`userIgnoreFilters`) are **disposable cache**. Every value in them is derived
+deterministically from the `wiki/` topic tree plus the palette table above —
+nothing in them is precious. Dropping them is always safe; restoring them is
+one skill run:
 
-| Layer  | Query           | Color            |
-| ------ | --------------- | ---------------- |
-| raw    | `path:raw`      | green (#57E567)  |
-| wiki   | `path:wiki`     | blue (#3498DB)   |
-| schema | `path:_templates` (and the vault `CLAUDE.md`) | orange (#FFA500) |
+1. Delete `vault/.obsidian/graph.json` (or empty its `colorGroups` array).
+2. Run this skill (or let the polish agent's Step 1 run after the next
+   ingest/curator pass).
+3. The minimum scaffold is recreated, one topic group per top-level
+   `wiki/<topic>/` folder is rebuilt in palette order, the
+   `_sources`/`_synthesis` specials are appended, and the wiki-only
+   exclusions are re-asserted in `app.json`.
 
-**Ordering is critical.** Color groups are first-match-wins, and `path:wiki` is
-broad — it matches every wiki page. So the layer groups must come **after** all
-per-topic groups, not before. With this ordering:
-
-- a wiki page in a colored topic keeps its topic color (matched first);
-- any uncolored wiki page falls through to the blue `path:wiki` layer color;
-- `path:raw` colors raw sources green; `path:_templates` colors schema orange.
-
-If you want a **pure layer view** (no per-topic colors), use only the three
-layer groups. If you want both, append the layer groups after the topic groups
-as the final fallback tier — topics → specials → layers. The
-`claude-wiki-pages-polish-agent` applies the layer pass after the per-topic
-pass when it refreshes colors.
+The same regeneration runs on both apply tiers — `obsidian eval` when
+Obsidian is up, the headless `graph.json`/`app.json` file write otherwise. Two
+consecutive regenerations produce byte-identical files (idempotent), so a
+clobbered, hand-edited, or deleted graph config is never a problem worth
+debugging: regenerate it.
 
 ## Converting hex to RGB integer
 
@@ -234,7 +248,9 @@ Example: #3498DB → parseInt("3498DB", 16) → 3447003
 ## Rules
 
 - Always read current groups before writing — preserve user-added custom groups
-- Order matters: topics → specials (`_sources`, `_synthesis`) → layers
+- Order matters: topics → specials (`_sources`, `_synthesis`)
+- Color only `wiki/` paths — `raw/`, `_templates/`, and `_proposed/` are
+  excluded from Obsidian's index; never add groups for them
 - One color per top-level topic; subtopics get their own color only when the
   parent has 3+ subtopic folders
 - `_sources` and `_synthesis` groups are always present; there is no index
@@ -243,3 +259,5 @@ Example: #3498DB → parseInt("3498DB", 16) → 3447003
   `graph.json` write as the documented headless fallback
 - After applying, verify with a read-back (eval read, or re-read `graph.json`
   on the fallback tier)
+- Treat `graph.json`/`app.json` as regenerable cache — when in doubt,
+  regenerate from scratch rather than repairing by hand

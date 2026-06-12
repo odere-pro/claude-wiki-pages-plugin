@@ -293,7 +293,13 @@ Because `_proposed/` is a sibling of `wiki/`, drafts are **outside every wiki-sc
 
 Topic branches are color-coded in Obsidian's graph view via the internal graph plugin API. The `/claude-wiki-pages:obsidian-graph-colors` skill manages this programmatically using `obsidian eval`. Each topic folder gets a `path:` query mapped to a unique color. No frontmatter field needed — colors are applied at the Obsidian graph engine level.
 
+The canonical group order (first match wins, top-down) is **topics → specials**: one `path:wiki/<topic>` group per top-level topic folder, then `_sources` gray and `_synthesis` yellow.
+
+The graph shows **only generated wiki pages**: `raw/`, `_templates/`, and `_proposed/` are excluded from Obsidian's index via the Excluded files setting (`.obsidian/app.json` → `userIgnoreFilters: ["raw/", "_templates/", "_proposed/"]`), so they never appear in the graph, search, or link autocomplete — and never get color groups.
+
 When creating a new top-level topic folder, run `/claude-wiki-pages:obsidian-graph-colors` (or the ingest pipeline handles it automatically in step 1.7). The `claude-wiki-pages-curator-agent` agent also checks for missing color groups and applies them.
+
+Graph filters and color groups are **regenerable cache**, not precious state: every value derives from the `wiki/` topic tree. If `.obsidian/graph.json` is lost or mangled, delete it and re-run `/claude-wiki-pages:obsidian-graph-colors` — the scaffold, topic groups, specials, and exclusions are rebuilt deterministically.
 
 ### Field: `parent` placeholder form
 

@@ -44,10 +44,10 @@ Goal: every top-level topic folder under `vault/wiki/` has a distinct color grou
 2. List top-level folders in `vault/wiki/` (depth 1, excluding `_sources`, `_synthesis`, and any leading-underscore folder).
 3. Read current graph color groups from `vault/.obsidian/graph.json` if it exists. If absent, create the minimum scaffold per the `obsidian-graph-colors` skill.
 4. For each top-level folder without a corresponding color group, append a new group with `path:wiki/<folder>` and the next unused palette color. Insert before the `_sources` / `_synthesis` special groups (there is no index catch-all — folder notes take their topic's color via the topic's `path:` group).
-5. Append the **layer pass** (per the `obsidian-graph-colors` skill): broad fallback groups `path:raw` → green, `path:wiki` → blue, `path:_templates` → orange, ordered **after** all per-topic groups so topic colors win first-match and only uncolored nodes take the layer color. Skip any layer group already present (idempotent).
+5. Assert the **wiki-only exclusions** (per the `obsidian-graph-colors` skill): ensure `vault/.obsidian/app.json` has a `userIgnoreFilters` array containing `raw/`, `_templates/`, and `_proposed/`. Merge-only: create the file if absent, append missing entries, never remove user entries, preserve every other key. Never add color groups for those paths — the graph shows only generated wiki pages.
 6. Persist via `obsidian eval` + `graph.saveOptions()` (per the `obsidian-cli` reference skill). If `obsidian eval` is unavailable (Obsidian CLI not installed, or no running instance), apply the **headless fallback** from the `obsidian-graph-colors` skill's apply contract: write `vault/.obsidian/graph.json` directly — modify only `colorGroups` and `collapse-color-groups`, preserve every other key — then print exactly `[fallback] graph-colors: wrote .obsidian/graph.json directly (restart Obsidian to load)` and continue.
 
-Idempotency rule: a folder (or layer group) that already has a color group is left untouched. Adding three new folders followed by a re-run produces zero further changes.
+Idempotency rule: a folder that already has a color group, and an exclusion entry already present in `userIgnoreFilters`, are left untouched. Adding three new folders followed by a re-run produces zero further changes. Both files are regenerable cache: if `graph.json` is missing or mangled, rebuild it from the scaffold + topic tree rather than repairing it by hand (see the skill's "Regenerate from scratch" section).
 
 ## Step 2 — Regenerate `wiki/index.md`
 
@@ -81,10 +81,13 @@ Print exactly:
 
 ```
 POLISH:
-  graph-colors: <added=N | skip:<reason>>
+  graph-colors: <added=N excludes=<ok|added=M> | skip:<reason>>
   index-refresh: <regenerated | unchanged>
   moc-consistency: <added=N children, M child_indexes | unchanged>
 ```
+
+`excludes=ok` means every wiki-only exclusion was already present in
+`app.json`; `excludes=added=M` means M entries were appended.
 
 `unchanged` results indicate idempotency. `added=0` is acceptable; any positive number indicates state that drifted between the prior agent's run and this polish pass — those numbers are the audit trail for the user.
 
