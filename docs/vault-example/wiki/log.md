@@ -75,3 +75,9 @@ Pipeline processed 8 sources in total: 8 source summaries, 3 topic indexes, 12 e
 ## [2026-04-24] lint-fix | Health check and auto-repair
 
 Found 0 errors, 0 warnings (verify-ingest.sh), 3 info items (supplemental). Auto-applied 0. Gated: 0 executed, 0 declined. Report-only: 2 items (bare [[wikilink]]/[[wikilinks]] syntax-demo links in body prose; high-confidence single-source on query-workflow.md).
+## [2026-06-12] migrate | schema_version 3 → 3 (4 change(s))
+
+- checkpoint: 2e8b7ba
+- renamed 3 legacy _index.md to folder notes
+- rollback: git revert the migrate commit below
+
