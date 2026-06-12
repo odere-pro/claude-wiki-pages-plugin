@@ -21,6 +21,23 @@
 # fail closed on their own (guarded writes, `2>/dev/null`, explicit returns); callers
 # that need strict mode set it themselves before sourcing.
 
+# PATH hardening: hook shells can arrive with a stripped PATH (the harness
+# passes whatever environment it has, which may omit the standard tool dirs).
+# When that happens `python3` and `sort` silently vanish, tier 2 and tier 3
+# fall through, and resolution lands on the tier-4 default — the
+# silent-wrong-vault bug. Sourced-safe form: do NOT mutate the caller's PATH
+# (this file is sourced by every hook script; a global prepend would change
+# the CALLER's own tool resolution — e.g. re-introduce /usr/bin/jq into a
+# deliberately curated sandbox PATH). Instead compute a hardened lookup PATH
+# once and apply it per-invocation (PATH=… cmd) to the tools resolution
+# depends on. Prepend the standard dirs only when /usr/bin is absent, so a
+# caller-curated ordering (shims first) keeps precedence.
+_CLAUDE_WIKI_PAGES_TOOL_PATH="$PATH"
+case ":$PATH:" in
+  *:/usr/bin:*) ;;
+  *) _CLAUDE_WIKI_PAGES_TOOL_PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH" ;;
+esac
+
 CLAUDE_WIKI_PAGES_DEFAULT_VAULT="docs/vault"
 CLAUDE_WIKI_PAGES_SETTINGS="${CLAUDE_WIKI_PAGES_SETTINGS_FILE:-.claude/claude-wiki-pages/settings.json}"
 
@@ -53,10 +70,21 @@ default_new_vault_path() {
 # Usage: _settings_get_field <file> <field_name>
 # Prints the field value on stdout, or nothing if the field is absent or not a string.
 # Exits 0 on success (including absent field); exits non-zero only on parse error.
+#
+# Degraded mode: when python3 cannot run — missing from PATH, or resolvable but
+# broken (exec failure 126/127 in a PATH-degraded hook shell) — fall back to
+# the grep/sed extractor below and emit ONE stderr WARN. Without this fallback
+# a missing python3 is indistinguishable from "field absent" and tier 2
+# silently falls through (the silent-wrong-vault bug). Python parse errors
+# (malformed JSON, exit 1) keep their current behavior: they are a real error,
+# not a missing-tool condition.
 _settings_get_field() {
   local settings_file="$1"
   local field_name="$2"
-  python3 - "$settings_file" "$field_name" 2>/dev/null <<'PYEOF'
+  if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v python3 >/dev/null 2>&1; then
+    local out rc
+    out=$(
+      PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" python3 - "$settings_file" "$field_name" 2>/dev/null <<'PYEOF'
 import json, sys
 try:
     data = json.load(open(sys.argv[1]))
@@ -66,6 +94,38 @@ val = data.get(sys.argv[2], "")
 if isinstance(val, str):
     print(val)
 PYEOF
+    )
+    rc=$?
+    # 126/127 = python3 resolved by `command -v` but could not actually run
+    # (broken shim / stripped PATH at exec time) — fall through to the
+    # degraded parser. Any other code is python3's own verdict (0 = ok,
+    # 1 = malformed JSON) and is passed through unchanged.
+    if [ "$rc" -ne 126 ] && [ "$rc" -ne 127 ]; then
+      if [ -n "$out" ]; then printf '%s\n' "$out"; fi
+      return "$rc"
+    fi
+  fi
+  printf '[claude-wiki-pages] WARN: python3 unavailable — using degraded settings parser\n' >&2
+  _settings_get_field_degraded "$settings_file" "$field_name"
+}
+
+# Internal: pure grep/sed fallback for _settings_get_field — TOP-LEVEL STRING
+# fields only. Sound here because the settings file is flat JSON written by
+# this same script family; handles both compact ({"k":"v"}) and indented
+# ("k": "v") layouts. head -n1 keeps the first match should a value ever
+# repeat. Prints nothing when the field is absent; exits 1 when the file is
+# missing (mirrors the python parser's only hard-error path it can detect).
+_settings_get_field_degraded() {
+  local settings_file="$1"
+  local field_name="$2"
+  [ -f "$settings_file" ] || return 1
+  # Subshell so the hardened lookup PATH never leaks to the caller.
+  (
+    PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH"
+    grep -o "\"${field_name}\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" "$settings_file" 2>/dev/null |
+      head -n 1 |
+      sed 's/^"[^"]*"[[:space:]]*:[[:space:]]*"//; s/"$//'
+  )
 }
 
 resolve_vault() {
@@ -96,16 +156,33 @@ resolve_vault() {
   #    schema_version alongside a wiki/ sibling directory.
   #    The two-signal check (frontmatter marker + wiki/ dir) avoids false
   #    positives from unrelated CLAUDE.md files in the project.
-  local claude_md dir
+  #    Resilience: `sort` only orders candidates for determinism. In a
+  #    PATH-degraded shell where sort is missing or broken, fall back to the
+  #    unsorted find output instead of letting a dead `find | sort` pipe
+  #    silently demote resolution to the tier-4 default.
+  local claude_md dir candidates sorted
+  candidates=$(find . -maxdepth 4 -name "CLAUDE.md" 2>/dev/null)
+  if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v sort >/dev/null 2>&1 &&
+    sorted=$(printf '%s\n' "$candidates" | PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" sort 2>/dev/null); then
+    candidates="$sorted"
+  fi
   while IFS= read -r claude_md; do
+    [ -z "$claude_md" ] && continue
     dir=$(dirname "$claude_md")
     if grep -q 'schema_version' "$claude_md" 2>/dev/null && [ -d "$dir/wiki" ]; then
       echo "$dir"
       return
     fi
-  done < <(find . -maxdepth 4 -name "CLAUDE.md" 2>/dev/null | sort)
+  done <<<"$candidates"
 
-  # 4. Default
+  # 4. Default.
+  # Invariant (silent-wrong-vault guard): reaching this tier while a settings
+  # file EXISTS with a non-empty current_vault_path would mean tier 2 failed
+  # to read a value the user explicitly set. _settings_get_field makes that
+  # unreachable — when python3 cannot run it falls back to the degraded
+  # grep/sed parser (with a stderr WARN), so a readable settings value always
+  # resolves at tier 2. Only a truly absent settings file or an empty
+  # current_vault_path can land here.
   echo "$CLAUDE_WIKI_PAGES_DEFAULT_VAULT"
 }
 
