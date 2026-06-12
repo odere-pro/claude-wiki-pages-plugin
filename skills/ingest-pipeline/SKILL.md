@@ -68,10 +68,10 @@ Write to `vault/output/_pipeline-plan-YYYY-MM-DD.md` (git-ignored; no frontmatte
 ## Proposed topic tree
 
 wiki/<existing-or-new-topic>/
-├── _index.md                    [new | existing]
+├── <topic>.md                   [new | existing]   # folder note (legacy _index.md if already present)
 ├── <page>.md                    [new | update]
 ├── <subtopic>/                  [new | existing]
-│   ├── _index.md                [new | existing]
+│   ├── <subtopic>.md            [new | existing]   # folder note
 │   └── <page>.md                [new | update]
 ...
 
@@ -87,7 +87,7 @@ wiki/<existing-or-new-topic>/
 - <any ambiguities the model resolved — e.g., "placed X under Y instead of Z because …">
 ```
 
-The plan must obey `vault/CLAUDE.md` folder-hierarchy rules (max depth 4, grouped by semantic domain, every folder gets `_index.md`) and ingest-specific sizing:
+The plan must obey `vault/CLAUDE.md` folder-hierarchy rules (max depth 4, grouped by semantic domain, every folder gets a folder note `<folder>/<folder>.md`) and ingest-specific sizing:
 
 - **Target ≤ 12 pages per folder.** Plan subtopic folders up front if exceeded.
 - Entities cluster into `roles/`, `tools/`, or named subtopic folders.
@@ -127,7 +127,7 @@ Plan at vault/output/_pipeline-plan-YYYY-MM-DD.md. N sources left unprocessed.
 
 ### 3.1 Audit
 
-Count pages per folder. Identify folders with > 12 direct `.md` children (excluding `_index.md`). If none, skip Step 3 entirely and report "no optimization needed".
+Count pages per folder. Identify folders with > 12 direct `.md` children (excluding the folder's own index note). If none, skip Step 3 entirely and report "no optimization needed".
 
 ### 3.2 Plan and confirm
 
@@ -169,7 +169,7 @@ Options:
 
 Only after explicit confirmation:
 
-1. Create subtopic folders with `_index.md` each.
+1. Create subtopic folders, each with its folder note (`<subtopic>/<subtopic>.md`).
 2. Move each page into the correct subtopic — try the backlink-safe path first:
    `bash ${CLAUDE_PLUGIN_ROOT}/scripts/obsidian-rename.sh --target <vault> --from <old-rel.md> --to <new-rel.md>`.
    On exit 3 (`[skip] cli-rename: …`), fall back to `git mv`. Exit 0 means
@@ -177,7 +177,7 @@ Only after explicit confirmation:
    are unaffected by moves in either branch.
 3. Update each moved page's `parent:` and `path:` (both branches — Obsidian
    does not know our frontmatter schema).
-4. Update the parent `_index.md`: remove moved children from `children:`, add subfolder entries to `child_indexes:`.
+4. Update the parent folder note: remove moved children from `children:`, add subfolder entries to `child_indexes:` (quoted `"[[wikilink]]"` entries).
 5. Update `wiki/index.md` to reflect new locations.
 6. Add obvious `related:` cross-links (pages sharing 2+ sources, pages in the same new subtopic, pages referenced in body text).
 
@@ -188,7 +188,7 @@ following prompt verbatim:
 
 ```
 Run a post-restructure lint and fix pass. Pages were moved and new
-_index.md files were created. Verify parent/path, children arrays, and
+folder notes were created. Verify parent/path, children arrays, and
 index entries are consistent. This is the final pass.
 ```
 
@@ -200,7 +200,7 @@ Append to `wiki/log.md`:
 
 ```
 ## [YYYY-MM-DD] optimize | Tree restructure
-Moved N pages into subtopic folders. Created N new _index.md files.
+Moved N pages into subtopic folders. Created N new folder notes.
 Current tree: <summary>.
 ```
 

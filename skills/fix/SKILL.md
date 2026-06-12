@@ -46,8 +46,10 @@ Writes are confined to what the specific lint finding authorizes:
 | Dangling wikilink                 | Replace with the nearest matching alias; or comment out with `<!-- unresolved: ... -->` and flag as a remaining warning. |
 | Plain-string `sources:` entry     | Convert to `[[wikilink]]` if the matching source page exists; otherwise leave and flag. |
 | Missing `parent` / `path`         | Derive from file location under `wiki/`.                                               |
-| MOC missing member                | Add the page or subfolder to `children:` / `child_indexes:` of its per-folder MOC.     |
-| Banned legacy value               | Rewrite: `type: moc` → `type: index`; `_MOC.md` → `_index.md`; `child_mocs:` → `child_indexes:`. |
+| MOC missing member                | Add the page or subfolder to `children:` / `child_indexes:` of its per-folder MOC (the folder note `<folder>/<folder>.md`, or legacy `_index.md` if present), as quoted `"[[wikilink]]"` entries. |
+| Missing per-folder MOC            | Create the folder note at its canonical name `<folder>/<folder>.md` (`type: index`). Never create a new `_index.md`. |
+| Legacy index filename (`legacy-index-filename` WARN) | Leave in place — this skill **never renames** an existing `_index.md`; the rename is `engine.sh migrate --write`'s job. Reconcile its fields like any folder note. |
+| Banned legacy value               | Rewrite: `type: moc` → `type: index`; `_MOC.md` → the folder-note name; `child_mocs:` → `child_indexes:`. |
 | Vault MOC drift                   | Escalate to `/claude-wiki-pages:index`; do not edit `wiki/index.md` directly.     |
 
 Always append one log entry:

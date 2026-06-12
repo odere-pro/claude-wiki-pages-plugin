@@ -77,7 +77,7 @@ Walk this table top-to-bottom. The first matching row wins. Stop walking after t
 
 ## Step 3 — Polish (tail-of-write)
 
-After `claude-wiki-pages-ingest-agent` or `claude-wiki-pages-curator-agent` returns successfully (no errors), fan out **exactly once** to `claude-wiki-pages-polish-agent` with `{vault_path: "$VAULT"}`. The polish agent regenerates graph colors for any new top-level topics, refreshes `wiki/index.md`, and reconciles per-folder `_index.md` consistency. It is idempotent; running it on a no-op state produces no diff.
+After `claude-wiki-pages-ingest-agent` or `claude-wiki-pages-curator-agent` returns successfully (no errors), fan out **exactly once** to `claude-wiki-pages-polish-agent` with `{vault_path: "$VAULT"}`. The polish agent regenerates graph colors for any new top-level topics, refreshes `wiki/index.md`, and reconciles per-folder folder-note (`<topic>/<topic>.md`, or legacy `_index.md`) consistency. It is idempotent; running it on a no-op state produces no diff.
 
 **Skip polish** when:
 

@@ -52,7 +52,7 @@ Ports `verify-ingest.sh` CHECK 0–3. Returns a report; **exit 1 when any error*
   "findings": [
     {
       "severity": "error|warn|info",
-      "check": "schema|index-duplicates|sources-format|moc|orphan-sources|topic-folder",
+      "check": "schema|index-duplicates|sources-format|moc|orphan-sources|topic-folder|legacy-index-filename",
       "message": "…",
       "file": "…"
     }
@@ -63,12 +63,19 @@ Ports `verify-ingest.sh` CHECK 0–3. Returns a report; **exit 1 when any error*
 }
 ```
 
+At schema_version 3 the per-folder index is a **folder note** (`wiki/<topic>/<topic>.md`,
+`type: index`). A legacy `_index.md` is still accepted, but verify emits a
+WARN-severity `legacy-index-filename` finding for it — message: run
+`engine.sh migrate --write`. The WARN never flips `clean` to false on its own.
+
 Call it: before trusting the vault, and after every write-path as the closing gate.
 
 ### `fix` — deterministic safe repairs (idempotent)
 
-Repairs only what has one correct value: index duplicates, missing `_index.md`,
-`_index.md` children drift. Never touches body prose, schema_version, or sources
+Repairs only what has one correct value: index duplicates, missing folder notes
+(created at the canonical name `<folder>/<folder>.md`), folder-note children
+drift. It never renames an existing legacy `_index.md` — that is `migrate`'s
+job (`rename-index`). Never touches body prose, schema_version, or sources
 semantics. Running twice changes nothing. Exit 0.
 
 ```json
@@ -104,22 +111,27 @@ any warn/fail. See `/claude-wiki-pages:doctor`.
 Merges defaults ← user (`~/.config/claude-wiki-pages/config.json`) ← project
 (`.claude/claude-wiki-pages.json`) ← `CLAUDE_WIKI_PAGES_*` env overrides.
 
-### `migrate` — upgrade schema_version in place (v1 → v2)
+### `migrate` — upgrade schema_version in place (v1 → v2 → v3)
 
 Dry-run by default; `--write` applies under a git checkpoint. Additive and
 idempotent (bumps `schema_version`, writes new templates, generates the source
-manifest). Rollback is `git revert <commit>` (printed on completion).
+manifest). The v2 → v3 step adds the **`rename-index`** action: each legacy
+`_index.md` is renamed to its folder-note name (`<folder>/<folder>.md`) and
+the wikilinks that pointed at it are rewritten; a name conflict (a
+`<folder>.md` already exists) is reported and skipped, never overwritten.
+This rename clears the `legacy-index-filename` WARN that `verify` emits.
+Rollback is `git revert <commit>` (printed on completion).
 
 ```json
 {
   "command": "migrate",
   "vault": "…",
-  "from": 1,
-  "to": 2,
+  "from": 2,
+  "to": 3,
   "applied": true,
-  "changes": [{ "file": "…", "action": "bump-schema|add-template|generate-manifest" }],
+  "changes": [{ "file": "…", "action": "bump-schema|add-template|generate-manifest|rename-index" }],
   "checkpoint": "<sha>",
-  "message": "Migrated schema_version 1 → 2 …"
+  "message": "Migrated schema_version 2 → 3 …"
 }
 ```
 

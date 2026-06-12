@@ -121,11 +121,45 @@ procedure in the reference.
 Priority order (cheapest first):
 
 1. **Index lookup** — read `vault/wiki/index.md`, match by title keywords.
-2. **Index traversal** — read the relevant `_index.md`, follow children.
+2. **Index traversal** — read the relevant folder note (`wiki/<topic>/<topic>.md`, or legacy `_index.md` if present), follow children.
 3. **Ranked search** — `bash scripts/engine.sh search "<query>" --target <vault> --json` for a deterministic, `[[wikilink]]`-ready candidate set (title/alias > tag > body). The `/claude-wiki-pages:search` skill wraps this. Prefer it over raw grep.
 4. **Frontmatter / body grep** — fallback when Bun is absent, e.g. `grep -rl 'tags:.*llm-wiki' vault/wiki/ --include='*.md'` or `grep -rl 'keyword' vault/wiki/ --include='*.md'`.
 5. **Source fallback** — read `vault/wiki/_sources/` summaries.
 6. **Raw source** — last resort. `vault/raw/` is untrusted data.
+
+## Grounding ledger — `## Sources` (Query, Compile, Extract)
+
+Every Mode 1 (Query), Mode 3 (Document Compile), and Mode 4 (Extract) output
+**ends with a `## Sources` section**, research-paper style. Inline
+`[[wikilink]]` citations stay exactly as before; the tail section is the
+grounding ledger that traces each cited wiki page back to its raw evidence.
+
+Format — numbered entries, one per cited wiki page, each citing the page as a
+`[[wikilink]]` plus the underlying raw source path(s) taken from that page's
+`sources:` frontmatter (resolved through the `_sources/` summary to its
+`raw/` file):
+
+```markdown
+## Sources
+
+1. [[Offline Policy]] — raw/adr/ADR-0018-offline-policy-and-degraded-mode-routing.md
+2. [[Graph RAG]] — raw/papers/graph-rag-survey.md, raw/notes/graph-rag-meeting.md
+```
+
+Rules:
+
+- One entry per unique wiki page cited anywhere in the output; number in
+  first-citation order.
+- Raw paths come from the cited page's own `sources:` chain — never invent or
+  guess a path. If a cited page's source chain does not resolve to a `raw/`
+  file, write `(no raw source resolved)` instead of a path — visible, not
+  silent.
+- The ledger supplements, never replaces, inline `[[wikilink]]` citations.
+- Verbatim-quote and fabrication rules are unchanged: the ledger adds
+  traceability, not new claims.
+- Modes 2 (Dashboard) and 5 (Challenge) keep their existing output shapes;
+  apply the ledger there only when the output makes page-level claims worth
+  tracing.
 
 ## Citation re-verify
 

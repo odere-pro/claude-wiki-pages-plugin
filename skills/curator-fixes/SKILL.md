@@ -26,11 +26,11 @@ body.
 Run each via `Grep`/`Glob` against `vault/wiki/`:
 
 - **Broken wikilinks** — `[[Target]]` where `Target` matches neither any page's `title:` nor any entry in `aliases:`.
-- **Orphan pages** — non-bookkeeping pages (excluding `index.md`, `log.md`, `dashboard.md`, `_index.md`) with zero inbound wikilinks (index `children:` counts).
+- **Orphan pages** — non-bookkeeping pages (excluding `index.md`, `log.md`, `dashboard.md`, folder notes, and legacy `_index.md`) with zero inbound wikilinks (index `children:` counts).
 - **Title collisions** — two pages with the same `title:` → ambiguous wikilinks.
 - **Title missing from `aliases`** — for every page: `title` must appear as the first entry in `aliases` (ghost-node prevention per `vault/CLAUDE.md`).
 - **Missing graph color groups** — for each top-level topic folder (not `_sources`, `_synthesis`), check `obsidian eval code="JSON.stringify(app.internalPlugins.plugins['graph'].instance.options.colorGroups)"` for a matching `path:wiki/<folder>` query.
-- **Flat folder sprawl** — any topic folder with > 12 direct `.md` children (excluding `_index.md`).
+- **Flat folder sprawl** — any topic folder with > 12 direct `.md` children (excluding the folder's own index note).
 - **Excessive nesting** — any folder deeper than 4 levels from `wiki/`.
 - **Stale confidence** — pages with `confidence < 0.5` and `updated` > 30 days ago.
 - **High confidence with single source** — pages with `type: entity | concept | synthesis` where `confidence ≥ 0.8` and `sources:` has only one entry.
@@ -83,8 +83,8 @@ For every page missing `parent:` or `path:`:
 
 1. Determine the containing folder (relative to `wiki/`).
 2. Set `path:` to that folder path.
-3. Set `parent:` to the folder's `_index.md` title, wrapped as `"[[Title]]"`.
-4. Special cases: `_sources/` and `_synthesis/` → `parent: ""` and `path: "_sources"` / `"_synthesis"`. Top-level `_index.md` → `parent: "[[Wiki Index]]"`.
+3. Set `parent:` to the folder's folder-note title (the folder note is `<folder>/<folder>.md`; legacy `_index.md` if present), wrapped as `"[[Title]]"`.
+4. Special cases: `_sources/` and `_synthesis/` → `parent: ""` and `path: "_sources"` / `"_synthesis"`. Top-level folder notes → `parent: "[[Wiki Index]]"`.
 
 ### 3.3 Add `title` to `aliases` (ghost-node prevention)
 
@@ -92,17 +92,17 @@ For every page where `title` is not the first entry in `aliases`:
 
 1. If `aliases` is missing or empty, create it with `title` as the first entry.
 2. Otherwise prepend `title`. Keep all existing aliases.
-3. For `_index.md`, also add topic-name variants (kebab-case slug, Title Case, common abbreviations).
+3. For folder notes, also add topic-name variants (kebab-case slug, Title Case, common abbreviations).
 
-### 3.4 Repair `_index.md` children drift
+### 3.4 Repair folder-note children drift
 
-For every `_index.md`:
+For every per-folder index — the folder note (`<folder>/<folder>.md`), or legacy `_index.md` if present:
 
-1. List actual `.md` files in the folder (excluding `_index.md`).
+1. List actual `.md` files in the folder (excluding the index note itself).
 2. **Add missing** titles to `children:`.
 3. **Remove stale** entries from `children:` that have no matching file.
 4. **Add missing body entries** — children listed but not mentioned in the index body get a `- [[Title]] — summary` line.
-5. **Populate `child_indexes:`** from subfolders that have `_index.md`.
+5. **Populate `child_indexes:`** from subfolders that have an index note (folder note, or legacy `_index.md`), as quoted `"[[wikilink]]"` entries.
 
 ### 3.5 Repair `wiki/index.md`
 
@@ -130,7 +130,7 @@ For each broken `[[Target]]`:
 
 For each orphan page:
 
-1. Find the containing folder's `_index.md`. If the page is not in the body, add `- [[Title]] — summary`.
+1. Find the containing folder's folder note (or legacy `_index.md`). If the page is not in the body, add `- [[Title]] — summary`.
 2. For sibling pages in the same folder sharing 2+ sources, add this page to their `related:`.
 
 **Do NOT auto-edit `sources:` fields to connect `type: source` orphans.**
@@ -149,7 +149,7 @@ For each top-level topic folder without a matching `path:wiki/<folder>` color gr
 
 1. Read current groups via `obsidian eval`.
 2. Pick the next unused palette color per `/claude-wiki-pages:obsidian-graph-colors`.
-3. Insert before the `_sources` / `_synthesis` / `_index` catch-all rules.
+3. Insert before the `_sources` / `_synthesis` special groups and any layer groups (there is no index catch-all — folder notes take their topic's color).
 4. Apply via `obsidian eval` + `graph.saveOptions()`.
 
 ## Phase 4 — Judgment fixes (automatic, under the checkpoint)
@@ -199,7 +199,7 @@ Then execute the changes directly:
      title-based wikilinks).
    - **Exit 2** — argument error; fix the paths, do not fall back blindly.
 2. **Frontmatter and indexes (both branches — Obsidian does not know our schema).**
-   Update `parent:`/`path:` on every moved page. Update parent `_index.md`
+   Update `parent:`/`path:` on every moved page. Update the parent folder note
    (`children:` / `child_indexes:`). Update `wiki/index.md`.
 
 After executing, re-run `engine.sh verify --json`; if errors remain, iterate once more, then surface any residual that genuinely needs editorial intent (deletions, ambiguous merges) for the user — do not guess at intent.
@@ -232,7 +232,7 @@ Print this report (the agent body summarizes the section list):
 - sources fields wrapped: N
 - parent/path filled: N
 - titles added to aliases: N
-- _index.md children repaired: N
+- folder-note children repaired: N
 - wiki/index.md repaired: N
 - ghost wikilinks in log.md cleaned: N
 - broken wikilinks auto-resolved: N

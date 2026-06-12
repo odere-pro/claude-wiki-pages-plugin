@@ -102,16 +102,16 @@ For each entity and concept in the plan, follow the 13-step ingest rules in `vau
 - **Prefer updating existing pages** over creating duplicates. Increment `update_count`, append the new source to `sources:`, adjust `confidence`.
 - Use the full frontmatter for the page's `type` exactly as specified in `vault/CLAUDE.md`.
 - All internal references use `[[wikilinks]]` — never `[text](path.md)`.
-- `parent:` is the containing folder's `_index.md` title. `path:` is the folder path relative to `wiki/`.
+- `parent:` is the containing folder's folder-note title (the folder note is `<folder>/<folder>.md`; legacy `_index.md` if present). `path:` is the folder path relative to `wiki/`.
 - `title` must appear as the first entry in `aliases` (ghost-node prevention).
 
-### 1.6 Create `_index.md` for every new folder
+### 1.6 Create a folder note for every new folder
 
-Use the `index` frontmatter schema. Body: section headers grouping children by theme, each entry `- [[Page]] — one-line summary`. On index notes, `aliases` also includes topic-name variants (slug, title case, abbreviations).
+Create `wiki/<folder>/<folder>.md` (filename stem == folder name, `type: index`) using the `index` frontmatter schema. Body: section headers grouping children by theme, each entry `- [[Page]] — one-line summary`. On index notes, `aliases` also includes topic-name variants (slug, title case, abbreviations). Never create a new `_index.md` — that filename is legacy (accepted in existing vaults, but flagged `legacy-index-filename` by verify).
 
 ### 1.7 Polish — owned by polish-agent (no work here)
 
-**Do not duplicate polish-agent work.** The orchestrator runs `claude-wiki-pages-polish-agent` after this agent returns; it owns graph colors for new top-level topics, vault-MOC regeneration, and per-folder `_index.md` consistency. This step is a marker only.
+**Do not duplicate polish-agent work.** The orchestrator runs `claude-wiki-pages-polish-agent` after this agent returns; it owns graph colors for new top-level topics, vault-MOC regeneration, and per-folder folder-note consistency. This step is a marker only.
 
 ### 1.8 Append to `wiki/log.md`
 
@@ -166,7 +166,7 @@ per folder; if no folder exceeds 12 direct `.md` children, skip Step 3 and repor
 "no optimization needed". Otherwise write a restructure plan to
 `vault/output/_restructure-plan-YYYY-MM-DD.md`, **stop at the confirmation gate**
 (approve / edit-then-approve / decline), and only on approval execute the moves
-(`git mv` + `parent:`/`path:` + `_index.md` + `wiki/index.md` + cross-links),
+(`git mv` + `parent:`/`path:` + folder notes + `wiki/index.md` + cross-links),
 then run **one** final lint-fix pass via the curator agent (no third run) and log
 an `optimize` entry.
 
