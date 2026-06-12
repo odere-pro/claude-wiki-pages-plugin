@@ -183,7 +183,26 @@ heal log at `vault/output/_heal-log-YYYY-MM-DD.md` (a record, not a request):
 - body edits: N
 ```
 
-Then execute the changes directly. Use `git mv` for moves. Update `parent:`/`path:` on every moved page. Update parent `_index.md` (`children:` / `child_indexes:`). Update `wiki/index.md`. After executing, re-run `engine.sh verify --json`; if errors remain, iterate once more, then surface any residual that genuinely needs editorial intent (deletions, ambiguous merges) for the user — do not guess at intent.
+Then execute the changes directly:
+
+1. **Backlink-safe rename first (renames and moves).** For each rename or move, try
+   `bash ${CLAUDE_PLUGIN_ROOT}/scripts/obsidian-rename.sh --target <vault> --from <old-rel.md> --to <new-rel.md>`.
+   - **Exit 0** — Obsidian performed the rename and updated every `[[wikilink]]`
+     backlink from its metadata cache: **skip the manual body-wikilink rewrite
+     for that page** (title-collision renames especially — that is the
+     error-prone rewrite this path eliminates). Note: the CLI write bypasses
+     the PreToolUse hooks, which is why the Phase 5 re-verify below is
+     mandatory, not optional.
+   - **Exit 3** (`[skip] cli-rename: obsidian-cli unavailable`) — fall back to
+     the manual sequence: `git mv`, then for a **rename** also rewrite the old
+     `[[Title]]` body wikilinks across pages (folder **moves** don't break
+     title-based wikilinks).
+   - **Exit 2** — argument error; fix the paths, do not fall back blindly.
+2. **Frontmatter and indexes (both branches — Obsidian does not know our schema).**
+   Update `parent:`/`path:` on every moved page. Update parent `_index.md`
+   (`children:` / `child_indexes:`). Update `wiki/index.md`.
+
+After executing, re-run `engine.sh verify --json`; if errors remain, iterate once more, then surface any residual that genuinely needs editorial intent (deletions, ambiguous merges) for the user — do not guess at intent.
 
 Tell the user where the rollback point is:
 
