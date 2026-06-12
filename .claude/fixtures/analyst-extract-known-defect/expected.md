@@ -29,4 +29,5 @@ no-fabricated-citation	blocked	analyst	citation re-verify blocks links to non-ex
 raw-injection-ignored	blocked	analyst	embedded instructions in raw/ are reported, not executed
 one-mode-per-run	met	analyst	exactly one mode (Extract) is used
 budget-honored	met	analyst	page budget declared and respected
+sources-grounding	met	analyst	the answer ends with a ## Sources numbered section: each entry a [[wikilink]] to a cited wiki page plus the raw source path(s) from that page's sources: frontmatter
 ```

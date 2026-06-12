@@ -1,6 +1,6 @@
 # Golden Reference Vault — Schema
 
-`schema_version: 2`
+`schema_version: 3`
 
 This is the GOLDEN reference for the `extract-basic` eval case
 (`docs/adr/ADR-0011-local-model-quality-gate.md`). It is the structured output a

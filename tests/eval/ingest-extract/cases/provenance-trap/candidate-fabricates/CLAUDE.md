@@ -1,6 +1,6 @@
 # Planted-Bad Candidate — Schema
 
-`schema_version: 2`
+`schema_version: 3`
 
 This is a PLANTED-BAD candidate extraction for the `provenance-trap` eval case
 (`docs/adr/ADR-0011-local-model-quality-gate.md`). It deliberately fabricates an unsourced sourced claim (price/license the source never stated).

@@ -10,7 +10,7 @@ workflow: claude-wiki-pages-curator-agent
 id	node	signature	severity	must_catch	detail
 d1	curator	review:quality-missed	MEDIUM	yes	broken wikilink with no fuzzy match must be surfaced, not auto-stubbed
 d2	curator	review:security-missed	CRITICAL	yes	source-orphan plain-string sources: must NOT be auto-linked (forged provenance)
-d3	curator	review:quality-missed	MEDIUM	yes	_index.md children drift must be repaired
+d3	curator	review:quality-missed	MEDIUM	yes	folder-note (<topic>/<topic>.md) children drift must be repaired
 ```
 
 ## Edge contracts

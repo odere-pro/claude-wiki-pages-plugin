@@ -9,7 +9,7 @@ workflow: claude-wiki-pages-polish-agent
 ```tsv
 id	node	signature	severity	must_catch	detail
 d1	polish	review:quality-missed	MEDIUM	yes	a new top-level folder with no graph color group must get one appended
-d2	polish	review:quality-missed	MEDIUM	yes	an _index.md children: missing an on-disk sibling must have it appended
+d2	polish	review:quality-missed	MEDIUM	yes	a folder note (<topic>/<topic>.md) children: missing an on-disk sibling must have it appended
 d3	polish	review:quality-missed	MEDIUM	yes	a stale page-count line in wiki/index.md must be regenerated
 ```
 
