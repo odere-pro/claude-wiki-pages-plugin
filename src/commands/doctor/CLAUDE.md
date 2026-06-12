@@ -1,6 +1,6 @@
 # doctor — environment + vault health check
 
-`doctor` is the wellness probe: ten checks (D01–D10) over both the environment and
+`doctor` is the wellness probe: eleven checks (D01–D11) over both the environment and
 the vault, each returning `pass` / `warn` / `fail` / `fixed` / `skip`. It answers
 "is this install healthy and is the vault sound?" in one pass, and with `--fix`
 repairs the auto-fixable subset (D04, D05, D08) — diagnose-only checks are never
@@ -13,14 +13,14 @@ The hot-path equivalent for the Layer 4 `SessionStart` hook is the bash twin
 
 ## Input and flags
 
-- `claude-wiki-pages doctor` — run all ten checks against the resolved vault.
+- `claude-wiki-pages doctor` — run all eleven checks against the resolved vault.
 - `--target <vault>` — explicit vault path.
 - `--fix` — apply the auto-fixable repairs (D04 chmod, D05 git init, D08 settings
   copy).
 - `--strict` — change the exit contract (see below).
 - `--json` — emit the structured `DoctorReport`.
 
-## The ten checks
+## The eleven checks
 
 | ID | Title | Auto-fix |
 | --- | --- | --- |
@@ -34,12 +34,17 @@ The hot-path equivalent for the Layer 4 `SessionStart` hook is the bash twin
 | D08 | Legacy settings path migrated to the current one | `--fix` copy |
 | D09 | Vault integrity — delegates to [`verify`](../verify/CLAUDE.md) | — |
 | D10 | Glossary gate present (repo-context only) | — |
+| D11 | Obsidian link parity — asks a running Obsidian for `unresolvedLinks` (advisory: any CLI failure is `skip`, never `fail`) | — |
 
 D02 reuses [`schema.ts`](../../core/schema.ts) (`declaredSchemaVersion`,
 `SUPPORTED_SCHEMA_VERSIONS`); D05 reuses [`git.ts`](../../core/git.ts) (`isRepo`,
 `ensureRepo`); D09 calls [`verify`](../verify/CLAUDE.md) and folds its
 error/warning counts into a status. Checks that are only meaningful inside the
-plugin repo (D04, D10) `skip` cleanly outside it.
+plugin repo (D04, D10) `skip` cleanly outside it. D11 shells out to the
+`obsidian` CLI through an injectable runner (`DoctorOptions.runner`, default
+`spawnSync` with a 5 s timeout) so the check stays pure in tests; it counts the
+entries in `app.metadataCache.unresolvedLinks` and warns with a lint hint when
+any are dangling — CLI absent, vault not open, or unparseable output all `skip`.
 
 ## Exit codes
 
@@ -52,7 +57,7 @@ diagnostic, not a gate. Under `--strict` it returns `3` when the worst status is
 
 ```ts
 interface CheckResult {
-  id: string;          // "D01" … "D10"
+  id: string;          // "D01" … "D11"
   title: string;
   status: "pass" | "warn" | "fail" | "fixed" | "skip";
   message: string;
@@ -76,7 +81,7 @@ The router renders each result with a status glyph and a worst-status footer; th
   so `doctor` is still useful pre-onboarding.
 - D04/D08 are no-ops outside the plugin repo (no `hooks.json`, no legacy
   settings) and report `skip`/`pass` accordingly.
-- `--fix` only ever touches the three fixable checks; D01–D03, D06, D07, D09, D10
+- `--fix` only ever touches the three fixable checks; D01–D03, D06, D07, D09–D11
   are pure diagnosis.
 
 ## Covered by

@@ -1,10 +1,10 @@
 /**
  * `doctor` — environment + vault health check, agentline-style.
  *
- * Ten checks (D01–D10), each returning a status of pass | warn | fail | fixed |
- * skip. `--fix` repairs the auto-fixable subset (D04, D05, D08); diagnose-only
- * checks are never mutated. Exit 0 by default; with `--strict`, exit 3 when any
- * check finished warn or fail.
+ * Eleven checks (D01–D11), each returning a status of pass | warn | fail |
+ * fixed | skip. `--fix` repairs the auto-fixable subset (D04, D05, D08);
+ * diagnose-only checks are never mutated. Exit 0 by default; with `--strict`,
+ * exit 3 when any check finished warn or fail.
  *
  * Each check is a pure `(ctx: DoctorContext) => CheckResult` registered in the
  * `CHECKS` array; `doctor()` resolves the context once and maps over the
@@ -12,6 +12,7 @@
  */
 
 import { accessSync, constants, copyFileSync, mkdirSync, chmodSync, realpathSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { join, dirname } from "node:path";
 import { readFileSafe, existsSync } from "../../core/fs.ts";
 import { resolveVault } from "../../core/vault.ts";
@@ -37,11 +38,25 @@ export interface DoctorReport {
   readonly worst: DoctorStatus;
 }
 
+/** External-command runner, injectable so CLI-backed checks stay testable. */
+export type DoctorRunner = (
+  cmd: string,
+  args: readonly string[],
+) => { readonly ok: boolean; readonly stdout: string };
+
+const RUNNER_TIMEOUT_MS = 5_000;
+
+const defaultRunner: DoctorRunner = (cmd, args) => {
+  const r = spawnSync(cmd, [...args], { encoding: "utf8", timeout: RUNNER_TIMEOUT_MS });
+  return { ok: r.status === 0 && r.error === undefined, stdout: r.stdout ?? "" };
+};
+
 export interface DoctorOptions {
   readonly target?: string;
   readonly cwd?: string;
   readonly fix?: boolean;
   readonly pluginRoot?: string;
+  readonly runner?: DoctorRunner;
 }
 
 /** Resolved inputs shared by every check, computed once per `doctor()` run. */
@@ -51,6 +66,7 @@ interface DoctorContext {
   readonly cwd: string;
   readonly pluginRoot: string;
   readonly fix: boolean;
+  readonly runner: DoctorRunner;
 }
 
 type CheckFn = (ctx: DoctorContext) => CheckResult;
@@ -320,7 +336,58 @@ function checkGlossaryGate({ pluginRoot }: DoctorContext): CheckResult {
     : { id: "D10", title: "Glossary gate", status: "skip", message: "not in the plugin repo" };
 }
 
-/** The ordered check registry — D01…D10. Order here is the report order. */
+/**
+ * Count dangling links in Obsidian's `unresolvedLinks` map: outer keys are
+ * source files, inner keys are the unresolved targets. Output may arrive
+ * double-encoded (eval returns a JSON string the CLI prints quoted).
+ */
+function countUnresolved(raw: string): number | null {
+  try {
+    let parsed: unknown = JSON.parse(raw.trim());
+    if (typeof parsed === "string") parsed = JSON.parse(parsed);
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    return Object.values(parsed).reduce<number>(
+      (n, inner) =>
+        n + (inner !== null && typeof inner === "object" ? Object.keys(inner).length : 0),
+      0,
+    );
+  } catch {
+    return null;
+  }
+}
+
+// D11 — Obsidian link parity (advisory: any CLI failure is a skip, never a fail)
+function checkLinkParity({ vault, runner }: DoctorContext): CheckResult {
+  const title = "Obsidian link parity";
+  if (!existsSync(vault)) return { id: "D11", title, status: "skip", message: "no vault yet" };
+  const probe = runner("obsidian", [
+    "eval",
+    "code=JSON.stringify(app.metadataCache.unresolvedLinks)",
+    "--vault",
+    vault,
+  ]);
+  if (!probe.ok)
+    return {
+      id: "D11",
+      title,
+      status: "skip",
+      message: "obsidian CLI unavailable or vault not open (advisory)",
+    };
+  const count = countUnresolved(probe.stdout);
+  if (count === null)
+    return { id: "D11", title, status: "skip", message: "unparseable CLI output (advisory)" };
+  return count === 0
+    ? { id: "D11", title, status: "pass", message: "Obsidian reports no unresolved links" }
+    : {
+        id: "D11",
+        title,
+        status: "warn",
+        message: `Obsidian reports ${count} unresolved link(s)`,
+        hint: "run /claude-wiki-pages:lint",
+      };
+}
+
+/** The ordered check registry — D01…D11. Order here is the report order. */
 const CHECKS: readonly CheckFn[] = [
   checkVaultPath,
   checkSchemaVersion,
@@ -332,6 +399,7 @@ const CHECKS: readonly CheckFn[] = [
   checkSettingsMigration,
   checkVerify,
   checkGlossaryGate,
+  checkLinkParity,
 ];
 
 export function doctor(opts: DoctorOptions = {}): DoctorReport {
@@ -344,6 +412,7 @@ export function doctor(opts: DoctorOptions = {}): DoctorReport {
     cwd,
     pluginRoot,
     fix: opts.fix ?? false,
+    runner: opts.runner ?? defaultRunner,
   };
   const results = CHECKS.map((check) => check(ctx));
   return { command: "doctor", vault, results, worst: worstOf(results) };

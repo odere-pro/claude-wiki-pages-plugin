@@ -23,6 +23,13 @@ setup() {
   export CLAUDE_PLUGIN_ROOT="$REPO_ROOT"
   # Isolate settings.json writes so the test does not mutate the worktree.
   export CLAUDE_WIKI_PAGES_SETTINGS_FILE="$BATS_TEST_TMPDIR/settings.json"
+  # Mask any real `obsidian` CLI so the advisory link-parity probe never
+  # reaches a live Obsidian during tests (fast-failing stub = silent skip).
+  MASK_BIN="$BATS_TEST_TMPDIR/mask-bin"
+  mkdir -p "$MASK_BIN"
+  printf '#!/bin/bash\nexit 1\n' >"$MASK_BIN/obsidian"
+  chmod +x "$MASK_BIN/obsidian"
+  export PATH="$MASK_BIN:$PATH"
 }
 
 @test "doctor: exit 1 when vault path does not exist" {
@@ -159,6 +166,64 @@ setup() {
 
   [ "$status" -eq 0 ]
   [[ "$output" == *"jq:"* ]]
+}
+
+# ── Obsidian link parity (advisory; parity with TS doctor D11) ──────────────
+# A NOTE with the unresolved-link count when a running Obsidian reports
+# dangling links; silent on zero, CLI absence, or CLI failure. The exit-code
+# contract (0–5) is never touched by this probe.
+
+install_obsidian_stub() {
+  # $1 = body the stub prints (the unresolvedLinks JSON); empty = exit 1.
+  STUB_BIN="$BATS_TEST_TMPDIR/obsidian-stub-bin"
+  mkdir -p "$STUB_BIN"
+  if [ -n "$1" ]; then
+    printf '#!/bin/bash\nprintf %%s %s\n' "'$1'" >"$STUB_BIN/obsidian"
+  else
+    printf '#!/bin/bash\nexit 1\n' >"$STUB_BIN/obsidian"
+  fi
+  chmod +x "$STUB_BIN/obsidian"
+  export PATH="$STUB_BIN:$PATH"
+}
+
+@test "doctor: NOTE with the unresolved-link count when obsidian reports them" {
+  command -v jq >/dev/null 2>&1 || skip "jq not installed on this machine"
+  mkdir -p "$VAULT/raw" "$VAULT/wiki"
+  printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
+  export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
+  install_obsidian_stub '{"wiki/a.md":{"Missing Page":1,"Ghost":2},"wiki/b.md":{"Missing Page":1}}'
+
+  run bash "$REPO_ROOT/$DOCTOR"
+
+  assert_success # advisory: exit code unchanged
+  assert_output_contains "3 unresolved link(s)"
+  assert_output_contains "/claude-wiki-pages:lint"
+}
+
+@test "doctor: silent when obsidian reports zero unresolved links" {
+  command -v jq >/dev/null 2>&1 || skip "jq not installed on this machine"
+  mkdir -p "$VAULT/raw" "$VAULT/wiki"
+  printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
+  export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
+  install_obsidian_stub '{"wiki/a.md":{}}'
+
+  run bash "$REPO_ROOT/$DOCTOR"
+
+  assert_success
+  refute_output_contains "unresolved link"
+}
+
+@test "doctor: silent when the obsidian CLI fails (vault not open)" {
+  mkdir -p "$VAULT/raw" "$VAULT/wiki"
+  printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
+  export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
+  install_obsidian_stub "" # stub exits 1
+
+  run bash "$REPO_ROOT/$DOCTOR"
+
+  assert_success
+  assert_output_contains "healthy"
+  refute_output_contains "unresolved link"
 }
 
 @test "doctor: warns (not fatal) when vault is not a git repo" {
