@@ -53,6 +53,7 @@ tests/
 └── smoke/                     # Tier 2 end-to-end smoke scripts
     ├── fresh-install.sh
     ├── skill-schema.sh
+    ├── ablation-smoke.sh      # opt-in (eval target) — needs a model + Ollama
     └── promptfoo.yaml
 ```
 
@@ -132,6 +133,23 @@ Both smoke scripts detect Claude Code CLI presence (`command -v claude`).
 Without the CLI they print `[SKIP]` and exit 0 — that's the current CI
 posture until Phase E wires in a CLI runner. With the CLI present they
 run the full end-to-end flow.
+
+### Ablation smoke — when you have a local model (eval target)
+
+```bash
+CLAUDE_WIKI_PAGES_EVAL_MODEL=qwen3-coder:30b bash tests/run-tests.sh eval
+# or directly:
+CLAUDE_WIKI_PAGES_EVAL_MODEL=qwen3-coder:30b bash tests/smoke/ablation-smoke.sh
+```
+
+[`smoke/ablation-smoke.sh`](./smoke/ablation-smoke.sh) runs ONE golden case
+(`extract-basic`) through both arms of the scaffolding ablation
+([ADR-0020](../docs/adr/ADR-0020-scaffolding-ablation-eval.md)) and asserts
+the plugin arm ≥ the baseline arm on `schema_validity` and
+`claim_source_fidelity`, printing the mini side-by-side table. It self-skips
+unless `CLAUDE_WIKI_PAGES_EVAL_MODEL` is set AND the Ollama endpoint answers
+the preflight — CI never runs the live path. It is wired into the `eval`
+target after the driver self-test.
 
 ## Fixtures
 
