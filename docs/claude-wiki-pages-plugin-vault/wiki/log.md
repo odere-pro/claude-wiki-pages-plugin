@@ -61,3 +61,5 @@ Empty vault created from `skills/llm-wiki/template/`. No sources ingested yet.
 - Fixed `entity_type: agent` → `entity_type: tool` on 6 agent pages (enum membership; verify now 0 errors)
 - Rewrote root `child_indexes` to filename links (`[[adrs]]` … 10 links)
 - Applied 15 graph color groups (10 topics + `_sources`/`_synthesis` + 3 layer groups) via the headless fallback; `hideUnresolved: true`
+
+## [2026-06-12] query | What does the wiki say about offline degraded mode routing
