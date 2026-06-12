@@ -8,14 +8,20 @@
  * (`source_quotes`, `derived`) are NOT backfilled into existing pages — they
  * are optional, so untouched pages stay valid; they are added lazily by ingest.
  *
+ * The v2 → v3 step (`rename-index`) renames every legacy per-folder index
+ * `wiki/**\/_index.md` to its folder note `<dir>/<dirname>.md` and rewrites the
+ * `[[…/_index]]` / `[[_index]]` wikilink forms across wiki/ to the new name.
+ * A rename whose target filename already exists is reported and skipped — the
+ * remaining `_index.md` then carries the verify WARN `legacy-index-filename`.
+ *
  * Dry-run by default; `--write` applies the plan under a checkpoint commit so
  * the whole migration is reversible with `git revert <checkpoint>`. Running it
  * again on an already-current vault is a no-op (idempotent).
  */
 
-import { writeFileSync, mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { readFileSafe, existsSync } from "../../core/fs.ts";
+import { writeFileSync, mkdirSync, renameSync } from "node:fs";
+import { basename, dirname, join, relative } from "node:path";
+import { readFileSafe, existsSync, listMarkdownRecursive } from "../../core/fs.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { declaredSchemaVersion, CURRENT_SCHEMA_VERSION } from "../../core/schema.ts";
 import { buildManifest, MANIFEST_RELATIVE } from "../../core/manifest.ts";
@@ -26,7 +32,12 @@ import { TOPIC_TEMPLATE, PROJECT_TEMPLATE } from "../../data/templates.ts";
 
 export interface MigrateChange {
   readonly file: string;
-  readonly action: "bump-schema" | "add-template" | "generate-manifest";
+  readonly action:
+    | "bump-schema"
+    | "add-template"
+    | "generate-manifest"
+    | "rename-index"
+    | "rewrite-links";
 }
 
 export interface MigrateReport {
@@ -59,6 +70,57 @@ interface PlannedWrite {
 /** Replace the first declared schema_version with `to`, preserving backtick style. */
 function bumpSchemaVersion(content: string, to: number): string {
   return content.replace(/(`?schema_version`?:\s*`?)(\d+)(`?)/, `$1${to}$3`);
+}
+
+interface PlannedRename {
+  readonly from: string;
+  readonly to: string;
+}
+
+/**
+ * Plan the v3 folder-note renames: every `wiki/**\/_index.md` whose target
+ * `<dir>/<dirname>.md` is free. Conflicting targets are reported and skipped.
+ */
+function planIndexRenames(wikiDir: string): {
+  renames: PlannedRename[];
+  conflicts: string[];
+} {
+  const renames: PlannedRename[] = [];
+  const conflicts: string[] = [];
+  for (const p of listMarkdownRecursive(wikiDir).filter((f) => basename(f) === "_index.md")) {
+    const target = join(dirname(p), `${basename(dirname(p))}.md`);
+    if (existsSync(target)) conflicts.push(p);
+    else renames.push({ from: p, to: target });
+  }
+  return { renames, conflicts };
+}
+
+/**
+ * Rewrite the legacy `_index` wikilink forms in one page's content:
+ * `[[<path>/_index]]` / `[[<path>/_index|label]]` when `<path>` names a renamed
+ * folder, and bare `[[_index]]` / `[[_index|label]]` when the page's own folder
+ * was renamed. Links into conflict-skipped folders are left untouched.
+ */
+function rewriteIndexLinks(
+  content: string,
+  fileDirRel: string,
+  renamedDirsRel: readonly string[],
+): string {
+  const isRenamed = (p: string): boolean =>
+    renamedDirsRel.some((d) => d === p || d.endsWith(`/${p}`) || p.endsWith(`/${d}`));
+
+  let out = content.replace(
+    /\[\[([^\]|]+)\/_index(\|[^\]]*)?\]\]/g,
+    (whole, path: string, label: string | undefined) =>
+      isRenamed(path) ? `[[${path}/${basename(path)}${label ?? ""}]]` : whole,
+  );
+  if (renamedDirsRel.includes(fileDirRel)) {
+    out = out.replace(
+      /\[\[_index(\|[^\]]*)?\]\]/g,
+      (_whole, label: string | undefined) => `[[${basename(fileDirRel)}${label ?? ""}]]`,
+    );
+  }
+  return out;
 }
 
 export function migrate(opts: MigrateOptions = {}): MigrateReport {
@@ -107,7 +169,41 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
     });
   }
 
-  const changes = planned.map((p) => p.change);
+  // v3 — rename-index: legacy `_index.md` files become folder notes, and the
+  // `[[…/_index]]` wikilink forms across wiki/ are rewritten to the new name.
+  // Gated on presence (no legacy files left = no-op), so re-running is clean.
+  const wikiDir = join(vault, "wiki");
+  const { renames, conflicts } = planIndexRenames(wikiDir);
+  const renamedDirsRel = renames.map((r) => relative(wikiDir, dirname(r.from)));
+  const rewrites: PlannedWrite[] = [];
+  if (renames.length > 0) {
+    const renamedFrom = new Map(renames.map((r) => [r.from, r.to]));
+    for (const page of listMarkdownRecursive(wikiDir)) {
+      const content = readFileSafe(page);
+      if (content === null) continue;
+      const next = rewriteIndexLinks(content, relative(wikiDir, dirname(page)), renamedDirsRel);
+      if (next !== content) {
+        // Write to the post-rename path when the page itself is being renamed.
+        const targetPath = renamedFrom.get(page) ?? page;
+        rewrites.push({ change: { file: targetPath, action: "rewrite-links" }, content: next });
+      }
+    }
+  }
+
+  const renameChanges: MigrateChange[] = renames.map((r) => ({
+    file: `${r.from} -> ${r.to}`,
+    action: "rename-index",
+  }));
+  const conflictNote =
+    conflicts.length === 0
+      ? ""
+      : ` Skipped ${conflicts.length} rename(s) — target filename already exists: ${conflicts.join(", ")}.`;
+
+  const changes = [
+    ...renameChanges,
+    ...rewrites.map((p) => p.change),
+    ...planned.map((p) => p.change),
+  ];
 
   if (changes.length === 0) {
     return report(
@@ -117,7 +213,7 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
       false,
       [],
       null,
-      `Already at schema_version ${to}; nothing to do`,
+      `Already at schema_version ${to}; nothing to do${conflictNote}`,
     );
   }
 
@@ -129,7 +225,7 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
       false,
       changes,
       null,
-      `Plan: ${changes.length} change(s). Re-run with --write to apply.`,
+      `Plan: ${changes.length} change(s). Re-run with --write to apply.${conflictNote}`,
     );
   }
 
@@ -141,7 +237,12 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
   if (gitOn) ensureRepo(vault);
   const checkpointSha = applyCheckpointMode(vault, gitCfg.mode, opId, now);
 
-  for (const p of planned) {
+  // Renames first (folder notes take the legacy files' place), then the link
+  // rewrites against the post-rename paths, then the additive content writes.
+  for (const r of renames) {
+    renameSync(r.from, r.to);
+  }
+  for (const p of [...rewrites, ...planned]) {
     mkdirSync(dirname(p.change.file), { recursive: true });
     writeFileSync(p.change.file, p.content);
   }
@@ -152,6 +253,8 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
     summary: `schema_version ${from ?? "?"} → ${to} (${changes.length} change(s))`,
     details: [
       ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
+      ...(renames.length > 0 ? [`renamed ${renames.length} legacy _index.md to folder notes`] : []),
+      ...(conflicts.length > 0 ? [`skipped ${conflicts.length} rename conflict(s)`] : []),
       "rollback: git revert the migrate commit below",
     ],
     today,
@@ -168,7 +271,7 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
     true,
     changes,
     checkpointSha,
-    `Migrated schema_version ${from ?? "?"} → ${to} (${changes.length} change(s)). Rollback: git revert ${migrateCommit ?? checkpointSha ?? "<commit>"}`,
+    `Migrated schema_version ${from ?? "?"} → ${to} (${changes.length} change(s)).${conflictNote} Rollback: git revert ${migrateCommit ?? checkpointSha ?? "<commit>"}`,
   );
 }
 

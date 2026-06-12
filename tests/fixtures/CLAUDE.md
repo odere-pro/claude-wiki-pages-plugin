@@ -16,11 +16,11 @@ minimal-vault/
     ├── log.md
     ├── _sources/sample.md
     └── topics/
-        ├── _index.md
+        ├── topics.md
         └── sample-entity.md
 ```
 
-Every wiki file carries full schema-compliant frontmatter, sources use `[[wikilink]]` syntax, and each folder `_index.md` agrees with its contents, so `verify-ingest.sh` returns `0`. Tests that need to mutate the vault call `setup_fixture_vault`, which copies the tree to a Bats tmpdir and exports `$FIXTURE_VAULT`; the source under `minimal-vault/` stays pristine. Treat it as a test input, not reference documentation — the authoritative schema lives in [`../../docs/vault-example/CLAUDE.md`](../../docs/vault-example/CLAUDE.md).
+Every wiki file carries full schema-compliant frontmatter, sources use `[[wikilink]]` syntax, and each folder's index file (the folder note `topics/topics.md`) agrees with its contents, so `verify-ingest.sh` returns `0`. Tests that need to mutate the vault call `setup_fixture_vault`, which copies the tree to a Bats tmpdir and exports `$FIXTURE_VAULT`; the source under `minimal-vault/` stays pristine. Treat it as a test input, not reference documentation — the authoritative schema lives in [`../../docs/vault-example/CLAUDE.md`](../../docs/vault-example/CLAUDE.md).
 
 ## `json/`
 

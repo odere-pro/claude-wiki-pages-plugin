@@ -1,6 +1,6 @@
 # Minimal Vault Fixture — Schema
 
-`schema_version: 1`
+`schema_version: 3`
 
 This fixture is a tiny, valid vault used by the Bats test suite. It mirrors
 the shape of `docs/vault-example/` but keeps every file to the minimum content

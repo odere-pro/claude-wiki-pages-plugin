@@ -3,9 +3,10 @@
 #
 # Behavior under test:
 #   - On a Write/Edit to vault/wiki/<topic>/<page>.md, emit reminder strings
-#     when the folder lacks _index.md or when the new title is missing from
-#     wiki/index.md.
-#   - Silent on writes to index.md / log.md / _index.md (bookkeeping).
+#     when the folder lacks an index file (folder note or legacy _index.md) or
+#     when the new title is missing from wiki/index.md.
+#   - Silent on writes to index.md / log.md / _index.md / folder notes
+#     (bookkeeping).
 #   - Silent on writes outside vault/wiki/.
 
 load '../test_helper/common'
@@ -14,10 +15,10 @@ setup() {
   _load_helpers
 }
 
-@test "post-wiki-write: reminds when folder has no _index.md (but title IS in index.md)" {
+@test "post-wiki-write: reminds when folder has no index file (but title IS in index.md)" {
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/topics"
-  # index.md DOES contain the new title, so only the _index.md-missing
+  # index.md DOES contain the new title, so only the index-file-missing
   # reminder should fire. Pins that branch independently.
   printf '%s\n' '- [[Pinned Page]]' >"$proj/vault/wiki/index.md"
 
@@ -40,15 +41,73 @@ MD
   run_hook_with_json "scripts/post-wiki-write.sh" "$json_file"
 
   assert_success
-  assert_output_contains "has no _index.md"
+  assert_output_contains "has no index file"
+  assert_output_contains "topics/topics.md"
   refute_output_contains "Add [[Pinned Page]]"
 }
 
-@test "post-wiki-write: reminds when title missing from index.md (but folder has _index.md)" {
+@test "post-wiki-write: a folder note silences the index-file reminder" {
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/topics"
-  # Folder has _index.md, index.md does NOT list the new title — only the
-  # index.md-missing-title reminder should fire.
+  printf '%s\n' '- [[Pinned Page]]' >"$proj/vault/wiki/index.md"
+  # Folder note: stem == folder name + type: index.
+  cat >"$proj/vault/wiki/topics/topics.md" <<'MD'
+---
+title: "Topics — Index"
+type: index
+---
+MD
+
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  local content
+  content=$(cat <<'MD'
+---
+title: "Pinned Page"
+type: entity
+---
+
+# Pinned Page
+MD
+  )
+  jq -n \
+    --arg path "$proj/vault/wiki/topics/pinned-page.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/post-wiki-write.sh" "$json_file"
+
+  assert_success
+  refute_output_contains "has no index file"
+}
+
+@test "post-wiki-write: silent on a folder-note write itself (bookkeeping)" {
+  local proj="$BATS_TEST_TMPDIR/proj"
+  mkdir -p "$proj/vault/wiki/topics"
+  local content
+  content=$(cat <<'MD'
+---
+title: "Topics — Index"
+type: index
+---
+MD
+  )
+  local json_file="$BATS_TEST_TMPDIR/input.json"
+  jq -n \
+    --arg path "$proj/vault/wiki/topics/topics.md" \
+    --arg content "$content" \
+    '{tool_name:"Write", tool_input:{file_path:$path, content:$content}}' >"$json_file"
+
+  run_hook_with_json "scripts/post-wiki-write.sh" "$json_file"
+
+  assert_success
+  assert_output_empty
+}
+
+@test "post-wiki-write: reminds when title missing from index.md (but folder has legacy _index.md)" {
+  local proj="$BATS_TEST_TMPDIR/proj"
+  mkdir -p "$proj/vault/wiki/topics"
+  # Folder has a legacy _index.md (still accepted), index.md does NOT list the
+  # new title — only the index.md-missing-title reminder should fire.
   : >"$proj/vault/wiki/topics/_index.md"
   printf '%s\n' '- [[Some Other Page]]' >"$proj/vault/wiki/index.md"
 
@@ -72,7 +131,7 @@ MD
 
   assert_success
   assert_output_contains "Add [[New Page]]"
-  refute_output_contains "has no _index.md"
+  refute_output_contains "has no index file"
 }
 
 @test "post-wiki-write: silent on non-wiki paths" {

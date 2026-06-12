@@ -34,7 +34,7 @@
  */
 
 import { join } from "node:path";
-import { listMarkdownRecursive, readFileSafe } from "../../core/fs.ts";
+import { listMarkdownRecursive, readFileSafe, isBookkeepingFile } from "../../core/fs.ts";
 import { parseFrontmatter, titleOf } from "../../core/frontmatter.ts";
 import { parseOntologyProfile } from "../ontology/ontology.ts";
 import type { Finding } from "../../core/report.ts";
@@ -93,10 +93,8 @@ export function checkEntityType(
   const findings: Finding[] = [];
 
   for (const filepath of listMarkdownRecursive(wiki)) {
-    const stem = basename(filepath, ".md");
-
-    // Skip bookkeeping files — same exclusion list as other checks.
-    if (["index", "log", "dashboard", "manifest", "_index", ".gitkeep"].includes(stem)) continue;
+    // Skip bookkeeping files — same exclusion predicate as other checks.
+    if (isBookkeepingFile(filepath)) continue;
 
     const content = readFileSafe(filepath) ?? "";
     const fm = parseFrontmatter(content);

@@ -33,7 +33,8 @@ numbering as follows.
 | CHECK 2 — `sources:` use `[[wikilinks]]` | `checkSourcesFormat` | [`index-check.ts`](../../core/index-check.ts) | error |
 | CHECK 3 — `_index.md` consistency | `checkIndexConsistency` | [`moc.ts`](../../core/moc.ts) | error / warn |
 | CHECK 3b — orphan source summaries | `checkOrphanSources` | [`moc.ts`](../../core/moc.ts) | warn |
-| topic-folder — every topic folder has `_index.md` | `checkTopicFolders` | [`moc.ts`](../../core/moc.ts) | error |
+| topic-folder — every topic folder has an index file (folder note or legacy `_index.md`) | `checkTopicFolders` | [`moc.ts`](../../core/moc.ts) | error |
+| legacy-index-filename — at `schema_version >= 3`, a remaining `_index.md` should become a folder note (`engine.sh migrate --write`) | `checkLegacyIndexFilename` | [`moc.ts`](../../core/moc.ts) | warn |
 | CHECK 4 — cited-source staleness | `checkCitedSourceStaleness` | [`staleness.ts`](../../core/staleness.ts) | warn |
 | CHECK 5 — wikilink/citation provenance | `checkProvenance` | [`provenance.ts`](../../core/provenance.ts) | error / warn |
 

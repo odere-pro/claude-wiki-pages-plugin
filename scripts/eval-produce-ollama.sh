@@ -109,7 +109,8 @@ Required files (emit each as a ===FILE: block):
    derived: false. update_count: 1. status: active. confidence: 0.9.
    Body: # <name>, ## Overview, ## Key Facts (bullets), ## Related (None.).
 
-3. wiki/<topic>/_index.md — title: "<Topic, capitalized> — Index", type: index,
+3. wiki/<topic>/<topic>.md — the folder note (filename equals its folder):
+   title: "<Topic, capitalized> — Index", type: index,
    aliases: ["<Topic> — Index", "<topic>", "<Topic>"], parent: "[[Wiki Index]]",
    path: "<topic>", children: one "[[<entity>]]" per page in the folder,
    child_indexes: []. Body lists the pages with one-line descriptions.

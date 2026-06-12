@@ -12,7 +12,8 @@
   "hooks": "./hooks/hooks.json",
   "supported_schema_versions": [
     1,
-    2
+    2,
+    3
   ],
   "keywords": [
     "claude-code",

@@ -94,7 +94,8 @@ run top to bottom and the first block short-circuits the write.
 ### PostToolUse reminders
 
 - [`post-wiki-write.sh`](./post-wiki-write.sh) — after a wiki write, remind to
-  refresh `index.md` / `_index.md`.
+  refresh `index.md` / the folder's index note (folder note
+  `<folder>/<folder>.md`; legacy `_index.md` still accepted).
 - [`post-ingest-summary.sh`](./post-ingest-summary.sh) — after a `_sources/`
   note, remind to log the ingest and report source progress.
 

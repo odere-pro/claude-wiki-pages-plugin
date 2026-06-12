@@ -26,7 +26,7 @@ CLI defaults it to the current ISO day, stamped into any newly created
 | Action | Builder | What it does |
 | --- | --- | --- |
 | `dedupe-index` | `dedupeIndexLinks` | Drops duplicate `[[Target]]` bullet lines from `index.md`, keeping the first of each. |
-| `create-index` | `buildIndexStub` | Writes a minimal schema-shaped `_index.md` for any indexable topic folder lacking one. |
+| `create-index` | `buildIndexStub` | Writes a minimal schema-shaped index under the FOLDER NOTE name (`<folder>/<folder>.md`, never `_index.md`) for any indexable topic folder lacking one. An existing legacy `_index.md` is accepted, never renamed — that is `migrate`'s job. |
 | `sync-children` | `syncChildren` | Rewrites the `children:` frontmatter list of each `_index.md` to the folder's actual page titles. |
 
 All three are defined in [`../../core/moc-build.ts`](../../core/moc-build.ts). Body

@@ -5,7 +5,7 @@
  */
 
 import { basename, join } from "node:path";
-import { listMarkdownRecursive, readFileSafe, existsSync, BOOKKEEPING } from "./fs.ts";
+import { listMarkdownRecursive, readFileSafe, existsSync, isBookkeepingFile } from "./fs.ts";
 import { splitFrontmatter, parseFrontmatter, stringList, titleOf } from "./frontmatter.ts";
 import { extractWikilinks, duplicates } from "./wikilinks.ts";
 import type { Finding } from "./report.ts";
@@ -44,8 +44,7 @@ export function checkIndex(wiki: string): Finding[] {
   }
 
   for (const filepath of listMarkdownRecursive(wiki)) {
-    const stem = basename(filepath, ".md");
-    if (BOOKKEEPING.has(stem)) continue;
+    if (isBookkeepingFile(filepath)) continue;
     const title = titleOf(readFileSafe(filepath) ?? "", filepath);
     if (!linkSet.has(title)) {
       findings.push({
@@ -63,8 +62,7 @@ export function checkIndex(wiki: string): Finding[] {
 export function checkSourcesFormat(wiki: string): Finding[] {
   const findings: Finding[] = [];
   for (const filepath of listMarkdownRecursive(wiki)) {
-    const stem = basename(filepath, ".md");
-    if (BOOKKEEPING.has(stem)) continue;
+    if (isBookkeepingFile(filepath)) continue;
     const fm = parseFrontmatter(readFileSafe(filepath) ?? "");
     for (const entry of stringList(fm["sources"])) {
       if (!WIKILINK_SOURCE.test(entry)) {

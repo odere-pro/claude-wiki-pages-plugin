@@ -6,9 +6,12 @@
 #   - Exit 1 on:
 #       * duplicate [[wikilinks]] in wiki/index.md
 #       * plain-string sources: entries (not [[wikilinks]])
-#       * topic folders missing _index.md
+#       * topic folders missing an index file (folder note or legacy _index.md)
 #   - Warn (but not error) on orphan source summaries — the script emits
 #     "WARN: Orphan source:" but still exits 0 unless other errors fire.
+#   - Folder notes (schema v3): the fixture's per-folder index is the folder
+#     note wiki/topics/topics.md; the legacy _index.md name is still accepted,
+#     and at schema_version >= 3 it draws the legacy-index-filename WARN.
 #
 # All tests run against a fresh copy of tests/fixtures/minimal-vault/.
 
@@ -32,8 +35,32 @@ teardown() {
   assert_output_contains "schema_version"
   assert_output_contains "No duplicates in index.md"
   assert_output_contains "All sources fields use [[wikilinks]]"
-  assert_output_contains "_index.md checked"
+  assert_output_contains "topics/topics.md checked"
   assert_output_contains "All checks passed"
+}
+
+@test "verify-ingest: accepts a legacy _index.md name (WARN at schema_version 3, exit 0)" {
+  # Rename the folder note back to the legacy name — still a valid index file.
+  mv "$FIXTURE_VAULT/wiki/topics/topics.md" "$FIXTURE_VAULT/wiki/topics/_index.md"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # Still passes (warning severity, not error) and CHECK 3 still runs on it.
+  assert_success
+  assert_output_contains "topics/_index.md checked"
+  assert_output_contains "legacy-index-filename"
+  assert_output_contains "migrate --write"
+}
+
+@test "verify-ingest: no legacy-index-filename WARN on a v2 vault (back-compat clean)" {
+  mv "$FIXTURE_VAULT/wiki/topics/topics.md" "$FIXTURE_VAULT/wiki/topics/_index.md"
+  sed -i.bak 's/`schema_version: 3`/`schema_version: 2`/' "$FIXTURE_VAULT/CLAUDE.md"
+  rm -f "$FIXTURE_VAULT/CLAUDE.md.bak"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  refute_output_contains "legacy-index-filename"
 }
 
 @test "verify-ingest: fails on duplicate index entries" {
@@ -61,13 +88,13 @@ teardown() {
   assert_output_contains "Plain string in sources"
 }
 
-@test "verify-ingest: fails on missing _index.md in topic folder" {
-  rm -f "$FIXTURE_VAULT/wiki/topics/_index.md"
+@test "verify-ingest: fails on missing index file in topic folder" {
+  rm -f "$FIXTURE_VAULT/wiki/topics/topics.md"
 
   run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
   assert_status 1
-  assert_output_contains "no _index.md"
+  assert_output_contains "no index file"
 }
 
 @test "verify-ingest: warns on orphan source summary" {
@@ -114,8 +141,8 @@ MD
   assert_output_contains "index.md not found"
 }
 
-@test "verify-ingest: fails when _index.md children refer to missing pages" {
-  local index="$FIXTURE_VAULT/wiki/topics/_index.md"
+@test "verify-ingest: fails when folder-note children refer to missing pages" {
+  local index="$FIXTURE_VAULT/wiki/topics/topics.md"
   # Replace the "Sample Entity" child with a nonexistent title. Use awk since
   # the line contains quotes and brackets that sed -i handles unevenly
   # across BSD/GNU.

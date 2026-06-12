@@ -1,7 +1,12 @@
 import { test, expect, describe } from "bun:test";
 import { verify } from "./verify.ts";
 import { exitCode } from "../../core/report.ts";
-import { makeVault, CLEAN_VAULT, DIRTY_VAULT } from "../../test-helpers/sandbox/vault.ts";
+import {
+  makeVault,
+  CLEAN_VAULT,
+  DIRTY_VAULT,
+  DIRTY_VAULT_LEGACY_INDEX,
+} from "../../test-helpers/sandbox/vault.ts";
 
 // ---------------------------------------------------------------------------
 // I3 provenance-completeness test helpers
@@ -13,8 +18,8 @@ function missingSourcesVault(pageType: string): Record<string, string> {
     "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
     "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Unsourced Page]]\n",
     "wiki/log.md": "---\ntitle: log\n---\n",
-    "wiki/topics/_index.md":
-      '---\ntitle: Topics — Index\naliases: ["topics"]\nchildren: ["[[Unsourced Page]]"]\n---\n',
+    "wiki/topics/topics.md":
+      '---\ntitle: Topics — Index\ntype: index\naliases: ["topics"]\nchildren: ["[[Unsourced Page]]"]\n---\n',
     "wiki/topics/unsourced.md": `---\ntitle: Unsourced Page\ntype: ${pageType}\nsources: []\n---\nbody\n`,
   };
 }
@@ -25,8 +30,8 @@ function derivedHighConfidenceVault(confidence: number): Record<string, string> 
     "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
     "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Derived Page]]\n",
     "wiki/log.md": "---\ntitle: log\n---\n",
-    "wiki/topics/_index.md":
-      '---\ntitle: Topics — Index\naliases: ["topics"]\nchildren: ["[[Derived Page]]"]\n---\n',
+    "wiki/topics/topics.md":
+      '---\ntitle: Topics — Index\ntype: index\naliases: ["topics"]\nchildren: ["[[Derived Page]]"]\n---\n',
     "wiki/topics/derived.md": `---\ntitle: Derived Page\ntype: concept\nsources: ["[[Source One]]"]\nderived: true\nconfidence: ${confidence}\n---\nbody\n`,
   };
 }
@@ -43,8 +48,8 @@ function stalenessVault(pageUpdated: string, sourceUpdated: string): Record<stri
       "---\ntitle: index\n---\n- [[Source One]]\n- [[Topics — Index]]\n- [[Real Page]]\n",
     "wiki/log.md": "---\ntitle: log\n---\n",
     "wiki/_sources/source-one.md": `---\ntitle: Source One\naliases: ["Source One"]\nsources: []\nupdated: ${sourceUpdated}\n---\nbody\n`,
-    "wiki/topics/_index.md":
-      '---\ntitle: Topics — Index\naliases: ["topics"]\nchildren: ["[[Real Page]]"]\n---\n',
+    "wiki/topics/topics.md":
+      '---\ntitle: Topics — Index\ntype: index\naliases: ["topics"]\nchildren: ["[[Real Page]]"]\n---\n',
     "wiki/topics/real-page.md": `---\ntitle: Real Page\nsources: ["[[Source One]]"]\nupdated: ${pageUpdated}\n---\nbody\n`,
   };
 }
@@ -79,6 +84,92 @@ describe("verify", () => {
     expect(checks).toContain("moc");
     expect(checks).toContain("orphan-sources");
     expect(checks).toContain("topic-folder");
+    sb.cleanup();
+  });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Schema v3: folder notes vs. legacy _index.md
+  // ──────────────────────────────────────────────────────────────────────────
+
+  test("v3: legacy _index.md is accepted identically to a folder note (counts match)", () => {
+    const sbNote = makeVault(DIRTY_VAULT);
+    const sbLegacy = makeVault(DIRTY_VAULT_LEGACY_INDEX);
+    const note = verify({ target: sbNote.vault });
+    const legacy = verify({ target: sbLegacy.vault });
+
+    expect({ errors: legacy.errors, warnings: legacy.warnings }).toEqual({
+      errors: note.errors,
+      warnings: note.warnings,
+    });
+    // No schema_version declared → no legacy-filename WARN at any age.
+    expect(legacy.findings.filter((f) => f.check === "legacy-index-filename")).toHaveLength(0);
+    sbNote.cleanup();
+    sbLegacy.cleanup();
+  });
+
+  test("v3: a folder-note vault at schema_version 3 verifies clean", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/topics.md":
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
+      "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
+    });
+    const report = verify({ target: sb.vault });
+    expect(report.errors).toBe(0);
+    expect(report.warnings).toBe(0);
+    sb.cleanup();
+  });
+
+  test("v3: a remaining _index.md at schema_version 3 gets the legacy-index-filename WARN", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/_index.md":
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
+      "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
+    });
+    const report = verify({ target: sb.vault });
+
+    expect(report.errors).toBe(0); // warning severity, not error
+    const legacy = report.findings.filter((f) => f.check === "legacy-index-filename");
+    expect(legacy).toHaveLength(1);
+    expect(legacy[0]?.severity).toBe("warn");
+    expect(legacy[0]?.message).toContain("engine.sh migrate --write");
+    sb.cleanup();
+  });
+
+  test("v3: a v2 vault with _index.md emits NO legacy-index-filename diagnostic (back-compat)", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 2\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/_index.md":
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
+      "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
+    });
+    const report = verify({ target: sb.vault });
+
+    expect(report.errors).toBe(0);
+    expect(report.warnings).toBe(0);
+    expect(report.findings.filter((f) => f.check === "legacy-index-filename")).toHaveLength(0);
+    sb.cleanup();
+  });
+
+  test("v3: a same-stem page WITHOUT type: index is a regular page, not a folder note", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      // Stem matches the folder, but no `type: index` → NOT an index file.
+      "wiki/topics/topics.md": "---\ntitle: Topics\n---\nbody\n",
+    });
+    const report = verify({ target: sb.vault });
+
+    const topicFolder = report.findings.filter((f) => f.check === "topic-folder");
+    expect(topicFolder).toHaveLength(1); // folder still lacks an index file
     sb.cleanup();
   });
 

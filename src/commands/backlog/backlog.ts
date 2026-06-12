@@ -11,7 +11,7 @@
 
 import { basename, extname, join } from "node:path";
 import { execFileSync } from "node:child_process";
-import { readFileSafe, listMarkdownShallow } from "../../core/fs.ts";
+import { readFileSafe, listMarkdownShallow, isFolderNote } from "../../core/fs.ts";
 import { listRawFiles, MANIFEST_RELATIVE } from "../../core/manifest.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { globToRegExp } from "../../core/firewall.ts";
@@ -151,8 +151,11 @@ export function backlog(opts: BacklogOptions = {}): BacklogReport {
     // exists under wiki/_sources/ (the same rule the manifest generator uses).
     const sourceStems = new Set(
       listMarkdownShallow(join(vault, "wiki", "_sources"))
-        .map((p) => basename(p, ".md"))
-        .filter((s) => s !== "manifest" && s !== "_index"),
+        .filter((p) => {
+          const s = basename(p, ".md");
+          return s !== "manifest" && s !== "_index" && !isFolderNote(p);
+        })
+        .map((p) => basename(p, ".md")),
     );
     pendingRaw = listRawFiles(join(vault, "raw"))
       .filter((full) => !sourceStems.has(basename(full, extname(full))))

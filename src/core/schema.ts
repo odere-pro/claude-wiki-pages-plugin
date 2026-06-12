@@ -4,10 +4,10 @@ import { join } from "node:path";
 import { readFileSafe, existsSync } from "./fs.ts";
 import type { Finding } from "./report.ts";
 
-export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2];
+export const SUPPORTED_SCHEMA_VERSIONS: readonly number[] = [1, 2, 3];
 
 /** The version `migrate` upgrades a vault to, and the version new vaults declare. */
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 /** Extract the first declared schema_version, tolerating backtick-wrapped forms. */
 export function declaredSchemaVersion(vaultClaudeMd: string): number | null {

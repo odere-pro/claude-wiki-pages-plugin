@@ -12,7 +12,7 @@
 import { createHash } from "node:crypto";
 import { readdirSync, statSync } from "node:fs";
 import { basename, extname, join, relative } from "node:path";
-import { listMarkdownShallow, readFileSafe, existsSync } from "./fs.ts";
+import { listMarkdownShallow, readFileSafe, existsSync, isFolderNote } from "./fs.ts";
 import { titleOf } from "./frontmatter.ts";
 
 export const MANIFEST_RELATIVE = "wiki/_sources/manifest.md";
@@ -56,7 +56,7 @@ function sourcePageIndex(sourcesDir: string): Map<string, string> {
   const map = new Map<string, string>();
   for (const p of listMarkdownShallow(sourcesDir)) {
     const stem = basename(p, ".md");
-    if (stem === "manifest" || stem === "_index") continue;
+    if (stem === "manifest" || stem === "_index" || isFolderNote(p)) continue;
     map.set(stem, titleOf(readFileSafe(p) ?? "", p));
   }
   return map;
