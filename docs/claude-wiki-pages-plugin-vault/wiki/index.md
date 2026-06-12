@@ -17,16 +17,16 @@ children:
   - "[[System Context]]"
   - "[[Plugin Overview — claude-wiki-pages]]"
 child_indexes:
-  - "[[architecture/_index]]"
-  - "[[agents/_index]]"
-  - "[[skills/_index]]"
-  - "[[adrs/_index]]"
-  - "[[operations/_index]]"
-  - "[[local-models/_index]]"
-  - "[[automation/_index]]"
-  - "[[features/_index]]"
-  - "[[glossary/_index]]"
-  - "[[design/_index]]"
+  - "[[architecture/architecture]]"
+  - "[[agents/agents]]"
+  - "[[skills/skills]]"
+  - "[[adrs/adrs]]"
+  - "[[operations/operations]]"
+  - "[[local-models/local-models]]"
+  - "[[automation/automation]]"
+  - "[[features/features]]"
+  - "[[glossary/glossary]]"
+  - "[[design/design]]"
 aliases: ["Wiki Index", "MOC", "Map of Contents"]
 tags: [index, moc]
 created: 2026-04-24

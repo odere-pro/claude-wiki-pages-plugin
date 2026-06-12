@@ -2,7 +2,7 @@
 
 ## Schema
 
-`schema_version: 2`
+`schema_version: 3`
 
 This file is the authoritative schema for any wiki operation. Skills and agents override their own defaults when those defaults conflict with the rules below.
 

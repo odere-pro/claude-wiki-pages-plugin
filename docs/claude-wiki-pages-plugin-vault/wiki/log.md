@@ -48,3 +48,9 @@ Empty vault created from `skills/llm-wiki/template/`. No sources ingested yet.
   - Fixed `[[ADR-0010 Durable Memory Carve-out]]` casing in operations/draft-review-gate.md sources (1)
   - Added aliases to _synthesis/plugin-overview.md so `[[Plugin Overview]]` resolves (1)
   - Removed conflicting aliases from agents/_index.md, architecture/_index.md, skills/_index.md (3)
+## [2026-06-12] migrate | schema_version 2 → 3 (13 change(s))
+
+- checkpoint: 4168023
+- renamed 10 legacy _index.md to folder notes
+- rollback: git revert the migrate commit below
+
