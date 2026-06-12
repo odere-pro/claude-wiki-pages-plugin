@@ -162,5 +162,20 @@ else
   printf '\033[0;33mNOTE:\033[0m bun not installed — engine commands (verify/fix/heal/doctor/config) and git-checkpointed self-heal are disabled; hooks still work. Install: curl -fsSL https://bun.sh/install | bash\n'
 fi
 
+# ─── 7. Obsidian link parity (advisory; parity with TS doctor D11) ─────────
+# Asks a running Obsidian for its unresolvedLinks count. Purely advisory:
+# silent on CLI absence, eval failure, or unparseable output; never changes
+# the exit code (0–5 contract above is untouched).
+if command -v obsidian >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  UNRESOLVED_JSON="$(obsidian eval code='JSON.stringify(app.metadataCache.unresolvedLinks)' --vault "$VAULT" 2>/dev/null || true)"
+  if [ -n "$UNRESOLVED_JSON" ]; then
+    # eval output may be double-encoded (a quoted JSON string); fromjson? both ways.
+    UNRESOLVED_COUNT="$(printf '%s' "$UNRESOLVED_JSON" | jq -r 'try (if type == "string" then fromjson else . end | [.[] | length] | add // 0) catch empty' 2>/dev/null || true)"
+    if [ -n "$UNRESOLVED_COUNT" ] && [ "$UNRESOLVED_COUNT" -gt 0 ] 2>/dev/null; then
+      printf '\033[0;33mNOTE:\033[0m obsidian reports %s unresolved link(s) — run /claude-wiki-pages:lint\n' "$UNRESOLVED_COUNT"
+    fi
+  fi
+fi
+
 printf '\n\033[0;32mhealthy.\033[0m vault=%s schema=%s\n' "$VAULT" "$SCHEMA_VERSION"
 exit 0

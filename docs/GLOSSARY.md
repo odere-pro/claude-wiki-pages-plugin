@@ -132,6 +132,7 @@ The plugin's structure. Contracts in [`architecture.md`](./architecture.md).
 | snapshot                | Git-bounding an LLM write phase: the engine `snapshot` command (`pre` = checkpoint, `post` = commit) and its degradation wrapper `scripts/snapshot.sh`. Write-path agents call it around their write phases so every vault mutation lands in a revertible commit. Honors `gitCheckpoint.mode`.    |
 | commit backstop         | The `SubagentStop` safety net (`scripts/subagent-commit-gate.sh`): after a write-path agent returns, any vault changes left uncommitted are committed as one labelled backstop commit. Pathspec-scoped to the vault; never blocks.                                                                |
 | backlink-safe rename    | Renaming/moving a wiki page via `scripts/obsidian-rename.sh` (Obsidian's `app.fileManager.renameFile()`), which updates every `[[wikilink]]` backlink from the metadata cache. Exit 0 = renamed + verified on disk; exit 3 = skip, caller falls back to `git mv` + manual link rewrite.           |
+| link parity             | The advisory doctor check (D11 + the `doctor.sh` NOTE twin) that asks a running Obsidian for its `unresolvedLinks` count and compares it against the wiki's link health. Any CLI failure is a skip, never a fail; a non-zero count points at `/claude-wiki-pages:lint`.                          |
 
 ### Skill and agent naming
 
