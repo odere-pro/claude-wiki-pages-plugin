@@ -1,7 +1,7 @@
 ---
 title: "Analyst Agent"
 type: entity
-entity_type: agent
+entity_type: tool
 aliases: ["Analyst Agent", "analyst agent", "claude-wiki-pages-analyst-agent"]
 parent: "[[Agent Roles]]"
 path: "agents"

@@ -1,7 +1,7 @@
 ---
 title: "Maintenance Agent"
 type: entity
-entity_type: agent
+entity_type: tool
 aliases: ["Maintenance Agent", "maintenance agent", "claude-wiki-pages-maintenance-agent"]
 parent: "[[Agent Roles]]"
 path: "agents"

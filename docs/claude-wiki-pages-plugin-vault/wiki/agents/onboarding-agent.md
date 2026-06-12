@@ -1,7 +1,7 @@
 ---
 title: "Onboarding Agent"
 type: entity
-entity_type: agent
+entity_type: tool
 aliases: ["Onboarding Agent", "onboarding agent", "claude-wiki-pages-onboarding-agent"]
 parent: "[[Agent Roles]]"
 path: "agents"

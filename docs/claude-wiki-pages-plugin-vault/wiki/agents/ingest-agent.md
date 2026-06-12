@@ -1,7 +1,7 @@
 ---
 title: "Ingest Agent"
 type: entity
-entity_type: agent
+entity_type: tool
 aliases: ["Ingest Agent", "ingest agent", "claude-wiki-pages-ingest-agent"]
 parent: "[[Agent Roles]]"
 path: "agents"

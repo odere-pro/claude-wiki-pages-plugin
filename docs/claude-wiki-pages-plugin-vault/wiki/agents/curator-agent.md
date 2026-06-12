@@ -1,7 +1,7 @@
 ---
 title: "Curator Agent"
 type: entity
-entity_type: agent
+entity_type: tool
 aliases: ["Curator Agent", "curator agent", "claude-wiki-pages-curator-agent"]
 parent: "[[Agent Roles]]"
 path: "agents"
