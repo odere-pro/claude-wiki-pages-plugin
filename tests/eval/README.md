@@ -161,3 +161,23 @@ The produce step itself is out of scope here, by design:
 > as the models × cases matrix runner). It writes candidate vaults under
 > `tmp/eval-candidates/`, and this driver scores them. The scoring contract
 > above never changes, and this apparatus stays model-neutral.
+
+## The scaffolding ablation (ADR-0020)
+
+The same apparatus also answers "what does the plugin buy over plain LLM
+extraction?". [`scripts/eval-produce-baseline.sh`](../../scripts/eval-produce-baseline.sh)
+produces a **baseline arm** — the generic prompt a user would write without
+the plugin — for both tiers, sharing the plugin arm's parser and network
+plumbing so the prompts are the only variable (ablate the contract, keep the
+transport). [`scripts/eval-ablation-report.sh`](../../scripts/eval-ablation-report.sh)
+runs arms × tiers × cases and renders the side-by-side matrix; it is a report,
+never a gate — a baseline FAIL is the measurement, and a baseline answer that
+violates the transport protocol renders as a labeled `unscorable` cell.
+Committed evidence: `runs/<tier>/qwen3-coder-30b-baseline/` (canonical, local)
+and `runs/<tier>/claude-arm/` (supplementary, non-reproducible — see its
+`NON-REPRODUCIBLE.md`). The planted candidate
+`ingest-extract/cases/extract-basic/candidate-baseline-shape/` pins that a
+frontmatter-less candidate is a measured FAIL (rc 1), never unscorable (rc 2).
+Method, metric semantics (the vacuous fabrication floor on unsourced output),
+and results: [ADR-0020](../../docs/adr/ADR-0020-scaffolding-ablation-eval.md);
+rendered numbers: [`docs/features.md`](../../docs/features.md).
