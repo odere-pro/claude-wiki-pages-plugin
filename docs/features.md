@@ -39,6 +39,69 @@ Five tiers, per [`../tests/README.md`](../tests/README.md):
 
 Full layout in [`tests/README.md`](../tests/README.md).
 
+## Measured: with and without the plugin
+
+The **scaffolding ablation** ([ADR-0020](./adr/ADR-0020-scaffolding-ablation-eval.md))
+runs the same model on the same golden inputs through two prompt arms — the
+plugin's full scaffolding (schema, provenance contract, citation rules) vs the
+generic prompt you would write without it ("extract the knowledge into
+well-organized notes") — and scores both with the same fail-closed scorers.
+Reproduce with `bash scripts/eval-ablation-report.sh --model <model>`.
+
+### The numbers
+
+Canonical arms: `qwen3-coder:30b` (deterministic options; ingest cells carry
+stamped, `--verify-artifact`-reproducible artifacts). The Claude column is a
+supplementary claude-fable-5 run — see its
+[caveat note](../tests/eval/runs/ingest-extract/claude-arm/NON-REPRODUCIBLE.md).
+
+**ingest-extract tier** (bar: schema ≥ 0.98 · fidelity ≥ 0.97 · fields ≥ 0.90 · dedup ≥ 0.90 · fabricated = 0):
+
+| Metric (extract-basic / provenance-trap) | Plugin arm | Baseline arm | Claude plugin (suppl.) | Claude baseline (suppl.) |
+| --- | --- | --- | --- | --- |
+| `schema_validity` | 1.00 / 1.00 | 0.00 / 0.00 | 1.00 / 1.00 | 0.00 / 0.00 |
+| `claim_source_fidelity` | 1.00 / 1.00 | 0.00 / 0.00 | 1.00 / 1.00 | 0.00 / 0.00 |
+| `frontmatter_field_accuracy` | 0.93 / 0.93 | 1.00¹ / 1.00¹ | 0.93 / 0.93 | 1.00¹ / 1.00¹ |
+| `dedup_correctness` | 1.00 / 1.00 | 0.00 / 0.00 | 1.00 / 1.00 | 0.00 / 0.00 |
+| `fabricated_sourced_claims` | 0 / 0 | 0¹ / 0¹ | 0 / 0 | 0¹ / 0¹ |
+| **Verdict** | **PASS / PASS** | FAIL / FAIL | PASS / PASS | FAIL / FAIL |
+
+¹ Vacuous: a candidate with no frontmatter has no fields to mis-fill and no
+*sourced* claims to fabricate. The baseline's clean floor means its claims are
+**unauditable**, not honest — see ADR-0020 § baseline metric semantics.
+
+**query tier** (bar: coverage match · citation recall ≥ 0.90 · quote coverage ≥ 0.90 · fabricated citations = 0):
+
+| Case | Plugin arm | Baseline arm | Claude plugin (suppl.) | Claude baseline (suppl.) |
+| --- | --- | --- | --- | --- |
+| query-basic | PASS | **unscorable** — citations drifted off the `[[wikilink]]` protocol | PASS | FAIL — gold-required quote dropped |
+| query-trap (honesty: answer is absent from the wiki) | PASS | pass | PASS | pass |
+
+Per-cell evidence (every score re-derivable with the scorers in `scripts/`):
+[plugin ingest](../tests/eval/runs/ingest-extract/qwen3-coder-30b/) ·
+[baseline ingest](../tests/eval/runs/ingest-extract/qwen3-coder-30b-baseline/) ·
+[plugin query](../tests/eval/runs/query/qwen3-coder-30b/) ·
+[baseline query](../tests/eval/runs/query/qwen3-coder-30b-baseline/) ·
+[Claude arm ingest](../tests/eval/runs/ingest-extract/claude-arm/) ·
+[Claude arm query](../tests/eval/runs/query/claude-arm/).
+
+### What the scaffolding buys
+
+What you lose without the plugin, mapped to the mechanism that enforces it and
+the measured number behind it:
+
+| Capability | Enforcing mechanism | Without the plugin (measured / class) |
+| --- | --- | --- |
+| Schema-valid, typed pages | `validate-frontmatter.sh` PreToolUse gate + the prompt contract | `schema_validity` 1.00 → 0.00 (both models, both cases) |
+| Claims traceable to sources | `source_quotes` verbatim rule + `verify-ingest.sh` | `claim_source_fidelity` 1.00 → 0.00 — zero auditable claims |
+| Stable page set (dedup, no drift) | two-pass alias-aware dedup (ingest contract) | `dedup_correctness` 1.00 → 0.00 |
+| Grounded, verifiable answers | citation protocol + runtime answer verification (ADR-0019) | baseline drifts off-protocol (unscorable) or drops the required quote |
+| Immutable source material | `protect-raw.sh` PreToolUse block | hook-enforced (Tier 4 corpus replay) |
+| Writes confined to the vault | `firewall.sh` + engine parity (gate-11) | hook-enforced (Tier 4 corpus replay) |
+| Every LLM write git-revertible | `snapshot` verb + SubagentStop commit backstop | hook-enforced (`git revert <commit>`) |
+| Drafts gated behind human review | the one `_proposed/` channel + review gate | gate-enforced |
+| Staleness lifecycle | `status: stale` + `confidence` decay (curator) | gate-enforced |
+
 ## How it compares
 
 | Question                             | Competitor stance                                                                                          | `claude-wiki-pages`                                                 |

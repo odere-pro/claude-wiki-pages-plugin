@@ -6,6 +6,7 @@ This directory holds the Tier 2 smoke tests: end-to-end flows that exercise the 
 
 - [`fresh-install.sh`](./fresh-install.sh) — the clone → onboard → ingest-one-source → verify flow. With the CLI present it runs the real path; without it, the CLI-driven steps are skipped and the local `verify-ingest.sh` call against the prebuilt fixture still runs so the script does real work.
 - [`skill-schema.sh`](./skill-schema.sh) — runs each Layer 2 skill (`ingest`, `lint`, `fix`, `synthesize`) and asserts every output file has well-formed YAML frontmatter and a `sources:` field holding `[]` or `[[wikilinks]]`. It copies [`../fixtures/minimal-vault/`](../fixtures/) (mirroring `docs/vault-example/`) into a temp vault to verify schema and skill behavior, so the YAML/`sources` assertions run even when the CLI is absent. Assertions are pure shell + `jq` (no Python).
+- [`ablation-smoke.sh`](./ablation-smoke.sh) — opt-in scaffolding-ablation smoke (ADR-0020), wired into the `eval` target rather than Tier 2: runs `extract-basic` through both prompt arms with the configured local model, scores both with the model-neutral scorer, and asserts the plugin arm ≥ the baseline arm on `schema_validity` and `claim_source_fidelity`. Self-skips unless `CLAUDE_WIKI_PAGES_EVAL_MODEL` is set AND the Ollama endpoint answers the preflight — CI never runs the live path.
 - [`promptfoo.yaml`](./promptfoo.yaml) — a [promptfoo](https://www.promptfoo.dev/) config stub for asserting semantic properties of skill output; populated when the CLI runner lands.
 
 ## Running

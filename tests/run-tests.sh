@@ -111,6 +111,7 @@ eval_tier() {
   local driver="tests/../scripts/eval-ingest-extract.sh"
   if [ "$LIST" -eq 1 ]; then
     printf '[list] eval: bash scripts/eval-ingest-extract.sh --self-test (SKIP without CLAUDE_WIKI_PAGES_EVAL_MODEL)\n'
+    printf '[list] eval: bash tests/smoke/ablation-smoke.sh (SKIP without CLAUDE_WIKI_PAGES_EVAL_MODEL + a live Ollama endpoint)\n'
     return 0
   fi
   printf '\n━━━ eval (ingest-extract quality gate) ━━━\n'
@@ -124,6 +125,11 @@ eval_tier() {
   printf '[eval] note: the model PRODUCE step is model-specific and not shipped here;\n'
   printf '[eval] running the driver fail-closed self-test as the apparatus check.\n'
   run "eval self-test" bash "$driver" --self-test
+  # Scaffolding-ablation smoke (ADR-0020): one case through both arms, asserts
+  # the plugin arm >= the baseline arm on schema_validity and
+  # claim_source_fidelity. Self-skips without a live Ollama endpoint, so the
+  # call is safe even when only the model env is set.
+  run "ablation smoke" bash tests/smoke/ablation-smoke.sh
 }
 
 case "$TIER" in
