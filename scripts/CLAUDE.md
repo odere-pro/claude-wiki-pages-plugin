@@ -130,6 +130,9 @@ run top to bottom and the first block short-circuits the write.
   and no-raw-HTML.
 - [`lint-vocabulary.sh`](./lint-vocabulary.sh) — controlled-vocabulary
   freshness (orphans, unreferenced groups, tags below floor).
+- [`graph-quality.sh`](./graph-quality.sh) — dangling-wikilink scanner (the
+  detector `verify` lacks) plus the topic-cluster node/edge concentration
+  metric. Read-only; pure bash + python3. Used by the `fill-gaps` skill.
 - [`check-duplicate-claims.sh`](./check-duplicate-claims.sh) — advisory
   duplicate-claim warning across `source_quotes`.
 
