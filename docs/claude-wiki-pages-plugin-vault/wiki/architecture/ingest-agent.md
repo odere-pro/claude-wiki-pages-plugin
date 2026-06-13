@@ -5,12 +5,12 @@ entity_type: tool
 aliases: ["Ingest Agent", "ingest agent", "claude-wiki-pages-ingest-agent", "pipeline"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture Documentation]]", "[[ADR-0002: Agent Naming Convention]]", "[[ADR-0010: Durable-Memory Carve-Out]]", "[[User Guide 03: Update Existing Vault]]", "[[Operations Guide]]"]
-related: ["[[Orchestrator Agent]]", "[[Curator Agent]]", "[[Polish Agent]]", "[[Ingest Pipeline]]", "[[Git Checkpoint]]", "[[Entity Distribution Model]]"]
+sources: ["[[Architecture Documentation]]", "[[ADR-0002: Agent Naming Convention]]", "[[ADR-0010: Durable-Memory Carve-Out]]", "[[User Guide 03: Update Existing Vault]]", "[[Operations Guide]]", "[[Ingest Agent Source]]"]
+related: ["[[Orchestrator Agent]]", "[[Curator Agent]]", "[[Polish Agent]]", "[[Ingest Pipeline]]", "[[Git Checkpoint]]", "[[Entity Distribution Model]]", "[[Agent Tool Restriction]]"]
 tags: ["agent", "ingest"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 5
+update_count: 6
 status: active
 confidence: 1.0
 ---

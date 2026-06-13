@@ -4,12 +4,12 @@ type: concept
 aliases: ["Onboarding Wizard", "onboarding-wizard", "onboarding wizard", "init wizard", "first-run wizard"]
 parent: "[[Guides]]"
 path: "guides"
-sources: ["[[Getting Started (CLI Quickstart)]]", "[[User Guide: Index]]", "[[User Guide 01: Getting Started]]", "[[User Guide 02: Create a New Vault]]", "[[Installation Guide]]"]
+sources: ["[[Getting Started (CLI Quickstart)]]", "[[User Guide: Index]]", "[[User Guide 01: Getting Started]]", "[[User Guide 02: Create a New Vault]]", "[[Installation Guide]]", "[[Onboarding Agent Source]]"]
 related: ["[[Installation]]", "[[Ingest Pipeline]]", "[[Vault Resolution]]", "[[Git Checkpoint]]", "[[claude-wiki-pages Plugin]]"]
 tags: ["onboarding", "guides", "getting-started"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 5
+update_count: 6
 status: active
 confidence: 1.0
 ---

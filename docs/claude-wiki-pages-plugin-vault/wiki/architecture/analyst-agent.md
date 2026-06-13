@@ -5,12 +5,12 @@ entity_type: tool
 aliases: ["Analyst Agent", "analyst agent", "claude-wiki-pages-analyst-agent", "analyst"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[User Guide 05: Export Outputs]]", "[[Operations Guide]]"]
+sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[User Guide 05: Export Outputs]]", "[[Operations Guide]]", "[[Analyst Agent Source]]"]
 related: ["[[Orchestrator Agent]]", "[[Query Rules]]", "[[Challenge Mode]]", "[[Synthesis Note]]", "[[Wiki-Native Recall]]"]
 tags: ["agent", "analyst"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 5
+update_count: 6
 status: active
 confidence: 1.0
 ---

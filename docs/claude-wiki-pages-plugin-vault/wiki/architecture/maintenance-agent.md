@@ -5,12 +5,12 @@ entity_type: tool
 aliases: ["Maintenance Agent", "maintenance agent", "claude-wiki-pages-maintenance-agent"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture Documentation]]", "[[Automation]]", "[[Agent Teams]]", "[[Operations Guide]]"]
+sources: ["[[Architecture Documentation]]", "[[Automation]]", "[[Agent Teams]]", "[[Operations Guide]]", "[[Maintenance Agent Source]]"]
 related: ["[[Orchestrator Agent]]", "[[Backlog]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Polish Agent]]"]
 tags: ["agent", "automation"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 4
+update_count: 5
 status: active
 confidence: 1.0
 ---

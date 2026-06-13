@@ -5,12 +5,12 @@ entity_type: tool
 aliases: ["Polish Agent", "polish agent", "claude-wiki-pages-polish-agent", "polish"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture Documentation]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0023: Wiki-Only Graph]]", "[[User Guide: Obsidian Experience]]"]
+sources: ["[[Architecture Documentation]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0023: Wiki-Only Graph]]", "[[User Guide: Obsidian Experience]]", "[[Polish Agent Source]]"]
 related: ["[[Orchestrator Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Folder Note]]", "[[Wiki-Only Graph]]", "[[Obsidian Experience]]"]
 tags: ["agent", "polish"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 6
+update_count: 7
 status: active
 confidence: 1.0
 ---

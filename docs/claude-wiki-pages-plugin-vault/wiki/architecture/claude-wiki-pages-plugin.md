@@ -5,12 +5,12 @@ entity_type: product
 aliases: ["claude-wiki-pages Plugin", "claude-wiki-pages", "the plugin"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[Installation Guide]]", "[[Features]]", "[[Getting Started (CLI Quickstart)]]"]
+sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[Installation Guide]]", "[[Features]]", "[[Getting Started (CLI Quickstart)]]", "[[Plugin README]]", "[[Plugin Manifest (plugin.json)]]"]
 related: ["[[Orchestrator Agent]]", "[[Deterministic Engine]]", "[[Four-Layer Stack]]", "[[Hook System]]", "[[Installation]]"]
 tags: ["plugin", "product"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 5
+update_count: 6
 status: active
 confidence: 1.0
 ---

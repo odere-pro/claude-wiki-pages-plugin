@@ -9,6 +9,7 @@ child_indexes:
   - "[[decisions]]"
   - "[[engine]]"
   - "[[guides]]"
+  - "[[plugin]]"
   - "[[reference]]"
 aliases: ["Wiki Index"]
 tags: []
@@ -26,6 +27,7 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 - [[decisions]] — 7 pages, last updated 2026-06-13
 - [[engine]] — 15 pages, last updated 2026-06-13
 - [[guides]] — 9 pages, last updated 2026-06-13
+- [[plugin]] — 5 pages, last updated 2026-06-13
 - [[reference]] — 7 pages, last updated 2026-06-13
 
 ## Special Collections
@@ -47,6 +49,10 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 ## Guides Pages
 
 [[Onboarding Wizard]] · [[Ingest Pipeline]] · [[Entity Distribution Model]] · [[Lint Rules]] · [[Auto-Heal]] · [[Query Rules]] · [[Challenge Mode]] · [[Obsidian Experience]] · [[Folder Note]]
+
+## Plugin Pages
+
+[[Plugin Manifest]] · [[Agent Contract Table]] · [[Agent Tool Restriction]] · [[Single-Pass Dispatch]] · [[Plugin Dev-Time vs Runtime]]
 
 ## Reference Pages
 
@@ -75,3 +81,7 @@ One summary per ingested raw source. See individual source pages for full contex
 ### User Guide Source Summaries
 
 [[User Guide 01: Getting Started]] · [[User Guide 02: Create a New Vault]] · [[User Guide 03: Update Existing Vault]] · [[User Guide 04: Review Validate Fix]] · [[User Guide 05: Export Outputs]] · [[User Guide 06: Check the Dashboard]] · [[User Guide 07: Query the Wiki]] · [[User Guide: Index]] · [[User Guide: Obsidian Experience]]
+
+### Plugin Source Summaries
+
+[[Plugin README]] · [[Plugin CLAUDE.md]] · [[Plugin Manifest (plugin.json)]] · [[Orchestrator Agent Source]] · [[Ingest Agent Source]] · [[Curator Agent Source]] · [[Analyst Agent Source]] · [[Onboarding Agent Source]] · [[Maintenance Agent Source]] · [[Polish Agent Source]]

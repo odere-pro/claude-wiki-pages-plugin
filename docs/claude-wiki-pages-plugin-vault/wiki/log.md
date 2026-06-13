@@ -98,3 +98,20 @@ Updated existing pages: Deterministic Engine (sources+, update_count 5→6), Fir
 - pre-state: a47bb5b
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] ingest | Plugin agent definition files (raw/repo/plugin/)
+
+Processed 10 raw sources from `raw/repo/plugin/` (README.md, CLAUDE.md, plugin.json, and 7 canonical agent definition files).
+
+New folders: plugin
+
+New sources: Plugin README, Plugin CLAUDE.md, Plugin Manifest (plugin.json), Orchestrator Agent Source, Ingest Agent Source, Curator Agent Source, Analyst Agent Source, Onboarding Agent Source, Maintenance Agent Source, Polish Agent Source
+
+New entities: Plugin Manifest
+New concepts: Agent Contract Table, Agent Tool Restriction, Single-Pass Dispatch, Plugin Dev-Time vs Runtime
+
+Updated existing pages: Orchestrator Agent (sources+, update_count 5→6), Ingest Agent (sources+, update_count 5→6), Curator Agent (sources+, update_count 5→6), Analyst Agent (sources+, update_count 5→6), Maintenance Agent (sources+, update_count 4→5), Polish Agent (sources+, update_count 6→7), claude-wiki-pages Plugin (sources+, update_count 5→6), Onboarding Wizard (sources+, update_count 5→6)
+## [2026-06-13] snapshot | ingest plugin agent definition files: README, CLAUDE.md, plugin.json, 7 agent specs (snap-20260613213424)
+
+- pre-state: 55ed08d
+- rollback: git revert the snapshot commit below
+
