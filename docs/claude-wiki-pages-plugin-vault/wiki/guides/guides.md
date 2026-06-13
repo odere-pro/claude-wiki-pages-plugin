@@ -44,7 +44,7 @@ Map of Content for user guides and operational workflows.
 
 - [[Query Rules]] — MOC traversal, citations, `## Sources` contract
 - [[Challenge Mode]] — adversarial querying to surface contradictions and gaps
-- [[Analyst Agent Modes]] — query, dashboard, compile, extract, challenge
+- [[LLM]] — analyst modes: query, dashboard, compile, extract, challenge
 
 ## Obsidian
 

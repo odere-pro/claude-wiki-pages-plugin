@@ -41,7 +41,7 @@ This framing activates the analyst's Challenge mode. The analyst then reads the 
 
 ## What the Analyst Reads in Challenge Mode
 
-1. **`contradicts:` relationships.** Pages that explicitly contradict the topic in question. If page A has `contradicts: ["[[B]]"]` and B is related to the decision, the analyst surfaces it.
+1. **`contradicts:` relationships.** Pages that explicitly contradict the topic in question. If page A has `` contradicts: ["[[B]]"] `` and B is related to the decision, the analyst surfaces it.
 2. **Low-confidence pages.** Pages on closely related topics with `confidence < 0.7` signal weakly evidenced claims — the decision may be building on shaky foundations.
 3. **Single-source pages.** The lint rule for high-confidence single-source pages exists because a page with `confidence: 0.9` and only one source entry is over-claiming its certainty. The analyst surfaces these as "confident but weakly evidenced."
 4. **Gaps:** topics mentioned in the vicinity of the decision but lacking their own wiki page. A gap means the wiki has no tracked knowledge on a concept the decision depends on.

@@ -42,9 +42,9 @@ Map of Content for all Architecture Decision Records (ADRs).
 
 - [[ADR-0001: Four-Layer Orchestrator]] — single entry point, specialist dispatch
 - [[ADR-0002: Agent Naming Convention]] — `{plugin-name}-{role}-agent` pattern
-- [[ADR-0003: Polish Agent and Obsidian-Side]] — tail-of-write step ownership
+- [[ADR-0003: Polish Agent and Obsidian-Side Experience]] — tail-of-write step ownership
 - [[ADR-0004: Ontology Profile v1]] — single named ontology block in CLAUDE.md
-- [[ADR-0005: Git Required Per-Vault]] — git init + two availability tiers
+- [[ADR-0005: Git Required Per-Vault Init]] — git init + two availability tiers
 
 ## Retrieval Decisions
 
@@ -54,19 +54,19 @@ Map of Content for all Architecture Decision Records (ADRs).
 
 ## Vault and Security Decisions
 
-- [[ADR-0009: Multi-Vault Registry]] — confinement, `cross-vault` deny, merge deferred
-- [[ADR-0010: Durable Memory Carve-Out]] — `raw/agent-sessions/`, `_proposed/` gate
-- [[ADR-0012: Vault Merge]] — design accepted, implementation deferred
+- [[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]] — confinement, `cross-vault` deny, merge deferred
+- [[ADR-0010: Durable-Memory Carve-Out]] — `raw/agent-sessions/`, `_proposed/` gate
+- [[ADR-0012: Vault Merge Conflict Resolution]] — design accepted, implementation deferred
 
 ## Quality and Validation Decisions
 
 - [[ADR-0011: Local-Model Quality Gate]] — golden-set eval, zero-fabrication floor
 - [[ADR-0013: Design-Drift Gate]] — `validate-docs.sh` Check 5
 - [[ADR-0014: Single-Source Required Fields]] — machine-readable table in CLAUDE.md
-- [[ADR-0015: Engine Self-Description]] — `CAPABILITIES` table, `--json` endpoints
-- [[ADR-0016: Multi-Vault Registry Fail-Closed]] — OQ-9 fix, audit roll-up
-- [[ADR-0017: Fabrication Floor]] — verbatim partition, over-citation vs fabrication
-- [[ADR-0020: Scaffolding Ablation]] — measured plugin arm vs baseline arm
+- [[ADR-0015: Engine Self-Description Surfaces]] — `CAPABILITIES` table, `--json` endpoints
+- [[ADR-0016: Simultaneous Multi-Vault Management]] — OQ-9 fix, audit roll-up
+- [[ADR-0017: Fabrication Floor — Verbatim Partition]] — verbatim partition, over-citation vs fabrication
+- [[ADR-0020: The Scaffolding Ablation]] — measured plugin arm vs baseline arm
 
 ## Quality Concepts
 
@@ -91,8 +91,8 @@ Map of Content for all Architecture Decision Records (ADRs).
 
 ## Offline and Local Model Decisions
 
-- [[ADR-0018: Offline Policy]] — `offlinePolicy`, `reachability.sh`, `engine route`
-- [[ADR-0019: Query Tier]] — local query with runtime answer verification
+- [[ADR-0018: Offline Policy and Degraded-Mode Routing]] — `offlinePolicy`, `reachability.sh`, `engine route`
+- [[ADR-0019: Query Tier and Answer Verification]] — local query with runtime answer verification
 
 ## Graph and Schema Decisions
 

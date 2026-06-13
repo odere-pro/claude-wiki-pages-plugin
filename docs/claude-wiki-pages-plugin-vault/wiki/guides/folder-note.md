@@ -118,8 +118,8 @@ The [[Ingest Pipeline]] updates the folder note at step 11 of every ingest. The 
 ## What "Done" Looks Like
 
 A correct folder note:
-- All pages currently in the folder appear in `children` as `"[[Title]]"` entries.
-- All sub-folder folder notes appear in `child_indexes` as `"[[SubfolderTitle]]"` entries.
+- All pages currently in the folder appear in `children` as `` "[[Title]]" `` entries.
+- All sub-folder folder notes appear in `child_indexes` as `` "[[SubfolderTitle]]" `` entries.
 - `parent` points to the correct parent folder note (not a plain string).
 - `aliases` includes the `title` value as the first entry.
 - `type: index` (not `type: topic` or anything else).
