@@ -10,6 +10,7 @@ child_indexes:
   - "[[engine]]"
   - "[[guides]]"
   - "[[llm]]"
+  - "[[obsidian]]"
   - "[[plugin]]"
   - "[[reference]]"
   - "[[wiki-pages]]"
@@ -31,6 +32,7 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 - [[engine]] — 15 pages, last updated 2026-06-13
 - [[guides]] — 9 pages, last updated 2026-06-13
 - [[llm]] — 6 pages, last updated 2026-06-13
+- [[obsidian]] — 3 pages, last updated 2026-06-13
 - [[plugin]] — 5 pages, last updated 2026-06-13
 - [[reference]] — 7 pages, last updated 2026-06-13
 - [[wiki-pages]] — 3 pages, last updated 2026-06-13
@@ -62,6 +64,10 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 ## Reference Pages
 
 [[Glossary Terms]] · [[Schema Authority]] · [[Multi-Vault Registry]] · [[Offline Policy]] · [[Approved Local Model]] · [[Backlog]] · [[Installation]]
+
+## Obsidian Pages
+
+[[obsidian-vault Skill]] · [[Obsidian CLI Vault Scoping]] · [[Defense-in-Depth Scoping]]
 
 ## LLM Pages
 
@@ -101,7 +107,7 @@ One summary per ingested raw source. See individual source pages for full contex
 
 ### Skills Source Summaries
 
-[[Wiki Pages Skill (maintain-contract SKILL.md)]] · [[Analyst Modes Skill (SKILL.md)]]
+[[Wiki Pages Skill (maintain-contract SKILL.md)]] · [[Analyst Modes Skill (SKILL.md)]] · [[Obsidian Vault Skill (SKILL.md)]]
 
 ### LLM Source Summaries
 

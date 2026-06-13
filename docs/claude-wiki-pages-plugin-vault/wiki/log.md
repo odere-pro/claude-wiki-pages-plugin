@@ -149,3 +149,21 @@ Updated existing pages: Analyst Agent (sources+, update_count 6→7), Query Rule
 - pre-state: fd203ab
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] ingest | obsidian-vault Skill (SKILL.md)
+
+Processed raw/repo/obsidian/SKILL.md.
+
+New folders: obsidian
+
+New sources: Obsidian Vault Skill (SKILL.md)
+
+New entities: obsidian-vault Skill
+
+New concepts: Obsidian CLI Vault Scoping, Defense-in-Depth Scoping
+
+Updated existing pages: (none — all related pages are cross-referenced via `related:` only; no body or sources merges were needed as the existing [[Firewall]], [[Vault Resolution]], [[Hook System]] pages already cover the referenced constructs)
+## [2026-06-13] snapshot | ingest obsidian-vault SKILL.md (snap-20260613215524)
+
+- pre-state: 41aceac
+- rollback: git revert the snapshot commit below
+
