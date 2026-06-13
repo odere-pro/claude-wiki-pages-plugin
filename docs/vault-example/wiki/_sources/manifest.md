@@ -1,21 +1,17 @@
 ---
 title: "Source Manifest"
 type: manifest
-created: 2026-06-12
-updated: 2026-06-12
+created: 2026-06-13
+updated: 2026-06-13
 ---
 
-# Source Manifest
-
-Processed-state of every raw source. Maintained by the engine (`migrate`, `ingest`); avoid editing by hand.
-
-| raw_file | status | source_page | checksum | ingested_at |
+| raw_file | ingested_at | source_page | status | checksum |
 | --- | --- | --- | --- | --- |
-| raw/01-getting-started.md | pending | — | e2b6b559f6e7 | — |
-| raw/02-create-new-knowledge-base.md | pending | — | 7ba9977f383d | — |
-| raw/03-update-existing.md | pending | — | a4f83316085b | — |
-| raw/04-review-validate-fix.md | pending | — | 80cffd6bc0dd | — |
-| raw/05-export-outputs.md | pending | — | 13ca932905e3 | — |
-| raw/06-check-the-dashboard.md | pending | — | 75477e59d217 | — |
-| raw/07-query-the-wiki.md | pending | — | 55f48208e8c4 | — |
-| raw/index.md | pending | — | 9e198155f8b7 | — |
+| raw/01-getting-started.md | 2026-06-13 | [[Getting Started]] | processed | — |
+| raw/02-create-new-knowledge-base.md | 2026-06-13 | [[Create a New Vault]] | processed | — |
+| raw/03-update-existing.md | 2026-06-13 | [[Update an Existing Vault]] | processed | — |
+| raw/04-review-validate-fix.md | 2026-06-13 | [[Review, Validate, Fix]] | processed | — |
+| raw/05-export-outputs.md | 2026-06-13 | [[Export Data, Create Output]] | processed | — |
+| raw/06-check-the-dashboard.md | 2026-06-13 | [[Check the Dashboard]] | processed | — |
+| raw/07-query-the-wiki.md | 2026-06-13 | [[Query the Wiki]] | processed | — |
+| raw/index.md | 2026-06-13 | [[Using claude-wiki-pages]] | processed | — |

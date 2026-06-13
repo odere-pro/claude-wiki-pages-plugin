@@ -46,7 +46,7 @@ vault/
 │       └── ...
 ├── _proposed/                   # optional staging for drafts awaiting review (schema v2)
 ├── output/                      # optional scratch space for deliverables (git-ignored)
-├── _templates/                  # frontmatter templates per type
+├── _templates/                  # per-type templates: frontmatter + body `## Section` skeleton
 └── CLAUDE.md                    # this file
 ```
 
@@ -300,15 +300,18 @@ Because `_proposed/` is a sibling of `wiki/`, drafts are **outside every wiki-sc
 
 Topic branches are color-coded in Obsidian's graph view via the internal graph plugin API. The `/claude-wiki-pages:obsidian-graph-colors` skill manages this programmatically using `obsidian eval`. No frontmatter field needed — colors are applied at the Obsidian graph engine level.
 
-The canonical group order (first match wins, top-down) is **topics → specials → layers**:
+The canonical group order (first match wins, top-down) is **topics → specials**:
 
 1. **Topics** — one `path:wiki/<topic>` query per top-level topic folder, each a unique color. Folder notes inherit their topic's color (there is no `file:_index` catch-all group).
 2. **Specials** — `_sources` gray, `_synthesis` yellow.
-3. **Layers** — `path:raw` green, `path:wiki` blue, `path:_templates` orange.
+
+The graph shows **only generated wiki pages**: `raw/`, `_templates/`, and `_proposed/` are excluded from Obsidian's index via the Excluded files setting (`.obsidian/app.json` → `userIgnoreFilters: ["raw/", "_templates/", "_proposed/"]`), so they never appear in the graph, search, or link autocomplete — and never get color groups.
 
 When `obsidian eval` is unavailable (no CLI, no running Obsidian), the skill's documented HEADLESS FALLBACK writes `.obsidian/graph.json` directly, touching only `colorGroups`/`collapse-color-groups`. Trade-off: a running Obsidian can clobber a direct file write with its in-memory state — restart Obsidian after a headless write.
 
 When creating a new top-level topic folder, run `/claude-wiki-pages:obsidian-graph-colors` (or the ingest pipeline handles it automatically in step 1.7). The `claude-wiki-pages-curator-agent` agent also checks for missing color groups and applies them.
+
+Graph filters and color groups are **regenerable cache**, not precious state: every value derives from the `wiki/` topic tree. If `.obsidian/graph.json` is lost or mangled, delete it and re-run `/claude-wiki-pages:obsidian-graph-colors` — the scaffold, topic groups, specials, and exclusions are rebuilt deterministically.
 
 ### Field: `parent` placeholder form
 
@@ -404,7 +407,7 @@ When processing a new source from `raw/`:
 3. Determine which topic folder each entity/concept belongs to. Create the folder and its folder note (`wiki/<topic>/<topic>.md`) if it does not exist.
 4. Search the wiki for existing pages on each entity/concept.
 5. **Update existing pages rather than creating duplicates.** This is the entity distribution model — ingesting one source rewrites/extends multiple existing pages rather than creating one summary.
-6. Place new pages in the correct topic folder. Set the `parent` and `path` frontmatter fields.
+6. Place new pages in the correct topic folder. Set the `parent` and `path` frontmatter fields. Author each new page from its type's template in `_templates/<type>.md` — both the frontmatter and the body `## Section` skeleton (e.g. concept → `## Definition`, `## Key Principles`, `## Examples`, `## Related Concepts`). Do not invent section headings; the structural lint flags a missing template section as `missing-section`.
 7. Add the new source to the `sources` frontmatter field of every page touched.
 8. Increment `update_count` on every page touched.
 9. Update `updated` date on every page touched.

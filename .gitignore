@@ -19,14 +19,17 @@ tmp/
 # Obsidian app state (applies to user vaults and vault-example/)
 **/.obsidian/
 # …except the plugin-shipped initial graph configuration (initial filters +
-# scaffold source for new vaults). Re-include the dir, re-ignore its contents,
-# then re-include ONLY graph.json — other app-state files stay untracked.
+# wiki-only exclusions + scaffold source for new vaults). Re-include the dir,
+# re-ignore its contents, then re-include ONLY graph.json + app.json — other
+# app-state files stay untracked.
 !skills/init/template/.obsidian/
 skills/init/template/.obsidian/*
 !skills/init/template/.obsidian/graph.json
+!skills/init/template/.obsidian/app.json
 !docs/vault-example/.obsidian/
 docs/vault-example/.obsidian/*
 !docs/vault-example/.obsidian/graph.json
+!docs/vault-example/.obsidian/app.json
 **/.trash/
 **/.dataview/
 **/.smart-connections/
@@ -47,6 +50,10 @@ tests/test_helper/bats-file/
 # Vault output scratch space (user projects and the reference demo)
 vault/output/
 **/vault-example/output/
+
+# Generated dogfood vault — local working artifact, regenerated per run, never tracked.
+# Parity anchor is docs/vault-example/ (kept). Resolver pointer is local-only.
+docs/claude-wiki-pages-plugin-vault/
 
 # Large binary assets in raw/
 **/raw/assets/*.pdf

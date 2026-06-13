@@ -1,45 +1,60 @@
 ---
 title: "Ingest Pipeline"
 type: concept
-aliases: ["Ingest Pipeline", "ingest-pipeline", "claude-wiki-pages-ingest-agent"]
-parent: "[[Workflows — Index]]"
+aliases: ["Ingest Pipeline", "ingest pipeline", "pipeline"]
+parent: "[[Workflows]]"
 path: "workflows"
 sources:
-  - "[[Using claude-wiki-pages]]"
   - "[[Create a New Vault]]"
   - "[[Update an Existing Vault]]"
-related: ["[[Hook-Enforced Guarantees]]", "[[claude-wiki-pages]]"]
-contradicts: []
-supersedes: []
-depends_on: []
-tags: ["workflow"]
-created: 2026-04-24
-updated: 2026-04-24
-update_count: 1
+  - "[[Using claude-wiki-pages]]"
+related:
+  - "[[Entity Distribution Model]]"
+  - "[[Hook-Enforced Guarantees]]"
+  - "[[Validation and Repair]]"
+  - "[[Provenance-Tracked Wiki]]"
+depends_on:
+  - "[[Claude Code]]"
+  - "[[claude-wiki-pages Plugin]]"
+tags: []
+created: 2026-06-13
+updated: 2026-06-13
+update_count: 3
 status: active
-confidence: 0.9
+confidence: 1.0
 ---
 
 # Ingest Pipeline
 
+The end-to-end process that turns raw sources in `vault/raw/` into structured, cross-linked, cited wiki pages in `vault/wiki/`.
+
 ## Definition
 
-The default, single-command workflow for pulling new sources into the wiki. Invoked as `/claude-wiki-pages:claude-wiki-pages-ingest-agent`. Composes three steps: ingest → lint-fix → optional synthesis.
+The ingest pipeline is triggered by `/claude-wiki-pages:claude-wiki-pages-ingest-agent` and runs automatically after every agent stop via `subagent-ingest-gate.sh`. It auto-detects unprocessed files by diffing `vault/raw/` against `wiki/log.md` ingest entries, so no argument is needed — drop a file and run the command.
+
+The pipeline follows the [[Entity Distribution Model]]: rather than producing one summary page per source, it distributes extracted knowledge across the existing topic tree, updating pages that already exist for each entity or concept and creating new pages only when none exists.
+
+After the pipeline completes, `subagent-ingest-gate.sh` runs `verify-ingest.sh` and aborts the agent completion if the wiki is left in a structurally broken state.
 
 ## Key Principles
 
-- Auto-diffs `raw/` against `wiki/log.md` to find unprocessed sources; no argument required.
-- Dispatches by file extension (text vs image); PDFs are deferred — export to markdown first.
-- Writes a source summary in `wiki/_sources/`, extracts entities and concepts into the correct topic folders (creating them on demand), updates `wiki/index.md`, and appends to `wiki/log.md`.
-- On completion, `subagent-ingest-gate.sh` reruns `verify-ingest.sh`; if the wiki is left in a half-written state, the agent's completion is aborted.
+Schema-first — the pipeline reads `vault/CLAUDE.md` before touching anything else. Required frontmatter fields, wikilink format, and topic-tree placement all come from the schema.
+
+Update before create — for each extracted entity or concept, the pipeline searches for an existing page by `title` and `aliases` before creating a new one. See [[Entity Distribution Model]].
+
+Structural integrity gate — the `SubagentStop` hook runs `verify-ingest.sh` after every pipeline run. Structural errors surface immediately; the pipeline does not complete silently in a broken state.
+
+Image and text dispatch — the pipeline handles text sources directly. For image sources, Claude's vision extracts on-image text, entities, and concepts natively. The source summary gets `source_format: image` and `attachment_path: raw/assets/<file>`. PDFs must be exported to markdown before ingestion.
 
 ## Examples
 
-- Text source: `cp article.md vault/raw/ && /claude-wiki-pages:claude-wiki-pages-ingest-agent`. Pipeline writes summary, extracts mentions, updates indexes.
-- Image source: `cp screenshot.png vault/raw/assets/ && /claude-wiki-pages:claude-wiki-pages-ingest-agent`. Source summary gets `source_format: image` and an `attachment_path:`; `validate-attachments.sh` blocks the write if the file is missing.
-- Batch: drop several text and image files together; the pipeline handles them in one pass.
+A single markdown article is dropped into `vault/raw/`. Running the ingest agent produces one source summary in `wiki/_sources/`, updates three existing entity pages with new `sources:` entries, and creates one new concept page for a term not previously in the wiki. The log entry records all pages touched.
+
+A batch of five articles and two screenshots is dropped at once. The pipeline processes all seven, distributing extracted knowledge across the topic tree. The post-completion gate runs `verify-ingest.sh` and reports clean before the agent stops.
 
 ## Related Concepts
 
-- [[Hook-Enforced Guarantees]] — the gate that aborts the pipeline if the wiki is left half-written.
-- [[claude-wiki-pages]] — the plugin that ships this pipeline.
+- [[Entity Distribution Model]] — the update-before-create rule the pipeline enforces.
+- [[Hook-Enforced Guarantees]] — the hook bus events (PreToolUse, SubagentStop) that gate every pipeline run.
+- [[Validation and Repair]] — the follow-on workflow for auditing and repairing anything the pipeline did not catch.
+- [[Provenance-Tracked Wiki]] — the property the pipeline creates by linking every page to its sources.

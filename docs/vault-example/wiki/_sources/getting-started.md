@@ -4,43 +4,39 @@ type: source
 source_type: manual
 source_format: text
 url: ""
-author: "claude-wiki-pages maintainers"
-publisher: "claude-wiki-pages plugin"
-date_published: 2026-04-24
-date_ingested: 2026-04-24
-tags: ["documentation", "onboarding"]
-aliases: ["Getting Started", "getting-started"]
+author: ""
+publisher: "claude-wiki-pages"
+date_published: 2026-06-13
+date_ingested: 2026-06-13
+tags: []
+aliases: ["Getting Started"]
 sources: []
-created: 2026-04-24
-updated: 2026-04-24
+created: 2026-06-13
+updated: 2026-06-13
 status: active
 confidence: 1.0
 ---
 
-# Getting Started
-
-## Metadata
-
-- **Path in raw/:** `01-getting-started.md`
-
 ## Summary
 
-Reference guide covering prerequisites (Claude Code, Obsidian 1.5+, jq), plugin install (remote marketplace or local path), session-start hook preamble confirmation, vault scaffolding via `/claude-wiki-pages:init`, and the health check via `/claude-wiki-pages:status`. Also lists the optional Obsidian setup (Dataview, Templater, Web Clipper) and graph coloring.
+A reference guide covering everything needed to go from a fresh plugin install to a verified-green vault. Describes prerequisites (Claude Code, the plugin, Obsidian, jq), the scaffold command `/claude-wiki-pages:init`, the health-check command `/claude-wiki-pages:status`, and optional Obsidian setup steps.
 
 ## Key Claims
 
-- `SessionStart` preamble firing in a fresh session proves the hook bus is working.
-- The health check exercises every hook path (frontmatter validation, wikilink enforcement, raw/ immutability, verify-ingest) and reports green/red per path.
-- `vault/output/` is outside the schema — plain markdown, git-ignored, not linted.
+- The `SessionStart` hook fires a preamble reminding the LLM to read `vault/CLAUDE.md` before any wiki operation.
+- `/claude-wiki-pages:init` copies `docs/vault-example/` into the project as `vault/` and writes the authoritative schema.
+- `/claude-wiki-pages:status` exercises every hook path and prints a green/red report per path.
+- Obsidian setup is optional but enables graph view, Dataview, and the Web Clipper.
+- `vault/output/` is git-ignored scratch space — no frontmatter, no schema.
 
 ## Entities Mentioned
 
 - [[Claude Code]]
 - [[Obsidian]]
-- [[Dataview]]
-- [[claude-wiki-pages]]
+- [[claude-wiki-pages Plugin]]
 
-## Concepts Mentioned
+## Concepts Covered
 
-- [[Hook-Enforced Guarantees]]
 - [[LLM Wiki Pattern]]
+- [[Hook-Enforced Guarantees]]
+- [[Vault Scaffolding]]

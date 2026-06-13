@@ -149,7 +149,7 @@ For each top-level topic folder without a matching `path:wiki/<folder>` color gr
 
 1. Read current groups via `obsidian eval`.
 2. Pick the next unused palette color per `/claude-wiki-pages:obsidian-graph-colors`.
-3. Insert before the `_sources` / `_synthesis` special groups and any layer groups (there is no index catch-all — folder notes take their topic's color).
+3. Insert before the `_sources` / `_synthesis` special groups (there is no index catch-all — folder notes take their topic's color; never add groups for `raw/`, `_templates/`, or `_proposed/` — those paths are excluded from Obsidian's index).
 4. Apply via `obsidian eval` + `graph.saveOptions()`.
 
 ## Phase 4 — Judgment fixes (automatic, under the checkpoint)

@@ -4,42 +4,40 @@ type: source
 source_type: manual
 source_format: text
 url: ""
-author: "claude-wiki-pages maintainers"
-publisher: "claude-wiki-pages plugin"
-date_published: 2026-04-24
-date_ingested: 2026-04-24
-tags: ["documentation", "onboarding"]
-aliases: ["Create a New Vault", "create-a-new-vault"]
+author: ""
+publisher: "claude-wiki-pages"
+date_published: 2026-06-13
+date_ingested: 2026-06-13
+tags: []
+aliases: ["Create a New Vault"]
 sources: []
-created: 2026-04-24
-updated: 2026-04-24
+created: 2026-06-13
+updated: 2026-06-13
 status: active
 confidence: 1.0
 ---
 
-# Create a New Vault
-
-## Metadata
-
-- **Path in raw/:** `02-create-new-knowledge-base.md`
-
 ## Summary
 
-Covers first-time scaffolding and standing up a second independent vault in a different project. The onboarding wizard writes `vault/CLAUDE.md`, `_templates/`, and the bookkeeping files. Topic folders are created on demand during ingest, not up front. Walks through a first end-to-end source (text and image) and the common first-ingest failures (missing attachments, unsupported PDFs, monochrome Obsidian graph).
+Explains how to scaffold a fresh vault — either as a first-time initialization or as a second vault in a different project. Covers Option A (re-initialize with `/claude-wiki-pages:init`) and Option B (install the plugin globally then scaffold the second project). Also documents the full first-source end-to-end flow: drop a file into `vault/raw/`, run the ingest pipeline, verify with `/claude-wiki-pages:status`.
 
 ## Key Claims
 
-- Two vaults from the same plugin install are fully independent (different `CLAUDE.md`, different `raw/`, different `wiki/` trees).
-- Topic folders do not exist until a source introduces the topic.
-- PDF ingest is deferred — the user must export to markdown/text first.
+- `/claude-wiki-pages:init` asks for vault name, domain, and paths, then writes `vault/CLAUDE.md`, `_templates/`, and the bookkeeping files.
+- Topic folders are created on demand by the ingest workflow; they do not exist until a source introduces that topic.
+- The ingest pipeline dispatches by file extension (text vs image); PDFs must be exported to markdown first.
+- The `SubagentStop` gate runs `verify-ingest.sh` and a lint pass after every ingest agent run.
+- For images, the source summary carries `source_format: image` and `attachment_path: raw/assets/<file>`.
 
 ## Entities Mentioned
 
 - [[Claude Code]]
 - [[Obsidian]]
-- [[claude-wiki-pages]]
+- [[claude-wiki-pages Plugin]]
 
-## Concepts Mentioned
+## Concepts Covered
 
 - [[Vault Scaffolding]]
 - [[Ingest Pipeline]]
+- [[Hook-Enforced Guarantees]]
+- [[Entity Distribution Model]]

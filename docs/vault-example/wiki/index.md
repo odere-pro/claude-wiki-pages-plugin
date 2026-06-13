@@ -1,51 +1,62 @@
 ---
 title: "Wiki Index"
 type: index
-parent: ""
+aliases: ["Wiki Index", "wiki index", "vault MOC", "MOC"]
 path: ""
 children: []
 child_indexes:
-  - "[[Patterns — Index]]"
-  - "[[Tools — Index]]"
-  - "[[Workflows — Index]]"
-aliases: ["Wiki Index"]
+  - "[[tools]]"
+  - "[[workflows]]"
+  - "[[patterns]]"
 tags: []
-created: 2026-04-24
-updated: 2026-04-24
+created: 2026-06-13
+updated: 2026-06-13
 ---
 
 # Wiki Index
 
-Master catalog of every page in the wiki.
+Master catalog for the `claude-wiki-pages` reference vault. This wiki documents the plugin itself — its tools, workflows, and design patterns — built with the plugin's own provenance-tracked wiki.
 
-## Sources
+## Topic tree
 
-- [[Using claude-wiki-pages]] — top-level navigation map for the seven user guides.
-- [[Getting Started]] — install, session start, scaffold, health check.
-- [[Create a New Vault]] — first-time scaffold and multi-project vaults.
-- [[Update an Existing Vault]] — day-to-day ingest workflow.
-- [[Review, Validate, Fix]] — three-level validation ladder.
-- [[Export Outputs]] — deliverables from the wiki to `output/`.
-- [[Check the Dashboard]] — Dataview dashboard for health and coverage.
-- [[Query the Wiki]] — question → cited answer workflow.
+- [[tools]] — 4 pages — Claude Code, claude-wiki-pages Plugin, Obsidian, Dataview
+- [[workflows]] — 5 pages — Ingest Pipeline, Validation and Repair, Querying the Wiki, Exporting Outputs, Dashboard Monitoring
+- [[patterns]] — 5 pages — LLM Wiki Pattern, Hook-Enforced Guarantees, Entity Distribution Model, Provenance-Tracked Wiki, Vault Scaffolding
 
-## Topics
+## Tools
 
-### Patterns ([[Patterns — Index]])
+- [[Claude Code]] — the AI coding environment hosting the plugin's hook bus and slash commands
+- [[claude-wiki-pages Plugin]] — the four-layer plugin turning a vault into a provenance-tracked wiki
+- [[Obsidian]] — the note-taking app used as the vault viewer and graph explorer
+- [[Dataview]] — the Obsidian community plugin powering the live dashboard
 
-- [[LLM Wiki Pattern]] — human curates sources, LLM derives the cited wiki.
-- [[Hook-Enforced Guarantees]] — invariants live in hooks, not in model discipline.
+## Workflows
 
-### Tools ([[Tools — Index]])
+- [[Ingest Pipeline]] — end-to-end process from raw source to structured wiki page
+- [[Validation and Repair]] — three-level validation: status, lint, curator agent
+- [[Querying the Wiki]] — asking cited questions with wikilink citations
+- [[Exporting Outputs]] — compiling deliverables into `vault/output/`
+- [[Dashboard Monitoring]] — live Obsidian Dataview view of vault health
 
-- [[Claude Code]] — CLI harness for skills, agents, and hooks.
-- [[claude-wiki-pages]] — this plugin.
+## Patterns
 
-### Workflows ([[Workflows — Index]])
-
-- [[Ingest Pipeline]] — the default, single-command ingest verb.
-- [[Query Workflow]] — ask the wiki; receive cited answers.
+- [[LLM Wiki Pattern]] — human curates sources; LLM maintains the wiki
+- [[Hook-Enforced Guarantees]] — invariants enforced at every tool-call boundary
+- [[Entity Distribution Model]] — one source rewrites many existing pages (DRY)
+- [[Provenance-Tracked Wiki]] — every claim traces back to a source in `raw/`
+- [[Vault Scaffolding]] — structure created by `/claude-wiki-pages:init`
 
 ## Synthesis
 
-None yet. Run `/claude-wiki-pages:synthesize` when the wiki has enough content to warrant cross-topic analysis.
+None yet — cross-topic analysis pages will appear here as the wiki grows.
+
+## Sources
+
+- [[Getting Started]]
+- [[Create a New Vault]]
+- [[Update an Existing Vault]]
+- [[Review, Validate, Fix]]
+- [[Export Data, Create Output]]
+- [[Check the Dashboard]]
+- [[Query the Wiki]]
+- [[Using claude-wiki-pages]]

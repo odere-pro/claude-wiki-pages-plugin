@@ -1,43 +1,39 @@
 ---
-title: "Export Outputs"
+title: "Export Data, Create Output"
 type: source
 source_type: manual
 source_format: text
 url: ""
-author: "claude-wiki-pages maintainers"
-publisher: "claude-wiki-pages plugin"
-date_published: 2026-04-24
-date_ingested: 2026-04-24
-tags: ["documentation", "output"]
-aliases: ["Export Outputs", "export-outputs"]
+author: ""
+publisher: "claude-wiki-pages"
+date_published: 2026-06-13
+date_ingested: 2026-06-13
+tags: []
+aliases: ["Export Data, Create Output"]
 sources: []
-created: 2026-04-24
-updated: 2026-04-24
+created: 2026-06-13
+updated: 2026-06-13
 status: active
 confidence: 1.0
 ---
 
-# Export Outputs
-
-## Metadata
-
-- **Path in raw/:** `05-export-outputs.md`
-
 ## Summary
 
-How deliverables (reports, ADRs, briefs, memos) are compiled from the wiki into `vault/output/` — git-ignored scratch space with no frontmatter, no schema, no validation. The `claude-wiki-pages-analyst-agent` agent is the right tool; it cites every claim with `[[wikilinks]]` back to wiki pages. Explains two healthy patterns (narrative output vs navigation index), the rule against two narrative outputs on the same topic, and the export path to PDF/DOCX via pandoc.
+Describes `vault/output/` as git-ignored scratch space for deliverables compiled from the wiki. Explains the analyst agent's compile workflow, two healthy output patterns (narrative vs navigation index), versioning options, and external format conversion with pandoc.
 
 ## Key Claims
 
-- `vault/output/` is deliberately outside the schema — deliverables are not wiki content.
-- Reusable deliverables belong in `wiki/_synthesis/` as proper synthesis notes; regenerate the deliverable from the synthesis when needed.
-- Analysis that belongs in `_synthesis/` must not live in `output/`; outputs are deliverables, synthesis is reasoning.
+- `vault/output/` is plain markdown — no frontmatter, no schema, no validation.
+- The analyst agent reads the vault MOC and per-folder MOCs, pulls named entities/concepts/synthesis notes, and writes to `vault/output/<slug>.md` with `[[wikilink]]` citations.
+- Two patterns: narrative output (front-to-back document with its own voice) and navigation index (pointer document routing to canonical wiki pages).
+- Analysis that belongs in `_synthesis/` must not go into `output/`; synthesis stays in the wiki and is cited by deliverables.
+- `protect-raw.sh` blocks writes to `vault/raw/`.
 
 ## Entities Mentioned
 
-- [[claude-wiki-pages]]
-- [[Pandoc]]
+- [[claude-wiki-pages Plugin]]
 
-## Concepts Mentioned
+## Concepts Covered
 
-- [[Output Compilation Workflow]]
+- [[Exporting Outputs]]
+- [[Provenance-Tracked Wiki]]

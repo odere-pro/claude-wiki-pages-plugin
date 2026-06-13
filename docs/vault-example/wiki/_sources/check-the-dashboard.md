@@ -4,40 +4,39 @@ type: source
 source_type: manual
 source_format: text
 url: ""
-author: "claude-wiki-pages maintainers"
-publisher: "claude-wiki-pages plugin"
-date_published: 2026-04-24
-date_ingested: 2026-04-24
-tags: ["documentation", "observability"]
-aliases: ["Check the Dashboard", "check-the-dashboard"]
+author: ""
+publisher: "claude-wiki-pages"
+date_published: 2026-06-13
+date_ingested: 2026-06-13
+tags: []
+aliases: ["Check the Dashboard"]
 sources: []
-created: 2026-04-24
-updated: 2026-04-24
+created: 2026-06-13
+updated: 2026-06-13
 status: active
 confidence: 1.0
 ---
 
-# Check the Dashboard
-
-## Metadata
-
-- **Path in raw/:** `06-check-the-dashboard.md`
-
 ## Summary
 
-The Dataview dashboard at `vault/wiki/dashboard.md` surfaces all pages by type, sources and their citation status, the topic tree with page counts, contradictions (pages with non-empty `contradicts:`), and stale candidates (30+ days with low update count). Requires Obsidian plus the Dataview community plugin. Static snapshots can be produced via the Obsidian CLI skill. Tabulates common findings and remediation actions.
+Documents the Obsidian Dataview dashboard at `vault/wiki/dashboard.md`. Covers what each section shows (all pages by type, sources, topic tree, contradictions, stale candidates), when to consult the dashboard, how to produce a static snapshot with the Obsidian CLI, and how to act on common findings.
 
 ## Key Claims
 
-- The dashboard is useful in Obsidian and empty everywhere else — Dataview does not render outside Obsidian.
-- A flat folder with >12 direct children is a restructure signal; the `fix` flat-folder phase handles it.
-- `confidence: 1.0` is a default abuse; lint's single-source-high-confidence check flags it.
+- The dashboard requires Obsidian with the Dataview community plugin; without Dataview, queries render as empty code blocks.
+- Sections: all pages by type (with type, status, confidence, path, updated, update_count), sources (including orphans), topic tree (per-folder page counts), contradictions (non-empty `contradicts:`), stale candidates.
+- A flat folder with > 12 direct children should trigger `/claude-wiki-pages:fix`.
+- `confidence: 1.0` rows that were not honestly set should be corrected via lint.
+- The Obsidian CLI can render a Dataview query and write the result to `vault/wiki/dashboard-snapshot.md`.
 
 ## Entities Mentioned
 
 - [[Obsidian]]
 - [[Dataview]]
+- [[claude-wiki-pages Plugin]]
 
-## Concepts Mentioned
+## Concepts Covered
 
-- [[Hook-Enforced Guarantees]]
+- [[Dashboard Monitoring]]
+- [[Provenance-Tracked Wiki]]
+- [[Validation and Repair]]

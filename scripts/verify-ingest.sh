@@ -348,6 +348,12 @@ SOURCES_DIR="$WIKI/_sources"
 ORPHAN_SOURCES=0
 if [ -d "$SOURCES_DIR" ]; then
   while IFS= read -r source_file; do
+    # The source manifest (type: manifest) is bookkeeping, not a source summary;
+    # the schema exempts it from index-membership checks, so it is never an orphan.
+    SOURCE_TYPE=$(sed -n '/^---$/,/^---$/{/^type:/{s/^type: *//;s/ *$//;p;q;};}' "$source_file")
+    if [ "$SOURCE_TYPE" = "manifest" ]; then
+      continue
+    fi
     SOURCE_TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$source_file")
     if [ -z "$SOURCE_TITLE" ]; then
       SOURCE_TITLE=$(basename "$source_file" .md)

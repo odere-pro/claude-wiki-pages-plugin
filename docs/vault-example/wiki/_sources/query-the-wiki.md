@@ -4,40 +4,40 @@ type: source
 source_type: manual
 source_format: text
 url: ""
-author: "claude-wiki-pages maintainers"
-publisher: "claude-wiki-pages plugin"
-date_published: 2026-04-24
-date_ingested: 2026-04-24
-tags: ["documentation", "query"]
-aliases: ["Query the Wiki", "query-the-wiki"]
+author: ""
+publisher: "claude-wiki-pages"
+date_published: 2026-06-13
+date_ingested: 2026-06-13
+tags: []
+aliases: ["Query the Wiki"]
 sources: []
-created: 2026-04-24
-updated: 2026-04-24
+created: 2026-06-13
+updated: 2026-06-13
 status: active
 confidence: 1.0
 ---
 
-# Query the Wiki
-
-## Metadata
-
-- **Path in raw/:** `07-query-the-wiki.md`
-
 ## Summary
 
-Query workflow: `query` for single questions with citations, `claude-wiki-pages-analyst-agent` for cross-topic analysis, challenge mode, and document compilation. The query skill reads `wiki/index.md`, traverses topic MOCs, synthesizes an answer with `[[wikilinks]]` citations, and appends the question to `wiki/log.md`. Covers citation auditing (check `sources:`, `confidence:`, `updated:` on every cited page), gap handling, and saving high-value answers as synthesis notes.
+Explains how to ask questions against the wiki with cited answers. Covers the basic `/claude-wiki-pages:query` skill (reads MOC, traverses topic tree, synthesizes with inline wikilinks), the analyst agent for deeper cross-topic queries, challenge mode for pressure-testing ideas, saving good answers as synthesis notes, and Dataview-based frontmatter queries.
 
 ## Key Claims
 
-- Every answer claim ends in a `[[wikilink]]` — this is how provenance is audited.
-- When the wiki lacks an answer, the skill says so; it does not invent one.
-- A documented gap (synthesis note with `synthesis_type: gap`) is useful output even when no answer exists.
+- Every claim in a query response should end in a `[[wikilink]]`; open the cited page to check `sources:`, `confidence:`, and `updated:`.
+- The analyst agent can produce tables, comparisons, and document compilations across topics.
+- Challenge mode searches for contradicting sources, gaps, and past decisions that argue against a proposal.
+- A good answer can be filed as a synthesis note with `synthesis_type`, `scope:`, and `sources:` reflecting the provenance chain.
+- When the wiki does not have an answer, the skill will say so — do not invent one.
+- Dataview queries scope results by any frontmatter field (e.g., confidence < 0.7 in a topic folder).
 
 ## Entities Mentioned
 
+- [[claude-wiki-pages Plugin]]
 - [[Obsidian]]
 - [[Dataview]]
 
-## Concepts Mentioned
+## Concepts Covered
 
-- [[Query Workflow]]
+- [[Querying the Wiki]]
+- [[Provenance-Tracked Wiki]]
+- [[LLM Wiki Pattern]]

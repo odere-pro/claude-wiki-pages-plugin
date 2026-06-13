@@ -1,83 +1,51 @@
 ---
 title: "Operations Log"
 type: log
-aliases: ["Operations Log"]
-created: 2026-04-24
-updated: 2026-04-24
+created: 2026-06-13
+updated: 2026-06-13
 ---
 
 # Operations Log
 
-Chronological record of every wiki operation. The onboarding skill stamps the initial entry; subsequent ingest, query, and lint operations append below.
+Chronological record of all pipeline operations on this vault.
 
-## [2026-04-24] init | Vault scaffolded
+---
 
-Empty vault created from `skills/llm-wiki/template/`. No sources ingested yet.
+## [2026-06-13] ingest | Getting Started
 
-## [2026-04-24] ingest | Using claude-wiki-pages
+Processed `01-getting-started.md`. Created 1 new source summary. Created entities: [[Claude Code]], [[Obsidian]], [[claude-wiki-pages Plugin]]. Created concepts: [[LLM Wiki Pattern]], [[Hook-Enforced Guarantees]], [[Vault Scaffolding]].
+New folders: `tools/`, `patterns/`.
 
-Processed `raw/index.md`. Created 1 source summary. Introduced topic folders `patterns/`, `tools/`, `workflows/` with their `_index.md`.
+## [2026-06-13] ingest | Create a New Vault
 
-- New source: [[Using claude-wiki-pages]]
+Processed `02-create-new-knowledge-base.md`. Created 1 new source summary. Updated existing entities: [[Claude Code]], [[Obsidian]], [[claude-wiki-pages Plugin]]. Created concept: [[Ingest Pipeline]]. Updated concepts: [[Vault Scaffolding]], [[Hook-Enforced Guarantees]], [[Entity Distribution Model]].
+New folders: `workflows/`.
 
-## [2026-04-24] ingest | Getting Started
+## [2026-06-13] ingest | Update an Existing Vault
 
-Processed `raw/01-getting-started.md`. Created 1 source summary. Extended [[Claude Code]], [[Obsidian]], [[Dataview]], [[claude-wiki-pages]], [[Hook-Enforced Guarantees]] with this source.
+Processed `03-update-existing.md`. Created 1 new source summary. Updated existing entities: [[Claude Code]], [[Obsidian]], [[claude-wiki-pages Plugin]]. Updated concepts: [[Ingest Pipeline]], [[Entity Distribution Model]], [[Hook-Enforced Guarantees]], [[Provenance-Tracked Wiki]].
 
-- New source: [[Getting Started]]
+## [2026-06-13] ingest | Review, Validate, Fix
 
-## [2026-04-24] ingest | Create a New Vault
+Processed `04-review-validate-fix.md`. Created 1 new source summary. Updated entities: [[claude-wiki-pages Plugin]], [[Obsidian]]. Created concept: [[Validation and Repair]]. Updated concepts: [[Hook-Enforced Guarantees]], [[Provenance-Tracked Wiki]], [[LLM Wiki Pattern]].
 
-Processed `raw/02-create-new-knowledge-base.md`. Created 1 source summary and 1 concept page ([[Vault Scaffolding]]).
+## [2026-06-13] ingest | Export Data, Create Output
 
-- New source: [[Create a New Vault]]
-- New concept: [[Vault Scaffolding]]
+Processed `05-export-outputs.md`. Created 1 new source summary. Updated entity: [[claude-wiki-pages Plugin]]. Created concept: [[Exporting Outputs]]. Updated concept: [[Provenance-Tracked Wiki]].
 
-## [2026-04-24] ingest | Update an Existing Vault
+## [2026-06-13] ingest | Check the Dashboard
 
-Processed `raw/03-update-existing.md`. Created 1 source summary, 2 concept pages ([[Ingest Pipeline]], [[Entity Distribution Model]]).
+Processed `06-check-the-dashboard.md`. Created 1 new source summary. Updated entities: [[Obsidian]], [[claude-wiki-pages Plugin]]. Created entities: [[Dataview]]. Created concept: [[Dashboard Monitoring]]. Updated concepts: [[Provenance-Tracked Wiki]], [[Validation and Repair]].
 
-- New source: [[Update an Existing Vault]]
-- New concepts: [[Ingest Pipeline]], [[Entity Distribution Model]]
+## [2026-06-13] ingest | Query the Wiki
 
-## [2026-04-24] ingest | Review, Validate, Fix
+Processed `07-query-the-wiki.md`. Created 1 new source summary. Updated entities: [[claude-wiki-pages Plugin]], [[Obsidian]], [[Dataview]]. Created concept: [[Querying the Wiki]]. Updated concepts: [[Provenance-Tracked Wiki]], [[LLM Wiki Pattern]].
 
-Processed `raw/04-review-validate-fix.md`. Created 1 source summary and 1 concept page ([[Lint-Fix Workflow]]). Extended [[Hook-Enforced Guarantees]] with this source.
+## [2026-06-13] ingest | Using claude-wiki-pages
 
-- New source: [[Review, Validate, Fix]]
-- New concept: [[Lint-Fix Workflow]]
+Processed `index.md`. Created 1 new source summary. Updated entities: [[Claude Code]], [[Obsidian]], [[claude-wiki-pages Plugin]]. Updated concepts: [[LLM Wiki Pattern]], [[Provenance-Tracked Wiki]], [[Ingest Pipeline]], [[Vault Scaffolding]].
+## [2026-06-13] snapshot | ingest getting-started create-new-knowledge-base update-existing review-validate-fix export-outputs check-the-dashboard query-the-wiki index (snap-20260613021232)
 
-## [2026-04-24] ingest | Export Outputs
-
-Processed `raw/05-export-outputs.md`. Created 1 source summary, 1 concept page ([[Output Compilation Workflow]]), 1 entity page ([[Pandoc]]).
-
-- New source: [[Export Outputs]]
-- New concept: [[Output Compilation Workflow]]
-- New entity: [[Pandoc]]
-
-## [2026-04-24] ingest | Check the Dashboard
-
-Processed `raw/06-check-the-dashboard.md`. Created 1 source summary. Extended [[Obsidian]], [[Dataview]], [[Hook-Enforced Guarantees]] with this source.
-
-- New source: [[Check the Dashboard]]
-
-## [2026-04-24] ingest | Query the Wiki
-
-Processed `raw/07-query-the-wiki.md`. Created 1 source summary and 1 concept page ([[Query Workflow]]).
-
-- New source: [[Query the Wiki]]
-- New concept: [[Query Workflow]]
-
-## [2026-04-24] ingest | batch complete
-
-Pipeline processed 8 sources in total: 8 source summaries, 3 topic indexes, 12 extracted pages (3 concepts in patterns/, 5 entities in tools/, 5 concepts in workflows/), `wiki/index.md` updated.
-
-## [2026-04-24] lint-fix | Health check and auto-repair
-
-Found 0 errors, 0 warnings (verify-ingest.sh), 3 info items (supplemental). Auto-applied 0. Gated: 0 executed, 0 declined. Report-only: 2 items (bare [[wikilink]]/[[wikilinks]] syntax-demo links in body prose; high-confidence single-source on query-workflow.md).
-## [2026-06-12] migrate | schema_version 3 → 3 (4 change(s))
-
-- checkpoint: 2e8b7ba
-- renamed 3 legacy _index.md to folder notes
-- rollback: git revert the migrate commit below
+- pre-state: 5867ea0
+- rollback: git revert the snapshot commit below
 
