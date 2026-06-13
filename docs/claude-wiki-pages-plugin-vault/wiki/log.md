@@ -229,4 +229,8 @@ Updated wiki/index.md Hub Pages section to list all 7 hubs.
 
 - pre-state: c73b7c7
 - rollback: git revert the snapshot commit below
+## [2026-06-13] snapshot | fill-gaps: create pages for dangling concepts (snap-20260613223605)
+
+- pre-state: dc6c208
+- rollback: git revert the snapshot commit below
 

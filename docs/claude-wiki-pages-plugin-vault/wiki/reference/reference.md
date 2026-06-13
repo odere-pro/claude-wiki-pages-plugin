@@ -17,6 +17,7 @@ children:
   - "[[Heartbeat]]"
   - "[[Maintenance Loop]]"
   - "[[Required Fields]]"
+  - "[[Frontmatter Validation]]"
   - "[[Banned Strings]]"
 child_indexes: []
 tags: ["reference"]
@@ -60,6 +61,7 @@ Map of Content for reference documentation: schema, terminology, operations, loc
 ## Schema and Terminology
 
 - [[Required Fields]] — per-type frontmatter requirements; machine-readable table in CLAUDE.md
+- [[Frontmatter Validation]] — `validate-frontmatter.sh`; reads required-fields table from CLAUDE.md
 - [[Banned Strings]] — retired terms; enforced by validate-docs.sh Check 1
 
 ## Installation
