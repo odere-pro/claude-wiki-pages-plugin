@@ -12,6 +12,13 @@ children:
   - "[[Local Model Quality Gate]]"
   - "[[Wiki-Native Recall]]"
   - "[[Scaffolding Ablation]]"
+  - "[[Design-Drift Gate]]"
+  - "[[Golden Set]]"
+  - "[[Zero-Fabrication Floor]]"
+  - "[[Graph Config Cache]]"
+  - "[[Search Score Object]]"
+  - "[[Plugin Arm]]"
+  - "[[Baseline Arm]]"
 child_indexes: []
 tags: ["decisions", "adr"]
 created: 2026-06-13
@@ -55,6 +62,19 @@ Map of Content for all Architecture Decision Records (ADRs).
 - [[ADR-0016: Multi-Vault Registry Fail-Closed]] — OQ-9 fix, audit roll-up
 - [[ADR-0017: Fabrication Floor]] — verbatim partition, over-citation vs fabrication
 - [[ADR-0020: Scaffolding Ablation]] — measured plugin arm vs baseline arm
+
+## Quality Concepts
+
+- [[Design-Drift Gate]] — validate-docs.sh Check 5; five drift categories
+- [[Golden Set]] — eval fixtures used by quality gate and ablation
+- [[Zero-Fabrication Floor]] — hard floor; one fabrication = disqualified
+- [[Baseline Arm]] — no-scaffolding control arm of the ablation
+- [[Plugin Arm]] — full-scaffolding treatment arm of the ablation
+
+## Graph and Cache Concepts
+
+- [[Graph Config Cache]] — why `.obsidian/` is gitignored regenerable cache
+- [[Search Score Object]] — `SearchHit`, `matched[]` breakdown, score invariant
 
 ## Offline and Local Model Decisions
 

@@ -9,6 +9,7 @@ key_pages:
   - "[[Maintain Contract]]"
   - "[[Grounded Retrieval]]"
   - "[[Multi-Vault Operating Rules]]"
+  - "[[Synthesis Note]]"
 sources:
   - "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"
 related:

@@ -14,6 +14,9 @@ children:
   - "[[Challenge Mode]]"
   - "[[Obsidian Experience]]"
   - "[[Folder Note]]"
+  - "[[Graph Coloring]]"
+  - "[[Time-to-First-Value]]"
+  - "[[Portable Markdown]]"
 child_indexes: []
 tags: ["guides", "user-guide"]
 created: 2026-06-13

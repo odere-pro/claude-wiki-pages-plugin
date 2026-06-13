@@ -13,6 +13,7 @@ key_pages:
   - "[[Search Scoring Algorithm]]"
   - "[[Tier-2 Deterministic Recall]]"
   - "[[Graph Walk Algorithm]]"
+  - "[[Graph Traversal Primitive]]"
   - "[[Porter Stemmer]]"
   - "[[Synonym Lexicon]]"
   - "[[Provenance Checks]]"
@@ -21,6 +22,7 @@ key_pages:
   - "[[Draft Review Surface]]"
   - "[[Degraded-Mode Routing]]"
   - "[[Scripts Layer]]"
+  - "[[Shell-TS Parity]]"
 sources:
   - "[[Engine Scripts Layer (CLAUDE.md)]]"
   - "[[Engine API Skill (SKILL.md)]]"

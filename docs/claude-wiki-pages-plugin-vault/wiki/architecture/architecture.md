@@ -19,6 +19,10 @@ children:
   - "[[Analyst Agent]]"
   - "[[Polish Agent]]"
   - "[[Maintenance Agent]]"
+  - "[[Active Vault]]"
+  - "[[Vault Lifecycle]]"
+  - "[[Durable Memory]]"
+  - "[[Fail-Closed]]"
 child_indexes: []
 tags: ["architecture"]
 created: 2026-06-13
@@ -53,3 +57,10 @@ Map of Content for the plugin's architecture — the four-layer stack, engine, a
 ## Design Diagrams
 
 - [[Design Diagrams]] — C4-style mermaid diagrams (L0–L3) across seven perspectives
+
+## Vault and Security Concepts
+
+- [[Active Vault]] — the single vault targeted by all write operations
+- [[Vault Lifecycle]] — init, add, switch, remove, merge lifecycle commands
+- [[Durable Memory]] — agent session write-backs via `raw/agent-sessions/` and `_proposed/` gate
+- [[Fail-Closed]] — deny-by-default posture across registry, firewall, allow-list, CI gates

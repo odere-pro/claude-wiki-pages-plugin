@@ -10,8 +10,12 @@ children:
   - "[[Multi-Vault Registry]]"
   - "[[Offline Policy]]"
   - "[[Approved Local Model]]"
+  - "[[Capability Tier]]"
   - "[[Backlog]]"
   - "[[Installation]]"
+  - "[[Doctor Command]]"
+  - "[[Heartbeat]]"
+  - "[[Maintenance Loop]]"
 child_indexes: []
 tags: ["reference"]
 created: 2026-06-13
@@ -44,8 +48,12 @@ Map of Content for reference documentation: schema, terminology, operations, loc
 ## Automation
 
 - [[Backlog]] — unprocessed sources + overdue lint
-- [[Heartbeat]] — SessionStart recommendation when backlog exists
+- [[Heartbeat]] — SessionStart recommendation when backlog exists; never mutates
 - [[Maintenance Loop]] — autonomous catch-up via maintenance agent
+
+## Operational Tools
+
+- [[Doctor Command]] — `/claude-wiki-pages:doctor` health check after install
 
 ## Installation
 
