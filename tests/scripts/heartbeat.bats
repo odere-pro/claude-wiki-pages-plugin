@@ -50,6 +50,33 @@ enable_maintenance() {
   assert_output_empty
 }
 
+@test "heartbeat: emits MAINTENANCE advisory when backlog exists and unattended is false" {
+  enable_maintenance
+  # No maintenance.unattended in the config → defaults to false.
+  run_hb
+  assert_success
+  assert_output_contains "MAINTENANCE:"
+  assert_output_contains "pending"
+  assert_output_contains "maintenance-run.sh"
+}
+
+@test "heartbeat: MAINTENANCE advisory absent when unattended is true" {
+  printf '{"maintenance":{"enabled":true,"unattended":true}}\n' >"$PROJ/.claude/claude-wiki-pages.json"
+  run_hb
+  assert_success
+  # With unattended=true the advisory must not appear (the scheduled helper takes care of it).
+  refute_output_contains "MAINTENANCE:"
+}
+
+@test "heartbeat: MAINTENANCE advisory absent when no backlog" {
+  enable_maintenance
+  # Remove the pending source so backlog is empty.
+  rm -f "$VAULT/raw/new.md"
+  run_hb
+  assert_success
+  assert_output_empty
+}
+
 @test "heartbeat: emits SYNC notice when a wired source has changed docs" {
   command -v bun >/dev/null 2>&1 || skip "SYNC notice is engine-only (needs bun)"
   enable_maintenance
