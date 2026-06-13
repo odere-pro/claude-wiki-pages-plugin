@@ -19,9 +19,9 @@ graph TB
 
     subgraph plugin["claude-wiki-pages plugin (.claude-plugin/plugin.json)"]
         goals["Goals<br/>(11 product goals)"]
-        cmds["Commands<br/>wiki · onboarding · doctor"]
+        cmds["Commands<br/>wiki · onboarding · doctor · fill-gaps"]
         agents["Agents (8)<br/>orchestrator + 7"]
-        skills["Skills (24)<br/>action + teaching"]
+        skills["Skills (25)<br/>action + teaching"]
         hooks["Hooks (7 events)"]
         scripts["Scripts (~30)"]
         rules["Rules<br/>(path-scoped)"]
@@ -60,9 +60,9 @@ configured here** — they show how the plugin *could* extend.
 | Feature | In this repo? | Where / note |
 | --- | --- | --- |
 | **Plugin** | ✅ defined | [`.claude-plugin/plugin.json`](../../.claude-plugin/plugin.json) — the package manifest |
-| **Commands** | ✅ 3 | [`commands/`](../../commands/) — `wiki` (entry), `onboarding`, `doctor` |
+| **Commands** | ✅ 4 | [`commands/`](../../commands/) — `wiki` (entry), `onboarding`, `doctor`, `fill-gaps` |
 | **Agents** | ✅ 8 | [`agents/`](../../agents/) — orchestrator + onboarding/ingest/extract-worker/curator/analyst/polish/maintenance |
-| **Skills** | ✅ 24 | [`skills/`](../../skills/) — 13 action + 5 teaching + obsidian refs |
+| **Skills** | ✅ 25 | [`skills/`](../../skills/) — 14 action + 5 teaching + obsidian refs |
 | **Hooks** | ✅ 7 events | [`hooks/hooks.json`](../../hooks/hooks.json) — Session/Prompt/PreTool/PostTool/SubagentStop/Stop/SessionEnd |
 | **Scripts** | ✅ ~30 | [`scripts/`](../../scripts/) — enforcement + the engine bridge |
 | **Rules** | ✅ | [`rules/`](../../rules/) — path-scoped constraints |

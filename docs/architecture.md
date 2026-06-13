@@ -19,7 +19,7 @@ Sources go into `raw/` and are never rewritten — the `protect-raw.sh` hook enf
 
 ### 2. Skills
 
-Each skill is a single-responsibility capability: `ingest` ingests sources, `query` answers questions, `lint` audits structure, `fix` repairs what lint reports, `synthesize` writes cross-topic analyses, `index` generates a top-level overview index across the vault, `markdown` exports a query answer as portable markdown into `vault/output/`, `fill-gaps` completes the vault into a gap-free, topic-clustered wiki, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 24 (13 plugin-authored verbs + `onboarding` + 5 agent-teaching skills + `obsidian-graph-colors` + `obsidian-vault` + 3 MIT-licensed `obsidian-*` reference skills).
+Each skill is a single-responsibility capability: `ingest` ingests sources, `query` answers questions, `lint` audits structure, `fix` repairs what lint reports, `synthesize` writes cross-topic analyses, `index` generates a top-level overview index across the vault, `markdown` exports a query answer as portable markdown into `vault/output/`, `fill-gaps` completes the vault into a gap-free, topic-clustered wiki, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 25 (14 plugin-authored verbs + `onboarding` + 5 agent-teaching skills + `obsidian-graph-colors` + `obsidian-vault` + 3 MIT-licensed `obsidian-*` reference skills).
 
 ### 3. Agents
 

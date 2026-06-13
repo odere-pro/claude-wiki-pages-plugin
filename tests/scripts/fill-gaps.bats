@@ -68,7 +68,8 @@ EOF
   run bash "$REPO_ROOT/$GQ" --target "$VAULT" --json
   [[ "$output" == *'"engine": 3'* ]]
   [[ "$output" == *'"Cn": 1.0'* ]]
-  # every resolved edge touches the hub here
+  # all edges are within the cluster, and every edge touches the hub here
+  [[ "$output" == *'"Ce": 1.0'* ]]
   [[ "$output" == *'"Ch": 1.0'* ]]
 }
 

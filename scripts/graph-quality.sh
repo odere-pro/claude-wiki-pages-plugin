@@ -209,10 +209,24 @@ for p in pages:
         for a in p["aliases"]:
             hub_names.add(norm(a))
 
+# Map every resolvable name → the cluster of the page that owns it (or "special"
+# for _sources/_synthesis/index/log). Used for the faithful edge metric Ce.
+name2cluster = {}
+for p in pages:
+    owner = "special" if p["is_special"] else p["cluster"]
+    for nm in [norm(p["stem"])] + ([norm(p["title"])] if p["title"] else []) + [norm(a) for a in p["aliases"]]:
+        name2cluster.setdefault(nm, owner)
+
 edges_total = 0
 edges_hub = 0
+# Ce — the faithful "edges around the topics" metric: of all resolved edges
+# between non-special pages, the fraction whose BOTH endpoints lie in one of the
+# 7 core clusters. This is what "majority of edges around the topics" means.
+ce_total = 0
+ce_in = 0
 for p in pages:
     src_is_hub = p["is_hub"]
+    src_in_cluster = (not p["is_special"]) and p["cluster"] in CLUSTERS
     for raw in p["links"]:
         if not raw:
             continue
@@ -222,7 +236,14 @@ for p in pages:
         edges_total += 1
         if src_is_hub or n in hub_names:
             edges_hub += 1
+        # Ce denominator: edge between two non-special pages.
+        tgt_cluster = name2cluster.get(n)
+        if (not p["is_special"]) and tgt_cluster not in (None, "special"):
+            ce_total += 1
+            if src_in_cluster and tgt_cluster in CLUSTERS:
+                ce_in += 1
 Ch = (edges_hub / edges_total) if edges_total else 0.0
+Ce = (ce_in / ce_total) if ce_total else 0.0
 
 result = {
     "vault": vault,
@@ -235,6 +256,9 @@ result = {
     "edgesTotal": edges_total,
     "edgesTouchingHub": edges_hub,
     "Ch": round(Ch, 4),
+    "edgesBetweenTopics": ce_total,
+    "edgesWithinClusters": ce_in,
+    "Ce": round(Ce, 4),
     "clusters": cluster_counts,
 }
 
@@ -248,6 +272,6 @@ else:
     if len(dangling_list) > 25:
         print(f"  … and {len(dangling_list) - 25} more")
     print(f"nodes: {result['nodes']}  in-clusters: {result['nodesInClusters']}  Cn={result['Cn']}")
-    print(f"edges: {result['edgesTotal']}  touching-hub: {result['edgesTouchingHub']}  Ch={result['Ch']}")
+    print(f"edges: {result['edgesTotal']}  within-clusters: {result['edgesWithinClusters']}/{result['edgesBetweenTopics']}  Ce={result['Ce']}  touching-hub: {result['edgesTouchingHub']}  Ch={result['Ch']}")
     print("cluster sizes: " + ", ".join(f"{c}={cluster_counts.get(c, 0)}" for c in CLUSTERS + ["other"]))
 PY

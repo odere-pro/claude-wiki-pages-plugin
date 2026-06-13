@@ -49,13 +49,16 @@ fronted by `/claude-wiki-pages:fill-gaps`; the orchestrator routes
 {filename stem, `title`, `aliases`} case-insensitively (mirroring Obsidian, no
 space↔hyphen fuzzing), and reports unresolved targets. It also assigns each
 topic-bearing page to one of the seven core clusters and computes node
-concentration `Cn` and hub-edge concentration `Ch`. Pure bash + python3 stdlib —
-no Bun, no network, no embeddings, consistent with ADR-0007.
+concentration `Cn`, edge concentration `Ce` (edges whose both endpoints are in a
+cluster — the faithful "majority of edges around the topics" measure), and the
+informational hub-touch fraction `Ch`. Pure bash + python3 stdlib — no Bun, no
+network, no embeddings, consistent with ADR-0007.
 
 ### 3. The gap-fill is gated on measurable quality, never on fabrication
 
 The workflow asserts `danglingCount == 0`, `verify` clean, `Cn ≥ 0.85`,
-`Ch ≥ 0.30`, and that each hub is substantive. Dangling links are resolved by
+`Ce ≥ 0.85`, and that each hub is substantive (`Ch` is reported, not gated).
+Dangling links are resolved by
 **creating a real, sourced page**, **fixing the link** (alias/fuzzy), or
 **prose-ifying** it — never by an empty stub, and never by inventing a link to
 pass a gate. A failed gate is surfaced with its checkpoint SHA, not papered over.

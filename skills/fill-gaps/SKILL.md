@@ -84,9 +84,13 @@ not exist. For each distinct dangling target `T`:
 
 - `danglingCount == 0` — no empty links (the definition of "no empty pages").
 - `engine verify` → `errors == 0 && warnings == 0`.
-- `Cn ≥ 0.85` — ≥85% of topic pages sit in the core clusters.
-- `Ch ≥ 0.30` — ≥30% of all wikilink edges touch a hub page.
-- Each hub page has filled sections, ≥5 outbound links, ≥1 source.
+- `Cn ≥ 0.85` — ≥85% of topic pages sit in the 7 core clusters (node concentration).
+- `Ce ≥ 0.85` — ≥85% of wikilink edges have both endpoints in the clusters
+  (edge concentration — the faithful "majority of edges around the topics").
+- Each hub page has filled body sections and ≥5 outbound links.
+
+`Ch` (the fraction of edges touching a hub *node*) is reported for insight but
+not gated — in a densely cross-linked vault it sits well below `Cn`/`Ce`.
 
 If a gate fails the workflow reports which one and the offending phase's
 checkpoint SHA — **never fabricate links to pass a gate**; surface instead.

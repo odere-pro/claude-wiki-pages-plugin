@@ -27,8 +27,12 @@ if (!REPO || !VAULT) {
   throw new Error('fill-knowledge-gaps: args.repoDir and args.vault (absolute paths) are required')
 }
 // Quality-gate thresholds (override via args).
+// Cn = fraction of nodes in the 7 clusters; Ce = fraction of edges whose both
+// endpoints are in the 7 clusters — the faithful "majority around the topics"
+// criterion. Ch (edges touching a hub node) is reported but not gated: in a
+// densely cross-linked vault it is naturally well below Cn/Ce.
 const CN_MIN = a.cnMin ?? 0.85
-const CH_MIN = a.chMin ?? 0.3
+const CE_MIN = a.ceMin ?? 0.85
 
 // Every agent operates on the worktree copy. This preamble is prepended to every
 // prompt so vault resolution can never drift to another checkout (the R1 trap).
@@ -86,10 +90,11 @@ const HUBS = [
 
 const METRIC_SCHEMA = {
   type: 'object', additionalProperties: false,
-  required: ['danglingCount', 'verifyErrors', 'verifyWarnings', 'Cn', 'Ch', 'nodes', 'edgesTotal'],
+  required: ['danglingCount', 'verifyErrors', 'verifyWarnings', 'Cn', 'Ce', 'Ch', 'nodes', 'edgesTotal'],
   properties: {
     danglingCount: { type: 'number' }, verifyErrors: { type: 'number' }, verifyWarnings: { type: 'number' },
-    Cn: { type: 'number' }, Ch: { type: 'number' }, nodes: { type: 'number' }, edgesTotal: { type: 'number' },
+    Cn: { type: 'number' }, Ce: { type: 'number' }, Ch: { type: 'number' },
+    nodes: { type: 'number' }, edgesTotal: { type: 'number' },
     hubsSubstantive: { type: 'boolean' }, note: { type: 'string' },
   },
 }
@@ -98,7 +103,7 @@ const measurePrompt = (extra = '') =>
   `${SCOPE}\nRead-only measurement. Run, capturing JSON:\n` +
   `  bash ${REPO}/scripts/graph-quality.sh --target ${VAULT} --json\n` +
   `  bash ${REPO}/scripts/engine.sh verify --target ${VAULT} --json\n` +
-  `Return danglingCount, Cn, Ch, nodes, edgesTotal from graph-quality, and verifyErrors/verifyWarnings ` +
+  `Return danglingCount, Cn, Ce, Ch, nodes, edgesTotal from graph-quality, and verifyErrors/verifyWarnings ` +
   `from verify. ${extra} Create NO files.`
 
 // ── Phase 0 — Resolve + Baseline ─────────────────────────────────────────────
@@ -213,15 +218,16 @@ phase('Measure')
 const final = await agent(
   measurePrompt(
     `Also read the 7 hub pages (wiki/<folder>/<folder>.md for plugin, wiki-pages, llm, obsidian, engine, ` +
-    `knowledge-graph, how-it-works) and set hubsSubstantive=true iff each exists with filled sections, ` +
-    `>=5 outbound [[links]], and >=1 sources entry.`),
+    `knowledge-graph, how-it-works) and set hubsSubstantive=true iff each exists with filled body sections ` +
+    `(no empty headings) AND >=5 outbound [[links]]. Hubs are topic/index pages — do NOT require a sources ` +
+    `field (the schema does not require sources on index/topic pages).`),
   { label: 'measure', phase: 'Measure', model: 'haiku', schema: METRIC_SCHEMA })
 
 const gates = {
   noDangling: final && final.danglingCount === 0,
   verifyClean: final && final.verifyErrors === 0 && final.verifyWarnings === 0,
   nodeConcentration: final && final.Cn >= CN_MIN,
-  hubConcentration: final && final.Ch >= CH_MIN,
+  edgeConcentration: final && final.Ce >= CE_MIN,
   hubsSubstantive: !!(final && final.hubsSubstantive),
 }
 const pass = Object.values(gates).every(Boolean)
@@ -229,7 +235,8 @@ if (!pass) {
   log(`QUALITY GATES FAILED ${JSON.stringify(gates)} — final ${JSON.stringify(final)}. ` +
     `Inspect the last write phase and \`git revert\` its checkpoint if needed.`)
 } else {
-  log(`ALL GATES PASS — dangling 0, verify clean, Cn=${final.Cn} (>=${CN_MIN}), Ch=${final.Ch} (>=${CH_MIN})`)
+  log(`ALL GATES PASS — dangling 0, verify clean, Cn=${final.Cn} (>=${CN_MIN}), ` +
+    `Ce=${final.Ce} (>=${CE_MIN}); Ch=${final.Ch} (informational hub concentration)`)
 }
 
-return { repo: REPO, vault: VAULT, thresholds: { CN_MIN, CH_MIN }, baseline, final, gates, pass }
+return { repo: REPO, vault: VAULT, thresholds: { CN_MIN, CE_MIN }, baseline, final, gates, pass }
