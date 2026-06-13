@@ -1,36 +1,44 @@
 ---
 title: "Claude Code"
 type: entity
-entity_type: product
-aliases: ["Claude Code", "claude-code"]
-parent: "[[Tools — Index]]"
+entity_type: tool
+aliases: ["Claude Code"]
+parent: "[[Tools]]"
 path: "tools"
 sources:
-  - "[[Using claude-wiki-pages]]"
   - "[[Getting Started]]"
   - "[[Create a New Vault]]"
   - "[[Update an Existing Vault]]"
-related: ["[[claude-wiki-pages]]", "[[LLM Wiki Pattern]]"]
-tags: ["tool", "cli"]
-created: 2026-04-24
-updated: 2026-04-24
-update_count: 1
+  - "[[Using claude-wiki-pages]]"
+related:
+  - "[[claude-wiki-pages Plugin]]"
+  - "[[Hook-Enforced Guarantees]]"
+tags: []
+created: 2026-06-13
+updated: 2026-06-13
+update_count: 4
 status: active
-confidence: 0.9
+confidence: 1.0
 ---
 
 # Claude Code
 
-## Overview
+Claude Code is Anthropic's AI-powered coding environment (CLI). It hosts the `claude-wiki-pages` plugin's hook bus, resolves slash commands, and maintains the session context in which the plugin operates.
 
-Anthropic's CLI harness for running skills, agents, and hook-driven workflows. The host environment for the `claude-wiki-pages` plugin — all slash commands, hooks, and agents execute inside a Claude Code session.
+## Role in the stack
 
-## Key Facts
+Claude Code is the Layer 4 Orchestration runtime host. The plugin's hooks (`SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, `Stop`) fire as Claude Code executes tool calls. The slash commands (`/claude-wiki-pages:init`, `/claude-wiki-pages:wiki`, etc.) are resolved by Claude Code's plugin system.
 
-- Invoked as `claude` in a terminal; `claude --version` confirms installation.
-- Plugins are installed via `/plugin marketplace add <source>` + `/plugin install <name>` at the Claude Code prompt.
-- Hooks are shell scripts Claude Code runs at well-defined lifecycle points (`SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop`).
+## Prerequisites
 
-## Related
+- `claude --version` must work in a terminal before using the plugin.
+- `jq` must be installed (required by hook scripts).
 
-- [[claude-wiki-pages]] — the plugin that runs inside Claude Code.
+## Plugin installation
+
+```
+/plugin marketplace add odere-pro/claude-wiki-pages-plugin
+/plugin install claude-wiki-pages
+```
+
+Local (contributor / fork) installs use the filesystem path instead of the marketplace slug.

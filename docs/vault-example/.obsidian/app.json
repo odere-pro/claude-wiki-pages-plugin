@@ -1,3 +1,7 @@
 {
-  "userIgnoreFilters": ["raw/", "_templates/", "_proposed/"]
+  "userIgnoreFilters": [
+    "raw/",
+    "_templates/",
+    "_proposed/"
+  ]
 }

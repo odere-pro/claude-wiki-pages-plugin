@@ -1,45 +1,44 @@
 ---
 title: "Ingest Pipeline"
 type: concept
-aliases: ["Ingest Pipeline", "ingest-pipeline", "claude-wiki-pages-ingest-agent"]
-parent: "[[Workflows — Index]]"
+aliases: ["Ingest Pipeline", "ingest pipeline", "pipeline"]
+parent: "[[Workflows]]"
 path: "workflows"
 sources:
-  - "[[Using claude-wiki-pages]]"
   - "[[Create a New Vault]]"
   - "[[Update an Existing Vault]]"
-related: ["[[Hook-Enforced Guarantees]]", "[[claude-wiki-pages]]"]
-contradicts: []
-supersedes: []
-depends_on: []
-tags: ["workflow"]
-created: 2026-04-24
-updated: 2026-04-24
-update_count: 1
+  - "[[Using claude-wiki-pages]]"
+related:
+  - "[[Entity Distribution Model]]"
+  - "[[Hook-Enforced Guarantees]]"
+  - "[[Validation and Repair]]"
+  - "[[Provenance-Tracked Wiki]]"
+depends_on:
+  - "[[Claude Code]]"
+  - "[[claude-wiki-pages Plugin]]"
+tags: []
+created: 2026-06-13
+updated: 2026-06-13
+update_count: 3
 status: active
-confidence: 0.9
+confidence: 1.0
 ---
 
 # Ingest Pipeline
 
-## Definition
+The ingest pipeline is the end-to-end process that turns raw sources in `vault/raw/` into structured, cross-linked wiki pages in `vault/wiki/`. It is triggered by `/claude-wiki-pages:claude-wiki-pages-ingest-agent` and runs automatically after every agent stop via `subagent-ingest-gate.sh`.
 
-The default, single-command workflow for pulling new sources into the wiki. Invoked as `/claude-wiki-pages:claude-wiki-pages-ingest-agent`. Composes three steps: ingest → lint-fix → optional synthesis.
+## Pipeline steps
 
-## Key Principles
+1. Read `vault/CLAUDE.md` (the schema) before touching anything.
+2. Detect unprocessed files by diffing `vault/raw/` against `wiki/log.md` ingest entries.
+3. Dispatch by file type (text vs image; PDFs must be exported to markdown first).
+4. Write a source summary in `wiki/_sources/` with full frontmatter.
+5. Extract entities and concepts; place each in the correct topic folder (create the folder + folder note if missing).
+6. Update existing pages rather than creating duplicates ([[Entity Distribution Model]]).
+7. Update `wiki/index.md` and append to `wiki/log.md`.
+8. After the agent stops, `subagent-ingest-gate.sh` runs `verify-ingest.sh` and aborts completion if the wiki is left in a half-written state.
 
-- Auto-diffs `raw/` against `wiki/log.md` to find unprocessed sources; no argument required.
-- Dispatches by file extension (text vs image); PDFs are deferred — export to markdown first.
-- Writes a source summary in `wiki/_sources/`, extracts entities and concepts into the correct topic folders (creating them on demand), updates `wiki/index.md`, and appends to `wiki/log.md`.
-- On completion, `subagent-ingest-gate.sh` reruns `verify-ingest.sh`; if the wiki is left in a half-written state, the agent's completion is aborted.
+## Image handling
 
-## Examples
-
-- Text source: `cp article.md vault/raw/ && /claude-wiki-pages:claude-wiki-pages-ingest-agent`. Pipeline writes summary, extracts mentions, updates indexes.
-- Image source: `cp screenshot.png vault/raw/assets/ && /claude-wiki-pages:claude-wiki-pages-ingest-agent`. Source summary gets `source_format: image` and an `attachment_path:`; `validate-attachments.sh` blocks the write if the file is missing.
-- Batch: drop several text and image files together; the pipeline handles them in one pass.
-
-## Related Concepts
-
-- [[Hook-Enforced Guarantees]] — the gate that aborts the pipeline if the wiki is left half-written.
-- [[claude-wiki-pages]] — the plugin that ships this pipeline.
+Claude's vision reads images natively. The source summary gets `source_format: image` and `attachment_path: raw/assets/<file>`. The `validate-attachments.sh` hook blocks the write if the attachment is missing.

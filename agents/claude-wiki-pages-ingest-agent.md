@@ -101,6 +101,7 @@ For each entity and concept in the plan, follow the 13-step ingest rules in `vau
 
 - **Prefer updating existing pages** over creating duplicates. Increment `update_count`, append the new source to `sources:`, adjust `confidence`.
 - Use the full frontmatter for the page's `type` exactly as specified in `vault/CLAUDE.md`.
+- **Author the body from the template skeleton.** A new typed page MUST use the `## Section` skeleton in `vault/_templates/<type>.md` (e.g. concept → `## Definition`, `## Key Principles`, `## Examples`, `## Related Concepts`; entity → `## Overview`, `## Key Facts`, `## Related`). Copy those H2 headings verbatim and fill each with the extracted content — do **not** invent your own section headings. The structural lint (`lint-structural.sh`) enforces this; a page with free-form headings is a `missing-section` finding.
 - All internal references use `[[wikilinks]]` — never `[text](path.md)`.
 - `parent:` is the containing folder's folder-note title (the folder note is `<folder>/<folder>.md`; legacy `_index.md` if present). `path:` is the folder path relative to `wiki/`.
 - `title` must appear as the first entry in `aliases` (ghost-node prevention).
@@ -108,6 +109,12 @@ For each entity and concept in the plan, follow the 13-step ingest rules in `vau
 ### 1.6 Create a folder note for every new folder
 
 Create `wiki/<folder>/<folder>.md` (filename stem == folder name, `type: index`) using the `index` frontmatter schema. Body: section headers grouping children by theme, each entry `- [[Page]] — one-line summary`. On index notes, `aliases` also includes topic-name variants (slug, title case, abbreviations). Never create a new `_index.md` — that filename is legacy (accepted in existing vaults, but flagged `legacy-index-filename` by verify).
+
+### 1.6b Structural conformance self-check
+
+After writing pages, confirm they match the template skeletons — `verify` does **not** check body sections, so this is a distinct gate. Run
+`bash ${CLAUDE_PLUGIN_ROOT}/scripts/lint-structural.sh --target <vault>`
+(fall back to `scripts/lint-structural.sh` on the in-repo path). For every `missing-section` finding, add the required `## Section` heading to that page (filling it from the page's content), then re-run until it reports zero warnings. A page that is born from the `_templates/<type>.md` skeleton (Step 1.5) passes on the first try; this check catches any drift before the heal pass.
 
 ### 1.7 Polish — owned by polish-agent (no work here)
 

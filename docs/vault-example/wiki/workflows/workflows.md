@@ -1,23 +1,35 @@
 ---
-title: "Workflows — Index"
+title: "Workflows"
 type: index
-aliases: ["Workflows — Index", "workflows", "Workflows"]
+aliases: ["Workflows", "workflows", "workflow"]
 parent: "[[Wiki Index]]"
 path: "workflows"
 children:
   - "[[Ingest Pipeline]]"
-  - "[[Query Workflow]]"
+  - "[[Validation and Repair]]"
+  - "[[Querying the Wiki]]"
+  - "[[Exporting Outputs]]"
+  - "[[Dashboard Monitoring]]"
 child_indexes: []
-tags: ["workflows"]
-created: 2026-04-24
-updated: 2026-04-24
+tags: []
+created: 2026-06-13
+updated: 2026-06-13
 ---
 
-# Workflows — Index
+# Workflows
 
-End-to-end workflows users run against the vault.
+The operational procedures that move sources through the wiki lifecycle: ingest, validate, query, export, and monitor.
 
-## Pages
+## Adding knowledge
 
-- [[Ingest Pipeline]] — drop sources into `raw/`, run one command, wiki updates.
-- [[Query Workflow]] — ask the wiki; receive cited answers.
+- [[Ingest Pipeline]] — the end-to-end process for turning raw sources into structured, cross-linked wiki pages.
+
+## Maintaining quality
+
+- [[Validation and Repair]] — three-level validation: status smoke test, read-only lint audit, and automated repair.
+- [[Dashboard Monitoring]] — the live Obsidian Dataview view of vault health, coverage, and staleness.
+
+## Extracting value
+
+- [[Querying the Wiki]] — asking cited questions against the wiki, from simple queries to cross-topic analyst sessions.
+- [[Exporting Outputs]] — compiling deliverables from the wiki into `vault/output/` as plain markdown.

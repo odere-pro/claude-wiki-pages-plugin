@@ -1,45 +1,57 @@
 ---
 title: "Hook-Enforced Guarantees"
 type: concept
-aliases: ["Hook-Enforced Guarantees", "hook-enforced-guarantees"]
-parent: "[[Patterns — Index]]"
+aliases: ["Hook-Enforced Guarantees", "hook-enforced guarantees", "hook guarantees"]
+parent: "[[Patterns]]"
 path: "patterns"
 sources:
-  - "[[Using claude-wiki-pages]]"
   - "[[Getting Started]]"
+  - "[[Create a New Vault]]"
   - "[[Update an Existing Vault]]"
   - "[[Review, Validate, Fix]]"
-  - "[[Check the Dashboard]]"
-related: ["[[LLM Wiki Pattern]]"]
-contradicts: []
-supersedes: []
-depends_on: []
-tags: ["pattern", "safety"]
-created: 2026-04-24
-updated: 2026-04-24
-update_count: 1
+related:
+  - "[[LLM Wiki Pattern]]"
+  - "[[Provenance-Tracked Wiki]]"
+  - "[[Validation and Repair]]"
+  - "[[Ingest Pipeline]]"
+depends_on:
+  - "[[Claude Code]]"
+  - "[[claude-wiki-pages Plugin]]"
+tags: []
+created: 2026-06-13
+updated: 2026-06-13
+update_count: 4
 status: active
-confidence: 0.9
+confidence: 1.0
 ---
 
 # Hook-Enforced Guarantees
 
-## Definition
+Hook-enforced guarantees are the set of invariants that the plugin enforces at every tool-call boundary via Claude Code's hook bus. They prevent schema drift without requiring the LLM to self-police.
 
-Schema invariants and safety properties that live in `PreToolUse` and `SubagentStop` hooks rather than in model prompts or convention. The premise: a model cannot be trusted to consistently follow rules over thousands of writes; a shell script run before every write is far more reliable.
+## Hook events and scripts
 
-## Key Principles
+| Event | Script | What it enforces |
+| --- | --- | --- |
+| `SessionStart` | `session-start.sh` | Preamble reminding the LLM to read `vault/CLAUDE.md` |
+| `PreToolUse` (Write/Edit) | `validate-frontmatter.sh` | Required frontmatter fields per type |
+| `PreToolUse` (Write/Edit) | `check-wikilinks.sh` | `[[wikilink]]` format in wiki pages |
+| `PreToolUse` (Write/Edit) | `protect-raw.sh` | Immutability of `vault/raw/` |
+| `PreToolUse` (Write/Edit) | `validate-attachments.sh` | Attachment path existence for non-text sources |
+| `PostToolUse` (Write/Edit) | `post-wiki-write.sh` | Reminder to update folder notes and the vault MOC |
+| `SubagentStop` | `subagent-ingest-gate.sh` | Post-ingest structural integrity |
+| `SubagentStop` | `subagent-lint-gate.sh` | Unresolved errors after curator agent |
 
-- The hook is the contract. If the hook does not block, the rule is not enforced — period.
-- Hooks are surfaced verbatim. When `validate-frontmatter.sh` blocks a write, the model sees the same error a CLI user would.
-- Hooks form a layered defense: `protect-raw.sh` blocks any write under `raw/`; `validate-frontmatter.sh` blocks malformed frontmatter; `check-wikilinks.sh` blocks plain markdown links where wikilinks are required; `validate-attachments.sh` blocks source notes that reference missing attachment files; `subagent-ingest-gate.sh` and `subagent-lint-gate.sh` abort agent completion if the wiki is left in a broken state.
+## What they guarantee
 
-## Examples
+- No wiki page can be written without the required frontmatter fields for its type.
+- Internal cross-references use `[[wikilinks]]`, not raw file-path markdown links.
+- No file in `vault/raw/` can be modified after creation.
+- No source note can reference an attachment file that does not exist.
+- Every post-ingest state is verified before the agent completes.
 
-- A user writes a new entity page but forgets `entity_type`; `validate-frontmatter.sh` blocks the write with the missing-field message.
-- An agent finishes ingest but leaves an `_index.md` referencing a missing child; `subagent-ingest-gate.sh` reruns `verify-ingest.sh`, finds the error, and aborts the agent's "done" signal.
-- The `status` smoke test exercises every hook by issuing known-bad writes and confirming each one is blocked.
+## What they do NOT guarantee
 
-## Related Concepts
-
-- [[LLM Wiki Pattern]] — the pattern this guarantee supports.
+- Content quality (that claims are accurate).
+- Near-duplicate detection (the curator agent flags these, but hooks do not block them).
+- Semantic validity of confidence values.

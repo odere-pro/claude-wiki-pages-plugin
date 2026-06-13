@@ -122,6 +122,13 @@ are never dropped, overwritten, or lost. Every merge operation:
 4. Recalculates `confidence` per the confidence-discipline rules.
 
 When no match is found in either pass, create a new typed page for the concept.
+Author it from the body skeleton in `vault/_templates/<type>.md`: copy that
+template's `## Section` headings verbatim (concept → `## Definition`,
+`## Key Principles`, `## Examples`, `## Related Concepts`; entity → `## Overview`,
+`## Key Facts`, `## Related`; and so on per type) and fill each with the
+extracted content. Do **not** invent your own headings — `lint-structural.sh`
+flags any missing template section as a `missing-section` warning, and `verify`
+alone does not catch it.
 
 ## Workflow
 

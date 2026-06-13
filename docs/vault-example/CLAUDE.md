@@ -46,7 +46,7 @@ vault/
 │       └── ...
 ├── _proposed/                   # optional staging for drafts awaiting review (schema v2)
 ├── output/                      # optional scratch space for deliverables (git-ignored)
-├── _templates/                  # frontmatter templates per type
+├── _templates/                  # per-type templates: frontmatter + body `## Section` skeleton
 └── CLAUDE.md                    # this file
 ```
 
@@ -407,7 +407,7 @@ When processing a new source from `raw/`:
 3. Determine which topic folder each entity/concept belongs to. Create the folder and its folder note (`wiki/<topic>/<topic>.md`) if it does not exist.
 4. Search the wiki for existing pages on each entity/concept.
 5. **Update existing pages rather than creating duplicates.** This is the entity distribution model — ingesting one source rewrites/extends multiple existing pages rather than creating one summary.
-6. Place new pages in the correct topic folder. Set the `parent` and `path` frontmatter fields.
+6. Place new pages in the correct topic folder. Set the `parent` and `path` frontmatter fields. Author each new page from its type's template in `_templates/<type>.md` — both the frontmatter and the body `## Section` skeleton (e.g. concept → `## Definition`, `## Key Principles`, `## Examples`, `## Related Concepts`). Do not invent section headings; the structural lint flags a missing template section as `missing-section`.
 7. Add the new source to the `sources` frontmatter field of every page touched.
 8. Increment `update_count` on every page touched.
 9. Update `updated` date on every page touched.
