@@ -1,43 +1,73 @@
 ---
 title: "LLM"
-type: index
-aliases: ["LLM", "llm", "LLM skills", "analyst modes", "llm-wiki skills"]
+type: topic
+aliases: ["LLM", "llm", "LLM skills", "analyst modes", "llm-wiki skills", "LLM operating contract"]
 parent: "[[Wiki Index]]"
 path: "llm"
-children:
+summary: "The LLM topic cluster documents how the language model interacts with the wiki: the five analyst operating modes, the write-approval gates that protect wiki state, and the dual-entry-point authoring contract that makes every plugin surface usable by both a person and an agent."
+key_pages:
   - "[[Analyst Dashboard Mode]]"
   - "[[Analyst Document Compile Mode]]"
   - "[[Analyst Extract Mode]]"
   - "[[Dashboard Write Gate]]"
   - "[[Six Surfaces Dual-Reader Contract]]"
   - "[[Dual Entry Point]]"
-child_indexes: []
-tags: []
+sources:
+  - "[[Analyst Modes Skill (SKILL.md)]]"
+  - "[[Analyst Agent Source]]"
+  - "[[SOFTWARE-3-0: Dual Entry Point]]"
+related:
+  - "[[Analyst Agent]]"
+  - "[[Query Rules]]"
+  - "[[Maintain Contract]]"
+  - "[[Grounded Retrieval]]"
+  - "[[Plugin Dev-Time vs Runtime]]"
+source_quotes: []
+derived: false
+tags: ["llm", "analyst", "modes", "dual-reader"]
 created: 2026-06-13
 updated: 2026-06-13
+update_count: 2
+status: active
+confidence: 1.0
 ---
 
 # LLM
 
-Index for LLM-specific skills, analyst operating modes, write gates, and the dual-entry-point authoring contract. Pages here document how the LLM interacts with the wiki — the five analyst modes, the write approval gates, and the six-surfaces reference that makes the plugin usable by both a person and an agent.
+> [!summary]
+> The LLM cluster covers two interrelated concerns: how the [[Analyst Agent]] operates on vault content (five modes, two write gates), and how the plugin's design ensures that every surface is equally usable by a human and an LLM agent (the [[Six Surfaces Dual-Reader Contract]] enforced by [[Dual Entry Point]]). The analyst modes define what the LLM can produce from the wiki; the dual-reader contract defines what the LLM can read to understand the plugin itself.
 
-## Pages
+## Overview
+
+The LLM plays two roles in the claude-wiki-pages system:
+
+1. **Analyst over vault content** — the LLM reads wiki pages and produces structured outputs: answers to questions (Mode 1), vault health dashboards (Mode 2), compiled documents (Mode 3), extracted data tables (Mode 4), and synthesis notes (Mode 5). Each mode is gated by an approval protocol and bounded by a page budget.
+
+2. **Agent integrating with the plugin** — the LLM reads plugin surfaces (skills, ADRs, schemas) to understand what the plugin does and how to use it safely. The [[Six Surfaces Dual-Reader Contract]] ensures every surface has both a human on-ramp and an agent on-ramp, enforced by a parity gate.
+
+Write gates protect the wiki from unreviewed LLM output. The [[Dashboard Write Gate]] requires a plan-file approval before the analyst writes to `wiki/dashboard.md`. Static output to `vault/output/` is ungated, making exploratory output safe without cluttering the wiki.
+
+## Key Pages
 
 ### Analyst Operating Modes
 
-- [[Analyst Dashboard Mode]] — Mode 2 of the analyst; Dataview or static vault health snapshot with coverage, health, evidence, freshness, and connectivity metrics
-- [[Analyst Document Compile Mode]] — Mode 3; reconstruct a named document (ADR, report, memo, brief, runbook) from wiki pages into `vault/output/`
-- [[Analyst Extract Mode]] — Mode 4; structured data extraction from wiki pages into tables, lists, or CSV
+[[Analyst Dashboard Mode]] is Mode 2 of the five analyst modes. It generates a Dataview live dashboard or a static markdown snapshot of vault health. Six metric categories are computed: Coverage, Health, Evidence, Freshness, Connectivity, and Gaps. The write gate applies only to `wiki/dashboard.md`; static output to `vault/output/` is ungated.
+
+[[Analyst Document Compile Mode]] is Mode 3. The analyst reconstructs a named document (ADR, report, memo, brief, runbook) from wiki pages into `vault/output/`. The mode reads relevant pages, synthesizes them into the target document format, and writes to `vault/output/<name>.md`. No write gate — output goes to the ungated scratch directory.
+
+[[Analyst Extract Mode]] is Mode 4. The analyst reads wiki pages and extracts structured data (tables, lists, CSV) for export. Useful for generating a roster of all entities, a summary table of all ADRs, or a list of all concepts by confidence score.
 
 ### Write Gates
 
-- [[Dashboard Write Gate]] — approval gate before the analyst writes to `wiki/dashboard.md`; plan file → explicit approve/edit/abort
+[[Dashboard Write Gate]] is the approval gate that governs writing to `wiki/dashboard.md`. The analyst writes a plan file, stops at the gate, and requires explicit approve/edit-then-approve/abort before proceeding. The gate prevents unreviewed content from entering the live wiki. Static output to `vault/output/` bypasses this gate.
 
 ### Entry Point and Authoring Contract
 
-- [[Six Surfaces Dual-Reader Contract]] — the six project surfaces each with a human and agent on-ramp; enforced by a parity gate
-- [[Dual Entry Point]] — the SOFTWARE-3-0.md pattern: a single file that functions as front door for both a person and an agent
+[[Six Surfaces Dual-Reader Contract]] is the organizing principle of the `SOFTWARE-3-0.md` dual entry point. It maps six project surfaces (Docs, Tools, Design, System design, Context, Memory) to both a human on-ramp and an agent on-ramp. A row with only one on-ramp is a defect; the parity gate in `scripts/validate-docs.sh` enforces the invariant.
 
-## Subtopics
+[[Dual Entry Point]] is the `SOFTWARE-3-0.md` file pattern: a single file that functions as front door for both a person browsing the repo and an agent loading the project as session context. The file links without restating — it is a map, not a summary.
 
-(None — all pages are at this level.)
+## Open Questions
+
+- Mode 5 (Synthesis) is referenced in the analyst contract but not yet documented as a dedicated wiki page. Should it be added to this cluster?
+- As vault size grows, the analyst's page budget (100/run default, 500 hard cap) may need to be tunable per mode. Dashboard Mode over a 500-page vault may need a higher cap than Extract Mode.

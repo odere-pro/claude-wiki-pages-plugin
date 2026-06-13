@@ -203,3 +203,22 @@ Updated existing pages: (none — all concepts in this source are new to the wik
 - pre-state: c66405d
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] fill-gaps | Author hub pages
+
+Authored 7 topic hub pages (type: topic, from `_templates/topic.md` skeleton) to concentrate the graph on the major clusters. All sections filled; every page in each cluster linked via `key_pages` and body wikilinks.
+
+Hubs created/updated:
+- [[claude-wiki-pages Plugin]] (wiki/plugin/plugin.md) — 5 cluster pages linked
+- [[Wiki Pages]] (wiki/wiki-pages/wiki-pages.md) — 3 cluster pages linked
+- [[LLM]] (wiki/llm/llm.md) — 6 cluster pages linked
+- [[Obsidian]] (wiki/obsidian/obsidian.md) — 3 cluster pages linked
+- [[Wiki Engine]] (wiki/engine/engine.md) — 15 cluster pages linked
+- [[Knowledge Graph]] (wiki/knowledge-graph/knowledge-graph.md) — 3 cluster pages linked
+- [[How It Works]] (wiki/how-it-works/how-it-works.md) — 4 cluster pages linked
+
+Updated wiki/index.md Hub Pages section to list all 7 hubs.
+## [2026-06-13] snapshot | fill-gaps: author hub pages (snap-20260613221515)
+
+- pre-state: e92265a
+- rollback: git revert the snapshot commit below
+

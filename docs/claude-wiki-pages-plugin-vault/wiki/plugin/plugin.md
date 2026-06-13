@@ -1,39 +1,79 @@
 ---
-title: "Plugin"
-type: index
-aliases: ["Plugin", "plugin", "claude-wiki-pages plugin layer", "plugin meta"]
+title: "claude-wiki-pages Plugin"
+type: topic
+aliases: ["claude-wiki-pages Plugin", "claude-wiki-pages plugin", "plugin", "Plugin"]
 parent: "[[Wiki Index]]"
 path: "plugin"
-children:
+summary: "The claude-wiki-pages plugin is a four-layer Claude Code plugin (Data · Skills · Agents · Orchestration) that turns an Obsidian vault into a provenance-tracked wiki. This hub page orients readers to the plugin's identity, its agent contracts, and the install boundary that separates dev-time artifacts from runtime session context."
+key_pages:
   - "[[Plugin Manifest]]"
   - "[[Agent Contract Table]]"
   - "[[Agent Tool Restriction]]"
   - "[[Single-Pass Dispatch]]"
   - "[[Plugin Dev-Time vs Runtime]]"
-child_indexes: []
-tags: []
+sources:
+  - "[[Plugin README]]"
+  - "[[Plugin CLAUDE.md]]"
+  - "[[Plugin Manifest (plugin.json)]]"
+  - "[[Orchestrator Agent Source]]"
+  - "[[Ingest Agent Source]]"
+  - "[[Curator Agent Source]]"
+  - "[[Analyst Agent Source]]"
+  - "[[Onboarding Agent Source]]"
+  - "[[Maintenance Agent Source]]"
+  - "[[Polish Agent Source]]"
+related:
+  - "[[Four-Layer Stack]]"
+  - "[[Orchestrator Agent]]"
+  - "[[Ingest Agent]]"
+  - "[[Curator Agent]]"
+  - "[[Analyst Agent]]"
+source_quotes: []
+derived: false
+tags: ["plugin", "architecture", "agents"]
 created: 2026-06-13
 updated: 2026-06-13
+update_count: 2
+status: active
+confidence: 1.0
 ---
 
-# Plugin
+# claude-wiki-pages Plugin
 
-Plugin-level meta: the manifest, agent contracts, and structural patterns that define how the `claude-wiki-pages` plugin is packaged and how its agents are specified. This folder covers what is declared in the canonical agent files (model, tool-sets, contract tables) and the plugin manifest — distinct from the architecture concepts in `[[Architecture]]` and the user-facing guides in `[[Guides]]`.
+> [!summary]
+> The `claude-wiki-pages` plugin is a Claude Code plugin that implements a four-layer stack (Data · Skills · Agents · Orchestration) for maintaining a provenance-tracked Obsidian wiki. Plugin identity lives in [[Plugin Manifest]] (`plugin.json`). Every agent carries a normative [[Agent Contract Table]] that declares its schema authority, halting condition, budget, and safety model. Tool boundaries are enforced via [[Agent Tool Restriction]]. The orchestrator routes through a [[Single-Pass Dispatch]] table — one specialist per turn, no recursion. The [[Plugin Dev-Time vs Runtime]] boundary separates what ships in the plugin cache from what enters session context.
 
-## Pages
+## Overview
+
+The `claude-wiki-pages` plugin is registered with Claude Code via `plugin.json`. It ships seven agents, twenty-five skills, a hook system, and a shell script layer. Together these turn any Obsidian vault into a self-healing, provenance-tracked knowledge base.
+
+The plugin is packaged as a **dev-time/runtime split**: contributors work with the full repository (docs, tests, ADRs, this wiki); end-users see only the runtime surfaces — `skills/`, `agents/`, `hooks/`, `scripts/`, and `rules/`. The `CLAUDE.md` schema in a user's vault overrides every plugin default.
+
+Three structural patterns govern how the plugin's agents behave:
+
+1. **Agent contract tables** declare invariants per-agent in their YAML front-matter — schema authority, halting condition, budget, safety model, retry cap, and untrusted-input rule.
+2. **Tool restrictions** declare which tools each agent may use, creating capability sandboxes enforced at the agent level.
+3. **Single-pass dispatch** in the orchestrator ensures one specialist is dispatched per invocation, preventing runaway recursion or conflicting writes.
+
+## Key Pages
 
 ### Plugin Identity
 
-- [[Plugin Manifest]] — plugin.json: name, version, schema_version support, author, license, keywords
+[[Plugin Manifest]] is the `plugin.json` file Claude Code reads to register the plugin. It declares the plugin name (`claude-wiki-pages`), version (`1.0.0`), license (Apache-2.0), hook entry point (`./hooks/hooks.json`), and supported schema versions (`[1, 2, 3]`).
 
 ### Agent Structural Patterns
 
-- [[Agent Contract Table]] — the per-agent YAML contract table pattern (schema authority, halting condition, budget, safety model, untrusted-input rule)
-- [[Agent Tool Restriction]] — each agent's declared `tools:` field as a security/capability boundary; extract-worker invariant
-- [[Single-Pass Dispatch]] — orchestrator's "never recurse, never call two specialists for the same trigger" rule
+[[Agent Contract Table]] is the per-agent YAML front-matter pattern that every agent file uses. The canonical items are: schema authority (always `vault/CLAUDE.md`), halting condition, budget, safety model, untrusted-input rule, and retry cap. The table is the agent's normative specification — it wins over any general instruction.
 
-### Implementation Boundary
+[[Agent Tool Restriction]] describes how each agent's `tools:` field in YAML front-matter creates a capability boundary. The most important invariant is the extract-worker restriction: extract workers hold `Read`, `Glob`, and `Grep` only — no `Write`, no `Edit`, no `Bash`.
 
-- [[Plugin Dev-Time vs Runtime]] — what ships at install vs what is dev-only; session context boundary
+[[Single-Pass Dispatch]] is the orchestrator's core behavioral invariant: for any given invocation, exactly one specialist is dispatched from a nine-row routing table. The orchestrator never recurses, never fans out on ambiguity. After a write-path specialist completes, the polish agent runs as a tail step — not a second routing decision.
 
-## Subtopics
+### Install Boundary
+
+[[Plugin Dev-Time vs Runtime]] documents what ships at install versus what is dev-only. Runtime surfaces: `skills/`, `agents/`, `hooks/`, `scripts/`, `rules/`. Dev-only: `docs/`, `tests/`, `.github/`, root `CLAUDE.md`, `NOTICE`, `LICENSE`, `CHANGELOG.md`. End-users interact through skills, agents, hooks, and scripts; they never directly load the plugin repo's docs.
+
+## Open Questions
+
+- As the plugin adds new agent types (e.g., additional extract workers), does the contract table pattern scale to a larger set of items, or should a machine-readable contract schema be introduced?
+- The install boundary is enforced by convention today. Should a validation gate confirm that no dev-only path is loaded as session context?

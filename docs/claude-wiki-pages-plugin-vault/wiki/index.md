@@ -22,6 +22,7 @@ created: 2026-06-13
 updated: 2026-06-13
 ---
 
+
 # Wiki Index
 
 Master catalog of every page in this wiki. The wiki covers the `claude-wiki-pages` plugin: its architecture decisions, design patterns, agent and skill contracts, and operational guides.
@@ -39,6 +40,18 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 - [[plugin]] — 5 pages, last updated 2026-06-13
 - [[reference]] — 7 pages, last updated 2026-06-13
 - [[wiki-pages]] — 3 pages, last updated 2026-06-13
+
+## Hub Pages
+
+These topic hub pages are the graph concentration points — each orients a major cluster and links every page in that cluster.
+
+- [[claude-wiki-pages Plugin]] — hub for `wiki/plugin/`: manifest, agent contracts, tool restrictions, dispatch, install boundary
+- [[Wiki Pages]] — hub for `wiki/wiki-pages/`: maintain contract, grounded retrieval, multi-vault rules
+- [[LLM]] — hub for `wiki/llm/`: analyst modes, write gates, dual-reader contract
+- [[Obsidian]] — hub for `wiki/obsidian/`: vault skill, CLI scoping, defense-in-depth
+- [[Wiki Engine]] — hub for `wiki/engine/`: shell bridge, CLI router, search/recall algorithms, integrity primitives, workflow verbs
+- [[Knowledge Graph]] — hub for `wiki/knowledge-graph/`: frontmatter parser, wikilink extractor, config schema
+- [[How It Works]] — hub for `wiki/how-it-works/`: sync skill, wired source, sync workflow, sync-source.sh
 
 ## Special Collections
 
