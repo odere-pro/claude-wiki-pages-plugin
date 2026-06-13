@@ -290,3 +290,7 @@ Found 1 error, 2 warnings, 2 info. Engine repaired 0 (vault already clean). Auto
 - pre-state: 0d63d5c
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] curator | Re-parent legacy folders into 7 core topic clusters
+
+Moved 67 pages out of 4 legacy folders (architecture/22, decisions/20, guides/13, reference/14; minus 4 folder notes = 67 content pages) into the 7 core topic clusters: plugin (17 moved), engine (9 moved), wiki-pages (13 moved), llm (9 moved), obsidian (4 moved), knowledge-graph (3 moved), how-it-works (12 moved). Updated parent:/path: frontmatter on all 67 pages. Removed 4 legacy folder notes and dropped architecture/decisions/guides/reference from wiki/index.md child_indexes. Expanded all 7 cluster folder notes with the new children. Fixed 3 stale-source warnings: `[[Glossary Terms]]` moved from sources to related in banned-strings.md; `[[Schema Authority]]` moved from sources to related in required-fields.md; `[[Analyst Agent]]` entity link replaced with `[[Analyst Agent Source]]` in synthesis-note.md. Fixed 4 dangling links in moved pages. Engine verify: 0 errors, 0 warnings. danglingCount (wiki pages): 0. Rollback: git revert 9acbb71 (pre-snapshot) or git revert 2c9376a (this commit).
+
