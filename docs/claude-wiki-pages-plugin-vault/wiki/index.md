@@ -59,7 +59,7 @@ These topic hub pages are the graph concentration points — each orients a majo
 
 ## Architecture Pages
 
-[[Four-Layer Stack]] · [[Deterministic Engine]] · [[Firewall]] · [[Hook System]] · [[Vault Resolution]] · [[Orchestrator Agent]] · [[Ingest Agent]] · [[Curator Agent]] · [[Analyst Agent]] · [[Polish Agent]] · [[Maintenance Agent]] · [[Design Diagrams]] · [[Git Checkpoint]] · [[Active Vault]] · [[Brainstorming Team]] · [[Durable Memory]] · [[Engineering Team]] · [[Fail-Closed]] · [[Review Gate]] · [[Vault Lifecycle]]
+[[claude-wiki-pages (Plugin)]] · [[Four-Layer Stack]] · [[Deterministic Engine]] · [[Firewall]] · [[Hook System]] · [[Vault Resolution]] · [[Orchestrator Agent]] · [[Ingest Agent]] · [[Curator Agent]] · [[Analyst Agent]] · [[Polish Agent]] · [[Maintenance Agent]] · [[Design Diagrams]] · [[Git Checkpoint]] · [[Active Vault]] · [[Brainstorming Team]] · [[Durable Memory]] · [[Engineering Team]] · [[Fail-Closed]] · [[Review Gate]] · [[Vault Lifecycle]]
 
 ## Engine Pages
 

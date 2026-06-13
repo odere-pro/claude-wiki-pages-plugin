@@ -8,7 +8,7 @@ children:
   - "[[Active Vault]]"
   - "[[Analyst Agent]]"
   - "[[Brainstorming Team]]"
-  - "[[claude-wiki-pages Plugin]]"
+  - "[[claude-wiki-pages (Plugin)]]"
   - "[[Curator Agent]]"
   - "[[Design Diagrams]]"
   - "[[Deterministic Engine]]"

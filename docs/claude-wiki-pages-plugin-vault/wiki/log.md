@@ -278,3 +278,11 @@ Sources used: [[Engine Scripts Layer (CLAUDE.md)]], [[Engine API Skill (SKILL.md
 - pre-state: a776cba
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] curator | Health check and auto-repair
+
+Found 1 error, 2 warnings, 2 info. Engine repaired 0 (vault already clean). Auto-applied 1 (active-vault.md sources field: replaced concept wikilink `[[Vault Resolution]]` with correct source `[[Operations Guide]]`). Judgment fixes applied 3: title collision resolved (`[[claude-wiki-pages (Plugin)]]` entity renamed to disambiguate from `plugin/plugin.md` index; folder note and index.md updated); `.obsidian/graph.json` and `.obsidian/app.json` created with 11 topic color groups and wiki-only exclusions. Surfaced for review: 6 flat-folder sprawl folders (>12 children: _sources 85, architecture 22, engine 19, decisions 20, reference 15, guides 14 — structural, not broken); 109 high-confidence single-source pages (editorial call). Rollback: git revert ac2105a.
+## [2026-06-13] snapshot | curator: final heal complete — title collision + sources fix + graph colors (snap-20260613232455)
+
+- pre-state: ac2105a
+- rollback: git revert the snapshot commit below
+
