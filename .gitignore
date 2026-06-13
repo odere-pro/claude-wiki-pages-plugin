@@ -16,20 +16,12 @@ CLAUDE.local.md
 # Local scratch space (plans, drafts)
 tmp/
 
-# Obsidian app state (applies to user vaults and vault-example/)
+# Obsidian config and app state — never tracked. The whole .obsidian/ directory
+# is regenerable cache (ADR-0023): the obsidian-graph-colors skill writes the
+# minimum graph.json scaffold (initial filters) and the app.json wiki-only
+# exclusions when absent, and the polish agent asserts them after every ingest.
+# Nothing under .obsidian/ is shipped tracked — it is generated per vault.
 **/.obsidian/
-# …except the plugin-shipped initial graph configuration (initial filters +
-# wiki-only exclusions + scaffold source for new vaults). Re-include the dir,
-# re-ignore its contents, then re-include ONLY graph.json + app.json — other
-# app-state files stay untracked.
-!skills/init/template/.obsidian/
-skills/init/template/.obsidian/*
-!skills/init/template/.obsidian/graph.json
-!skills/init/template/.obsidian/app.json
-!docs/vault-example/.obsidian/
-docs/vault-example/.obsidian/*
-!docs/vault-example/.obsidian/graph.json
-!docs/vault-example/.obsidian/app.json
 **/.trash/
 **/.dataview/
 **/.smart-connections/

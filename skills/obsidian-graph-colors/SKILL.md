@@ -17,10 +17,12 @@ when the Obsidian CLI is unavailable.
 
 ## Initial graph configuration (minimum scaffold)
 
-When `vault/.obsidian/graph.json` is absent (a fresh vault, or the polish
-agent's Step 1.3 "create the minimum scaffold" path), create it with these
-**initial filters** — the defaults the plugin ships in
-`skills/init/template/.obsidian/graph.json` and `docs/vault-example/.obsidian/graph.json`:
+`vault/.obsidian/` is **not** tracked in git — the whole directory is
+regenerable cache (ADR-0023). When `vault/.obsidian/graph.json` is absent (a
+fresh vault, or the polish agent's Step 1.3 "create the minimum scaffold"
+path), create it with these **initial filters** — the deterministic defaults
+this skill writes (nothing is shipped pre-tracked; the plugin generates the
+config per vault):
 
 | Filter               | Setting | `graph.json` field        | Why                                                                                  |
 | -------------------- | ------- | ------------------------- | ------------------------------------------------------------------------------------ |

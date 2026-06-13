@@ -38,11 +38,12 @@ the **Excluded files** setting:
 
 Excluded paths disappear from the graph view, search, and link autocomplete —
 the Obsidian experience is generated wiki pages only. `output/` stays visible:
-it is user-owned deliverable space, not plugin plumbing. The scaffold ships
-`app.json` with these entries (`skills/init/template/`,
-`docs/vault-example/`); the polish agent asserts them idempotently on every
-run (merge-only: append missing entries, never remove user entries, preserve
-every other key).
+it is user-owned deliverable space, not plugin plumbing. `.obsidian/app.json`
+is **not** tracked — the whole `.obsidian/` directory is gitignored regenerable
+cache (see below). The `obsidian-graph-colors` skill writes these
+`userIgnoreFilters` when scaffolding a vault's `.obsidian/`, and the polish
+agent asserts them idempotently after every ingest (merge-only: append missing
+entries, never remove user entries, preserve every other key).
 
 ### 2. The layer pass is dropped
 
@@ -54,16 +55,20 @@ no information once every top-level topic has its own group. The canonical
 order becomes **topics → specials** (`_sources` gray, `_synthesis` yellow).
 Color groups query `path:wiki/...` exclusively.
 
-### 3. Graph config is regenerable cache
+### 3. Graph config is regenerable cache — `.obsidian/` is gitignored
 
 `.obsidian/graph.json` and the plugin-owned `app.json` keys are declared
 **cache, not state**: every value derives deterministically from the `wiki/`
-topic tree plus the skill's palette table. The `obsidian-graph-colors` skill
-documents the restore flow — delete `graph.json` (or empty `colorGroups`),
-re-run the skill (or let polish run), and the scaffold, topic groups,
-specials, and exclusions are rebuilt byte-identically on either apply tier
-(`obsidian eval` or the headless file write). Dropping filters or groups is
-always safe; nothing in `.obsidian/` is precious.
+topic tree plus the skill's palette table. Because it is cache, the **entire
+`.obsidian/` directory is gitignored — nothing under it is tracked or shipped
+pre-built.** This supersedes the earlier delivery mechanism (PR #23 / ADR-0022,
+which shipped `.obsidian/graph.json` tracked in `skills/init/template/` and
+`docs/vault-example/`): the config is now generated per vault, not version
+controlled. The `obsidian-graph-colors` skill documents the build/restore flow
+— a fresh or emptied `.obsidian/` is rebuilt (minimum-scaffold filters, topic
+groups, specials, and exclusions) on the next skill run or polish pass, on
+either apply tier (`obsidian eval` or the headless file write). Dropping the
+config is always safe; nothing in `.obsidian/` is precious.
 
 ## Alternatives considered
 
