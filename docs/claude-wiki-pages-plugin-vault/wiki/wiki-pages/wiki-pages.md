@@ -1,32 +1,18 @@
 ---
 title: "Wiki Pages"
-type: topic
+type: index
 aliases: ["Wiki Pages", "wiki-pages", "wiki operating contract", "skills wiki-pages", "maintain contract skill"]
 parent: "[[Wiki Index]]"
 path: "wiki-pages"
-summary: "The wiki-pages topic documents the operating contract any agent must follow when ingesting, retrieving from, or maintaining a claude-wiki-pages vault. The three invariants — ground-then-judge-then-verify, raw immutability, and git-as-safety-net — define the safe sequencing protocol. Grounded retrieval and multi-vault rules extend the contract to retrieval and concurrent vault management."
-key_pages:
-  - "[[Maintain Contract]]"
+children:
   - "[[Grounded Retrieval]]"
+  - "[[Maintain Contract]]"
   - "[[Multi-Vault Operating Rules]]"
   - "[[Synthesis Note]]"
-sources:
-  - "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"
-related:
-  - "[[Ingest Pipeline]]"
-  - "[[Auto-Heal]]"
-  - "[[Query Rules]]"
-  - "[[Git Checkpoint]]"
-  - "[[Deterministic Engine]]"
-  - "[[Schema Authority]]"
-source_quotes: []
-derived: false
+child_indexes: []
 tags: ["wiki-pages", "skills", "operating-contract"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 2
-status: active
-confidence: 1.0
 ---
 
 # Wiki Pages
@@ -50,7 +36,7 @@ The cluster is grounded in `skills/wiki-pages/SKILL.md` as its single source. Al
 
 [[Maintain Contract]] is the safe-sequencing protocol that governs all vault operations. It rests on three invariants that cannot be violated: (1) ground, then judge, then verify — the engine computes facts, the LLM reasons over them; (2) `raw/` is immutable — the `protect-raw` hook enforces this mechanically; (3) git is the safety net — self-heal is automatic, checkpointed, and `git revert`-able. The contract also defines three operational phases: Ingest (checkpoint → read → write → heal), Retrieve (engine search → reason from pages → cite), and Maintain (verify → heal → judgment fixes → re-verify).
 
-[[Grounded Retrieval]] is the retrieval discipline that implements the first invariant for query operations. Agents use `engine.sh search` or `grep` over `wiki/` to fetch candidate pages, then reason only over those pages — never from training knowledge or memory. Every claim must be cited inline (`[[Page Title]]`) and appear in a trailing `## Sources` section. If no relevant pages are found, the agent declares a gap rather than hallucinating an answer. The traversal limit is N≤2 hops from seed pages.
+[[Grounded Retrieval]] is the retrieval discipline that implements the first invariant for query operations. Agents use `engine.sh search` or `grep` over `wiki/` to fetch candidate pages, then reason only over those pages — never from training knowledge or memory. Every claim must be cited inline (`` [[Page Title]] ``) and appear in a trailing `## Sources` section. If no relevant pages are found, the agent declares a gap rather than hallucinating an answer. The traversal limit is N≤2 hops from seed pages.
 
 [[Multi-Vault Operating Rules]] provides the five extension rules for multi-vault environments: (1) always pass `--target` to engine calls; (2) resolve the active vault before any operation; (3) writes are confined to the active vault by the firewall; (4) never assume the vault from ambient context; (5) surface cross-vault requests rather than silently switching.
 

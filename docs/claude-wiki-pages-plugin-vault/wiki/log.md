@@ -233,4 +233,8 @@ Updated wiki/index.md Hub Pages section to list all 7 hubs.
 
 - pre-state: dc6c208
 - rollback: git revert the snapshot commit below
+## [2026-06-13] snapshot | curator judgment fixes (snap-20260613225008)
+
+- pre-state: 59fd5f9
+- rollback: git revert the snapshot commit below
 

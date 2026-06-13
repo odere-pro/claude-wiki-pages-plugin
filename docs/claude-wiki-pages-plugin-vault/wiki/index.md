@@ -59,19 +59,19 @@ These topic hub pages are the graph concentration points — each orients a majo
 
 ## Architecture Pages
 
-[[Four-Layer Stack]] · [[Deterministic Engine]] · [[Firewall]] · [[Hook System]] · [[Vault Resolution]] · [[Orchestrator Agent]] · [[Ingest Agent]] · [[Curator Agent]] · [[Analyst Agent]] · [[Polish Agent]] · [[Maintenance Agent]] · [[claude-wiki-pages Plugin]] · [[Design Diagrams]] · [[Git Checkpoint]]
+[[Four-Layer Stack]] · [[Deterministic Engine]] · [[Firewall]] · [[Hook System]] · [[Vault Resolution]] · [[Orchestrator Agent]] · [[Ingest Agent]] · [[Curator Agent]] · [[Analyst Agent]] · [[Polish Agent]] · [[Maintenance Agent]] · [[Design Diagrams]] · [[Git Checkpoint]] · [[Active Vault]] · [[Brainstorming Team]] · [[Durable Memory]] · [[Engineering Team]] · [[Fail-Closed]] · [[Review Gate]] · [[Vault Lifecycle]]
 
 ## Engine Pages
 
-[[engine.sh]] · [[cli.ts]] · [[Engine CLI Router]] · [[Engine Verb Surface]] · [[Search Scoring Algorithm]] · [[Tier-2 Deterministic Recall]] · [[Graph Walk Algorithm]] · [[Porter Stemmer]] · [[Synonym Lexicon]] · [[Provenance Checks]] · [[MOC Repair Primitives]] · [[Schema Version Gate]] · [[Draft Review Surface]] · [[Degraded-Mode Routing]] · [[Scripts Layer]]
+[[engine.sh]] · [[cli.ts]] · [[Engine CLI Router]] · [[Engine Verb Surface]] · [[Search Scoring Algorithm]] · [[Tier-2 Deterministic Recall]] · [[Graph Walk Algorithm]] · [[Porter Stemmer]] · [[Synonym Lexicon]] · [[Provenance Checks]] · [[MOC Repair Primitives]] · [[Schema Version Gate]] · [[Draft Review Surface]] · [[Degraded-Mode Routing]] · [[Scripts Layer]] · [[Engine — Index]] · [[Graph Traversal Primitive]] · [[Shell-TS Parity]]
 
 ## Decisions Pages
 
-[[Architecture Decision Record]] · [[NO-RAG Principle]] · [[Ontology Profile v1]] · [[Wiki-Only Graph]] · [[Local Model Quality Gate]] · [[Wiki-Native Recall]] · [[Scaffolding Ablation]]
+[[Architecture Decision Record]] · [[NO-RAG Principle]] · [[Ontology Profile v1]] · [[Wiki-Only Graph]] · [[Local Model Quality Gate]] · [[Wiki-Native Recall]] · [[Scaffolding Ablation]] · [[Baseline Arm]] · [[Design-Drift Gate]] · [[Golden Set]] · [[Graph Config Cache]] · [[Node Grounding]] · [[Parity Gate]] · [[Plugin Arm]] · [[Predicate Domain-Range Table]] · [[Search Score Object]] · [[Software 3.0]] · [[Verbatim Partition]] · [[Zero-Fabrication Floor]]
 
 ## Guides Pages
 
-[[Onboarding Wizard]] · [[Ingest Pipeline]] · [[Entity Distribution Model]] · [[Lint Rules]] · [[Auto-Heal]] · [[Query Rules]] · [[Challenge Mode]] · [[Obsidian Experience]] · [[Folder Note]]
+[[Onboarding Wizard]] · [[Ingest Pipeline]] · [[Entity Distribution Model]] · [[Lint Rules]] · [[Auto-Heal]] · [[Query Rules]] · [[Challenge Mode]] · [[Obsidian Experience]] · [[Folder Note]] · [[Graph Coloring]] · [[Portable Markdown]] · [[Sources Section]] · [[Time-to-First-Value]]
 
 ## Plugin Pages
 
@@ -79,7 +79,7 @@ These topic hub pages are the graph concentration points — each orients a majo
 
 ## Reference Pages
 
-[[Glossary Terms]] · [[Schema Authority]] · [[Multi-Vault Registry]] · [[Offline Policy]] · [[Approved Local Model]] · [[Backlog]] · [[Installation]]
+[[Glossary Terms]] · [[Schema Authority]] · [[Multi-Vault Registry]] · [[Offline Policy]] · [[Approved Local Model]] · [[Backlog]] · [[Installation]] · [[Banned Strings]] · [[Capability Tier]] · [[Doctor Command]] · [[Frontmatter Validation]] · [[Heartbeat]] · [[Maintenance Loop]] · [[Required Fields]]
 
 ## Obsidian Pages
 
@@ -99,7 +99,7 @@ These topic hub pages are the graph concentration points — each orients a majo
 
 ## Wiki Pages Pages
 
-[[Maintain Contract]] · [[Grounded Retrieval]] · [[Multi-Vault Operating Rules]]
+[[Maintain Contract]] · [[Grounded Retrieval]] · [[Multi-Vault Operating Rules]] · [[Synthesis Note]]
 
 ## Source Summaries
 

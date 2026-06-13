@@ -5,19 +5,19 @@ aliases: ["Guides", "guides", "user guides", "User Guides"]
 parent: "[[Wiki Index]]"
 path: "guides"
 children:
-  - "[[Onboarding Wizard]]"
-  - "[[Ingest Pipeline]]"
-  - "[[Entity Distribution Model]]"
-  - "[[Lint Rules]]"
   - "[[Auto-Heal]]"
-  - "[[Query Rules]]"
   - "[[Challenge Mode]]"
-  - "[[Obsidian Experience]]"
+  - "[[Entity Distribution Model]]"
   - "[[Folder Note]]"
   - "[[Graph Coloring]]"
-  - "[[Time-to-First-Value]]"
+  - "[[Ingest Pipeline]]"
+  - "[[Lint Rules]]"
+  - "[[Obsidian Experience]]"
+  - "[[Onboarding Wizard]]"
   - "[[Portable Markdown]]"
+  - "[[Query Rules]]"
   - "[[Sources Section]]"
+  - "[[Time-to-First-Value]]"
 child_indexes: []
 tags: ["guides", "user-guide"]
 created: 2026-06-13

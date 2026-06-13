@@ -4,7 +4,7 @@ type: concept
 aliases: ["Git Checkpoint", "git checkpoint", "snapshot", "git-checkpointed", "commit backstop"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0005: Git Required Per-Vault Init]]", "[[Design: Sequences]]", "[[Features]]", "[[Operations Guide]]"]
+sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0005: Git Required Per-Vault Init]]", "[[Design: Sequences]]", "[[Features]]", "[[Operations Guide]]", "[[snapshot.ts Source]]"]
 related: ["[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Hook System]]", "[[Auto-Heal]]"]
 tags: ["concept", "git"]
 created: 2026-06-13

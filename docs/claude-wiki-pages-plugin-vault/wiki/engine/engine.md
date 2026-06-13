@@ -1,58 +1,32 @@
 ---
 title: "Wiki Engine"
-type: topic
+type: index
 aliases: ["Wiki Engine", "wiki engine", "engine", "Engine", "deterministic engine", "claude-wiki-pages engine"]
 parent: "[[Wiki Index]]"
 path: "engine"
-summary: "The Wiki Engine cluster documents the implementation of the claude-wiki-pages deterministic engine: the bash-to-Bun bridge (engine.sh), the TypeScript CLI (cli.ts), the search and graph-walk algorithms, verification and integrity primitives, and the workflow verbs. These pages cover how the engine works at the source level — complementing the design-level view in the Architecture cluster."
-key_pages:
-  - "[[engine.sh]]"
+children:
   - "[[cli.ts]]"
-  - "[[Engine CLI Router]]"
-  - "[[Engine Verb Surface]]"
-  - "[[Search Scoring Algorithm]]"
-  - "[[Tier-2 Deterministic Recall]]"
-  - "[[Graph Walk Algorithm]]"
-  - "[[Graph Traversal Primitive]]"
-  - "[[Porter Stemmer]]"
-  - "[[Synonym Lexicon]]"
-  - "[[Provenance Checks]]"
-  - "[[MOC Repair Primitives]]"
-  - "[[Schema Version Gate]]"
-  - "[[Draft Review Surface]]"
   - "[[Degraded-Mode Routing]]"
+  - "[[Draft Review Surface]]"
+  - "[[Engine CLI Router]]"
+  - "[[Engine — Index]]"
+  - "[[Engine Verb Surface]]"
+  - "[[Graph Traversal Primitive]]"
+  - "[[Graph Walk Algorithm]]"
+  - "[[MOC Repair Primitives]]"
+  - "[[Porter Stemmer]]"
+  - "[[Provenance Checks]]"
+  - "[[Schema Version Gate]]"
   - "[[Scripts Layer]]"
+  - "[[Search Scoring Algorithm]]"
   - "[[Shell-TS Parity]]"
-sources:
-  - "[[Engine Scripts Layer (CLAUDE.md)]]"
-  - "[[Engine API Skill (SKILL.md)]]"
-  - "[[engine.sh Source]]"
-  - "[[cli.ts Source]]"
-  - "[[search.ts Source]]"
-  - "[[graph.ts Source]]"
-  - "[[snapshot.ts Source]]"
-  - "[[provenance.ts Source]]"
-  - "[[moc-build.ts Source]]"
-  - "[[stem.ts Source]]"
-  - "[[vocabulary.ts Source]]"
-  - "[[propose.ts Source]]"
-  - "[[route.ts Source]]"
-  - "[[schema.ts Source]]"
-related:
-  - "[[Deterministic Engine]]"
-  - "[[Four-Layer Stack]]"
-  - "[[Wiki-Native Recall]]"
-  - "[[NO-RAG Principle]]"
-  - "[[Auto-Heal]]"
-  - "[[Git Checkpoint]]"
-source_quotes: []
-derived: false
+  - "[[Synonym Lexicon]]"
+  - "[[Tier-2 Deterministic Recall]]"
+  - "[[engine.sh]]"
+child_indexes: []
 tags: ["engine", "implementation", "search", "cli"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 2
-status: active
-confidence: 1.0
 ---
 
 # Wiki Engine

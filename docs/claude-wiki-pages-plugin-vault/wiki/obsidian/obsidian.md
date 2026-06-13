@@ -1,30 +1,17 @@
 ---
 title: "Obsidian"
-type: topic
+type: index
 aliases: ["Obsidian", "obsidian", "Obsidian integration", "obsidian-folder", "Obsidian CLI"]
 parent: "[[Wiki Index]]"
 path: "obsidian"
-summary: "The Obsidian cluster documents how agents drive the Obsidian CLI safely: the guard contract encoded in the obsidian-vault skill, the four-rule vault-scoping convention, and the defense-in-depth design that pairs behavioral guidance (the skill) with deterministic enforcement (the firewall hook)."
-key_pages:
-  - "[[obsidian-vault Skill]]"
-  - "[[Obsidian CLI Vault Scoping]]"
+children:
   - "[[Defense-in-Depth Scoping]]"
-sources:
-  - "[[Obsidian Vault Skill (SKILL.md)]]"
-related:
-  - "[[Firewall]]"
-  - "[[Vault Resolution]]"
-  - "[[Hook System]]"
-  - "[[Four-Layer Stack]]"
-  - "[[Maintain Contract]]"
-source_quotes: []
-derived: false
+  - "[[Obsidian CLI Vault Scoping]]"
+  - "[[obsidian-vault Skill]]"
+child_indexes: []
 tags: ["obsidian", "cli", "vault-scoping", "firewall"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 2
-status: active
-confidence: 1.0
 ---
 
 # Obsidian

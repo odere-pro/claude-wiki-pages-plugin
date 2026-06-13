@@ -1,41 +1,19 @@
 ---
 title: "claude-wiki-pages Plugin"
-type: topic
+type: index
 aliases: ["claude-wiki-pages Plugin", "claude-wiki-pages plugin", "plugin", "Plugin"]
 parent: "[[Wiki Index]]"
 path: "plugin"
-summary: "The claude-wiki-pages plugin is a four-layer Claude Code plugin (Data · Skills · Agents · Orchestration) that turns an Obsidian vault into a provenance-tracked wiki. This hub page orients readers to the plugin's identity, its agent contracts, and the install boundary that separates dev-time artifacts from runtime session context."
-key_pages:
-  - "[[Plugin Manifest]]"
+children:
   - "[[Agent Contract Table]]"
   - "[[Agent Tool Restriction]]"
-  - "[[Single-Pass Dispatch]]"
   - "[[Plugin Dev-Time vs Runtime]]"
-sources:
-  - "[[Plugin README]]"
-  - "[[Plugin CLAUDE.md]]"
-  - "[[Plugin Manifest (plugin.json)]]"
-  - "[[Orchestrator Agent Source]]"
-  - "[[Ingest Agent Source]]"
-  - "[[Curator Agent Source]]"
-  - "[[Analyst Agent Source]]"
-  - "[[Onboarding Agent Source]]"
-  - "[[Maintenance Agent Source]]"
-  - "[[Polish Agent Source]]"
-related:
-  - "[[Four-Layer Stack]]"
-  - "[[Orchestrator Agent]]"
-  - "[[Ingest Agent]]"
-  - "[[Curator Agent]]"
-  - "[[Analyst Agent]]"
-source_quotes: []
-derived: false
+  - "[[Plugin Manifest]]"
+  - "[[Single-Pass Dispatch]]"
+child_indexes: []
 tags: ["plugin", "architecture", "agents"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 2
-status: active
-confidence: 1.0
 ---
 
 # claude-wiki-pages Plugin

@@ -1,35 +1,20 @@
 ---
 title: "LLM"
-type: topic
+type: index
 aliases: ["LLM", "llm", "LLM skills", "analyst modes", "llm-wiki skills", "LLM operating contract"]
 parent: "[[Wiki Index]]"
 path: "llm"
-summary: "The LLM topic cluster documents how the language model interacts with the wiki: the five analyst operating modes, the write-approval gates that protect wiki state, and the dual-entry-point authoring contract that makes every plugin surface usable by both a person and an agent."
-key_pages:
+children:
   - "[[Analyst Dashboard Mode]]"
   - "[[Analyst Document Compile Mode]]"
   - "[[Analyst Extract Mode]]"
   - "[[Dashboard Write Gate]]"
-  - "[[Six Surfaces Dual-Reader Contract]]"
   - "[[Dual Entry Point]]"
-sources:
-  - "[[Analyst Modes Skill (SKILL.md)]]"
-  - "[[Analyst Agent Source]]"
-  - "[[SOFTWARE-3-0: Dual Entry Point]]"
-related:
-  - "[[Analyst Agent]]"
-  - "[[Query Rules]]"
-  - "[[Maintain Contract]]"
-  - "[[Grounded Retrieval]]"
-  - "[[Plugin Dev-Time vs Runtime]]"
-source_quotes: []
-derived: false
+  - "[[Six Surfaces Dual-Reader Contract]]"
+child_indexes: []
 tags: ["llm", "analyst", "modes", "dual-reader"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 2
-status: active
-confidence: 1.0
 ---
 
 # LLM

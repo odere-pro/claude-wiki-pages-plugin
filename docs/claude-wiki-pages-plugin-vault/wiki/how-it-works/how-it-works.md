@@ -1,31 +1,18 @@
 ---
 title: "How It Works"
-type: topic
+type: index
 aliases: ["How It Works", "how-it-works", "how it works", "HIW", "sync and wire mechanics"]
 parent: "[[Wiki Index]]"
 path: "how-it-works"
-summary: "The How It Works cluster documents the operational mechanics behind syncing and wired sources: the sync skill that pulls documentation changes from a registered git work tree, the wired-source concept that defines what a registered repo is, the eight-step sync workflow, and the sync-source.sh script that executes detection and file copying. Together these pages explain how the wiki stays current with an evolving project without ever modifying raw source files."
-key_pages:
+children:
   - "[[Sync Skill]]"
-  - "[[Wired Source]]"
   - "[[Sync Workflow]]"
+  - "[[Wired Source]]"
   - "[[sync-source.sh]]"
-sources:
-  - "[[Sync Skill (SKILL.md)]]"
-related:
-  - "[[Ingest Pipeline]]"
-  - "[[Git Checkpoint]]"
-  - "[[Ingest Agent]]"
-  - "[[Firewall]]"
-  - "[[Maintain Contract]]"
-source_quotes: []
-derived: false
+child_indexes: []
 tags: ["how-it-works", "sync", "wired-source", "skills", "workflows"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 2
-status: active
-confidence: 1.0
 ---
 
 # How It Works
