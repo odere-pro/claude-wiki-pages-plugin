@@ -35,8 +35,8 @@ Establishes the `raw/agent-sessions/` fence as the sanctioned path for durable a
 ## Concepts Covered
 
 - [[Durable Memory]]
-- [[Agent Session Source]]
-- [[Proposed Draft]]
+- Agent Session Source (`source_type: agent-session`, lands in `raw/agent-sessions/`)
+- Proposed Draft (`_proposed/` staging gate for durable memory write-backs)
 - [[Review Gate]]
 
 ## Grounded Pages

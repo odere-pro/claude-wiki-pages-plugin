@@ -36,7 +36,7 @@ Defines the single graph-traversal function `src/core/graph.ts:walk()` as the sh
 ## Concepts Covered
 
 - [[Graph Traversal Primitive]]
-- [[Graph Link-Walk]]
+- Graph Link-Walk (N-hop BFS over typed frontmatter predicates, shared by R2/R3/C1)
 - [[Wiki-Native Recall]]
 
 ## Grounded Pages

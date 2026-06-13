@@ -36,8 +36,8 @@ Establishes a single named ontology profile (`ontology-profile-v1`) in `vault/CL
 
 - [[Ontology Profile v1]]
 - [[Predicate Domain-Range Table]]
-- [[Entity Type Enum]]
-- [[Controlled Vocabulary]]
+- Entity Type Enum (`person`, `organization`, `product`, `tool`, `service`, `standard`, `place`)
+- Controlled Vocabulary (closed enum sets in ontology-profile-v1; only `entity_type` is owner-extensible)
 
 ## Grounded Pages
 

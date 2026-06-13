@@ -23,9 +23,9 @@ Introduces schema v3 folder notes (`wiki/<topic>/<topic>.md`, `type: index`). Hi
 ## Key Claims
 
 - Schema v3: per-folder index is a folder note named exactly after its folder (`wiki/<topic>/<topic>.md`).
-- Hierarchy fields must be quoted `"[[wikilink]]"` values — plain strings produce no graph edge and are a lint finding.
+- Hierarchy fields must be quoted wikilink values — plain strings produce no graph edge and are a lint finding.
 - The `file:_index` catch-all color group is dropped; folder notes inherit their topic's group via `path:wiki/<topic>` query.
-- `## Sources` grounding contract: every analyst/query answer ends with a numbered `## Sources` section citing consulted pages as `[[wikilinks]]` plus raw source paths.
+- `## Sources` grounding contract: every analyst/query answer ends with a numbered `## Sources` section citing consulted pages as wikilinks plus raw source paths.
 - Legacy `_index.md` is accepted but flagged `legacy-index-filename`.
 
 ## Entities Mentioned

@@ -38,8 +38,8 @@ Establishes the single top-level `/claude-wiki-pages:wiki` command as the sole a
 ## Concepts Covered
 
 - [[Four-Layer Stack]]
-- [[Specialist Pattern]]
-- [[State Probing]]
+- Specialist Pattern (orchestrator dispatches to one specialist agent per invocation; specialists never re-probe state)
+- State Probing (vault scan + log read is the orchestrator's exclusive responsibility)
 
 ## Grounded Pages
 

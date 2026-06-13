@@ -22,7 +22,7 @@ Basic query, analyst agent modes, challenge mode, citations, Dataview queries, m
 
 ## Key Claims
 
-- Basic query: `/claude-wiki-pages:query` — reads vault MOC, finds relevant pages, synthesizes answer with `[[wikilink]]` citations.
+- Basic query: `/claude-wiki-pages:query` — reads vault MOC, finds relevant pages, synthesizes answer with wikilink citations.
 - Analyst agent: 5 modes — query, dashboard, document compile, extract, challenge.
 - Challenge mode: pose a question challenging assumptions; wiki pushes back with contradictions, gaps, and counter-evidence.
 - Every answer ends with a `## Sources` section (research-paper style numbered list).

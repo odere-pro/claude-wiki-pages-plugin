@@ -9,7 +9,7 @@ Most LLM-wiki implementations are one layer: a prompt and a folder convention. T
 | Layer                | Responsibility                                           | What lives here                                                        |
 | -------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------- |
 | **1. Data**          | Immutable sources + wiki schema                          | `docs/vault-example/raw/`, `docs/vault-example/wiki/`, `docs/vault-example/CLAUDE.md` |
-| **2. Skills**        | Individual capabilities invoked by the human or an agent | `skills/` (23 skills)                                                  |
+| **2. Skills**        | Individual capabilities invoked by the human or an agent | `skills/` (25 skills)                                                  |
 | **3. Agents**        | Multi-step executors that orchestrate skills             | `agents/` (8 agents)                                                   |
 | **4. Orchestration** | Hooks, rules, provenance guards                          | `hooks/hooks.json`, `scripts/`, `rules/`                               |
 
@@ -19,7 +19,7 @@ Sources go into `raw/` and are never rewritten — the `protect-raw.sh` hook enf
 
 ### 2. Skills
 
-Each skill is a single-responsibility capability: `ingest` ingests sources, `query` answers questions, `lint` audits structure, `fix` repairs what lint reports, `synthesize` writes cross-topic analyses, `index` generates a top-level overview index across the vault, `markdown` exports a query answer as portable markdown into `vault/output/`, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 23 (12 plugin-authored verbs + `onboarding` + 5 agent-teaching skills + `obsidian-graph-colors` + `obsidian-vault` + 3 MIT-licensed `obsidian-*` reference skills).
+Each skill is a single-responsibility capability: `ingest` ingests sources, `query` answers questions, `lint` audits structure, `fix` repairs what lint reports, `synthesize` writes cross-topic analyses, `index` generates a top-level overview index across the vault, `markdown` exports a query answer as portable markdown into `vault/output/`, `fill-gaps` completes the vault into a gap-free, topic-clustered wiki, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 25 (14 plugin-authored verbs + `onboarding` + 5 agent-teaching skills + `obsidian-graph-colors` + `obsidian-vault` + 3 MIT-licensed `obsidian-*` reference skills).
 
 ### 3. Agents
 
@@ -27,7 +27,7 @@ Agents chain skills and tools. `claude-wiki-pages-orchestrator-agent` is the use
 
 ### 4. Orchestration
 
-Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/claude-wiki-pages:wiki`); it delegates to the orchestrator agent. `commands/doctor.md` wraps `scripts/doctor.sh` for environment health (`/claude-wiki-pages:doctor`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update the folder note and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
+Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/claude-wiki-pages:wiki`); it delegates to the orchestrator agent. `commands/doctor.md` wraps `scripts/doctor.sh` for environment health (`/claude-wiki-pages:doctor`). `commands/fill-gaps.md` invokes the `fill-gaps` skill to complete the vault into a gap-free, topic-clustered wiki (`/claude-wiki-pages:fill-gaps`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update the folder note and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
 
 ## Why four layers
 

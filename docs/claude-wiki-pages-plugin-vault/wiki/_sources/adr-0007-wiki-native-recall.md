@@ -36,8 +36,8 @@ Establishes the NO-RAG / no-embeddings principle for retrieval. Retrieval is wik
 
 - [[Wiki-Native Recall]]
 - [[Synonym Lexicon]]
-- [[Query Expansion]]
-- [[Stemming]]
+- Query Expansion (synonym lexicon maps query terms to aliases for retrieval broadening)
+- Stemming (Porter-style morphological matching; reduces tokens to root forms deterministically)
 - [[NO-RAG Principle]]
 
 ## Grounded Pages

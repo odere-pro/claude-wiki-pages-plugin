@@ -37,7 +37,7 @@ Establishes the `offlinePolicy` config dimension (off/strict/prefer-local) and t
 - [[Offline Policy]]
 - [[Degraded Mode]]
 - [[Degraded-Mode Routing]]
-- [[Reachability Probe]]
+- Reachability Probe (`scripts/reachability.sh`; fails closed; no network call when policy is `off`)
 - [[Capability Tier]]
 
 ## Grounded Pages
