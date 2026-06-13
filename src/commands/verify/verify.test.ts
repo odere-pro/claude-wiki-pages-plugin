@@ -122,6 +122,24 @@ describe("verify", () => {
     sb.cleanup();
   });
 
+  test("orphan-sources: the source manifest (type: manifest) is exempt, never flagged", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      // A manifest in _sources/ that no wiki page cites — must NOT be an orphan.
+      "wiki/_sources/manifest.md":
+        "---\ntitle: Source Manifest\ntype: manifest\n---\n# Source Manifest\n",
+      "wiki/topics/topics.md":
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
+      "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
+    });
+    const report = verify({ target: sb.vault });
+    expect(report.findings.filter((f) => f.check === "orphan-sources")).toHaveLength(0);
+    expect(report.warnings).toBe(0);
+    sb.cleanup();
+  });
+
   test("v3: a remaining _index.md at schema_version 3 gets the legacy-index-filename WARN", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",

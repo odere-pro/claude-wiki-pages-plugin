@@ -125,7 +125,13 @@ export function checkOrphanSources(wiki: string): Finding[] {
   const citingContents = citingPages.map((p) => readFileSafe(p) ?? "");
 
   const findings: Finding[] = [];
-  const sources = listMarkdownShallow(sourcesDir).filter((p) => basename(p) !== ".gitkeep");
+  // The source manifest (`type: manifest`) is bookkeeping, not a source summary;
+  // the schema exempts it from index-membership checks, so it is not an orphan.
+  const sources = listMarkdownShallow(sourcesDir).filter((p) => {
+    if (basename(p) === ".gitkeep") return false;
+    const fm = parseFrontmatter(readFileSafe(p) ?? "");
+    return fm.type !== "manifest";
+  });
   for (const sourceFile of sources) {
     const title = titleAtPath(sourceFile);
     const needle = `[[${title}]]`;
