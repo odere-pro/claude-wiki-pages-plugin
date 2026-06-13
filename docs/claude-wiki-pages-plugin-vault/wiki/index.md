@@ -9,6 +9,7 @@ child_indexes:
   - "[[decisions]]"
   - "[[engine]]"
   - "[[guides]]"
+  - "[[knowledge-graph]]"
   - "[[llm]]"
   - "[[obsidian]]"
   - "[[plugin]]"
@@ -18,7 +19,6 @@ aliases: ["Wiki Index"]
 tags: []
 created: 2026-06-13
 updated: 2026-06-13
-
 ---
 
 # Wiki Index
@@ -31,6 +31,7 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 - [[decisions]] — 7 pages, last updated 2026-06-13
 - [[engine]] — 15 pages, last updated 2026-06-13
 - [[guides]] — 9 pages, last updated 2026-06-13
+- [[knowledge-graph]] — 3 pages, last updated 2026-06-13
 - [[llm]] — 6 pages, last updated 2026-06-13
 - [[obsidian]] — 3 pages, last updated 2026-06-13
 - [[plugin]] — 5 pages, last updated 2026-06-13
@@ -73,6 +74,10 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 
 [[Analyst Dashboard Mode]] · [[Analyst Document Compile Mode]] · [[Analyst Extract Mode]] · [[Dashboard Write Gate]] · [[Six Surfaces Dual-Reader Contract]] · [[Dual Entry Point]]
 
+## Knowledge Graph Pages
+
+[[Frontmatter Parser]] · [[Wikilink Extractor]] · [[Config Schema]]
+
 ## Wiki Pages Pages
 
 [[Maintain Contract]] · [[Grounded Retrieval]] · [[Multi-Vault Operating Rules]]
@@ -112,3 +117,7 @@ One summary per ingested raw source. See individual source pages for full contex
 ### LLM Source Summaries
 
 [[SOFTWARE-3-0: Dual Entry Point]]
+
+### Knowledge Graph Source Summaries
+
+[[Knowledge Graph Schema (CLAUDE.md)]] · [[Config Schema (config.schema.json)]] · [[Frontmatter Parser (frontmatter.ts)]] · [[Wikilink Extractor (wikilinks.ts)]]

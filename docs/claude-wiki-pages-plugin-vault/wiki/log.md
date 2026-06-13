@@ -167,3 +167,21 @@ Updated existing pages: (none — all related pages are cross-referenced via `re
 - pre-state: 41aceac
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] ingest | Knowledge Graph sources (raw/repo/knowledge-graph/)
+
+Processed 4 raw sources from `raw/repo/knowledge-graph/` (CLAUDE.md, config.schema.json, frontmatter.ts, wikilinks.ts).
+
+New folders: knowledge-graph
+
+New sources: Knowledge Graph Schema (CLAUDE.md), Config Schema (config.schema.json), Frontmatter Parser (frontmatter.ts), Wikilink Extractor (wikilinks.ts)
+
+New entities: (none — no new concrete entities beyond what was already tracked)
+
+New concepts: Frontmatter Parser, Wikilink Extractor, Config Schema
+
+Updated existing pages: Schema Authority (sources+, update_count 5→6)
+## [2026-06-13] snapshot | ingest knowledge-graph: config.schema.json, frontmatter.ts, wikilinks.ts, CLAUDE.md (snap-20260613220320)
+
+- pre-state: 3fdf5bb
+- rollback: git revert the snapshot commit below
+

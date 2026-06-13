@@ -4,12 +4,12 @@ type: concept
 aliases: ["Schema Authority", "schema authority", "vault schema", "CLAUDE.md"]
 parent: "[[Reference]]"
 path: "reference"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0014: Single-Source Required Fields]]", "[[User Guide 02: Create a New Vault]]"]
+sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0014: Single-Source Required Fields]]", "[[User Guide 02: Create a New Vault]]", "[[Knowledge Graph Schema (CLAUDE.md)]]"]
 related: ["[[Ontology Profile v1]]", "[[Ingest Pipeline]]", "[[Lint Rules]]", "[[Hook System]]", "[[Folder Note]]"]
 tags: ["concept", "schema", "authority"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 5
+update_count: 6
 status: active
 confidence: 1.0
 ---
