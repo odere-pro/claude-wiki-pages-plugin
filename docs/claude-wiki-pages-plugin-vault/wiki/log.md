@@ -185,3 +185,21 @@ Updated existing pages: Schema Authority (sources+, update_count 5→6)
 - pre-state: 3fdf5bb
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] ingest | Sync Skill (raw/repo/how-it-works/SKILL.md)
+
+Processed `raw/repo/how-it-works/SKILL.md`. Created 5 new pages, updated 0 existing.
+
+New folders: how-it-works
+
+New sources: Sync Skill (SKILL.md)
+
+New entities: sync-source.sh
+
+New concepts: Sync Skill, Wired Source, Sync Workflow
+
+Updated existing pages: (none — all concepts in this source are new to the wiki)
+## [2026-06-13] snapshot | ingest Sync Skill (raw/repo/how-it-works/SKILL.md) (snap-20260613220919)
+
+- pre-state: c66405d
+- rollback: git revert the snapshot commit below
+

@@ -9,6 +9,7 @@ child_indexes:
   - "[[decisions]]"
   - "[[engine]]"
   - "[[guides]]"
+  - "[[how-it-works]]"
   - "[[knowledge-graph]]"
   - "[[llm]]"
   - "[[obsidian]]"
@@ -31,6 +32,7 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 - [[decisions]] — 7 pages, last updated 2026-06-13
 - [[engine]] — 15 pages, last updated 2026-06-13
 - [[guides]] — 9 pages, last updated 2026-06-13
+- [[how-it-works]] — 4 pages, last updated 2026-06-13
 - [[knowledge-graph]] — 3 pages, last updated 2026-06-13
 - [[llm]] — 6 pages, last updated 2026-06-13
 - [[obsidian]] — 3 pages, last updated 2026-06-13
@@ -78,6 +80,10 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 
 [[Frontmatter Parser]] · [[Wikilink Extractor]] · [[Config Schema]]
 
+## How It Works Pages
+
+[[Sync Skill]] · [[Wired Source]] · [[Sync Workflow]] · [[sync-source.sh]]
+
 ## Wiki Pages Pages
 
 [[Maintain Contract]] · [[Grounded Retrieval]] · [[Multi-Vault Operating Rules]]
@@ -112,7 +118,7 @@ One summary per ingested raw source. See individual source pages for full contex
 
 ### Skills Source Summaries
 
-[[Wiki Pages Skill (maintain-contract SKILL.md)]] · [[Analyst Modes Skill (SKILL.md)]] · [[Obsidian Vault Skill (SKILL.md)]]
+[[Wiki Pages Skill (maintain-contract SKILL.md)]] · [[Analyst Modes Skill (SKILL.md)]] · [[Obsidian Vault Skill (SKILL.md)]] · [[Sync Skill (SKILL.md)]]
 
 ### LLM Source Summaries
 
