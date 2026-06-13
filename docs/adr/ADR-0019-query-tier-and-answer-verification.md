@@ -3,6 +3,7 @@
 - **Status:** Accepted (2026-06-11)
 - **Date:** 2026-06-11
 - **Builds on:** [ADR-0011](./ADR-0011-local-model-quality-gate.md) (per-tier quality gate), [ADR-0017](./ADR-0017-fabrication-floor-verbatim-partition.md) (verbatim partition), [ADR-0018](./ADR-0018-offline-policy-and-degraded-mode-routing.md) (offline policy, per-tier map)
+- **Amends:** [ADR-0018](./ADR-0018-offline-policy-and-degraded-mode-routing.md) — widens the tier enum `{draft, ingest-extract}` with the read-only `query` tier (and a `query` row in `APPROVED_LOCAL_MODELS_BY_TIER`)
 - **Anchor:** §5 (NO-RAG, absolute); §7 (provenance, non-negotiable); Decision #7 (per-tier capability progression)
 
 ## Context

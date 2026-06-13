@@ -1,8 +1,9 @@
 # ADR-0001: Four-layer orchestrator — single top-level command, state-probing dispatch
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-05-02
 - **SPEC anchor:** §5 (four-layer stack), §9 (command contracts), §11 (agent contracts)
+- **Superseded-with-conditions by:** [ADR-0026](./ADR-0026-parallel-extract-and-scheduled-upkeep.md) — narrows the ingest specialist's INTERNAL map-phase only; the orchestrator's one-fan-out dispatch contract (exactly one Task per invocation) is UNCHANGED
 
 ## Context
 

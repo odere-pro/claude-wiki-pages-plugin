@@ -20,7 +20,7 @@ graph TB
     subgraph plugin["claude-wiki-pages plugin (.claude-plugin/plugin.json)"]
         goals["Goals<br/>(11 product goals)"]
         cmds["Commands<br/>wiki · onboarding · doctor"]
-        agents["Agents (7)<br/>orchestrator + 6"]
+        agents["Agents (8)<br/>orchestrator + 7"]
         skills["Skills (24)<br/>action + teaching"]
         hooks["Hooks (7 events)"]
         scripts["Scripts (~30)"]
@@ -61,7 +61,7 @@ configured here** — they show how the plugin *could* extend.
 | --- | --- | --- |
 | **Plugin** | ✅ defined | [`.claude-plugin/plugin.json`](../../.claude-plugin/plugin.json) — the package manifest |
 | **Commands** | ✅ 3 | [`commands/`](../../commands/) — `wiki` (entry), `onboarding`, `doctor` |
-| **Agents** | ✅ 7 | [`agents/`](../../agents/) — orchestrator + onboarding/ingest/curator/analyst/polish/maintenance |
+| **Agents** | ✅ 8 | [`agents/`](../../agents/) — orchestrator + onboarding/ingest/extract-worker/curator/analyst/polish/maintenance |
 | **Skills** | ✅ 24 | [`skills/`](../../skills/) — 13 action + 5 teaching + obsidian refs |
 | **Hooks** | ✅ 7 events | [`hooks/hooks.json`](../../hooks/hooks.json) — Session/Prompt/PreTool/PostTool/SubagentStop/Stop/SessionEnd |
 | **Scripts** | ✅ ~30 | [`scripts/`](../../scripts/) — enforcement + the engine bridge |

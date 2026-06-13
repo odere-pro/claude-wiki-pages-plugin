@@ -1,9 +1,10 @@
 # ADR-0022: Folder notes and graph quality — schema v3, wikilink hierarchy, color groups, grounded answers
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-06-12
 - **Builds on:** [ADR-0003](./ADR-0003-polish-agent-and-obsidian-side.md) (the Obsidian-side experience and graph-color ownership), [ADR-0004](./ADR-0004-ontology-profile-v1.md) (the predicate domain→range table the hierarchy fields live in)
 - **Amends:** [ADR-0003](./ADR-0003-polish-agent-and-obsidian-side.md) — the graph-colors step gains a headless `.obsidian/graph.json` fallback when `obsidian eval` is unavailable
+- **Amended by:** [ADR-0023](./ADR-0023-wiki-only-graph.md) (the layer-pass dropped; canonical group order becomes topics → specials) and **Superseded-by (delivery):** [ADR-0023](./ADR-0023-wiki-only-graph.md) — the tracked `.obsidian/graph.json` delivery is replaced by regenerable-cache / gitignored `.obsidian/`
 - **Anchor:** §4 (Layer 1 — Data), §7 (provenance, non-negotiable)
 
 ## Context

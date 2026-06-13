@@ -1,8 +1,9 @@
 # ADR-0026: Bounded map-only parallel extract + host-owned scheduled upkeep
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-06-13
 - **Builds on:** PR #29 (string-identity alias/title resolver), [ADR-0024](./ADR-0024-host-project-intake.md) (recursive `backlog`-driven enumeration), [ADR-0018](./ADR-0018-offline-policy-and-degraded-mode-routing.md) (the `route` degrade single-home), [ADR-0010](./ADR-0010-durable-memory-carve-out.md) (the `_proposed/` review gate)
+- **Supersedes-with-conditions:** [ADR-0001](./ADR-0001-four-layer-orchestrator.md) — narrows the ingest specialist's INTERNAL execution only (map-phase fan-out below the orchestrator's one-fan-out rule); the orchestrator dispatch contract (exactly one Task per invocation) is UNCHANGED. Conditions: default `maxParallelExtract=1` byte-identical; workers read-only (Read,Glob,Grep); single sequential checkpointed writer owns all dedup and the sole `wiki/log.md` append.
 - **Anchor:** §5 (Layer 3 — Agents: orchestrator/ingest/maintenance specialists), §6 (Layer 1 — `raw/` immutability; `wiki/log.md` ordering)
 - **Roadmap:** `tmp/plan/wiki-perf-scheduling-roadmap.md` (Decisions D1–D18)
 

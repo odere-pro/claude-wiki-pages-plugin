@@ -2,6 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-06-05
+- **Amended by:** [ADR-0017](./ADR-0017-fabrication-floor-verbatim-partition.md) (fabrication floor — partitions extra claim pairs into invented (floored) vs over-citation (reported))
 - **SPEC anchor:** §5 (NO embeddings — precompiled wiki pages); Brief §5 (NO-RAG, absolute),
   decision #7 (model-agnostic, quality-gated Ollama path) / §11.7
 

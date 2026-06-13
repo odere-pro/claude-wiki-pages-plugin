@@ -4,6 +4,7 @@
 - **Date:** 2026-06-13
 - **Builds on:** [ADR-0003](./ADR-0003-polish-agent-and-obsidian-side.md) (Obsidian-side experience and graph-color ownership), [ADR-0022](./ADR-0022-folder-notes-and-graph-quality.md) (folder notes, canonical group order, headless fallback)
 - **Amends:** [ADR-0022](./ADR-0022-folder-notes-and-graph-quality.md) §4 — the layer pass is dropped; the canonical group order becomes topics → specials
+- **Supersedes (delivery mechanism):** [ADR-0022](./ADR-0022-folder-notes-and-graph-quality.md) — tracked `.obsidian/graph.json` (PR #23) replaced by regenerable cache; entire `.obsidian/` gitignored
 - **Anchor:** §4 (Layer 1 — Data), §9 (Obsidian-side experience)
 
 ## Context
