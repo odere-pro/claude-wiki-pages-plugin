@@ -9,6 +9,18 @@ children:
   - "[[Sync Workflow]]"
   - "[[Wired Source]]"
   - "[[sync-source.sh]]"
+  - "[[Vault Lifecycle]]"
+  - "[[Architecture Decision Record]]"
+  - "[[Baseline Arm]]"
+  - "[[Scaffolding Ablation]]"
+  - "[[Challenge Mode]]"
+  - "[[Onboarding Wizard]]"
+  - "[[Time-to-First-Value]]"
+  - "[[Backlog]]"
+  - "[[Doctor Command]]"
+  - "[[Heartbeat]]"
+  - "[[Installation]]"
+  - "[[Maintenance Loop]]"
 child_indexes: []
 tags: ["how-it-works", "sync", "wired-source", "skills", "workflows"]
 created: 2026-06-13

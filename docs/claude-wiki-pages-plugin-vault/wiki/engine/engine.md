@@ -23,6 +23,15 @@ children:
   - "[[Synonym Lexicon]]"
   - "[[Tier-2 Deterministic Recall]]"
   - "[[engine.sh]]"
+  - "[[Active Vault]]"
+  - "[[Deterministic Engine]]"
+  - "[[Durable Memory]]"
+  - "[[Fail-Closed]]"
+  - "[[Firewall]]"
+  - "[[Vault Resolution]]"
+  - "[[Golden Set]]"
+  - "[[Search Score Object]]"
+  - "[[Auto-Heal]]"
 child_indexes: []
 tags: ["engine", "implementation", "search", "cli"]
 created: 2026-06-13

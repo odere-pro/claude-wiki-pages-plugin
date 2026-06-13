@@ -8,6 +8,10 @@ children:
   - "[[Defense-in-Depth Scoping]]"
   - "[[Obsidian CLI Vault Scoping]]"
   - "[[obsidian-vault Skill]]"
+  - "[[Graph Config Cache]]"
+  - "[[Wiki-Only Graph]]"
+  - "[[Graph Coloring]]"
+  - "[[Obsidian Experience]]"
 child_indexes: []
 tags: ["obsidian", "cli", "vault-scoping", "firewall"]
 created: 2026-06-13

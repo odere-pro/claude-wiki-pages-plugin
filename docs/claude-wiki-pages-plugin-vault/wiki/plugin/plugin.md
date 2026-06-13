@@ -10,6 +10,23 @@ children:
   - "[[Plugin Dev-Time vs Runtime]]"
   - "[[Plugin Manifest]]"
   - "[[Single-Pass Dispatch]]"
+  - "[[Analyst Agent]]"
+  - "[[Brainstorming Team]]"
+  - "[[claude-wiki-pages (Plugin)]]"
+  - "[[Curator Agent]]"
+  - "[[Design Diagrams]]"
+  - "[[Engineering Team]]"
+  - "[[Four-Layer Stack]]"
+  - "[[Git Checkpoint]]"
+  - "[[Hook System]]"
+  - "[[Ingest Agent]]"
+  - "[[Maintenance Agent]]"
+  - "[[Orchestrator Agent]]"
+  - "[[Polish Agent]]"
+  - "[[Design-Drift Gate]]"
+  - "[[Parity Gate]]"
+  - "[[Plugin Arm]]"
+  - "[[Multi-Vault Registry]]"
 child_indexes: []
 tags: ["plugin", "architecture", "agents"]
 created: 2026-06-13

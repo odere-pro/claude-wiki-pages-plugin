@@ -4,7 +4,7 @@ type: concept
 aliases: ["Synthesis Note", "synthesis note", "synthesis notes", "_synthesis", "cross-topic analysis"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[User Guide 05: Export Outputs]]", "[[User Guide 07: Query the Wiki]]", "[[Analyst Agent]]"]
+sources: ["[[User Guide 05: Export Outputs]]", "[[User Guide 07: Query the Wiki]]", "[[Analyst Agent Source]]"]
 related: ["[[Analyst Agent]]", "[[Challenge Mode]]", "[[Query Rules]]", "[[Grounded Retrieval]]"]
 contradicts: []
 supersedes: []

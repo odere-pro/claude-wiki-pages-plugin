@@ -11,6 +11,15 @@ children:
   - "[[Dashboard Write Gate]]"
   - "[[Dual Entry Point]]"
   - "[[Six Surfaces Dual-Reader Contract]]"
+  - "[[Local Model Quality Gate]]"
+  - "[[NO-RAG Principle]]"
+  - "[[Software 3.0]]"
+  - "[[Verbatim Partition]]"
+  - "[[Wiki-Native Recall]]"
+  - "[[Zero-Fabrication Floor]]"
+  - "[[Approved Local Model]]"
+  - "[[Capability Tier]]"
+  - "[[Offline Policy]]"
 child_indexes: []
 tags: ["llm", "analyst", "modes", "dual-reader"]
 created: 2026-06-13

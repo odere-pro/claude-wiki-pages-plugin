@@ -8,6 +8,9 @@ children:
   - "[[Config Schema]]"
   - "[[Frontmatter Parser]]"
   - "[[Wikilink Extractor]]"
+  - "[[Node Grounding]]"
+  - "[[Ontology Profile v1]]"
+  - "[[Predicate Domain-Range Table]]"
 child_indexes: []
 tags: ["knowledge-graph", "typescript", "parsing", "implementation"]
 created: 2026-06-13
