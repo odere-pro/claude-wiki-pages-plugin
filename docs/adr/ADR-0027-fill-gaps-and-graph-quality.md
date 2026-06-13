@@ -1,4 +1,4 @@
-# ADR-0026: Fill-gaps capability — a skill that materializes a workflow, plus a graph-quality detector
+# ADR-0027: Fill-gaps capability — a skill that materializes a workflow, plus a graph-quality detector
 
 - **Status:** Accepted
 - **Date:** 2026-06-13

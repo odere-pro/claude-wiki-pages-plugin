@@ -48,4 +48,4 @@ ingest and never auto-fires.
 ## Specification anchor
 
 Skill: [`skills/fill-gaps/SKILL.md`](../skills/fill-gaps/SKILL.md). Decision
-record: [`docs/adr/ADR-0026-fill-gaps-and-graph-quality.md`](../docs/adr/ADR-0026-fill-gaps-and-graph-quality.md).
+record: [`docs/adr/ADR-0027-fill-gaps-and-graph-quality.md`](../docs/adr/ADR-0027-fill-gaps-and-graph-quality.md).
