@@ -157,18 +157,23 @@ what is missing.
    (or plain `git init` + an initial commit when Bun is absent) and re-assert
    before continuing — git coverage is the safety net every later write
    depends on.
-3c. **Offer to wire the project as a docs source (optional).** When the
-   project root is a git work tree, ask the user:
-   _"Wire this project as a docs source? The wiki will snapshot the project's
-   markdown docs (README, docs/, ADRs — never source code) into `raw/wired/`
-   and `/claude-wiki-pages:sync` will pick up future changes."_
+3c. **Project intake — the "set up the wiki for this repo" choice.** When the
+   project root is a git work tree, present this as an explicit choice (it is
+   what a user means by "generate a vault for the project"), not a buried
+   option:
+   _"Ingest this whole project's docs into the wiki? I'll snapshot the
+   project's markdown docs (README, docs/, ADRs/RFCs — never source code) into
+   `raw/wired/` and turn them into wiki pages. `/claude-wiki-pages:sync` keeps
+   them current later. (Or skip and start with the bundled sample source.)"_
    On yes, run
    `bash ${CLAUDE_PLUGIN_ROOT}/scripts/wire-source.sh add --vault <vault>`.
    This registers the wired source in settings.json and runs the initial pull;
-   the snapshots land under `<vault>/raw/wired/<name>/`, so `ingest_pending`
-   flips true naturally and the orchestrator chains ingest on the next
-   `/claude-wiki-pages:wiki`. On no (or when the project is not a git repo),
-   skip silently — wiring is available later via the same command.
+   the snapshots land **nested** under `<vault>/raw/wired/<name>/`, so
+   `ingest_pending` flips true naturally and the orchestrator chains ingest on
+   the next `/claude-wiki-pages:wiki`. The ingest agent enumerates pending
+   sources recursively (via `engine.sh backlog`), so these nested docs are
+   picked up — not just top-level `raw/` files. On no (or when the project is
+   not a git repo), skip — wiring is available later via the same command.
 4. **Schema check.** Confirm `<project>/<vault>/CLAUDE.md` starts with
    `schema_version: 2`. Step 3 already copies it when absent; if it exists
    but is missing the version header, stamp the correct frontmatter; do not

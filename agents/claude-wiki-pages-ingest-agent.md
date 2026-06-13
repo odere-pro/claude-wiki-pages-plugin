@@ -58,14 +58,45 @@ Before Step 1:
 
 Read raw sources and produce structured wiki pages per the schema in `vault/CLAUDE.md`.
 
+### 1.0 Project intake (only when the payload carries `wire_project: true`)
+
+The orchestrator sets `wire_project: true` when the user asked to ingest the
+whole repo ("generate the vault for this project", "wiki all my docs"). Before
+enumerating sources, stage the host project's docs:
+
+```
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/wire-source.sh add --vault <vault>
+```
+
+This registers the project as a **docs-only** wired source (README, `docs/`,
+ADRs/RFCs — never source code) and pulls an immutable snapshot into
+`raw/wired/<name>/`. It is idempotent: re-running picks up only changed/new
+docs. Report the snapshot count, then continue to Step 1.1 — the recursive
+enumeration there picks the nested snapshots up. When the payload does not set
+`wire_project`, skip this step entirely. (If the host is not a git work tree,
+`wire-source.sh` exits non-zero; report that wiring was skipped and proceed
+with whatever is already in `raw/`.)
+
 ### 1.1 Identify unprocessed sources
 
+Ask the engine — it is the single source of truth for what is pending, and it
+already enumerates `raw/` **recursively** (so wired/nested sources under
+`raw/wired/<name>/…` are included), excludes `raw/assets/`, and dedupes against
+the log/manifest:
+
 ```
-Glob vault/raw/*.md
-Read vault/wiki/log.md
+bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh backlog --target <vault> --json
 ```
 
-A source is unprocessed if its filename does not appear in any `## [...] ingest |` log entry. Exclude `raw/assets/`. If more than 25 are unprocessed, take the first 25 alphabetically and report the remainder as backlog in the final report.
+Take the pending sources from `.pendingRaw[]` (paths relative to the vault).
+**Fallback when Bun is unavailable** (engine prints a degraded warning): list
+sources with a recursive `find`, never a top-level glob —
+`find "$VAULT/raw" -type f -name '*.md' -not -path '*/assets/*' -not -name '.*'`
+— then drop any whose filename already appears in a `## [...] ingest |`
+`vault/wiki/log.md` entry. (Both paths agree: a top-level `Glob raw/*.md` would
+silently skip every wired/nested source — do not use it.)
+
+If more than 25 are unprocessed, take the first 25 alphabetically and report the remainder as backlog in the final report.
 
 ### 1.2 Read each source completely
 

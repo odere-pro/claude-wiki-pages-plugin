@@ -521,10 +521,12 @@ vault_list() {
     fi
 
     if [ "$show_status" -eq 1 ]; then
-      # Count pending raw/ files (0 if raw/ absent)
+      # Count raw/ source files (0 if raw/ absent). Recurse so wired/nested
+      # sources under raw/wired/<name>/ are counted; exclude assets/ and
+      # dotfiles, matching the engine's recursive source enumeration.
       local raw_count=0
       if [ -d "$path/raw" ]; then
-        raw_count=$(find "$path/raw" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
+        raw_count=$(find "$path/raw" -type f -not -path '*/assets/*' -not -name '.*' 2>/dev/null | wc -l | tr -d ' ')
       fi
 
       # Last log.md operation: extract last "## [YYYY-MM-DD] VERB" heading
