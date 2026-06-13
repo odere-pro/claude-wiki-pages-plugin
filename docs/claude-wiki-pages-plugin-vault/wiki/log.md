@@ -285,4 +285,8 @@ Found 1 error, 2 warnings, 2 info. Engine repaired 0 (vault already clean). Auto
 
 - pre-state: ac2105a
 - rollback: git revert the snapshot commit below
+## [2026-06-13] snapshot | polish (snap-20260613232655)
+
+- pre-state: 0d63d5c
+- rollback: git revert the snapshot commit below
 

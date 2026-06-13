@@ -29,17 +29,17 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 
 ## Topic Folders
 
-- [[architecture]] — 14 pages, last updated 2026-06-13
-- [[decisions]] — 7 pages, last updated 2026-06-13
-- [[engine]] — 15 pages, last updated 2026-06-13
-- [[guides]] — 9 pages, last updated 2026-06-13
+- [[architecture]] — 21 pages, last updated 2026-06-13
+- [[decisions]] — 19 pages, last updated 2026-06-13
+- [[engine]] — 18 pages, last updated 2026-06-13
+- [[guides]] — 13 pages, last updated 2026-06-13
 - [[how-it-works]] — 4 pages, last updated 2026-06-13
 - [[knowledge-graph]] — 3 pages, last updated 2026-06-13
 - [[llm]] — 6 pages, last updated 2026-06-13
 - [[obsidian]] — 3 pages, last updated 2026-06-13
 - [[plugin]] — 5 pages, last updated 2026-06-13
-- [[reference]] — 7 pages, last updated 2026-06-13
-- [[wiki-pages]] — 3 pages, last updated 2026-06-13
+- [[reference]] — 14 pages, last updated 2026-06-13
+- [[wiki-pages]] — 4 pages, last updated 2026-06-13
 
 ## Hub Pages
 
