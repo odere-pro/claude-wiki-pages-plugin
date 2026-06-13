@@ -3,6 +3,7 @@
 - **Status:** Accepted (2026-06-11)
 - **Date:** 2026-06-11
 - **Builds on:** [ADR-0011](./ADR-0011-local-model-quality-gate.md) (the per-tier quality gate) and [ADR-0017](./ADR-0017-fabrication-floor-verbatim-partition.md) (the fabrication floor)
+- **Amended by:** [ADR-0019](./ADR-0019-query-tier-and-answer-verification.md) (adds the `query` tier to `localModel.tier` and a `query` row to `APPROVED_LOCAL_MODELS_BY_TIER`)
 - **Anchor:** §5 (NO-RAG, absolute); §6 (one `_proposed/` write channel); §7 (provenance, non-negotiable); Decision #7 (local LLM draft-only now, full Claude→Ollama swap is the north star, gated)
 
 ## Context
@@ -43,6 +44,7 @@ Wire the two already-declared fields into the engine config
   is unreachable (no local fallback); `prefer-local` routes an eligible task to
   an approved local tier when Claude is unreachable.
 - `localModel.tier ∈ { draft, ingest-extract }`, default **`draft`**.
+  (Extended by [ADR-0019](./ADR-0019-query-tier-and-answer-verification.md), which adds the read-only `query` tier to this enum.)
 
 Defaults are the **safest**, not the most capable: `off` guarantees zero network
 at SessionStart unless explicitly opted in, and `draft` is the narrowest tier —

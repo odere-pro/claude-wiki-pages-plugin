@@ -185,3 +185,135 @@ describe("checkLocalModelApproval (ADR-0011 / ADR-0017 / ADR-0018 per-tier allow
     expect(errs.length).toBeGreaterThan(0);
   });
 });
+
+describe("maintenance.maxParallelExtract (P1-A5, D6/D7)", () => {
+  test("default resolves to 1 from DEFAULT_CONFIG", () => {
+    expect(DEFAULT_CONFIG.maintenance.maxParallelExtract).toBe(1);
+  });
+
+  test("project config override survives the merge", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    mkdirSync(join(root, ".claude"), { recursive: true });
+    writeFileSync(
+      join(root, ".claude/claude-wiki-pages.json"),
+      JSON.stringify({ maintenance: { maxParallelExtract: 4 } }),
+    );
+    const { config } = loadConfig({ cwd: root, env: { HOME: root } });
+    expect(config.maintenance.maxParallelExtract).toBe(4);
+    expect(config.maintenance.maxPerRun).toBe(10); // untouched key survives
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("value 0 clamps to 1 (below-minimum)", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    mkdirSync(join(root, ".claude"), { recursive: true });
+    writeFileSync(
+      join(root, ".claude/claude-wiki-pages.json"),
+      JSON.stringify({ maintenance: { maxParallelExtract: 0 } }),
+    );
+    const { config } = loadConfig({ cwd: root, env: { HOME: root } });
+    expect(config.maintenance.maxParallelExtract).toBe(1);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("value -1 clamps to 1 (negative)", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    mkdirSync(join(root, ".claude"), { recursive: true });
+    writeFileSync(
+      join(root, ".claude/claude-wiki-pages.json"),
+      JSON.stringify({ maintenance: { maxParallelExtract: -1 } }),
+    );
+    const { config } = loadConfig({ cwd: root, env: { HOME: root } });
+    expect(config.maintenance.maxParallelExtract).toBe(1);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("value 999 clamps to 8 (above-maximum)", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    mkdirSync(join(root, ".claude"), { recursive: true });
+    writeFileSync(
+      join(root, ".claude/claude-wiki-pages.json"),
+      JSON.stringify({ maintenance: { maxParallelExtract: 999 } }),
+    );
+    const { config } = loadConfig({ cwd: root, env: { HOME: root } });
+    expect(config.maintenance.maxParallelExtract).toBe(8);
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("validateConfig accepts the valid range [1,8]", () => {
+    const schema = {
+      properties: {
+        maintenance: {
+          type: "object",
+          properties: {
+            maxParallelExtract: { type: "integer", minimum: 1, maximum: 8 },
+          },
+        },
+      },
+    };
+    expect(validateConfig(DEFAULT_CONFIG, schema)).toEqual([]);
+    const at8 = {
+      ...DEFAULT_CONFIG,
+      maintenance: { ...DEFAULT_CONFIG.maintenance, maxParallelExtract: 8 },
+    };
+    expect(validateConfig(at8, schema)).toEqual([]);
+  });
+});
+
+describe("maintenance.unattended (P1-B1, D13)", () => {
+  test("default is false in DEFAULT_CONFIG", () => {
+    expect(DEFAULT_CONFIG.maintenance.unattended).toBe(false);
+  });
+
+  test("project config can enable unattended", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    mkdirSync(join(root, ".claude"), { recursive: true });
+    writeFileSync(
+      join(root, ".claude/claude-wiki-pages.json"),
+      JSON.stringify({ maintenance: { unattended: true } }),
+    );
+    const { config } = loadConfig({ cwd: root, env: { HOME: root } });
+    expect(config.maintenance.unattended).toBe(true);
+    expect(config.maintenance.enabled).toBe(false); // orthogonal field survives
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("env override sets unattended via coercion", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    const { config } = loadConfig({
+      cwd: root,
+      env: { HOME: root, CLAUDE_WIKI_PAGES_MAINTENANCE_UNATTENDED: "true" },
+    });
+    expect(config.maintenance.unattended).toBe(true);
+    rmSync(root, { recursive: true, force: true });
+  });
+});
+
+describe("maintenance.syncWiredOnRun (P1-B3, D15)", () => {
+  test("default is false in DEFAULT_CONFIG", () => {
+    expect(DEFAULT_CONFIG.maintenance.syncWiredOnRun).toBe(false);
+  });
+
+  test("project config can enable syncWiredOnRun", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    mkdirSync(join(root, ".claude"), { recursive: true });
+    writeFileSync(
+      join(root, ".claude/claude-wiki-pages.json"),
+      JSON.stringify({ maintenance: { syncWiredOnRun: true } }),
+    );
+    const { config } = loadConfig({ cwd: root, env: { HOME: root } });
+    expect(config.maintenance.syncWiredOnRun).toBe(true);
+    expect(config.maintenance.unattended).toBe(false); // orthogonal field survives
+    rmSync(root, { recursive: true, force: true });
+  });
+
+  test("env override sets syncWiredOnRun via coercion", () => {
+    const root = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
+    const { config } = loadConfig({
+      cwd: root,
+      env: { HOME: root, CLAUDE_WIKI_PAGES_MAINTENANCE_SYNCWIREDONRUN: "true" },
+    });
+    expect(config.maintenance.syncWiredOnRun).toBe(true);
+    rmSync(root, { recursive: true, force: true });
+  });
+});

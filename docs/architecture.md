@@ -10,7 +10,7 @@ Most LLM-wiki implementations are one layer: a prompt and a folder convention. T
 | -------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------- |
 | **1. Data**          | Immutable sources + wiki schema                          | `docs/vault-example/raw/`, `docs/vault-example/wiki/`, `docs/vault-example/CLAUDE.md` |
 | **2. Skills**        | Individual capabilities invoked by the human or an agent | `skills/` (23 skills)                                                  |
-| **3. Agents**        | Multi-step executors that orchestrate skills             | `agents/` (7 agents)                                                   |
+| **3. Agents**        | Multi-step executors that orchestrate skills             | `agents/` (8 agents)                                                   |
 | **4. Orchestration** | Hooks, rules, provenance guards                          | `hooks/hooks.json`, `scripts/`, `rules/`                               |
 
 ### 1. Data

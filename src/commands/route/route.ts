@@ -10,6 +10,13 @@
  * consults this decision; it never re-derives it.
  *
  *   route --ollama up|down --claude reachable|unreachable [--json]
+ *
+ * P1-A6: The report also carries `parallelExtract: {requested, effective, reason}`,
+ * the observable degrade-ladder decision for bounded parallel EXTRACT (D10).
+ * `requested` is maintenance.maxParallelExtract (default 1 when unset — Lane B
+ * adds the config leaf in P1-A5; this code reads it defensively). `effective` is
+ * NEVER >1 in any non-claude tier or at the default; each tier is a separate,
+ * independently-tested rule.
  */
 
 import { buildReport, type Report, type Finding } from "../../core/report.ts";
@@ -17,11 +24,37 @@ import { loadConfig, checkLocalModelApproval, type Config } from "../../data/con
 
 export type RouteDecision = "claude" | "local" | "blocked";
 
+/**
+ * The parallel-extract degrade decision (P1-A6 / D10).
+ * `requested` reflects maintenance.maxParallelExtract (1 when unset/default).
+ * `effective` is NEVER >1 for any degraded tier; each tier is a separate rule.
+ */
+export interface ParallelExtractDecision {
+  /** Value of maintenance.maxParallelExtract; 1 when the key is unset/default. */
+  readonly requested: number;
+  /**
+   * The number of parallel extract workers that will actually run.
+   * Equals `requested` only when `route == "claude"` AND `requested > 1`.
+   * All other cases clamp to 1 (degrade-to-sequential).
+   */
+  readonly effective: number;
+  /**
+   * Human-readable rationale:
+   * - "claude"             — Claude route; requested concurrency honoured.
+   * - "default-sequential" — requested is 1 (unset/default); no parallelism.
+   * - "local — degrade-to-sequential"   — local model route; must be sequential.
+   * - "blocked — degrade-to-sequential" — blocked route; must be sequential.
+   */
+  readonly reason: string;
+}
+
 export interface RouteReport extends Report {
   readonly decision: RouteDecision;
   readonly reason: string;
   readonly tier: Config["localModel"]["tier"];
   readonly offlinePolicy: Config["localModel"]["offlinePolicy"];
+  /** Additive parallel-extract degrade decision (P1-A6). JSON-only; no text render. */
+  readonly parallelExtract: ParallelExtractDecision;
 }
 
 export interface RouteOptions {
@@ -81,6 +114,41 @@ export function decideRoute(
   };
 }
 
+/**
+ * Pure parallel-extract degrade-ladder decision (P1-A6 / D10).
+ *
+ * Rules (each tier is a separate, independently-tested case):
+ * 1. `requested` is `maxParallelExtract` from config; `undefined` → 1 (unset/default).
+ * 2. When `requested === 1` (unset or explicitly 1): effective=1, reason="default-sequential".
+ * 3. When `requested > 1` AND route is "claude": effective=requested, reason="claude".
+ * 4. When `requested > 1` AND route is "local":   effective=1, reason="local — degrade-to-sequential".
+ * 5. When `requested > 1` AND route is "blocked":  effective=1, reason="blocked — degrade-to-sequential".
+ *
+ * `effective` is NEVER >1 in any non-claude tier — this is the degrade-to-sequential invariant.
+ */
+export function decideParallelExtract(
+  maxParallelExtract: number | undefined,
+  decision: RouteDecision,
+): ParallelExtractDecision {
+  const requested = maxParallelExtract ?? 1;
+
+  // Case 1: unset or default (1) — no parallelism regardless of route.
+  if (requested === 1) {
+    return Object.freeze({ requested, effective: 1, reason: "default-sequential" });
+  }
+
+  // Cases 2–4: requested > 1, outcome depends on the routing decision.
+  if (decision === "claude") {
+    return Object.freeze({ requested, effective: requested, reason: "claude" });
+  }
+  // "local" or "blocked" — degrade-to-sequential.
+  return Object.freeze({
+    requested,
+    effective: 1,
+    reason: `${decision} — degrade-to-sequential`,
+  });
+}
+
 export function route(opts: RouteOptions = {}): RouteReport {
   const { config } = loadConfig({ cwd: opts.cwd });
   const policy = config.localModel.offlinePolicy;
@@ -99,10 +167,19 @@ export function route(opts: RouteOptions = {}): RouteReport {
 
   const { decision, reason } = decideRoute(policy, claudeReachable, tierApproved, ollamaUp);
 
+  // P1-A6: read maintenance.maxParallelExtract defensively — the key is added by
+  // Lane B (P1-A5). Until that lands, the field is absent and we default to 1.
+  // The type cast is intentional: Config.maintenance does not yet declare this
+  // key; Lane B will add it to the interface and the schema in P1-A5.
+  const maxParallelExtract = (config.maintenance as Record<string, unknown>)[
+    "maxParallelExtract"
+  ] as number | undefined;
+  const parallelExtract = decideParallelExtract(maxParallelExtract, decision);
+
   // A BLOCKED decision is an error-severity finding so exitCode() returns 1
   // (fail-closed), exactly like `config` and `firewall`.
   const findings: readonly Finding[] =
     decision === "blocked" ? [{ severity: "error", check: "route", message: reason }] : [];
   const base = buildReport("route", "", findings);
-  return Object.freeze({ ...base, decision, reason, tier, offlinePolicy: policy });
+  return Object.freeze({ ...base, decision, reason, tier, offlinePolicy: policy, parallelExtract });
 }

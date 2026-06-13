@@ -113,7 +113,24 @@
         "autoCatchupOnSessionStart": { "type": "boolean", "default": true },
         "lintEveryDays": { "type": "integer", "minimum": 1, "default": 7 },
         "maxPerRun": { "type": "integer", "minimum": 1, "maximum": 50, "default": 10 },
-        "cooldownMinutes": { "type": "integer", "minimum": 0, "default": 60 }
+        "cooldownMinutes": { "type": "integer", "minimum": 0, "default": 60 },
+        "maxParallelExtract": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8,
+          "default": 1,
+          "description": "Cap on parallel EXTRACT workers during ingest. Default 1 = byte-identical sequential output. Engine clamps out-of-range values to [1,8]. Raise only for K≥20 sources where wall-clock matters; at =1 the output is guaranteed byte-identical to pre-feature baseline (P1-A5, D6/D7)."
+        },
+        "unattended": {
+          "type": "boolean",
+          "default": false,
+          "description": "Headless/scheduled maintenance mode. When true: Step 3 Optimize is skipped; uncertain output (derived:true or confidence<0.8) routes to _proposed/ not wiki/; non-trivial topic-tree plans abort cleanly to backlog. Never auto-promotes drafts. Bounded by maxPerRun (D13, P1-B1)."
+        },
+        "syncWiredOnRun": {
+          "type": "boolean",
+          "default": false,
+          "description": "Opt-in network: when true, the maintenance helper pulls already-wired remotes via sync-source.sh before the catch-up loop. Default false = no network calls during scheduled runs (D15, P1-B3)."
+        }
       }
     },
     "modelHints": {

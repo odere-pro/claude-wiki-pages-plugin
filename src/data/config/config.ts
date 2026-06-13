@@ -33,6 +33,12 @@ export interface Config {
     readonly lintEveryDays: number;
     readonly maxPerRun: number;
     readonly cooldownMinutes: number;
+    /** Cap on parallel EXTRACT workers during ingest; default 1 = byte-identical to sequential (D6/D7, P1-A5). Clamped to [1,8]. */
+    readonly maxParallelExtract: number;
+    /** When true, maintenance runs headless: skip Step 3 Optimize, route uncertain output to _proposed/, abort non-trivial topic-tree plans (D13, P1-B1). */
+    readonly unattended: boolean;
+    /** When true, pull already-wired remotes via sync-source.sh before the maintenance loop; default false = no network (D15, P1-B3). */
+    readonly syncWiredOnRun: boolean;
   };
   readonly localModel: {
     readonly enabled: boolean;
@@ -64,6 +70,9 @@ export const DEFAULT_CONFIG: Config = {
     lintEveryDays: 7,
     maxPerRun: 10,
     cooldownMinutes: 60,
+    maxParallelExtract: 1,
+    unattended: false,
+    syncWiredOnRun: false,
   },
   localModel: {
     enabled: false,
@@ -92,6 +101,9 @@ const ENV_MAP: Record<string, Leaf> = {
   CLAUDE_WIKI_PAGES_FIREWALL_MODE: ["firewall", "mode"],
   CLAUDE_WIKI_PAGES_MAINTENANCE_ENABLED: ["maintenance", "enabled"],
   CLAUDE_WIKI_PAGES_MAINTENANCE_LINTEVERYDAYS: ["maintenance", "lintEveryDays"],
+  CLAUDE_WIKI_PAGES_MAINTENANCE_MAXPARALLELEXTRACT: ["maintenance", "maxParallelExtract"],
+  CLAUDE_WIKI_PAGES_MAINTENANCE_UNATTENDED: ["maintenance", "unattended"],
+  CLAUDE_WIKI_PAGES_MAINTENANCE_SYNCWIREDONRUN: ["maintenance", "syncWiredOnRun"],
   CLAUDE_WIKI_PAGES_LOCALMODEL_ENABLED: ["localModel", "enabled"],
   CLAUDE_WIKI_PAGES_LOCALMODEL_MODEL: ["localModel", "model"],
   CLAUDE_WIKI_PAGES_LOCALMODEL_TIER: ["localModel", "tier"],
@@ -141,17 +153,38 @@ function deepMerge<T>(base: T, over: Record<string, unknown> | null): T {
   return out as T;
 }
 
+const MAX_PARALLEL_EXTRACT_MIN = 1;
+const MAX_PARALLEL_EXTRACT_MAX = 8;
+
+function clampMaxParallelExtract(n: number): number {
+  return Math.min(MAX_PARALLEL_EXTRACT_MAX, Math.max(MAX_PARALLEL_EXTRACT_MIN, Math.round(n)));
+}
+
 function coerce(path: string, value: string): unknown {
   if (
     path === "autoHeal.enabled" ||
     path === "firewall.enabled" ||
     path === "maintenance.enabled" ||
+    path === "maintenance.unattended" ||
+    path === "maintenance.syncWiredOnRun" ||
     path === "localModel.enabled"
   )
     return value === "true" || value === "1";
   if (path === "autoHeal.maxIterations" || path === "maintenance.lintEveryDays")
     return Number(value);
+  if (path === "maintenance.maxParallelExtract") return clampMaxParallelExtract(Number(value));
   return value;
+}
+
+/** Apply range clamps and type coercions to a fully-merged config object. */
+function normalizeConfig(config: Config): Config {
+  const raw = config.maintenance.maxParallelExtract;
+  const clamped = clampMaxParallelExtract(typeof raw === "number" ? raw : 1);
+  if (clamped === config.maintenance.maxParallelExtract) return config;
+  return {
+    ...config,
+    maintenance: { ...config.maintenance, maxParallelExtract: clamped },
+  };
 }
 
 function applyEnv(config: Config, env: Record<string, string | undefined>): Config {
@@ -180,6 +213,7 @@ export function loadConfig(
   let config = deepMerge(DEFAULT_CONFIG, user);
   config = deepMerge(config, project);
   config = applyEnv(config, env);
+  config = normalizeConfig(config);
   return {
     config,
     paths,

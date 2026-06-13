@@ -1,8 +1,9 @@
 # ADR-0002: Agent naming convention — `{plugin-name}-{role}-agent`
 
-- **Status:** Proposed
+- **Status:** Accepted
 - **Date:** 2026-05-02
 - **SPEC anchor:** §11 (agent contracts), §VOCABULARY architecture-terms
+- **Rename note:** the plugin id was globally renamed `llm-wiki-stack` → `claude-wiki-pages` after this ADR. The worked examples below retain the retired `llm-wiki-stack` id (e.g. `/llm-wiki-stack:wiki`, `llm-wiki-stack-*-agent`); read them against the live `claude-wiki-pages` id. The immutable example rows are not rewritten.
 
 ## Context
 

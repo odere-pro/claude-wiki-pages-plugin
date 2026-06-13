@@ -92,5 +92,17 @@ if [ -n "$JSON" ] && command -v jq >/dev/null 2>&1; then
   done < <(printf '%s' "$JSON" | jq -r '(.wiredChanges // [])[] | "\(.name)|\(.changed)"' 2>/dev/null)
 fi
 
+# P1-B5: Advisory when backlog exists but unattended scheduling is not enabled.
+# Helps the operator discover maintenance-run.sh without being prescriptive.
+# Emitted only when the heartbeat is already surfacing something (NEEDS=true),
+# so it never adds noise to a clean vault.
+if [ "$NEEDS" = "true" ]; then
+  UNATTENDED=$(cfg_scalar '.maintenance.unattended')
+  if [ "$UNATTENDED" != "true" ]; then
+    echo "MAINTENANCE: ${PENDING} pending; enable scheduled upkeep: set maintenance.unattended=true and run bash scripts/maintenance-run.sh on a cron schedule. See docs/automation.md."
+    EMITTED=1
+  fi
+fi
+
 [ "$EMITTED" -eq 1 ] && [ "$NOW" -ne 0 ] && printf '%s' "$NOW" >"$STAMP" 2>/dev/null
 exit 0

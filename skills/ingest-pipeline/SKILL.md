@@ -121,6 +121,112 @@ Review the plan. Options:
 Plan at vault/output/_pipeline-plan-YYYY-MM-DD.md. N sources left unprocessed.
 ```
 
+## Parallel-extract fan-out and EXTRACT envelope (P1-A2, P1-A3, P1-A4)
+
+This section documents the map-only parallel-extract design for the
+`claude-wiki-pages-ingest-agent`. The ingest-agent reads this section at
+Step 1.2b. All invariants below are gate-tested by
+`tests/scripts/extract-worker-frontmatter.bats` and the determinism replay
+gate (P1-A8).
+
+### Typed EXTRACT envelope
+
+An extract worker returns a fenced YAML block (`extract_envelope:`) in its
+text response. The envelope carries:
+
+- **`source_path`** — the assigned raw source path (relative to vault).
+- **`items[]`** — extracted entities, concepts, topics, projects, and
+  synthesis candidates, each carrying:
+  - `slug_candidate` — kebab-case hint; the writer canonicalizes via the
+    two-pass alias-aware dedup (I2, `skills/ingest/SKILL.md`).
+  - `type` — legal value from `ontology-profile-v1` in `vault/CLAUDE.md`.
+  - `entity_type` — required when `type: entity`; legal value from the same
+    profile.
+  - `title`, `summary`, `source_quotes[]`, `confidence`, `derived`.
+  - `out_of_enum: true` + `review_reason` when no legal type fits (the
+    writer routes these to `_proposed/`).
+- **`predicates[]`** — typed relationships (`subject_candidate`,
+  `predicate`, `object_candidate`).
+- **`implied_folders[]`** — folder/index nodes implied by new topics.
+- **`source_note`** — title, author, publisher, date, url, summary, key
+  claims for the source summary page.
+- **`error`** — empty on success; non-empty signals worker failure
+  (SKIP-AND-BACKLOG).
+
+Workers return `{slug_candidate, extracted content}` only — **never a
+create/update verdict** and **never a final slug**. Create vs update and
+slug canonicalization are the single writer's exclusive responsibilities.
+
+### Closed-vocabulary enforcement
+
+Every `type` and `entity_type` in the envelope must be a legal value drawn
+from `ontology-profile-v1` in `vault/CLAUDE.md`. Workers must not invent
+out-of-enum values. When an item has no legal type, workers set
+`out_of_enum: true` + `review_reason`; the writer routes those items to
+`_proposed/` with the reason logged, and they are never written directly to
+`wiki/` with a guessed heading.
+
+### Single-writer dedup and coalesce contract
+
+The ingest-agent (the single writer) is the only entity that creates or
+updates wiki pages. It receives N envelopes (one per source) and:
+
+1. **Two-pass alias-aware dedup (I2).** For each `slug_candidate` in the
+   envelopes, run the two-pass existence check defined in
+   `skills/ingest/SKILL.md` ("Dedup: two-pass existence check"):
+   - Pass 1: exact title match (case-insensitive) against existing pages.
+   - Pass 2: alias match against existing pages' `aliases` fields.
+   If either pass matches, this is an **update** (additive merge);
+   otherwise it is a **create**.
+
+2. **Cross-envelope coalesce.** Multiple envelopes may propose the same
+   entity (different sources, different alias forms). Before deciding
+   create vs update, group all envelope items by canonical title (after
+   applying the string-identity resolver from PR #29). For each group:
+   - **Union `sources`** — every contributing source appears in the
+     final page's `sources` list.
+   - **Union `related`** — all cross-references are preserved.
+   - **`max()` confidence** — take the highest confidence value from
+     contributing items (the reinforce rule: more sources = more
+     confident).
+   - **`derived: true` only if ALL contributors are derived** — if any
+     contributor is non-derived, the merged page is non-derived.
+   - **Stable sort by canonical title** — ensures byte-identical output
+     regardless of envelope arrival order.
+
+3. **Execute in stable canonical-title order.** Apply creates and updates
+   in this fixed order. The result is byte-identical at `maxParallelExtract=1`
+   vs N with shuffled worker returns because the sort is stable over the
+   canonical title key, which does not depend on arrival order.
+
+4. **Log once per source.** The single writer appends to `wiki/log.md`
+   and is the only appender (ordered `wiki/log.md` invariant from TEAM-BRIEF §5).
+
+### Byte-identical guarantee
+
+At `maxParallelExtract=1`, no Task fan-out occurs; the agent reads and
+extracts inline — output is byte-identical to the pre-feature baseline. At
+`maxParallelExtract>1` with shuffled worker return order, the stable-sort
+coalesce ensures the written pages and `log.md` source order are
+byte-identical to the `=1` run. This is the mechanical determinism
+guarantee required by D5/D8.
+
+### SKIP-AND-BACKLOG on worker failure (OQ-5)
+
+When an extract worker fails (missing envelope block, non-empty `error`
+field, or timeout), the ingest-agent:
+
+1. Records that source as unprocessed backlog (not as a processed source in
+   `wiki/log.md`).
+2. Continues applying all successfully validated envelopes.
+3. The single `snapshot.sh post` at Step 1.9 covers exactly the applied
+   subset — it is a single revertible unit.
+4. The final report lists failed sources under "Worker failures" with the
+   error reason.
+
+This matches the existing 25-cap-then-backlog semantics: forward progress
+is preserved and the snapshot range remains revertible.
+
 ## Step 3 — Optimize (opt-in, destructive)
 
 **This step restructures folders with `git mv` and rewrites `parent:`/`path:` across many pages. It requires explicit user confirmation.**
