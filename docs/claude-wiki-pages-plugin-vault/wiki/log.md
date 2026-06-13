@@ -254,3 +254,23 @@ Found 8 errors, 34 warnings, 0 info. Engine repaired 4 (sync-children on archite
 - pre-state: cd5fe63
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] fill-gaps | Enrich thin pages
+
+Identified 7 content pages under 50 lines (entity/concept pages; folder notes excluded). Updated each using existing `sources:` and staged `raw/repo/` material for engine, llm, obsidian, and sync topics.
+
+Pages enriched:
+- [[engine.sh]] (42→77 lines) — added degraded-mode capability table, hot-path callers, 16-verb list
+- [[cli.ts]] (39→99 lines) — added full verb table, CLI flags table, integration context, test harness note
+- [[Plugin Manifest]] (41→75 lines) — added schema-version compatibility table, hook entry point contract, "what is not in the manifest" section
+- [[Wired Source]] (44→80 lines) — added registration mechanics table, settings.json fields, full lifecycle steps
+- [[obsidian-vault Skill]] (45→76 lines) — added graph color primary use case, headless fallback warning, "why both a skill and a hook" explanation
+- [[Porter Stemmer]] (46→88 lines) — added 5-step algorithm table, integration code path, scoring weight context
+- [[Tier-2 Deterministic Recall]] (47→99 lines) — added scoring weight table, three-channel architecture diagram, graph traversal complement section
+- [[sync-source.sh]] (36→72 lines) — added snapshot filename pattern, checksum dedup detail, relationship-to-pipeline diagram, idempotent pull contract
+
+Sources used: [[Engine Scripts Layer (CLAUDE.md)]], [[Engine API Skill (SKILL.md)]], [[Sync Skill (SKILL.md)]], [[Obsidian Vault Skill (SKILL.md)]], [[cli.ts Source]], [[engine.sh Source]]. No new pages created; no new dangling links introduced.
+## [2026-06-13] snapshot | fill-gaps: enrich thin pages (snap-20260613231528)
+
+- pre-state: dd9f39c
+- rollback: git revert the snapshot commit below
+
