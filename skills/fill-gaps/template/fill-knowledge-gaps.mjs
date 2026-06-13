@@ -1,14 +1,9 @@
 export const meta = {
   name: 'fill-knowledge-gaps',
   description:
-    "Drives the claude-wiki-pages agents + engine to complete a vault: stages curated repo " +
-    "sources, ingests them by topic, authors topic hub pages, resolves every dangling " +
-    "wikilink, enriches thin pages, then heals + polishes + verifies — proving a zero-dangling, " +
-    "hub-concentrated knowledge graph. Sequential write phases; read-only measurement gates. " +
-    "Materialized into a project by the /claude-wiki-pages:fill-gaps skill.",
+    "Drives the claude-wiki-pages agents + engine to complete a vault: stages curated repo sources, ingests them by topic, authors topic hub pages, resolves every dangling wikilink, enriches thin pages, then heals + polishes + verifies — proving a zero-dangling, hub-concentrated knowledge graph. Sequential write phases; read-only measurement gates. Materialized into a project by the /claude-wiki-pages:fill-gaps skill.",
   whenToUse:
-    "When a wiki has dangling [[links]] (empty graph nodes) or thin coverage and you want a " +
-    "complete, topic-clustered wiki without authoring pages by hand.",
+    "When a wiki has dangling [[links]] (empty graph nodes) or thin coverage and you want a complete, topic-clustered wiki without authoring pages by hand.",
   phases: [
     { title: 'Resolve+Baseline', detail: 'resolve paths, assert vault, baseline verify + graph-quality' },
     { title: 'Stage', detail: 'cp curated repo sources into raw/repo/<topic>/' },
@@ -22,7 +17,10 @@ export const meta = {
 }
 
 // ── Inputs ───────────────────────────────────────────────────────────────────
-const a = args || {}
+let a = args || {}
+if (typeof a === 'string') {
+  try { a = JSON.parse(a) } catch { a = {} }
+}
 const REPO = a.repoDir // absolute path to the repo/worktree checkout
 const VAULT = a.vault // absolute path to <repo>/docs/<...>-vault
 if (!REPO || !VAULT) {
@@ -140,7 +138,7 @@ for (const t of TOPICS) {
     `Place every entity/concept page under wiki/${t.key}/. If raw/repo/${t.key}/ has >25 sources, process ` +
     `the first 25 and report the rest. You may skip your own synthesis step — the workflow owns that. ` +
     `Honor the HARD RULE: never create a [[wikilink]] to a page that does not (yet) exist.`,
-    { label: `ingest:${t.key}`, phase: 'Ingest', agentType: 'claude-wiki-pages-ingest-agent' })
+    { label: `ingest:${t.key}`, phase: 'Ingest', agentType: 'claude-wiki-pages:claude-wiki-pages-ingest-agent' })
 }
 
 // ── Phase C — Author the topic hub pages ─────────────────────────────────────
@@ -154,7 +152,7 @@ await agent(
   `[[wikilinks]] to each. \`title\` MUST be the first entry in \`aliases\`. HARD RULE: only link pages that ` +
   `actually exist on disk now. Update wiki/index.md to list each hub. Self-checkpoint via snapshot pre/post, ` +
   `label "fill-gaps: author hub pages".\n\nHUBS:\n${hubList}`,
-  { label: 'hubs', phase: 'Hubs', agentType: 'claude-wiki-pages-ingest-agent' })
+  { label: 'hubs', phase: 'Hubs', agentType: 'claude-wiki-pages:claude-wiki-pages-ingest-agent' })
 
 // ── Phase D — Resolve dangling links (create → fix → prose-ify) ───────────────
 phase('Dangling')
@@ -168,14 +166,14 @@ await agent(
   `sources: set with a real [[_sources/...]] citation. NEVER an empty stub. Do NOT create pages for ` +
   `Obsidian/markdown primitives (wikilink, links, etc.) or generic nouns — those are handled later. ` +
   `Self-checkpoint, label "fill-gaps: create pages for dangling concepts".`,
-  { label: 'dangling-create', phase: 'Dangling', agentType: 'claude-wiki-pages-ingest-agent' })
+  { label: 'dangling-create', phase: 'Dangling', agentType: 'claude-wiki-pages:claude-wiki-pages-ingest-agent' })
 // D2 — curator heal: alias/unique-fuzzy link fixes + connect orphans (git-checkpointed, no prompt).
 await agent(
   `${SCOPE}\nRun the standard git-checkpointed auto-heal: engine.sh heal first, then the curator auto-fixes ` +
   `including resolve-broken-wikilinks (alias / unique-fuzzy) and connect-orphans, applied automatically ` +
   `(safety is git revert). Then report any broken wikilinks that still had NO match — that residual list is ` +
   `the prose-ify backlog for the next step.`,
-  { label: 'dangling-heal', phase: 'Dangling', agentType: 'claude-wiki-pages-curator-agent' })
+  { label: 'dangling-heal', phase: 'Dangling', agentType: 'claude-wiki-pages:claude-wiki-pages-curator-agent' })
 // D2b — prose-ify the true one-offs and Obsidian primitives.
 await agent(
   `${SCOPE}\nFinal dangling mop-up. Run \`bash ${REPO}/scripts/graph-quality.sh --target ${VAULT} --json\`. ` +
@@ -196,19 +194,19 @@ await agent(
   `staged raw/repo/* material — especially the engine / llm / obsidian topics that were thinly covered. ` +
   `Do NOT create duplicates and do NOT introduce new dangling links. Self-checkpoint, label ` +
   `"fill-gaps: enrich thin pages".`,
-  { label: 'enrich', phase: 'Enrich', agentType: 'claude-wiki-pages-ingest-agent' })
+  { label: 'enrich', phase: 'Enrich', agentType: 'claude-wiki-pages:claude-wiki-pages-ingest-agent' })
 
 // ── Phase F — Heal + Polish + Verify ─────────────────────────────────────────
 phase('HealPolish')
 await agent(
   `${SCOPE}\nFinal auto-heal: engine.sh heal then the curator auto-fixes and judgment fixes, all ` +
   `git-checkpointed. Report the heal commit and any surfaced residual items.`,
-  { label: 'final-heal', phase: 'HealPolish', agentType: 'claude-wiki-pages-curator-agent' })
+  { label: 'final-heal', phase: 'HealPolish', agentType: 'claude-wiki-pages:claude-wiki-pages-curator-agent' })
 await agent(
   `${SCOPE}\nPolish: apply graph colors for the 7 top-level topic folders (plugin, wiki-pages, llm, obsidian, ` +
   `engine, knowledge-graph, how-it-works), regenerate wiki/index.md from folder notes, and reconcile every ` +
   `folder note's children/child_indexes. Self-checkpoint.`,
-  { label: 'polish', phase: 'HealPolish', agentType: 'claude-wiki-pages-polish-agent' })
+  { label: 'polish', phase: 'HealPolish', agentType: 'claude-wiki-pages:claude-wiki-pages-polish-agent' })
 
 // ── Phase G — Measure + gates ────────────────────────────────────────────────
 phase('Measure')
