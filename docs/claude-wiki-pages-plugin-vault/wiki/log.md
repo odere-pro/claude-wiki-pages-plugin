@@ -273,4 +273,8 @@ Sources used: [[Engine Scripts Layer (CLAUDE.md)]], [[Engine API Skill (SKILL.md
 
 - pre-state: dd9f39c
 - rollback: git revert the snapshot commit below
+## [2026-06-13] snapshot | curator judgment fixes (snap-20260613232124)
+
+- pre-state: a776cba
+- rollback: git revert the snapshot commit below
 

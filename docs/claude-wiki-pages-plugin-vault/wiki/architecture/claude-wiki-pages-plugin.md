@@ -1,8 +1,8 @@
 ---
-title: "claude-wiki-pages Plugin"
+title: "claude-wiki-pages (Plugin)"
 type: entity
 entity_type: product
-aliases: ["claude-wiki-pages Plugin", "claude-wiki-pages", "the plugin"]
+aliases: ["claude-wiki-pages (Plugin)", "claude-wiki-pages Plugin", "claude-wiki-pages", "the plugin"]
 parent: "[[Architecture]]"
 path: "architecture"
 sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[Installation Guide]]", "[[Features]]", "[[Getting Started (CLI Quickstart)]]", "[[Plugin README]]", "[[Plugin Manifest (plugin.json)]]"]
@@ -15,7 +15,7 @@ status: active
 confidence: 1.0
 ---
 
-# claude-wiki-pages Plugin
+# claude-wiki-pages (Plugin)
 
 > [!summary]
 > The `claude-wiki-pages` Claude Code plugin is a four-layer stack (Data · Skills · Agents · Orchestration) that turns an Obsidian vault into a provenance-tracked wiki following the Karpathy LLM Wiki pattern. The single advertised entry point is `/claude-wiki-pages:wiki`. The plugin ships 24 skills, 7 agents, 3 slash commands, and 7 hook event handlers. Claude Code stays primary; local models are opt-in and quality-gated.
