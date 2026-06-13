@@ -245,4 +245,8 @@ Found 8 errors, 34 warnings, 0 info. Engine repaired 4 (sync-children on archite
 
 - pre-state: fd39c4c
 - rollback: git revert the snapshot commit below
+## [2026-06-13] snapshot | curator: fix ADR-0008 wikilink alias in grounded-retrieval (snap-20260613225542)
+
+- pre-state: aea8067
+- rollback: git revert the snapshot commit below
 

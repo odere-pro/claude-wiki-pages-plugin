@@ -56,7 +56,7 @@ Declaring a gap is always preferable to an uncited answer. The user can then add
 
 ### N≤2 Traversal Limit
 
-When following wikilinks from seed pages (via `related`, `depends_on`, `sources`), grounded retrieval traverses at most 2 hops. Pages reached at hop 2 contribute supporting context, not primary evidence. This keeps the context window focused and the provenance traceable. The limit comes from [[ADR-0008: Graph Traversal Primitive]].
+When following wikilinks from seed pages (via `related`, `depends_on`, `sources`), grounded retrieval traverses at most 2 hops. Pages reached at hop 2 contribute supporting context, not primary evidence. This keeps the context window focused and the provenance traceable. The limit comes from [[ADR-0008: One Graph-Traversal Primitive]].
 
 ## Examples
 
