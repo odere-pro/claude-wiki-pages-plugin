@@ -54,7 +54,6 @@ SEO_EXEMPT=(
   "docs/GLOSSARY.md"
   "scripts/validate-docs.sh"
   ".claude-plugin/plugin.json"
-  ".claude-plugin/marketplace.json"
   # Immutable source material may legitimately contain PKM-register terms
   # (external authors do not follow our glossary). raw/ is never our prose.
   "*/raw/*"

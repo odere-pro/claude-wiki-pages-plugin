@@ -17,10 +17,12 @@ Three ways to install `claude-wiki-pages`. Pick the one that matches your situat
 
 ## Remote — marketplace
 
-The default path. Pulls the published release.
+The default path. Pulls the published release from the
+[`odere-pro/claude-software-3-0-marketplace`](https://github.com/odere-pro/claude-software-3-0-marketplace)
+registry.
 
 ```text
-/plugin marketplace add odere-pro/claude-wiki-pages-plugin
+/plugin marketplace add odere-pro/claude-software-3-0-marketplace
 /plugin install claude-wiki-pages
 /claude-wiki-pages:init
 ```
@@ -35,6 +37,20 @@ Use when developing the plugin or running a fork.
 git clone https://github.com/odere-pro/claude-wiki-pages-plugin
 ```
 
+The repo no longer ships its own marketplace manifest — it is published through the
+`odere-pro/claude-software-3-0-marketplace` registry above. To install a local clone as a
+marketplace, add a throwaway `.claude-plugin/marketplace.json` to the clone that points at
+`./` (deliberately named `claude-wiki-pages-local` so it never collides with the published
+registry listing — the plugin id is `claude-wiki-pages` either way):
+
+```json
+{
+  "name": "claude-wiki-pages-local",
+  "owner": { "name": "odere-pro", "url": "https://github.com/odere-pro" },
+  "plugins": [{ "name": "claude-wiki-pages", "source": "./", "version": "1.0.0" }]
+}
+```
+
 Then in a Claude Code session:
 
 ```text
@@ -45,11 +61,6 @@ Then in a Claude Code session:
 
 Local source changes take effect on the next Claude Code session — no reinstall needed.
 
-> The repo ships its own dev marketplace as **`claude-wiki-pages-local`**
-> (`.claude-plugin/marketplace.json`) — deliberately named differently from the
-> published registry listing, so adding both the registry and a local clone
-> never collides. The plugin id is `claude-wiki-pages` in both.
-
 ## Update / reinstall
 
 **Remote.** Uninstall and reinstall to pull the latest release.
@@ -59,7 +70,7 @@ Local source changes take effect on the next Claude Code session — no reinstal
 /plugin install claude-wiki-pages
 ```
 
-**Local.** If `marketplace.json` or `plugin.json` changed, re-add the marketplace first:
+**Local.** If your throwaway `marketplace.json` or `plugin.json` changed, re-add the local marketplace first:
 
 ```text
 /plugin marketplace remove claude-wiki-pages-local
