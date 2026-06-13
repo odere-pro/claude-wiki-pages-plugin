@@ -5,12 +5,12 @@ entity_type: tool
 aliases: ["Firewall", "firewall", "write confinement", "per-vault write confinement"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Design: Claude Config and Security]]"]
-related: ["[[Multi-Vault Registry]]", "[[Vault Resolution]]", "[[Deterministic Engine]]", "[[Active Vault]]", "[[Hook System]]"]
+sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Design: Claude Config and Security]]", "[[firewall.ts Source]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
+related: ["[[Multi-Vault Registry]]", "[[Vault Resolution]]", "[[Deterministic Engine]]", "[[Active Vault]]", "[[Hook System]]", "[[Scripts Layer]]"]
 tags: ["tool", "security"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 6
+update_count: 7
 status: active
 confidence: 1.0
 ---

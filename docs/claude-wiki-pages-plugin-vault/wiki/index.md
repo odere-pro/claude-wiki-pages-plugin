@@ -7,6 +7,7 @@ children: []
 child_indexes:
   - "[[architecture]]"
   - "[[decisions]]"
+  - "[[engine]]"
   - "[[guides]]"
   - "[[reference]]"
 aliases: ["Wiki Index"]
@@ -23,6 +24,7 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 
 - [[architecture]] — 14 pages, last updated 2026-06-13
 - [[decisions]] — 7 pages, last updated 2026-06-13
+- [[engine]] — 15 pages, last updated 2026-06-13
 - [[guides]] — 9 pages, last updated 2026-06-13
 - [[reference]] — 7 pages, last updated 2026-06-13
 
@@ -33,6 +35,10 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 ## Architecture Pages
 
 [[Four-Layer Stack]] · [[Deterministic Engine]] · [[Firewall]] · [[Hook System]] · [[Vault Resolution]] · [[Orchestrator Agent]] · [[Ingest Agent]] · [[Curator Agent]] · [[Analyst Agent]] · [[Polish Agent]] · [[Maintenance Agent]] · [[claude-wiki-pages Plugin]] · [[Design Diagrams]] · [[Git Checkpoint]]
+
+## Engine Pages
+
+[[engine.sh]] · [[cli.ts]] · [[Engine CLI Router]] · [[Engine Verb Surface]] · [[Search Scoring Algorithm]] · [[Tier-2 Deterministic Recall]] · [[Graph Walk Algorithm]] · [[Porter Stemmer]] · [[Synonym Lexicon]] · [[Provenance Checks]] · [[MOC Repair Primitives]] · [[Schema Version Gate]] · [[Draft Review Surface]] · [[Degraded-Mode Routing]] · [[Scripts Layer]]
 
 ## Decisions Pages
 
@@ -61,6 +67,10 @@ One summary per ingested raw source. See individual source pages for full contex
 ### Reference Doc Source Summaries
 
 [[Features]] · [[Getting Started (CLI Quickstart)]] · [[Glossary]] · [[Installation Guide]] · [[Local Models]] · [[Operations Guide]] · [[Agent Teams]]
+
+### Engine Source Summaries
+
+[[Engine Scripts Layer (CLAUDE.md)]] · [[Engine API Skill (SKILL.md)]] · [[engine.sh Source]] · [[cli.ts Source]] · [[firewall.ts Source]] · [[verify.ts Source]] · [[route.ts Source]] · [[schema.ts Source]] · [[search.ts Source]] · [[graph.ts Source]] · [[snapshot.ts Source]] · [[provenance.ts Source]] · [[moc-build.ts Source]] · [[stem.ts Source]] · [[vocabulary.ts Source]] · [[propose.ts Source]]
 
 ### User Guide Source Summaries
 

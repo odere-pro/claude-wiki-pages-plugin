@@ -81,3 +81,20 @@ Scanned all wiki content pages for pages under 70 lines. Found 0 pages requiring
 - pre-state: 4ca3ffc
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] ingest | Engine implementation sources (raw/repo/engine/)
+
+Processed 17 raw sources from `raw/repo/engine/` (CLAUDE.md, SKILL.md, engine.sh, cli.ts, firewall.ts, verify.ts, route.ts, schema.ts, search.ts, graph.ts, snapshot.ts, provenance.ts, moc-build.ts, stem.ts, vocabulary.ts, propose.ts, and SKILL.md counted once).
+
+New folders: engine
+
+New sources: Engine Scripts Layer (CLAUDE.md), Engine API Skill (SKILL.md), engine.sh Source, cli.ts Source, firewall.ts Source, verify.ts Source, route.ts Source, schema.ts Source, search.ts Source, graph.ts Source, snapshot.ts Source, provenance.ts Source, moc-build.ts Source, stem.ts Source, vocabulary.ts Source, propose.ts Source
+
+New entities: engine.sh, cli.ts
+New concepts: Engine CLI Router, Engine Verb Surface, Search Scoring Algorithm, Tier-2 Deterministic Recall, Graph Walk Algorithm, Porter Stemmer, Synonym Lexicon, Provenance Checks, MOC Repair Primitives, Schema Version Gate, Draft Review Surface, Degraded-Mode Routing, Scripts Layer
+
+Updated existing pages: Deterministic Engine (sources+, update_count 5→6), Firewall (sources+, update_count 6→7)
+## [2026-06-13] snapshot | ingest engine sources: cli.ts, engine.sh, firewall.ts, verify.ts, route.ts, schema.ts, search.ts, graph.ts, snapshot.ts, provenance.ts, moc-build.ts, stem.ts, vocabulary.ts, propose.ts, SKILL.md, CLAUDE.md (snap-20260613212248)
+
+- pre-state: a47bb5b
+- rollback: git revert the snapshot commit below
+
