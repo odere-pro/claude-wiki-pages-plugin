@@ -5,12 +5,12 @@ entity_type: tool
 aliases: ["Analyst Agent", "analyst agent", "claude-wiki-pages-analyst-agent", "analyst"]
 parent: "[[Architecture]]"
 path: "architecture"
-sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[User Guide 05: Export Outputs]]", "[[Operations Guide]]", "[[Analyst Agent Source]]"]
-related: ["[[Orchestrator Agent]]", "[[Query Rules]]", "[[Challenge Mode]]", "[[Synthesis Note]]", "[[Wiki-Native Recall]]"]
+sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[User Guide 05: Export Outputs]]", "[[Operations Guide]]", "[[Analyst Agent Source]]", "[[Analyst Modes Skill (SKILL.md)]]"]
+related: ["[[Orchestrator Agent]]", "[[Query Rules]]", "[[Challenge Mode]]", "[[Synthesis Note]]", "[[Wiki-Native Recall]]", "[[Analyst Dashboard Mode]]", "[[Analyst Document Compile Mode]]", "[[Analyst Extract Mode]]", "[[Dashboard Write Gate]]"]
 tags: ["agent", "analyst"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 6
+update_count: 7
 status: active
 confidence: 1.0
 ---
@@ -53,17 +53,15 @@ If the answer is genuinely novel (not a restatement of existing pages), the agen
 
 ### 2. Dashboard
 
-Produces a Dataview-ready or static summary of vault health: page counts per topic, confidence distribution, update_count ranges, stale page counts, and last-ingest/last-lint timestamps from `wiki/log.md`. Useful for a quick health read without running `engine backlog`.
+Produces a Dataview live dashboard or a static snapshot of vault health. Standard metrics: coverage (pages per topic/type, source count), health (orphans, broken links, stale pages), evidence (average `update_count`, sources per page, confidence distribution), freshness (pages updated in last 7/30/90 days), connectivity (average `related` links), and gaps (entities mentioned in prose but lacking their own page). Writing to `wiki/dashboard.md` requires the [[Dashboard Write Gate]]; static snapshots to `vault/output/` are ungated. See [[Analyst Dashboard Mode]] for the full procedure.
 
 ### 3. Document Compile
 
-Reconstructs a named document (an ADR, a project report, a technical brief, a slide deck outline) from wiki pages. The agent reads the relevant concept, entity, and decision pages and assembles them into a target format. Output goes to `vault/output/<slug>.md` or is returned inline.
-
-This mode is distinct from [[Wiki-Native Recall]]-based Query: it is assembling a structured deliverable from pages, not answering a question.
+Reconstructs a named document (an ADR, a project report, a technical brief, a memo, or a runbook) from wiki pages. The agent reads the relevant concept, entity, and decision pages and assembles them into a target format. Output always goes to `vault/output/<slug>.md` — never to `vault/wiki/`. For scope >10 pages, a compile plan must be written and approved before any reads. This mode is distinct from [[Wiki-Native Recall]]-based Query: it assembles a structured deliverable, not answers a question. See [[Analyst Document Compile Mode]] for the full procedure.
 
 ### 4. Extract
 
-Pulls structured data from wiki pages into a table or list. Examples: all `type: entity` pages in a topic with their `confidence` and `updated` fields; all ADR decision pages with their `status`; all pages with `confidence < 0.7`. The analyst renders these as markdown tables drawn from frontmatter, not Dataview queries — so they are portable and readable in any markdown viewer.
+Pulls structured data from wiki pages into a markdown table, CSV, structured list, or frontmatter report. Examples: all `type: entity` pages in a topic with their `confidence` and `updated` fields; all ADR decision pages with their `status`; all pages with `confidence < 0.7`. Results are portable — rendered from frontmatter directly, not Dataview queries. Rows where `confidence < 0.6` or `sources` has fewer than 2 entries are annotated as weakly evidenced. See [[Analyst Extract Mode]] for the full procedure and common extraction patterns.
 
 ### 5. Challenge
 

@@ -4,12 +4,12 @@ type: concept
 aliases: ["Challenge Mode", "challenge mode", "adversarial query", "challenge framing"]
 parent: "[[Guides]]"
 path: "guides"
-sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]"]
+sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[Analyst Modes Skill (SKILL.md)]]"]
 related: ["[[Analyst Agent]]", "[[Query Rules]]", "[[Synthesis Note]]", "[[Architecture Decision Record]]", "[[NO-RAG Principle]]", "[[Decisions]]"]
 tags: ["concept", "query", "analyst"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 3
+update_count: 4
 status: active
 confidence: 1.0
 ---

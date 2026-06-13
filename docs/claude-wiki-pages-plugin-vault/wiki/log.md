@@ -131,3 +131,21 @@ Updated existing pages: Ingest Pipeline (sources+, update_count 5→6), Auto-Hea
 - pre-state: fe7371b
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] ingest | LLM skills — analyst-modes SKILL.md and SOFTWARE-3-0.md
+
+Processed 2 raw sources from `raw/repo/llm/`.
+
+New folders: llm
+
+New sources: Analyst Modes Skill (SKILL.md), SOFTWARE-3-0: Dual Entry Point
+
+New entities: (none — all entities in these sources were already tracked)
+
+New concepts: Analyst Dashboard Mode, Analyst Document Compile Mode, Analyst Extract Mode, Dashboard Write Gate, Six Surfaces Dual-Reader Contract, Dual Entry Point
+
+Updated existing pages: Analyst Agent (sources+, update_count 6→7), Query Rules (sources+, update_count 5→6), Challenge Mode (sources+, update_count 3→4), Plugin Dev-Time vs Runtime (sources+, update_count 2→3), Draft Review Surface (sources+, update_count 1→2)
+## [2026-06-13] snapshot | ingest llm sources: analyst-modes SKILL.md, SOFTWARE-3-0.md (snap-20260613214801)
+
+- pre-state: fd203ab
+- rollback: git revert the snapshot commit below
+

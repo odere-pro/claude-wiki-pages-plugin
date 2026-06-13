@@ -9,6 +9,7 @@ child_indexes:
   - "[[decisions]]"
   - "[[engine]]"
   - "[[guides]]"
+  - "[[llm]]"
   - "[[plugin]]"
   - "[[reference]]"
   - "[[wiki-pages]]"
@@ -29,6 +30,7 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 - [[decisions]] — 7 pages, last updated 2026-06-13
 - [[engine]] — 15 pages, last updated 2026-06-13
 - [[guides]] — 9 pages, last updated 2026-06-13
+- [[llm]] — 6 pages, last updated 2026-06-13
 - [[plugin]] — 5 pages, last updated 2026-06-13
 - [[reference]] — 7 pages, last updated 2026-06-13
 - [[wiki-pages]] — 3 pages, last updated 2026-06-13
@@ -60,6 +62,10 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 ## Reference Pages
 
 [[Glossary Terms]] · [[Schema Authority]] · [[Multi-Vault Registry]] · [[Offline Policy]] · [[Approved Local Model]] · [[Backlog]] · [[Installation]]
+
+## LLM Pages
+
+[[Analyst Dashboard Mode]] · [[Analyst Document Compile Mode]] · [[Analyst Extract Mode]] · [[Dashboard Write Gate]] · [[Six Surfaces Dual-Reader Contract]] · [[Dual Entry Point]]
 
 ## Wiki Pages Pages
 
@@ -95,4 +101,8 @@ One summary per ingested raw source. See individual source pages for full contex
 
 ### Skills Source Summaries
 
-[[Wiki Pages Skill (maintain-contract SKILL.md)]]
+[[Wiki Pages Skill (maintain-contract SKILL.md)]] · [[Analyst Modes Skill (SKILL.md)]]
+
+### LLM Source Summaries
+
+[[SOFTWARE-3-0: Dual Entry Point]]

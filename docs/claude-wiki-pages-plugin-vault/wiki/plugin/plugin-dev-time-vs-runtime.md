@@ -4,15 +4,15 @@ type: concept
 aliases: ["Plugin Dev-Time vs Runtime", "plugin dev-time vs runtime", "dev-time runtime boundary", "plugin session context boundary", "install boundary"]
 parent: "[[Plugin]]"
 path: "plugin"
-sources: ["[[Plugin CLAUDE.md]]", "[[Plugin README]]"]
-related: ["[[Plugin Manifest]]", "[[claude-wiki-pages Plugin]]", "[[Vault Resolution]]", "[[Schema Authority]]"]
+sources: ["[[Plugin CLAUDE.md]]", "[[Plugin README]]", "[[SOFTWARE-3-0: Dual Entry Point]]"]
+related: ["[[Plugin Manifest]]", "[[claude-wiki-pages Plugin]]", "[[Vault Resolution]]", "[[Schema Authority]]", "[[Dual Entry Point]]", "[[Six Surfaces Dual-Reader Contract]]"]
 contradicts: []
 supersedes: []
 depends_on: []
 tags: ["plugin", "architecture", "install"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 2
+update_count: 3
 status: active
 confidence: 1.0
 ---
