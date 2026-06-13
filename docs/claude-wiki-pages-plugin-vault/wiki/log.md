@@ -238,3 +238,6 @@ Updated wiki/index.md Hub Pages section to list all 7 hubs.
 - pre-state: 59fd5f9
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] curator | Health check and auto-repair (wiki-lint run)
+
+Found 8 errors, 34 warnings, 0 info. Engine repaired 4 (sync-children on architecture, decisions, guides, reference folder notes). Auto-applied: index duplicate removed, 34 missing-index-entry WARNs resolved by adding pages to index.md body. Judgment fixes applied: 7 folder notes converted from `type: topic` to `type: index` (engine, how-it-works, knowledge-graph, llm, obsidian, plugin, wiki-pages); ghost-wikilink candidates in knowledge-graph.md and wiki-pages.md converted to backtick code format; snapshot.ts Source orphan resolved by adding to git-checkpoint.md sources. Rollback: git revert 8318a2b.
