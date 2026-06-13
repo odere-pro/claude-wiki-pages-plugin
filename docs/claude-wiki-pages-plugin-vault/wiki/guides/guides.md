@@ -17,6 +17,7 @@ children:
   - "[[Graph Coloring]]"
   - "[[Time-to-First-Value]]"
   - "[[Portable Markdown]]"
+  - "[[Sources Section]]"
 child_indexes: []
 tags: ["guides", "user-guide"]
 created: 2026-06-13
@@ -50,3 +51,8 @@ Map of Content for user guides and operational workflows.
 - [[Obsidian Experience]] — graph colors, MOC refresh, troubleshooting
 - [[Wiki-Only Graph]] — only `wiki/` pages in the Obsidian graph
 - [[Graph Coloring]] — topic colors, specials, headless fallback
+
+## Query and Output
+
+- [[Sources Section]] — `## Sources` grounding contract for every answer
+- [[Portable Markdown]] — `/claude-wiki-pages:markdown` export to `vault/output/`

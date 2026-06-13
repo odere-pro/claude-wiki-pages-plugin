@@ -13,12 +13,17 @@ children:
   - "[[Wiki-Native Recall]]"
   - "[[Scaffolding Ablation]]"
   - "[[Design-Drift Gate]]"
+  - "[[Node Grounding]]"
+  - "[[Parity Gate]]"
+  - "[[Software 3.0]]"
   - "[[Golden Set]]"
   - "[[Zero-Fabrication Floor]]"
+  - "[[Verbatim Partition]]"
   - "[[Graph Config Cache]]"
   - "[[Search Score Object]]"
   - "[[Plugin Arm]]"
   - "[[Baseline Arm]]"
+  - "[[Predicate Domain-Range Table]]"
 child_indexes: []
 tags: ["decisions", "adr"]
 created: 2026-06-13
@@ -66,8 +71,12 @@ Map of Content for all Architecture Decision Records (ADRs).
 ## Quality Concepts
 
 - [[Design-Drift Gate]] — validate-docs.sh Check 5; five drift categories
+- [[Node Grounding]] — mermaid node names a real on-disk path; `[speculative]` exemption
+- [[Parity Gate]] — dual-entry router row check: human cell and agent cell must both resolve
+- [[Software 3.0]] — every surface equally usable by humans and agents
 - [[Golden Set]] — eval fixtures used by quality gate and ablation
 - [[Zero-Fabrication Floor]] — hard floor; one fabrication = disqualified
+- [[Verbatim Partition]] — distinguishes fabrication from over-citation via substring test
 - [[Baseline Arm]] — no-scaffolding control arm of the ablation
 - [[Plugin Arm]] — full-scaffolding treatment arm of the ablation
 
@@ -75,6 +84,10 @@ Map of Content for all Architecture Decision Records (ADRs).
 
 - [[Graph Config Cache]] — why `.obsidian/` is gitignored regenerable cache
 - [[Search Score Object]] — `SearchHit`, `matched[]` breakdown, score invariant
+
+## Ontology Concepts
+
+- [[Predicate Domain-Range Table]] — domain→range constraints in the ontology-profile-v1 block
 
 ## Offline and Local Model Decisions
 

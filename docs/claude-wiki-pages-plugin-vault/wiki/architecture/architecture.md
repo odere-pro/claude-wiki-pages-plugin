@@ -22,7 +22,10 @@ children:
   - "[[Active Vault]]"
   - "[[Vault Lifecycle]]"
   - "[[Durable Memory]]"
+  - "[[Review Gate]]"
   - "[[Fail-Closed]]"
+  - "[[Brainstorming Team]]"
+  - "[[Engineering Team]]"
 child_indexes: []
 tags: ["architecture"]
 created: 2026-06-13
@@ -63,4 +66,10 @@ Map of Content for the plugin's architecture — the four-layer stack, engine, a
 - [[Active Vault]] — the single vault targeted by all write operations
 - [[Vault Lifecycle]] — init, add, switch, remove, merge lifecycle commands
 - [[Durable Memory]] — agent session write-backs via `raw/agent-sessions/` and `_proposed/` gate
+- [[Review Gate]] — `_proposed/` staging area; human approval required before wiki promotion
 - [[Fail-Closed]] — deny-by-default posture across registry, firewall, allow-list, CI gates
+
+## Dev Teams (dev-only, not runtime)
+
+- [[Brainstorming Team]] — 11-persona ideation team in `.claude/teams/wiki-brainstorm/`
+- [[Engineering Team]] — 9-role implementation team in `.claude/teams/wiki-dev/`

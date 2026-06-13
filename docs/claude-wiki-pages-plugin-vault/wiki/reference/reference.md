@@ -16,6 +16,8 @@ children:
   - "[[Doctor Command]]"
   - "[[Heartbeat]]"
   - "[[Maintenance Loop]]"
+  - "[[Required Fields]]"
+  - "[[Banned Strings]]"
 child_indexes: []
 tags: ["reference"]
 created: 2026-06-13
@@ -54,6 +56,11 @@ Map of Content for reference documentation: schema, terminology, operations, loc
 ## Operational Tools
 
 - [[Doctor Command]] — `/claude-wiki-pages:doctor` health check after install
+
+## Schema and Terminology
+
+- [[Required Fields]] — per-type frontmatter requirements; machine-readable table in CLAUDE.md
+- [[Banned Strings]] — retired terms; enforced by validate-docs.sh Check 1
 
 ## Installation
 
