@@ -23,22 +23,25 @@ confidence: 1.0
 
 # Claude Code
 
-Claude Code is Anthropic's AI-powered coding environment (CLI). It hosts the `claude-wiki-pages` plugin's hook bus, resolves slash commands, and maintains the session context in which the plugin operates.
+Anthropic's AI-powered coding CLI — the runtime host for the `claude-wiki-pages` plugin's hook bus and slash commands.
 
-## Role in the stack
+## Overview
 
-Claude Code is the Layer 4 Orchestration runtime host. The plugin's hooks (`SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, `Stop`) fire as Claude Code executes tool calls. The slash commands (`/claude-wiki-pages:init`, `/claude-wiki-pages:wiki`, etc.) are resolved by Claude Code's plugin system.
+Claude Code is the Layer 4 Orchestration runtime in which the plugin operates. It resolves slash commands (e.g. `/claude-wiki-pages:init`, `/claude-wiki-pages:wiki`), fires the hook bus events (`SessionStart`, `PreToolUse`, `PostToolUse`, `SubagentStop`, `Stop`) as tool calls execute, and maintains session context across an interactive coding session.
 
-## Prerequisites
+The plugin is installed into Claude Code once globally; individual vaults are set per project using `bash scripts/set-vault.sh <path>`. Prerequisites are: `claude --version` works in a terminal, and `jq` is installed (required by hook scripts).
 
-- `claude --version` must work in a terminal before using the plugin.
-- `jq` must be installed (required by hook scripts).
+## Key Facts
 
-## Plugin installation
+Installation uses two commands — `/plugin marketplace add odere-pro/claude-wiki-pages-plugin` followed by `/plugin install claude-wiki-pages`. Local contributor installs substitute a filesystem path for the marketplace slug.
 
-```
-/plugin marketplace add odere-pro/claude-wiki-pages-plugin
-/plugin install claude-wiki-pages
-```
+On session start, the `SessionStart` hook fires `session-start.sh`, which emits a short preamble reminding the LLM to read `vault/CLAUDE.md` before any wiki operation. If this preamble does not appear, the hook is not wired — run `/claude-wiki-pages:init` first.
 
-Local (contributor / fork) installs use the filesystem path instead of the marketplace slug.
+The `PreToolUse` hook events are the primary enforcement layer. They fire before every file write and run `validate-frontmatter.sh`, `check-wikilinks.sh`, `protect-raw.sh`, and `validate-attachments.sh` as appropriate. Writes that fail any check are blocked before the file is created.
+
+`SubagentStop` events gate agent completions. After the ingest agent stops, `subagent-ingest-gate.sh` runs `verify-ingest.sh`; after the curator agent stops, `subagent-lint-gate.sh` checks for unresolved errors. Both abort completion on failure.
+
+## Related
+
+- [[claude-wiki-pages Plugin]] — the plugin installed into and hosted by Claude Code.
+- [[Hook-Enforced Guarantees]] — the hook bus events and scripts that Claude Code dispatches.

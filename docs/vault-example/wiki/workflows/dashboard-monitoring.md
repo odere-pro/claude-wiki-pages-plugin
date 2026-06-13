@@ -25,30 +25,33 @@ confidence: 1.0
 
 # Dashboard Monitoring
 
-Dashboard monitoring is the practice of consulting the live Obsidian Dataview dashboard (`vault/wiki/dashboard.md`) to track vault health, coverage, and staleness. It complements the automated validation workflow.
+The practice of consulting the live [[Dataview]] dashboard at `vault/wiki/dashboard.md` to track vault health, coverage, and staleness at a glance.
 
-## Dashboard sections
+## Definition
 
-| Section | What you learn |
-| --- | --- |
-| All pages by type | Type, status, confidence, path, updated, update_count. Sort by confidence to surface weak claims. |
-| Sources | Which source summaries exist and which are orphans (not cited by any wiki page). |
-| Topic tree | Per-folder page counts; flat-folder sprawl (> 12 pages) is visible here. |
-| Contradictions | Pages with non-empty `contradicts:` frontmatter. |
-| Stale candidates | Pages not updated in 30+ days with low `update_count`. |
+Dashboard monitoring uses Obsidian's Dataview community plugin to query frontmatter fields across the entire wiki and render live tables. The dashboard at `vault/wiki/dashboard.md` contains five sections: all pages by type, sources, the topic tree, contradictions, and stale candidates. It requires [[Obsidian]] with Dataview installed and enabled; without Dataview the queries render as empty code blocks.
 
-## When to consult
+The dashboard complements the [[Validation and Repair]] workflow: where lint and the status check are run explicitly on a schedule, the dashboard is always available and updates in real time as the wiki changes.
 
-- Before ingest — know the current state for mental diffing.
-- After lint/fix — confirm warning counts dropped.
-- Before an export — spot `confidence < 0.5` pages that should not be cited.
-- Monthly — sweep for stale pages and orphan sources.
+## Key Principles
 
-## Common actions
+Before and after — consult the dashboard before a batch ingest to know the current state, and after a lint/fix pass to confirm warning counts dropped. This mental diffing catches regressions that automated gates miss.
 
-| Finding | Action |
-| --- | --- |
-| Many `confidence: 1.0` rows | Run lint; the single-source-high-confidence check will flag them. |
-| Orphan sources | Find the right entity/concept page and add the source. |
-| Flat folder with > 12 children | Run `/claude-wiki-pages:fix`. |
-| `status: stale` pages | Refresh with new sources or set `status: superseded` and link to the replacement. |
+Confidence as quality signal — sorting the all-pages table by `confidence` ascending surfaces the weakest claims in the vault. Pages with `confidence: 1.0` set by default (rather than by honest assessment) appear as candidates for the single-source-high-confidence lint check.
+
+Flat-folder sprawl is visible — the topic tree section shows page counts per folder. A folder with more than 12 direct children is a restructuring candidate. Running `/claude-wiki-pages:fix` triggers the flat-folder phase of the curator agent.
+
+Static snapshot for sharing — the Obsidian CLI can render a Dataview query and write the result to `vault/wiki/dashboard-snapshot.md`, producing a shareable static version for pull requests, reports, or non-Obsidian reviewers.
+
+## Examples
+
+After ten ingests, the dashboard shows three source summaries with `update_count: 0` citations from wiki pages — orphan sources. The correct action is to find the relevant entity or concept page for each and add the source to its `sources:` array.
+
+The topic tree section shows that the `workflows/` folder has grown to 14 direct children. The researcher runs `/claude-wiki-pages:fix`, which restructures the folder by grouping related concepts into a subfolder.
+
+## Related Concepts
+
+- [[Validation and Repair]] — the explicit validation workflow that the dashboard complements.
+- [[Dataview]] — the Obsidian plugin that powers the live dashboard queries.
+- [[Obsidian]] — the note-taking app required to render the dashboard.
+- [[Provenance-Tracked Wiki]] — the property the dashboard monitors by surfacing orphan sources and low-confidence claims.

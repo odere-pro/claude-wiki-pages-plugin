@@ -22,36 +22,31 @@ confidence: 1.0
 
 # Exporting Outputs
 
-Exporting outputs is the process of compiling deliverables from the wiki into `vault/output/` as plain markdown. Deliverables include reports, ADRs, proposals, memos, and briefs.
+The process of compiling deliverables from the wiki into `vault/output/` as plain markdown — reports, ADRs, proposals, memos, and briefs — without schema or frontmatter.
 
-## vault/output/ properties
+## Definition
 
-- Git-ignored scratch space — files live only on local disk unless force-committed.
-- Plain markdown: no frontmatter, no schema, no validation.
-- Not tracked by any skill or hook (except `protect-raw.sh` which ensures nothing lands in `raw/`).
+Exporting outputs is the downstream step after querying: the analyst agent reads the vault MOC and relevant folder notes, pulls named entities, concepts, and synthesis notes, and writes plain markdown to `vault/output/<slug>.md` with `[[wikilink]]` citations linking every claim back to its wiki page.
 
-## Producing output
+`vault/output/` is git-ignored scratch space. Files there are plain markdown with no frontmatter, no schema enforcement, and no validation. They exist only on local disk unless force-committed. Analysis that belongs in `wiki/_synthesis/` must not go into `output/`; deliverables can cite a synthesis note, but the synthesis itself stays inside the schema.
 
-```
-/claude-wiki-pages:claude-wiki-pages-analyst-agent compile a report on <topic> for <audience>
-```
+## Key Principles
 
-The agent reads the vault MOC and per-folder folder notes, pulls named entities, concepts, and synthesis notes, and writes to `vault/output/<slug>.md` with `[[wikilink]]` citations.
+Two patterns, not one — a narrative output is a document someone reads front-to-back, with its own voice. A navigation index is a short pointer document routing the reader to canonical wiki pages. Two narratives on the same topic drift; merge them or convert the lower-quality one into a navigation index.
 
-## Two healthy patterns
+Synthesis lives in the wiki — if a deliverable contains reasoning that is reusable or citable, it belongs in `wiki/_synthesis/` as a synthesis note, not in `vault/output/`. Deliverables should cite synthesis notes; they should not duplicate their content.
 
-- **Narrative output** — the document someone reads front-to-back. Has its own voice.
-- **Navigation index** — a short pointer document routing the reader to canonical wiki pages.
+Version history on demand — because `vault/output/` is git-ignored, version history requires either force-adding specific files (`git add -f vault/output/<file>.md`) or keeping the canonical version as a synthesis note and regenerating the deliverable when needed. The second option is preferred for anything reused across queries.
 
-Two narratives on the same topic drift; merge them or convert the lower-quality one to a navigation index.
+Format conversion is external — markdown outputs can be converted to PDF, Word, or HTML with external tools such as pandoc. The plugin does not manage output formats.
 
-## Versioning
+## Examples
 
-Prefer keeping canonical analysis as a synthesis note in `wiki/_synthesis/` and regenerating deliverables from it when needed. Force-commit specific files via `git add -f vault/output/<file>.md` when version history is required.
+A user asks the analyst agent to compile a one-page brief on [[Hook-Enforced Guarantees]] for a new teammate. The agent writes `vault/output/hook-guarantees-brief.md` with inline wikilinks to the relevant wiki pages and a summary drawn from the four source summaries that back the concept.
 
-## Format conversion
+A researcher notices they have written the same narrative twice in two different output files. They merge the better one into a synthesis note at `wiki/_synthesis/hook-enforcement-analysis.md` and replace the duplicate output with a navigation index pointing to it.
 
-```bash
-pandoc vault/output/my-report.md -o my-report.pdf
-pandoc vault/output/my-report.md -o my-report.docx
-```
+## Related Concepts
+
+- [[Querying the Wiki]] — the workflow that precedes and informs output compilation.
+- [[Provenance-Tracked Wiki]] — the property that makes the wikilink citations in outputs auditable.

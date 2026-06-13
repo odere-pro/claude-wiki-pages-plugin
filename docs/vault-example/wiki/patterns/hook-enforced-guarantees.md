@@ -27,31 +27,33 @@ confidence: 1.0
 
 # Hook-Enforced Guarantees
 
-Hook-enforced guarantees are the set of invariants that the plugin enforces at every tool-call boundary via Claude Code's hook bus. They prevent schema drift without requiring the LLM to self-police.
+The set of invariants that the plugin enforces at every tool-call boundary via Claude Code's hook bus, preventing schema drift without requiring the LLM to self-police.
 
-## Hook events and scripts
+## Definition
 
-| Event | Script | What it enforces |
-| --- | --- | --- |
-| `SessionStart` | `session-start.sh` | Preamble reminding the LLM to read `vault/CLAUDE.md` |
-| `PreToolUse` (Write/Edit) | `validate-frontmatter.sh` | Required frontmatter fields per type |
-| `PreToolUse` (Write/Edit) | `check-wikilinks.sh` | `[[wikilink]]` format in wiki pages |
-| `PreToolUse` (Write/Edit) | `protect-raw.sh` | Immutability of `vault/raw/` |
-| `PreToolUse` (Write/Edit) | `validate-attachments.sh` | Attachment path existence for non-text sources |
-| `PostToolUse` (Write/Edit) | `post-wiki-write.sh` | Reminder to update folder notes and the vault MOC |
-| `SubagentStop` | `subagent-ingest-gate.sh` | Post-ingest structural integrity |
-| `SubagentStop` | `subagent-lint-gate.sh` | Unresolved errors after curator agent |
+Hook-enforced guarantees are structural rules that fire automatically before or after every file write inside the vault. Claude Code's hook bus dispatches scripts at `SessionStart`, `PreToolUse`, `PostToolUse`, and `SubagentStop` events. Each script enforces one class of invariant and either blocks the write (PreToolUse), reminds the LLM to do follow-up work (PostToolUse), or aborts agent completion when the result is structurally broken (SubagentStop).
 
-## What they guarantee
+The guarantees operate below the LLM's decision layer: the LLM does not need to remember to validate frontmatter or check wikilink format — the hook rejects the write if those conditions are not met.
 
-- No wiki page can be written without the required frontmatter fields for its type.
-- Internal cross-references use `[[wikilinks]]`, not raw file-path markdown links.
-- No file in `vault/raw/` can be modified after creation.
-- No source note can reference an attachment file that does not exist.
-- Every post-ingest state is verified before the agent completes.
+## Key Principles
 
-## What they do NOT guarantee
+Fail-closed at the boundary — `PreToolUse` hooks block the write before it lands. A missing required frontmatter field is caught before the file is created, not after a lint pass discovers it.
 
-- Content quality (that claims are accurate).
-- Near-duplicate detection (the curator agent flags these, but hooks do not block them).
-- Semantic validity of confidence values.
+One script, one concern — each hook script enforces exactly one class of invariant. `validate-frontmatter.sh` checks required fields; `check-wikilinks.sh` enforces the `[[wikilink]]` format; `protect-raw.sh` enforces raw immutability; `validate-attachments.sh` checks attachment paths.
+
+Gate on completion — `SubagentStop` hooks run `verify-ingest.sh` after every ingest agent run and `subagent-lint-gate.sh` after every curator run. If either finds unresolved errors, the agent completion is aborted. The failure is visible immediately rather than discovered days later.
+
+## Examples
+
+The `validate-frontmatter.sh` hook fires when a Write tool call targets any file under `wiki/`. It checks that the frontmatter contains every required field for the declared `type`. A concept page missing `sources:` is rejected with a descriptive error message.
+
+The `protect-raw.sh` hook fires on any Write or Edit targeting a path under `vault/raw/`. The write is blocked unconditionally — raw sources are immutable after they are dropped in.
+
+The `subagent-ingest-gate.sh` hook fires when the ingest agent stops. It runs `verify-ingest.sh` against the current vault state. If `verify-ingest.sh` exits non-zero, the agent completion is aborted and the failure is surfaced immediately.
+
+## Related Concepts
+
+- [[LLM Wiki Pattern]] — the broader pattern that these hooks make trustworthy at scale.
+- [[Validation and Repair]] — the three-level validation workflow that complements the hook layer.
+- [[Ingest Pipeline]] — the workflow whose structural integrity the SubagentStop hooks verify.
+- [[Provenance-Tracked Wiki]] — the property the hooks collectively protect.

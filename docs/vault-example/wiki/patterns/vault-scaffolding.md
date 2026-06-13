@@ -24,34 +24,47 @@ confidence: 1.0
 
 # Vault Scaffolding
 
-Vault scaffolding is the structure created by `/claude-wiki-pages:init` — the one-time setup that turns a project directory into a fully wired wiki. The wizard copies `docs/vault-example/` from the plugin cache and writes a per-vault `vault/CLAUDE.md`.
+The directory structure and bookkeeping files created by `/claude-wiki-pages:init` that turn a plain project directory into a fully wired, schema-compliant wiki.
 
-## What gets created
+## Definition
+
+Vault scaffolding is the one-time setup performed by the onboarding wizard (`/claude-wiki-pages:init`). The wizard copies `docs/vault-example/` from the plugin cache into the project, writes a per-vault `vault/CLAUDE.md` tailored to the project's domain, and creates the minimum bookkeeping files (`wiki/index.md`, `wiki/log.md`, `wiki/dashboard.md`). After scaffolding, the vault is a valid git repository with hooks wired and the schema authority in place.
+
+Topic folders (`tools/`, `patterns/`, etc.) are not created during scaffolding. They appear on demand when the ingest pipeline processes a source that introduces a new topic.
+
+## Key Principles
+
+One schema per vault — `vault/CLAUDE.md` is the authoritative schema for that vault. Every skill and agent reads it before any operation. Customizing the schema means editing that file, not the plugin skills.
+
+Git from the start — scaffolding git-inits the vault, making every subsequent write reversible via `git revert`. The snapshot scripts (`snapshot.sh pre` / `snapshot.sh post`) checkpoint ingest and heal passes as individually revertible commits.
+
+Immutability by convention — `vault/raw/` is designated as immutable during scaffolding. The `protect-raw.sh` hook enforces this at every write boundary from that point on.
+
+Second vault, same plugin — a second vault in a different project uses the same global plugin install. Running `/claude-wiki-pages:init` from the second project directory scaffolds an independent vault with its own `vault/CLAUDE.md`.
+
+## Examples
+
+After running `/claude-wiki-pages:init`, the project directory contains:
 
 ```
 vault/
 ├── CLAUDE.md               # authoritative schema for this vault
 ├── _templates/             # frontmatter templates per type
 ├── raw/
-│   └── assets/             # images and attachments
+│   └── assets/
 ├── wiki/
-│   ├── index.md            # vault MOC — catalog of every wiki page
-│   ├── log.md              # chronological operations record
-│   ├── dashboard.md        # Dataview dashboard
-│   ├── _sources/           # one summary per ingested source
-│   └── _synthesis/         # cross-topic analyses
-└── output/                 # optional git-ignored scratch space
+│   ├── index.md
+│   ├── log.md
+│   ├── dashboard.md
+│   ├── _sources/
+│   └── _synthesis/
+└── output/                 # git-ignored scratch space
 ```
 
-Topic folders (`tools/`, `patterns/`, etc.) are created on demand by the ingest workflow; they do not exist until a source introduces that topic.
+The vault is immediately ready for a first ingest run. No topic folders exist yet — they will be created when the first source is processed.
 
-## Key invariants set by scaffolding
+## Related Concepts
 
-- `vault/CLAUDE.md` is the schema authority. Every skill and agent reads it before any operation.
-- `vault/raw/` is immutable. The `protect-raw.sh` hook blocks writes to existing files.
-- `vault/output/` is git-ignored scratch space — plain markdown, no schema, no validation.
-- The vault is its own git repository (git-inited by `init`), making every write reversible.
-
-## Second vault
-
-A second vault in a different project uses the same plugin install. Run `/claude-wiki-pages:init` from the second project directory; the wizard scaffolds a fresh vault independently.
+- [[LLM Wiki Pattern]] — the pattern that vault scaffolding enables.
+- [[Hook-Enforced Guarantees]] — the hook scripts that scaffolding wires into Claude Code's hook bus.
+- [[Ingest Pipeline]] — the workflow that extends the scaffold by adding topic folders and content pages.

@@ -24,39 +24,33 @@ confidence: 1.0
 
 # Validation and Repair
 
-Validation and repair is a three-level system for maintaining wiki integrity. Level 1 is a quick smoke test; Level 2 is a read-only audit; Level 3 is automated repair. Level 4 covers what the agent punts to manual review.
+A three-level system for maintaining wiki integrity, progressing from a quick smoke test through a read-only audit to automated structural repair.
 
-## Level 1 — status (smoke test)
+## Definition
 
-```
-/claude-wiki-pages:status
-```
+Validation and repair addresses the reality that the ingest pipeline and hooks catch most errors at write time, but some structural issues — orphan pages, near-duplicate bodies, stale confidence values, index drift — only become visible after multiple ingest runs. The three levels are designed to be run in order: Level 1 first (fast), Level 2 when Level 1 passes (thorough), Level 3 when Level 2 finds errors (automated fix).
 
-Exercises every hook path and runs `verify-ingest.sh`. Reports green/red per path. Green everywhere means all hooks are firing and the vault is structurally clean.
+Level 1 is the `/claude-wiki-pages:status` command, which exercises every hook path and runs `verify-ingest.sh`. Level 2 is the `/claude-wiki-pages:lint` skill, which performs a read-only audit beyond what `verify-ingest.sh` checks. Level 3 is the `/claude-wiki-pages:claude-wiki-pages-curator-agent`, which applies automated fixes in phases and is gated by `subagent-lint-gate.sh` on completion.
 
-## Level 2 — lint (read-only audit)
+## Key Principles
 
-```
-/claude-wiki-pages:lint
-```
+Status before lint — the one-command smoke test at Level 1 covers the most common structural failures in seconds. Only escalate to the full lint audit when Level 1 reports clean or when specific errors need deeper diagnosis.
 
-Scans for: broken wikilinks (Error), orphan pages (Warning), stale pages (Info), missing frontmatter fields (Error), ghost nodes from title missing in aliases (Error), excessive nesting (Warning), near-duplicate bodies (Warning), single-source high confidence (Warning), plain-string sources (Error).
+Lint only reports — the Level 2 lint skill reads and reports; it does not write. The human reviews the report and decides which findings to address before running the repair agent.
 
-## Level 3 — curator agent (auto-repair)
+The curator agent will not delete — the repair agent fixes broken links, mismatched indexes, missing aliases, and parent/path errors. It will not delete content, merge near-duplicate pages, create links to non-existent pages, or lower a confidence value. Those decisions are left to the human (Level 4 — manual review).
 
-```
-/claude-wiki-pages:claude-wiki-pages-curator-agent
-```
+Cadence — run Level 1 after every pipeline run (it is already part of the pipeline gate); run Level 2 every 10 ingests or whenever warnings appear; run Level 3 when Level 2 finds errors or warnings.
 
-Fixes in phases: sources → vault MOC → per-folder MOCs → parent/path → broken links → orphans → aliases → graph colors → flat-folder splits → body densification. After finishing, `subagent-lint-gate.sh` aborts completion if unresolved errors remain.
+## Examples
 
-## What the agent will NOT do
+After a batch ingest, `/claude-wiki-pages:status` reports one red path: `verify-ingest.sh` found a source summary not cited by any wiki page. The fix is to find the relevant entity page and add the source to its `sources:` array.
 
-- Delete content.
-- Merge near-duplicate pages.
-- Create links to non-existent pages.
-- Lower a confidence value.
+After ten ingests, `/claude-wiki-pages:lint` reports two warnings: a concept page has `confidence: 0.8` with only one source (suspiciously confident), and one folder has grown to 14 direct children (flat-folder sprawl). The human drops confidence to 0.6, then runs the curator agent to restructure the oversized folder.
 
-## Cadence
+## Related Concepts
 
-Run status after every pipeline; run lint every 10 ingests or when warnings appear; run the curator agent when lint finds errors or warnings.
+- [[Hook-Enforced Guarantees]] — the hook layer that catches errors before they reach the lint workflow.
+- [[Ingest Pipeline]] — the workflow that validation and repair follows after.
+- [[Dashboard Monitoring]] — the live view that surfaces the same findings as lint in Obsidian.
+- [[Provenance-Tracked Wiki]] — the property that validation and repair keeps intact.

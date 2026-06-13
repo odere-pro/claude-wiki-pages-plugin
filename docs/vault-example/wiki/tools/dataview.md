@@ -21,17 +21,25 @@ confidence: 1.0
 
 # Dataview
 
-Dataview is an Obsidian community plugin that provides a query language (DQL) for frontmatter fields. It powers the live dashboard at `vault/wiki/dashboard.md`.
+An Obsidian community plugin that provides a query language (DQL) for frontmatter fields, powering the live dashboard at `vault/wiki/dashboard.md`.
 
-## What it enables
+## Overview
 
-- Tables of all wiki pages filtered by type, status, confidence, path, and update date.
-- Source orphan detection (sources not cited by any wiki page).
-- Topic-tree page counts and flat-folder sprawl detection (> 12 direct children).
-- Contradiction surfacing (pages with non-empty `contradicts:` frontmatter).
-- Stale candidate detection (low `update_count` + old `updated:` date).
+Dataview turns frontmatter into a queryable database inside Obsidian. Each code block in `dashboard.md` is a DQL statement that Dataview evaluates against the vault's frontmatter at render time. The result is a live table that updates as the wiki changes — no manual maintenance required.
 
-## Example query
+Without Dataview installed and enabled, the dashboard queries render as empty code blocks. Install it from Obsidian's Community Plugins panel, then enable it. The dashboard page does not need editing after that.
+
+## Key Facts
+
+Five dashboard sections powered by Dataview:
+
+1. All pages by type — every page with type, status, confidence, path, updated, update_count. Sort by confidence to surface weakly-evidenced claims.
+2. Sources — all source summaries in `wiki/_sources/`, flagging orphans (not cited by any wiki page) at the bottom.
+3. Topic tree — per-folder page counts; flat-folder sprawl (> 12 direct children) is visible here.
+4. Contradictions — pages with non-empty `contradicts:` frontmatter.
+5. Stale candidates — pages with low `update_count` and an old `updated:` date.
+
+Custom queries follow the same DQL pattern. An example that surfaces low-confidence concept pages:
 
 ```
 TABLE confidence, updated
@@ -40,4 +48,9 @@ WHERE type = "concept" AND confidence < 0.7
 SORT confidence ASC
 ```
 
-Without Dataview, the dashboard queries render as empty code blocks. Install and enable it in Obsidian (Community plugins → Dataview).
+Queries scope naturally to any frontmatter field — type, status, confidence, path, parent, update_count, and custom fields added to the schema.
+
+## Related
+
+- [[Obsidian]] — the host application Dataview runs inside.
+- [[Dashboard Monitoring]] — the workflow that uses Dataview's live tables to track vault health.
