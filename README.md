@@ -77,7 +77,7 @@ flowchart TD
 ## Install
 
 ```text
-/plugin marketplace add odere-pro/claude-wiki-pages-plugin
+/plugin marketplace add odere-pro/claude-software-3-0-marketplace
 /plugin install claude-wiki-pages
 ```
 

@@ -33,6 +33,7 @@ contracts) and [`vault-example/CLAUDE.md`](../vault-example/CLAUDE.md) (the sche
 | 0020 | [The scaffolding ablation](./ADR-0020-scaffolding-ablation-eval.md) |
 | 0022 | [Folder notes and graph quality](./ADR-0022-folder-notes-and-graph-quality.md) |
 | 0023 | [Wiki-only graph — exclusions over layer colors, graph config as cache](./ADR-0023-wiki-only-graph.md) |
+| 0024 | [Host-project intake — recursive raw enumeration + "ingest the whole repo" flow](./ADR-0024-host-project-intake.md) |
 
 ## Conventions
 

@@ -23,6 +23,29 @@ describe("backlog", () => {
     sb.cleanup();
   });
 
+  test("nested wired sources under raw/wired/<name>/ are pending (recursive scan)", () => {
+    // Regression: wired project docs land nested at raw/wired/<name>/<relpath>.
+    // A top-level glob (raw/*.md) would miss them; backlog must recurse.
+    const sb = makeVault({
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "raw/top.md": "x", // top-level, unprocessed
+      "raw/wired/proj/README.md": "a",
+      "raw/wired/proj/docs/architecture.md": "b",
+      "raw/wired/proj/docs/guide.md": "c",
+      "raw/assets/diagram.md": "ignored", // assets/ excluded even when nested
+    });
+    const r = backlog({ target: sb.vault, today: "2026-05-22" });
+    expect(r.pendingRaw).toEqual([
+      "raw/top.md",
+      "raw/wired/proj/README.md",
+      "raw/wired/proj/docs/architecture.md",
+      "raw/wired/proj/docs/guide.md",
+    ]);
+    expect(r.pendingRaw).not.toContain("raw/assets/diagram.md");
+    expect(r.needsCatchup).toBe(true);
+    sb.cleanup();
+  });
+
   test("manifest is preferred over log-scan when present", () => {
     const sb = makeVault({
       "wiki/log.md": "---\ntitle: log\n---\n\n## [2026-05-21] lint | ok\n",
