@@ -37,3 +37,10 @@ L0 and L1 mermaid diagrams showing the whole system. L0 shows who uses the syste
 
 - [[Four-Layer Stack]]
 - [[Dual Entry Point]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design Diagrams]] — L0/L1 system context perspective
+- [[Four-Layer Stack]] — system context visual

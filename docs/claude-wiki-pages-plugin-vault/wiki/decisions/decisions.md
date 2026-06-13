@@ -6,7 +6,12 @@ parent: "[[Wiki Index]]"
 path: "decisions"
 children:
   - "[[Architecture Decision Record]]"
-  - "[[ADR Convention]]"
+  - "[[NO-RAG Principle]]"
+  - "[[Ontology Profile v1]]"
+  - "[[Wiki-Only Graph]]"
+  - "[[Local Model Quality Gate]]"
+  - "[[Wiki-Native Recall]]"
+  - "[[Scaffolding Ablation]]"
 child_indexes: []
 tags: ["decisions", "adr"]
 created: 2026-06-13

@@ -37,3 +37,10 @@ Amends ADR-0011 by refining the fabrication definition. A verbatim substring tes
 - [[Over-Citation]]
 - [[Local Model Quality Gate]]
 - [[Verbatim Partition]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Local Model Quality Gate]] — verbatim partition, fabrication vs over-citation
+- [[Approved Local Model]] — zero-fabrication floor enforcement

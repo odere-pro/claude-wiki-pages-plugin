@@ -44,3 +44,19 @@ The one verb (`/claude-wiki-pages:wiki`), day-to-day verbs, power-user bypasses,
 - [[Multi-Vault Registry]]
 - [[Offline Policy]]
 - [[Hook System]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Maintenance Agent]] — operations contract
+- [[Vault Resolution]] — 4-tier resolution contract
+- [[Ingest Agent]] — write-path operations
+- [[Git Checkpoint]] — snapshot pre/post semantics
+- [[Hook System]] — hook operations
+- [[Analyst Agent]] — analyst operations
+- [[Orchestrator Agent]] — orchestrator operations
+- [[Curator Agent]] — curator operations
+- [[Auto-Heal]] — repair operations
+- [[Offline Policy]] — operations configuration
+- [[Multi-Vault Registry]] — registry operations

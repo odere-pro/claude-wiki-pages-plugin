@@ -37,3 +37,12 @@ Establishes that the Obsidian graph shows only generated wiki pages. `raw/`, `_t
 - [[Wiki-Only Graph]]
 - [[Graph Config Cache]]
 - [[Graph Coloring]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Wiki-Only Graph]] — exclusions, layer pass dropped, graph config as cache
+- [[Plugin Architecture Synthesis]] — graph architecture theme
+- [[Polish Agent]] — idempotent userIgnoreFilters assertion
+- [[Obsidian Experience]] — graph view exclusions

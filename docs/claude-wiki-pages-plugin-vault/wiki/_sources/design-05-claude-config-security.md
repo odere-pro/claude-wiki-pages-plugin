@@ -37,3 +37,11 @@ Documents the vault resolution 4-tier order, the fail-closed write boundary flow
 - [[Per-Vault Write Confinement]]
 - [[Fail-Closed]]
 - [[Multi-Vault Registry]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design Diagrams]] — config and security perspective
+- [[Vault Resolution]] — config layering
+- [[Firewall]] — security boundary

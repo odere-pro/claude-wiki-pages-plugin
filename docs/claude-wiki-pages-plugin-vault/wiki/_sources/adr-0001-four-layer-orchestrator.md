@@ -40,3 +40,14 @@ Establishes the single top-level `/claude-wiki-pages:wiki` command as the sole a
 - [[Four-Layer Stack]]
 - [[Specialist Pattern]]
 - [[State Probing]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Four-Layer Stack]] — four-layer rationale and routing model
+- [[Orchestrator Agent]] — state-probing dispatch contract
+- [[Ingest Pipeline]] — the specialist dispatch this ADR defines
+- [[Auto-Heal]] — curator agent dispatch logic
+- [[Entity Distribution Model]] — how agents distribute work
+- [[Plugin Architecture Synthesis]] — cross-theme analysis

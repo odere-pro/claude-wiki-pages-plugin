@@ -36,3 +36,9 @@ How to produce deliverables from the wiki using the analyst agent. `vault/output
 
 - [[Portable Markdown]]
 - [[Synthesis Note]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Analyst Agent]] — export and compile modes

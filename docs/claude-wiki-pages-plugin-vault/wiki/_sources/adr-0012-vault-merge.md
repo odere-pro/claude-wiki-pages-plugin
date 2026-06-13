@@ -37,3 +37,9 @@ Design for vault merge is accepted but implementation is deferred. The design: d
 - [[Vault Lifecycle]]
 - [[Vault Merge]]
 - [[Multi-Vault Registry]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Multi-Vault Registry]] — merge deferred, design accepted

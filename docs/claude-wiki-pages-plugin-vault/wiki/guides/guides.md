@@ -7,10 +7,13 @@ path: "guides"
 children:
   - "[[Onboarding Wizard]]"
   - "[[Ingest Pipeline]]"
+  - "[[Entity Distribution Model]]"
   - "[[Lint Rules]]"
+  - "[[Auto-Heal]]"
   - "[[Query Rules]]"
   - "[[Challenge Mode]]"
   - "[[Obsidian Experience]]"
+  - "[[Folder Note]]"
 child_indexes: []
 tags: ["guides", "user-guide"]
 created: 2026-06-13

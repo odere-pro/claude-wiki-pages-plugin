@@ -51,3 +51,33 @@ The architecture documentation describes the four-layer stack that powers the `c
 - [[Git Checkpoint]]
 - [[Write Confinement]]
 - [[Snapshot]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Four-Layer Stack]] — the full layer model
+- [[Orchestrator Agent]] — agent routing
+- [[Ingest Agent]] — write-path contract
+- [[Curator Agent]] — audit-and-repair contract
+- [[Analyst Agent]] — query and compile modes
+- [[Polish Agent]] — tail-of-write step
+- [[Maintenance Agent]] — autonomous catch-up
+- [[Deterministic Engine]] — Bun CLI validation
+- [[Firewall]] — write confinement
+- [[Vault Resolution]] — 4-tier resolution
+- [[Hook System]] — hook enforcement contract
+- [[Git Checkpoint]] — snapshot semantics
+- [[claude-wiki-pages Plugin]] — overview and data flow
+- [[NO-RAG Principle]] — retrieval contract
+- [[Ingest Pipeline]] — 13-step process
+- [[Entity Distribution Model]] — DRY ingest rule
+- [[Lint Rules]] — what the curator checks
+- [[Auto-Heal]] — repair categories
+- [[Folder Note]] — folder note contract
+- [[Challenge Mode]] — analyst challenge mode
+- [[Query Rules]] — MOC traversal contract
+- [[Schema Authority]] — CLAUDE.md authority chain
+- [[Glossary Terms]] — canonical terminology
+- [[Architecture Decision Record]] — ADR governance
+- [[Plugin Architecture Synthesis]] — cross-theme analysis

@@ -39,3 +39,10 @@ L3 sequence diagrams for: Session start, Ingest write-path, Agent write-back wit
 - [[Durable Memory]]
 - [[Review Gate]]
 - [[Snapshot]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design Diagrams]] — L3 sequence perspective
+- [[Git Checkpoint]] — ingest write-path sequence

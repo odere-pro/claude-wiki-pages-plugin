@@ -37,3 +37,9 @@ Introduces the design diagram directory (`docs/design/`). Uses C4-style zoom lev
 - [[Design-Drift Gate]]
 - [[Node Grounding]]
 - [[Four-Layer Stack]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design Diagrams]] — conventions and zoom levels

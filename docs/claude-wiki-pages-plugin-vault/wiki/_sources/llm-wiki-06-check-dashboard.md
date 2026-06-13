@@ -35,3 +35,7 @@ The dashboard at `vault/wiki/dashboard.md` is an Obsidian Dataview page. Shows a
 
 - [[Staleness Signal]]
 - [[Confidence Decay]]
+
+## Grounded Pages
+
+No content pages currently cite this source directly; this guide covers the Dataview dashboard which is an Obsidian-side feature.

@@ -38,3 +38,13 @@ Introduces schema v3 folder notes (`wiki/<topic>/<topic>.md`, `type: index`). Hi
 - [[Graph Coloring]]
 - [[Schema Authority]]
 - [[Sources Section]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Wiki-Only Graph]] — builds on ADR-0022 graph quality work
+- [[Polish Agent]] — canonical group order from ADR-0022
+- [[Folder Note]] — folder note definition per schema v3
+- [[Query Rules]] — Sources section contract
+- [[Obsidian Experience]] — Obsidian-side graph quality

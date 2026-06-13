@@ -38,3 +38,9 @@ Adds `validate-docs.sh` Check 5 (the design-drift gate) scanning `docs/design/*.
 - [[Node Grounding]]
 - [[Software 3.0]]
 - [[Parity Gate]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design-Drift Gate]] — validate-docs.sh Check 5 definition

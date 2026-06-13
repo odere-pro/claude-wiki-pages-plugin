@@ -38,3 +38,9 @@ Establishes a single named ontology profile (`ontology-profile-v1`) in `vault/CL
 - [[Predicate Domain-Range Table]]
 - [[Entity Type Enum]]
 - [[Controlled Vocabulary]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Ontology Profile v1]] — the ontology block this ADR defined

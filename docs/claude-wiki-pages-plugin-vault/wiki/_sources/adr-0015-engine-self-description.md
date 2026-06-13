@@ -36,3 +36,9 @@ Establishes the `CAPABILITIES` table in `src/cli/cli.ts` as the single source of
 
 - [[Engine Capabilities]]
 - [[Self-Description]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Deterministic Engine]] — capabilities --json, ontology --json endpoints

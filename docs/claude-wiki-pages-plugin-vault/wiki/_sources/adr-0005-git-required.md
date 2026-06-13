@@ -37,3 +37,10 @@ Git is required for every vault. The `init` command git-inits the vault. Two ava
 - [[Git Checkpoint]]
 - [[Snapshot]]
 - [[Vault Resolution]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Git Checkpoint]] — git-required contract, nesting guard, bun-absent shim
+- [[Deterministic Engine]] — ensureRepo seam

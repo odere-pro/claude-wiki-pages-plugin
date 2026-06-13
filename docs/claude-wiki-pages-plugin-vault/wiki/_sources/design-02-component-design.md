@@ -37,3 +37,10 @@ L2 component diagram mapping hooks to scripts, distinguishing action skills from
 - [[Four-Layer Stack]]
 - [[Hook System]]
 - [[Teaching Skill]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design Diagrams]] — L2 component design perspective
+- [[Hook System]] — hook-to-script wiring

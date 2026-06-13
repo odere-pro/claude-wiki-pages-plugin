@@ -37,3 +37,14 @@ Plugin features summary including the scaffolding ablation measured results and 
 - [[Scaffolding Ablation]]
 - [[Plugin Arm]]
 - [[Baseline Arm]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Scaffolding Ablation]] — ablation measurements
+- [[claude-wiki-pages Plugin]] — what the plugin ships
+- [[Git Checkpoint]] — hook-enforced features
+- [[Auto-Heal]] — repair capabilities
+- [[Installation]] — prerequisites and install paths
+- [[Plugin Architecture Synthesis]] — measured value

@@ -38,3 +38,10 @@ Defines the single graph-traversal function `src/core/graph.ts:walk()` as the sh
 - [[Graph Traversal Primitive]]
 - [[Graph Link-Walk]]
 - [[Wiki-Native Recall]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Wiki-Native Recall]] — graph traversal as retrieval mechanism
+- [[Graph Traversal Primitive]] — walk() BFS implementation

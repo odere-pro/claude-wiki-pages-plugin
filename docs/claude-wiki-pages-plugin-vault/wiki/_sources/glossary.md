@@ -42,3 +42,21 @@ Canonical term list for `claude-wiki-pages`. All docs, skills, and user-visible 
 - [[Banned Strings]]
 - [[Technical Register]]
 - [[Discoverability Register]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Glossary Terms]] — canonical terminology and banned strings
+- [[Schema Authority]] — enum lists and term governance
+- [[Folder Note]] — MOC and folder note terminology
+- [[Four-Layer Stack]] — architecture term definitions
+- [[Git Checkpoint]] — snapshot and commit backstop terms
+- [[Firewall]] — vault management term definitions
+- [[Deterministic Engine]] — engine term definition
+- [[Wiki-Native Recall]] — retrieval term definitions
+- [[NO-RAG Principle]] — NO-RAG terminology
+- [[Ontology Profile v1]] — ontology terminology
+- [[Entity Distribution Model]] — ingest terminology
+- [[Wiki-Only Graph]] — graph config cache terminology
+- [[Plugin Architecture Synthesis]] — cross-theme terminology

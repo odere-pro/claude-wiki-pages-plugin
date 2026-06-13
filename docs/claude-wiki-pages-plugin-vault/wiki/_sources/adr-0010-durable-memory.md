@@ -38,3 +38,9 @@ Establishes the `raw/agent-sessions/` fence as the sanctioned path for durable a
 - [[Agent Session Source]]
 - [[Proposed Draft]]
 - [[Review Gate]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Ingest Agent]] — durable-memory carve-out via _proposed/ gate

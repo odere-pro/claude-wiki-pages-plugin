@@ -36,3 +36,9 @@ Two dev-only agent teams: brainstorming (11 personas, ideation) and engineering 
 - [[Brainstorming Team]]
 - [[Engineering Team]]
 - [[Four-Layer Stack]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Maintenance Agent]] — team structure and autonomous operation

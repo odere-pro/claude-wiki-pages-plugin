@@ -38,3 +38,9 @@ The ADR README indexes all 23 Architecture Decision Records for the `claude-wiki
 
 - [[Architecture Decision Record]]
 - [[ADR Convention]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Architecture Decision Record]] — ADR format, conventions, all 23 ADRs

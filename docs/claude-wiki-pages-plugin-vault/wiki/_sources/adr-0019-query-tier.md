@@ -38,3 +38,11 @@ Defines the `query` capability tier for local models: deterministic search selec
 - [[Answer Verification]]
 - [[Offline Policy]]
 - [[NO-RAG Principle]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[NO-RAG Principle]] — query tier and answer verification
+- [[Approved Local Model]] — query tier approval
+- [[Offline Policy]] — query tier routing

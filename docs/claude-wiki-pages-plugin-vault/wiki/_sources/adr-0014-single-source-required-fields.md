@@ -36,3 +36,10 @@ Establishes the required-field table in `CLAUDE.md` as the machine-readable auth
 - [[Schema Authority]]
 - [[Required Fields]]
 - [[Frontmatter Validation]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Lint Rules]] — required field checks from machine-readable table
+- [[Schema Authority]] — machine-readable required-fields table

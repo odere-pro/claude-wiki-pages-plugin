@@ -41,3 +41,9 @@ Shows the two dev-only agent teams (brainstorming + engineering) and the 7 runti
 - [[Four-Layer Stack]]
 - [[Brainstorming Team]]
 - [[Engineering Team]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design Diagrams]] — teams and agents perspective

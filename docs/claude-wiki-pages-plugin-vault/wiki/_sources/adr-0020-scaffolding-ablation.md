@@ -38,3 +38,11 @@ Defines the scaffolding ablation evaluation: the same model, same golden inputs,
 - [[Plugin Arm]]
 - [[Baseline Arm]]
 - [[Golden Set]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Scaffolding Ablation]] — plugin arm vs baseline arm results
+- [[Plugin Architecture Synthesis]] — measured value theme
+- [[Features]] — ablation evidence and numbers

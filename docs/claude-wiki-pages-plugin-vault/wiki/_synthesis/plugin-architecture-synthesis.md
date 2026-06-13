@@ -17,9 +17,9 @@ sources:
   - "[[Glossary]]"
   - "[[ADR-0001: Four-Layer Orchestrator]]"
   - "[[ADR-0007: Wiki-Native Recall]]"
-  - "[[ADR-0009: Multi-Vault Registry]]"
+  - "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]"
   - "[[ADR-0011: Local-Model Quality Gate]]"
-  - "[[ADR-0020: Scaffolding Ablation]]"
+  - "[[ADR-0020: The Scaffolding Ablation]]"
   - "[[ADR-0023: Wiki-Only Graph]]"
   - "[[Features]]"
 tags: ["synthesis", "architecture", "design-principles"]

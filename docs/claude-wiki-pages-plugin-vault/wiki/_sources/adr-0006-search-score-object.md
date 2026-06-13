@@ -37,3 +37,9 @@ Defines the single `SearchHit` score object shape with a `matched[]` breakdown. 
 - [[Search Score Object]]
 - [[Wiki-Native Recall]]
 - [[Scoring Channels]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Wiki-Native Recall]] — search score object design

@@ -35,3 +35,9 @@ Template file for new design diagrams. Specifies zoom level, perspective, author
 
 - [[Design-Drift Gate]]
 - [[Node Grounding]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design Diagrams]] — diagram template used for all perspectives

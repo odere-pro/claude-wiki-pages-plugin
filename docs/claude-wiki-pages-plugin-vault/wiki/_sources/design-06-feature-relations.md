@@ -37,3 +37,11 @@ Documents the Claude Code platform features the plugin uses vs. plugin-defined c
 - [[Four-Layer Stack]]
 - [[Hook System]]
 - [[Design-Drift Gate]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design Diagrams]] — feature relations perspective
+- [[Four-Layer Stack]] — layer relationship counts
+- [[Hook System]] — hook count assertions

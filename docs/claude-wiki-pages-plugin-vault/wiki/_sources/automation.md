@@ -38,3 +38,9 @@ Documents the maintenance loop: backlog detection via `heartbeat.sh`, autonomous
 - [[Heartbeat]]
 - [[Catch-Up]]
 - [[Maintenance Loop]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Maintenance Agent]] — autonomous catch-up loop

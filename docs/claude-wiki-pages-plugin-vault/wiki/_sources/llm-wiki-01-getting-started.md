@@ -37,3 +37,10 @@ Prerequisites, scaffold vault, doctor command, Obsidian setup. The day-1 path fr
 - [[Onboarding Wizard]]
 - [[Doctor Command]]
 - [[Time-to-First-Value]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Onboarding Wizard]] — getting started flow
+- [[Installation]] — verify after install

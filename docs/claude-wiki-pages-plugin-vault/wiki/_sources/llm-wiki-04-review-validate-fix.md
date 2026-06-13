@@ -1,5 +1,5 @@
 ---
-title: "User Guide 04: Review, Validate, Fix"
+title: "User Guide 04: Review Validate Fix"
 type: source
 source_type: manual
 source_format: text
@@ -36,3 +36,11 @@ Three validation levels: status (quick health), lint (read-only audit), curator 
 - [[Lint Rules]]
 - [[Git Checkpoint]]
 - [[Auto-Heal]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Curator Agent]] — the repair agent
+- [[Auto-Heal]] — three validation levels
+- [[Lint Rules]] — what lint checks beyond status

@@ -38,3 +38,11 @@ Basic query, analyst agent modes, challenge mode, citations, Dataview queries, m
 - [[Sources Section]]
 - [[Challenge Mode]]
 - [[Synthesis Note]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Analyst Agent]] — query mode
+- [[Query Rules]] — query workflow
+- [[Challenge Mode]] — adversarial querying

@@ -34,3 +34,9 @@ Top-level user guide map. One command to remember: `/claude-wiki-pages:wiki`. Li
 
 - [[One Advertised Path]]
 - [[Progressive Disclosure]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Onboarding Wizard]] — wizard steps overview

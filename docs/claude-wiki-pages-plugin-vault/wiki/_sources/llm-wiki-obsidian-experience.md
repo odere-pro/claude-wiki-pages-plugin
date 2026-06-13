@@ -36,3 +36,11 @@ Polish agent behavior: graph colors, index refresh, MOC consistency. Troubleshoo
 - [[Wiki-Only Graph]]
 - [[Graph Coloring]]
 - [[Graph Config Cache]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Wiki-Only Graph]] — Obsidian-side exclusions contract
+- [[Obsidian Experience]] — Obsidian setup and graph colors
+- [[Polish Agent]] — tail-of-write Obsidian sync

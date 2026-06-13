@@ -37,3 +37,11 @@ Establishes the polish agent (`claude-wiki-pages-polish-agent`) as the tail-of-w
 - [[Wiki-Only Graph]]
 - [[Vault MOC]]
 - [[Folder Note]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Polish Agent]] — tail-of-write ownership this ADR defines
+- [[Wiki-Only Graph]] — graph color ownership
+- [[Obsidian Experience]] — Obsidian-side contract

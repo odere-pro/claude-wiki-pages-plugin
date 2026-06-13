@@ -38,3 +38,11 @@ Establishes the vault registry in `.claude/claude-wiki-pages/settings.json`. The
 - [[Per-Vault Write Confinement]]
 - [[Active Vault]]
 - [[Vault Lifecycle]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Firewall]] — per-vault write confinement contract
+- [[Multi-Vault Registry]] — registry and confinement design
+- [[Plugin Architecture Synthesis]] — fail-closed safety theme

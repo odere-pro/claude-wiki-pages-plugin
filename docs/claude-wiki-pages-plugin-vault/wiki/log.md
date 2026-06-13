@@ -34,4 +34,46 @@ Synthesis type: theme. Key themes: determinism, provenance, fail-closed safety.
 
 - pre-state: 66d29f5
 - rollback: git revert the snapshot commit below
+## [2026-06-13] lint | Curator heal pass
 
+Found 14 errors (9 plain-string sources, 5 index listing mismatches) and 13 orphan source warnings. Fixed all.
+- Fixed plain-string sources in `curator-agent.md`, `auto-heal.md`, `lint-rules.md` (comma in source title split YAML array)
+- Fixed folder note `children` lists: removed non-existent pages, added correct cross-references
+- Created missing `[[Onboarding Wizard]]` concept page in `guides/`
+- Updated 14 wiki pages to use full source note titles (ending orphan source WARNs for 10 ADRs + 3 other sources)
+- Result: 0 errors, 60 warnings (all expected "page not in index" for source notes and individual pages)
+- Snapshot: 29d663b
+
+## [2026-06-13] snapshot | curator heal pass — fixed plain-string sources, folder note children, dangling source aliases, orphan sources (snap-20260613090843)
+
+- pre-state: 4ed3dcf
+- rollback: git revert 29d663b
+## [2026-06-13] snapshot | polish (snap-20260613092224)
+
+- pre-state: b9562d9
+- rollback: git revert the snapshot commit below
+## [2026-06-13] snapshot | curator judgment fixes (snap-20260613145314)
+
+- pre-state: 5adb70c
+- rollback: git revert the snapshot commit below
+
+
+## [2026-06-13] curator | Health check and auto-repair
+
+Found 0 errors, 60 warnings, 0 info. Engine repaired 0, auto-applied 60 (index coverage), judgment 11 (page enrichment), surfaced 0. Rollback: git revert 776d0e6.
+
+Actions taken:
+- Fixed index.md to reference all 60 missing pages (50 source summaries + 10 content pages) as wikilinks
+- Enriched 10 priority content pages from 30-50 lines to 73-124 lines of substantive content
+- Enriched [[Four-Layer Stack]] with full layer descriptions and data flow
+- Added Grounded Pages backlink sections to all 50 source summaries (402 total backlink entries)
+- Added cross-folder related: links to 8 content pages
+- Final state: 0 errors, 0 warnings, all 41 content pages have inbound links
+
+## [2026-06-13] curator | Content enrichment pass — remaining 26 pages
+
+Enriched 26 content pages across architecture/, decisions/, guides/, and reference/ from ~40-50 lines of terse bullets to 80-148 lines of substantive prose. All pages grounded in raw source ADRs and documentation. Engine verify: 0 errors, 0 warnings, clean: true. Rollback: git revert fb318da.
+
+## [2026-06-13] curator | Content enrichment phase 3 — scan and verify
+
+Scanned all wiki content pages for pages under 70 lines. Found 0 pages requiring enrichment — all content pages are already at target length (73-148 lines) from Phases 1 and 2. The only sub-70-line pages are structural index/folder notes (architecture.md 55L, guides.md 49L, reference.md 52L, decisions.md 67L, index.md 67L) which are correctly excluded from prose enrichment. Engine verify: 0 errors, 0 warnings, clean: true. 0 orphans. Rollback: git revert c10aaae.

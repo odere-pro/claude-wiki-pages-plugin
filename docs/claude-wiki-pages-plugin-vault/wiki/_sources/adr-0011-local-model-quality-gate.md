@@ -39,3 +39,11 @@ Establishes the golden-set evaluation methodology for qualifying local models fo
 - [[Zero-Fabrication Floor]]
 - [[Capability Tier]]
 - [[Approved Local Model]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Local Model Quality Gate]] — golden-set eval, zero-fabrication floor
+- [[Approved Local Model]] — qwen3-coder:30b approval
+- [[Plugin Architecture Synthesis]] — quality gate theme

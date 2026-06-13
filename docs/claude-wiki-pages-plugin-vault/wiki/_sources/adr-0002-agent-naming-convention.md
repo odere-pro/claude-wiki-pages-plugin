@@ -37,3 +37,11 @@ Establishes the `{plugin-name}-{role}-agent` naming pattern for all plugin agent
 
 - [[Agent Naming Convention]]
 - [[Skill Naming Convention]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Orchestrator Agent]] — naming convention applied
+- [[Ingest Agent]] — renamed from llm-wiki-ingest-pipeline in 0.2.0
+- [[Curator Agent]] — renamed from llm-wiki-lint-fix in 0.2.0

@@ -37,3 +37,10 @@ Fixes the OQ-9 fail-closed issue: the registry is now fail-closed on malformed J
 - [[Multi-Vault Registry]]
 - [[Vault Lifecycle]]
 - [[Fail-Closed]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Firewall]] — fail-closed registry OQ-9 fix
+- [[Multi-Vault Registry]] — audit roll-up

@@ -37,3 +37,11 @@ How to create a fresh vault: Option A (first-time or re-initialize), Option B (s
 - [[Vault Resolution]]
 - [[Onboarding Wizard]]
 - [[Ingest Pipeline]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Ingest Pipeline]] — vault creation step
+- [[Onboarding Wizard]] — vault scaffold step
+- [[Schema Authority]] — CLAUDE.md as authority

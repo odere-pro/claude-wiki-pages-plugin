@@ -37,3 +37,11 @@ Three installation paths: remote (marketplace), local (contributors/forks), and 
 
 - [[Onboarding Wizard]]
 - [[Doctor Command]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Installation]] — the three installation paths
+- [[Onboarding Wizard]] — what /claude-wiki-pages:init runs
+- [[claude-wiki-pages Plugin]] — what gets installed

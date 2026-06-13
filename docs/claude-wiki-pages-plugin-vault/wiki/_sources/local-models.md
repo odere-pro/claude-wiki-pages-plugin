@@ -39,3 +39,11 @@ Documents which local models have passed the ADR-0011 quality gate and are appro
 - [[Golden Set]]
 - [[Zero-Fabrication Floor]]
 - [[Capability Tier]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Local Model Quality Gate]] — approved model list, quality evidence
+- [[Approved Local Model]] — qwen3-coder:30b test results
+- [[Offline Policy]] — degraded-mode configuration

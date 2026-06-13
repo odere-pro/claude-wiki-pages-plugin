@@ -37,3 +37,11 @@ How to add single sources, image sources, batches. Power-user bypasses. DRY rule
 - [[Ingest Pipeline]]
 - [[Entity Distribution Model]]
 - [[DRY Single-Sourcing]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Ingest Agent]] — update existing vault process
+- [[Ingest Pipeline]] — 13-step ingest process
+- [[Entity Distribution Model]] — DRY update model

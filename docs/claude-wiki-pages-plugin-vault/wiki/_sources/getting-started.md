@@ -36,3 +36,11 @@ CLI quickstart: install, init, import files, wiki command, status, query, markdo
 - [[Onboarding Wizard]]
 - [[Time-to-First-Value]]
 - [[Portable Markdown]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[claude-wiki-pages Plugin]] — CLI quickstart reference
+- [[Onboarding Wizard]] — getting started flow
+- [[Installation]] — install commands

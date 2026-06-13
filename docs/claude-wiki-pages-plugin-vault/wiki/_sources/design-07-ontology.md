@@ -35,3 +35,10 @@ ER-style mermaid visualization of the ontology predicate domain→range table fr
 
 - [[Ontology Profile v1]]
 - [[Predicate Domain-Range Table]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Design Diagrams]] — ontology ER perspective
+- [[Ontology Profile v1]] — predicate diagram

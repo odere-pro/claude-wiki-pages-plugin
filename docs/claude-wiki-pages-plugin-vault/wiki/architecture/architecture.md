@@ -10,8 +10,15 @@ children:
   - "[[Firewall]]"
   - "[[Hook System]]"
   - "[[Git Checkpoint]]"
-  - "[[Agents]]"
+  - "[[Vault Resolution]]"
   - "[[Design Diagrams]]"
+  - "[[claude-wiki-pages Plugin]]"
+  - "[[Orchestrator Agent]]"
+  - "[[Ingest Agent]]"
+  - "[[Curator Agent]]"
+  - "[[Analyst Agent]]"
+  - "[[Polish Agent]]"
+  - "[[Maintenance Agent]]"
 child_indexes: []
 tags: ["architecture"]
 created: 2026-06-13

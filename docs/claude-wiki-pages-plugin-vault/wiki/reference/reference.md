@@ -6,13 +6,12 @@ parent: "[[Wiki Index]]"
 path: "reference"
 children:
   - "[[Glossary Terms]]"
-  - "[[Ontology Profile v1]]"
   - "[[Schema Authority]]"
-  - "[[Vault Resolution]]"
   - "[[Multi-Vault Registry]]"
   - "[[Offline Policy]]"
   - "[[Approved Local Model]]"
   - "[[Backlog]]"
+  - "[[Installation]]"
 child_indexes: []
 tags: ["reference"]
 created: 2026-06-13

@@ -39,3 +39,11 @@ Establishes the NO-RAG / no-embeddings principle for retrieval. Retrieval is wik
 - [[Query Expansion]]
 - [[Stemming]]
 - [[NO-RAG Principle]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Wiki-Native Recall]] — NO-RAG, synonym lexicon, Porter stemming
+- [[NO-RAG Principle]] — the core retrieval contract
+- [[Plugin Architecture Synthesis]] — determinism theme
