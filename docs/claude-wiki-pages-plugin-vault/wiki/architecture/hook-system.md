@@ -52,7 +52,7 @@ The write guard chain. Scripts fire in the exact order wired in `hooks/hooks.jso
 
 1. **`firewall.sh`** — confinement check first. If the target path is outside the active vault or inside an inactive registered vault, exit 2. No further checks run.
 2. **`validate-frontmatter.sh`** — parse YAML frontmatter; check all required fields for the page's `type`; exit 2 if any required field is missing or has an illegal value. Uses the `### Required fields by type` table from `vault/CLAUDE.md` (grep/awk only — no Bun dependency).
-3. **`check-wikilinks.sh`** — scan the file's body and frontmatter for `[[wikilinks]]`; exit 2 if any link target does not exist as a file or alias in `wiki/`. Prevents ghost nodes in the Obsidian graph.
+3. **`check-wikilinks.sh`** — scan the file's body and frontmatter for wikilinks; exit 2 if any link target does not exist as a file or alias in `wiki/`. Prevents ghost nodes in the Obsidian graph.
 4. **`protect-raw.sh`** — exit 2 if the target path is anywhere under `vault/raw/` except the sanctioned `raw/agent-sessions/` carve-out (ADR-0010).
 5. **`validate-attachments.sh`** — if the frontmatter declares `source_format: image` or `pdf`, check that `attachment_path` exists under `vault/raw/assets/`; exit 2 if missing.
 

@@ -4,7 +4,7 @@ type: concept
 aliases: ["Node Grounding", "node grounding", "mermaid node grounding", "grounded node", "speculative marker"]
 parent: "[[Decisions]]"
 path: "decisions"
-sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design README]]", "[[Design Template]]"]
+sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design README]]", "[[Design Diagram Template]]"]
 related: ["[[Design-Drift Gate]]", "[[Parity Gate]]", "[[Software 3.0]]"]
 contradicts: []
 supersedes: []

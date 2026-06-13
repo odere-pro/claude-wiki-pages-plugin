@@ -20,7 +20,7 @@ confidence: 1.0
 # Grounded Retrieval
 
 > [!summary]
-> Grounded retrieval is the discipline of computing facts with the engine before the LLM reasons over them. The agent fetches candidate pages from the wiki using deterministic engine calls (`search`, `grep`), then reasons only over those retrieved pages — never from memory or training knowledge. Every answer cites the `[[Page Title]]` it came from. If the wiki has no answer, the agent says so rather than hallucinating one.
+> Grounded retrieval is the discipline of computing facts with the engine before the LLM reasons over them. The agent fetches candidate pages from the wiki using deterministic engine calls (`search`, `grep`), then reasons only over those retrieved pages — never from memory or training knowledge. Every answer cites the wiki page it came from by wikilink. If the wiki has no answer, the agent says so rather than hallucinating one.
 
 ## Definition
 
@@ -28,7 +28,7 @@ Grounded retrieval is the retrieval half of the [[Maintain Contract]]'s first in
 
 1. **Ground:** use the [[Deterministic Engine]] (`engine.sh search`, or `grep` over `wiki/`) to fetch the set of candidate pages that are most relevant to the question.
 2. **Judge:** reason over those fetched pages — synthesize, compare, conclude — not over training knowledge or memory.
-3. **Verify:** cite every claim with its `[[wikilink]]` source, and close the operation with a `## Sources` section so the answer is auditable.
+3. **Verify:** cite every claim with its wiki page source by wikilink, and close the operation with a `## Sources` section so the answer is auditable.
 
 The [[NO-RAG Principle]] explains why grounded retrieval works without a vector database: the wiki is small enough that keyword + synonym + graph-walk retrieval (the [[Wiki-Native Recall]] algorithm) finds the right pages without embeddings. Grounded retrieval is the agent-side discipline that pairs with the engine's deterministic recall.
 
@@ -40,7 +40,7 @@ An LLM can synthesize an answer from any text in its context window. The risk is
 
 ### Citation Is Not Optional
 
-Every claim in a grounded answer must cite its source page inline (`[[Page Title]]`) and appear in the trailing `## Sources` section. This makes the answer auditable: a reviewer can check every claim by reading the cited page. A claim without a citation is either a fabrication or an import from training knowledge — both are disallowed.
+Every claim in a grounded answer must cite its source page inline (e.g. `[[Firewall]]`) and appear in the trailing `## Sources` section. This makes the answer auditable: a reviewer can check every claim by reading the cited page. A claim without a citation is either a fabrication or an import from training knowledge — both are disallowed.
 
 ### Honest Gap Declaration
 

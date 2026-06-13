@@ -36,7 +36,7 @@ How to add single sources, image sources, batches. Power-user bypasses. DRY rule
 
 - [[Ingest Pipeline]]
 - [[Entity Distribution Model]]
-- [[DRY Single-Sourcing]]
+- DRY Single-Sourcing (update existing pages rather than creating duplicates)
 
 ## Grounded Pages
 

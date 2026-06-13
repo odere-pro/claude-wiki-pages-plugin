@@ -26,11 +26,11 @@ confidence: 1.0
 ## Key Claims
 
 - `replaceYamlListField()` handles both inline (`field: [...]`) and block (`field:\n  - …`) YAML list forms.
-- `syncChildren()` sets the `children:` frontmatter list of an index file to the given titles as `[[Title]]` wikilinks.
+- `syncChildren()` sets the `children:` frontmatter list of an index file to the given titles as quoted wikilinks.
 - `dedupeIndexLinks()` removes duplicate single-wikilink bullet lines from an index body, keeping the first.
 - `buildIndexStub()` creates a minimal schema-shaped folder note (`<folder>/<folder>.md`) with folder-note naming.
 - The stub uses `titleCase` (split on `[-_]`, capitalize each word) to form the folder note title `"FolderName — Index"`.
-- Only single-wikilink bullet lines (`- [[Target]]`) are subject to deduplication; multi-link lines are kept.
+- Only single-wikilink bullet lines are subject to deduplication; multi-link lines are kept.
 
 ## Entities Mentioned
 

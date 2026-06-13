@@ -62,7 +62,7 @@ The agent collects every issue before changing anything, grouping them by severi
 
 Nine safe, idempotent, content-preserving fixes apply automatically under the checkpoint:
 
-1. Wrap plain-string `sources:` values in `[[wikilinks]]`.
+1. Wrap plain-string `sources:` values in wikilinks.
 2. Fill missing `parent:` and `path:` frontmatter.
 3. Add `title` to `aliases` where missing.
 4. Repair folder-note `children` drift.

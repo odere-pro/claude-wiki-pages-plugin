@@ -28,7 +28,7 @@ confidence: 1.0
 - Vault is resolved via four-tier `resolveVault()`; if not found, returns a single error finding.
 - CHECK 0 (`checkSchema`) — validates `schema_version`; emits info if CLAUDE.md absent.
 - CHECK 1 (`checkIndex`) — index-format and duplicate checks.
-- CHECK 2 (`checkSourcesFormat`) — sources fields must use `[[wikilink]]` form.
+- CHECK 2 (`checkSourcesFormat`) — sources fields must use wikilink form.
 - CHECK 3 (`checkIndexConsistency`, `checkOrphanSources`, `checkTopicFolders`, `checkLegacyIndexFilename`) — MOC structural integrity.
 - CHECK 4 (`checkCitedSourceStaleness`) — staleness detection.
 - CHECK 5 (`checkProvenance`) — source-presence + derived/confidence consistency.

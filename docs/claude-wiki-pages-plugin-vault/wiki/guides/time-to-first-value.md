@@ -45,7 +45,7 @@ The "value" in TTFV is specifically a **cited answer** — an answer where every
 The query command produces a cited answer by:
 1. Running deterministic keyword + graph search over the wiki
 2. Loading the top-scoring pages into context
-3. Synthesizing an answer with explicit `[[wikilink]]` citations
+3. Synthesizing an answer with explicit wikilink citations
 4. Appending a `## Sources` section listing every consulted page
 
 ## Onboarding Design Implications

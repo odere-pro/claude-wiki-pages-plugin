@@ -26,7 +26,7 @@ The knowledge graph layer sits at the bottom of the engine stack. It is responsi
 Three modules form the layer:
 
 1. **`frontmatter.ts`** — reads the leading `--- … ---` YAML block and exposes it as a `Record<string, unknown>`. Uses the `yaml` library for correctness; provides helper functions for common field types.
-2. **`wikilinks.ts`** — scans the body (after the frontmatter block) for `` [[Target]] `` patterns, deduplicates them, and flags markdown-style links as violations.
+2. **`wikilinks.ts`** — scans the body (after the frontmatter block) for wikilink patterns, deduplicates them, and flags markdown-style links as violations.
 3. **`config.schema.json`** — the JSON Schema that validates the user's `claude-wiki-pages.json` configuration file before any engine verb runs.
 
 The two parsers have a hard parity requirement with their bash counterparts (`verify-ingest.sh`). Any divergence between the TypeScript and bash behavior on well-formed vault fixtures is a bug. A gate test enforces this parity.
@@ -35,9 +35,9 @@ The two parsers have a hard parity requirement with their bash counterparts (`ve
 
 ### Parsing Primitives
 
-[[Frontmatter Parser]] documents the five exported functions from `frontmatter.ts`: `splitFrontmatter` (separate YAML block from body), `parseFrontmatter` (get all fields as a typed object), `titleOf` (page title with filename-stem fallback), `stringList` (normalize inline or block YAML arrays to `string[]`), and `stripWikilink` (unwrap `` "[[Target]]" `` syntax). The parser returns `{}` on malformed frontmatter — never throws. Unterminated frontmatter (opening `---` with no closing `---`) treats the entire file as body.
+[[Frontmatter Parser]] documents the five exported functions from `frontmatter.ts`: `splitFrontmatter` (separate YAML block from body), `parseFrontmatter` (get all fields as a typed object), `titleOf` (page title with filename-stem fallback), `stringList` (normalize inline or block YAML arrays to `string[]`), and `stripWikilink` (unwrap wikilink wrapper syntax from strings). The parser returns `{}` on malformed frontmatter — never throws. Unterminated frontmatter (opening `---` with no closing `---`) treats the entire file as body.
 
-[[Wikilink Extractor]] documents `extractWikilinks` (scan body for `` [[Target]] `` patterns), `duplicates` (find repeated wikilinks), and `markdownLinkViolation` (detect raw markdown-path links that should be converted to `[[wikilinks]]`). The extractor imports `splitFrontmatter` to isolate the body before scanning — frontmatter wikilinks are intentional field values, not body prose links.
+[[Wikilink Extractor]] documents `extractWikilinks` (scan body for wikilink patterns), `duplicates` (find repeated wikilinks), and `markdownLinkViolation` (detect raw markdown-path links that should be converted to wikilinks). The extractor imports `splitFrontmatter` to isolate the body before scanning — frontmatter wikilinks are intentional field values, not body prose links.
 
 ### Configuration
 

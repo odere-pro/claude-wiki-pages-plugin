@@ -41,8 +41,8 @@ title: "Synthesis Title"
 type: synthesis
 synthesis_type: comparison | theme | contradiction | gap | timeline
 path: "_synthesis"
-scope: ["[[concept-1]]", "[[concept-2]]", "[[entity-1]]"]
-sources: ["[[source-1]]", "[[source-2]]"]
+scope: ["[[Firewall]]", "[[Multi-Vault Registry]]", "[[Deterministic Engine]]"]
+sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]"]
 tags: []
 created: 2026-04-16
 updated: 2026-04-16

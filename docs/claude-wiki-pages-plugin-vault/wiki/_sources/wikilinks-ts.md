@@ -32,7 +32,7 @@ confidence: 1.0
 the `check_content()` logic from `scripts/check-wikilinks.sh` and the link-scraping
 from `scripts/verify-ingest.sh` CHECK 1 into typed TypeScript.
 
-The module exports three functions: `extractWikilinks` (extracts all `[[Target]]`
+The module exports three functions: `extractWikilinks` (extracts all wikilink targets
 targets from a body string, in document order, dropping any display alias after the
 pipe character), `duplicates` (returns a Map of targets that appear more than once
 with their counts, used for index deduplication), and `markdownLinkViolation` (detects

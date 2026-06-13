@@ -34,11 +34,11 @@ MOC Repair Primitives are the four deterministic, idempotent functions in `src/c
 
 ```typescript
 // syncChildren: set children: list on a folder note
-const fixed = syncChildren(indexFileContent, ["Page One", "Page Two"]);
-// Result: children:\n  - "[[Page One]]"\n  - "[[Page Two]]"
+const fixed = syncChildren(indexFileContent, ["Firewall", "Deterministic Engine"]);
+// Result: children:\n  - "[[Firewall]]"\n  - "[[Deterministic Engine]]"
 
 // dedupeIndexLinks: remove duplicate bullet lines
-// Input body has two "- [[Search]]" lines → output keeps first only
+// Input body has two "- [[Firewall]]" lines → output keeps first only
 
 // buildIndexStub: create a minimal folder note for "my-topic/"
 const stub = buildIndexStub("my-topic", ["Concept A", "Concept B"], "2026-06-13");

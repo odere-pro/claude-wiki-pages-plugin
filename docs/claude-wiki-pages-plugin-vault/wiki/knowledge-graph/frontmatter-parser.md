@@ -57,11 +57,9 @@ The five exported functions and their roles:
 | `parseFrontmatter(content)` | Full file string | `Record<string, unknown>` | Get all frontmatter fields |
 | `titleOf(content, filePath)` | Content + path | `string` | Page title with stem fallback |
 | `stringList(value)` | Any frontmatter value | `string[]` | Normalize `sources:`, `related:` |
-| `stripWikilink(s)` | `"[[Target]]"` | `"Target"` | Unwrap wikilink syntax from arrays |
+| `stripWikilink(s)` | `"[[Firewall]]"` | `"Firewall"` | Unwrap wikilink syntax from arrays |
 
-`stringList` is the coercion bridge: `sources:` may be `["[[A]]","[[B]]"]` (array)
-or `"[[A]]"` (plain string); `stringList` normalizes both to `string[]` before
-further processing.
+`stringList` is the coercion bridge: `sources:` may be an array of wikilink strings or a single wikilink string; `stringList` normalizes both to `string[]` before further processing.
 
 ## Related Concepts
 

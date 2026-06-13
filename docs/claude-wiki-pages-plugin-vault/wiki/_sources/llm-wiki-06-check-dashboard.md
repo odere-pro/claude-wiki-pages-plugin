@@ -33,8 +33,8 @@ The dashboard at `vault/wiki/dashboard.md` is an Obsidian Dataview page. Shows a
 
 ## Concepts Covered
 
-- [[Staleness Signal]]
-- [[Confidence Decay]]
+- Staleness Signal (pages not updated in 30+ days despite newer related sources)
+- Confidence Decay (`confidence` weakened when newer sources contradict existing claims)
 
 ## Grounded Pages
 

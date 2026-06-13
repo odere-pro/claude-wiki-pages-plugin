@@ -63,14 +63,14 @@ The agent extracts entities and concepts from the source. For each extracted ite
 ### 4. Provenance Updates (Steps 7–10)
 
 On every page touched:
-- Adds the new source to `sources:` as `` "[[Source Title]]" `` (wikilink syntax — never plain strings).
+- Adds the new source to `sources:` as a wikilink to its `_sources/` summary page (never plain strings).
 - Increments `update_count`.
 - Sets `updated:` to today's date.
 - Updates `confidence`: reinforced if the source confirms existing claims, weakened if it contradicts.
 
 ### 5. Index and Log Updates (Steps 11–13)
 
-- Updates relevant folder notes: adds new pages to `children`, adds new subfolder notes to `child_indexes` — both as quoted `"[[wikilink]]"` values.
+- Updates relevant folder notes: adds new pages to `children`, adds new subfolder notes to `child_indexes` — both as quoted wikilink values.
 - Updates `wiki/index.md` with any new pages.
 - Appends to `wiki/log.md`: `## [YYYY-MM-DD] ingest | Source Title`
 
@@ -102,7 +102,7 @@ The polish agent runs in parallel with the final-report compose step, so ingest 
 ## Invariants the Agent Enforces
 
 - **No duplicates:** searches the wiki before creating any page. If a page exists, updates it.
-- **No plain-string sources:** all `sources:` values use `"[[wikilink]]"` syntax.
+- **No plain-string sources:** all `sources:` values use wikilink syntax.
 - **Template skeleton:** new pages follow the body structure from `_templates/<type>.md` — not invented section headings.
 - **Provenance on every page:** every touched page has at least one entry in `sources:`.
 - **Folder note updated:** every folder that receives a new page gets its folder note's `children` list updated.

@@ -45,8 +45,8 @@ Standard question answering against the wiki. The agent follows the [[Query Rule
 1. Read `wiki/index.md` to identify relevant pages.
 2. Start from the relevant folder note and traverse downward.
 3. Read matching pages and follow wikilinks for cross-topic context.
-4. Synthesize an answer with inline `[[wikilink]]` citations.
-5. End with a `## Sources` section — numbered, research-paper style — one entry per consulted wiki page listing the `[[wikilink]]` and the raw source file paths from that page's `sources:` frontmatter.
+4. Synthesize an answer with inline wikilink citations.
+5. End with a `## Sources` section — numbered, research-paper style — one entry per consulted wiki page listing the page wikilink and the raw source file paths from that page's `sources:` frontmatter.
 6. Append to `wiki/log.md`.
 
 If the answer is genuinely novel (not a restatement of existing pages), the agent offers to file it as a synthesis note.

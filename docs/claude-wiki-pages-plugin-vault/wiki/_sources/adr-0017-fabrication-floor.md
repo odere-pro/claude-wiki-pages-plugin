@@ -34,7 +34,7 @@ Amends ADR-0011 by refining the fabrication definition. A verbatim substring tes
 ## Concepts Covered
 
 - [[Zero-Fabrication Floor]]
-- [[Over-Citation]]
+- Over-Citation (a real quote from the input not in the gold set; acceptable under verbatim partition)
 - [[Local Model Quality Gate]]
 - [[Verbatim Partition]]
 

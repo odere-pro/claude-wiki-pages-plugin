@@ -35,7 +35,7 @@ Design for vault merge is accepted but implementation is deferred. The design: d
 ## Concepts Covered
 
 - [[Vault Lifecycle]]
-- [[Vault Merge]]
+- Vault Merge (deferred; design: dedup-and-flag, source read-only, `_proposed/` for collisions)
 - [[Multi-Vault Registry]]
 
 ## Grounded Pages

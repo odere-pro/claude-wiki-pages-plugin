@@ -32,9 +32,9 @@ The nine safe, idempotent, content-preserving auto-fixes applied in order:
 3. **Add `title` to `aliases`** on every page (required for wikilink resolution — Obsidian matches by alias, not by `title` field)
 4. **Repair folder-note children drift** — sync `children:` frontmatter against the actual files in the folder
 5. **Repair `wiki/index.md`** — add newly discovered pages to the master catalog
-6. **Clean ghost wikilinks in `log.md`** — replace `[[bad-link]]` with backtick code format (ghost nodes in graph)
+6. **Clean ghost wikilinks in `log.md`** — replace dangling links (e.g. `` `bad-link` ``) with backtick code format (ghost nodes in graph)
 7. **Resolve broken wikilinks** — alias/unique-fuzzy match only (never creates stubs)
-8. **Connect orphans link-only** — add `[[orphan-page]]` to its parent folder note (never auto-edits `sources:` to connect `type: source` orphans)
+8. **Connect orphans link-only** — add the orphan page to its parent folder note (never auto-edits `sources:` to connect `type: source` orphans)
 9. **Add missing graph color groups** — run `obsidian-graph-colors` for new topic folders
 
 ## What Requires Judgment (Applied Automatically Under Checkpoint)

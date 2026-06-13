@@ -249,4 +249,8 @@ Found 8 errors, 34 warnings, 0 info. Engine repaired 4 (sync-children on archite
 
 - pre-state: aea8067
 - rollback: git revert the snapshot commit below
+## [2026-06-13] snapshot | fill-gaps: prose-ify residual dangling links (snap-20260613230846)
+
+- pre-state: cd5fe63
+- rollback: git revert the snapshot commit below
 

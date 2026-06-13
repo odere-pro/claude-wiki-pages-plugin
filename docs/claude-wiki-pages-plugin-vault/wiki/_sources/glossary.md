@@ -37,11 +37,11 @@ Canonical term list for `claude-wiki-pages`. All docs, skills, and user-visible 
 
 ## Concepts Covered
 
-- [[Glossary Gate]]
+- Glossary Gate (`validate-docs.sh` Check 1: enforces banned strings and canonical terms)
 - [[Schema Authority]]
 - [[Banned Strings]]
-- [[Technical Register]]
-- [[Discoverability Register]]
+- Technical Register (inside-the-product terminology distinct from discoverability/SEO terms)
+- Discoverability Register (SEO-facing terms for README and plugin.json surfaces only)
 
 ## Grounded Pages
 

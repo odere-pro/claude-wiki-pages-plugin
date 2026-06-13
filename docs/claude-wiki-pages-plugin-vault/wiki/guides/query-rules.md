@@ -17,7 +17,7 @@ confidence: 1.0
 # Query Rules
 
 > [!summary]
-> Query rules are the structured workflow for answering questions from the wiki. Every answer must cite `[[wikilinks]]` and end with a `## Sources` section (ADR-0022) — numbered, research-paper style. The workflow follows the topic tree from root to specific pages, never guessing at answers not grounded in wiki content. If the answer is novel, the agent offers to file it as a synthesis note. If the wiki has no answer, the agent says so explicitly.
+> Query rules are the structured workflow for answering questions from the wiki. Every answer must cite pages via wikilinks and end with a `## Sources` section (ADR-0022) — numbered, research-paper style. The workflow follows the topic tree from root to specific pages, never guessing at answers not grounded in wiki content. If the answer is novel, the agent offers to file it as a synthesis note. If the wiki has no answer, the agent says so explicitly.
 
 ## Purpose
 
@@ -50,7 +50,7 @@ When following wikilinks, traverse at most 2 hops from the seed pages (the N≤2
 
 ### Step 4 — Synthesize an Answer with Wikilink Citations
 
-Compose the answer from the content on the wiki pages. Every claim must come from a specific page. Inline citations use `[[wikilink]]` syntax:
+Compose the answer from the content on the wiki pages. Every claim must come from a specific page. Inline citations use wikilink syntax:
 
 > The firewall confines all writes to the active vault [[Firewall]] and fails closed on any error [[Vault Resolution]].
 
@@ -67,7 +67,7 @@ Do not synthesize answers from training knowledge that is not on any wiki page. 
 2. [[Vault Resolution]] — raw/docs/operations.md, raw/docs/design/05-claude-config-security.md
 ```
 
-One entry per consulted wiki page: the `[[wikilink]]` title followed by the raw source file paths from that page's `sources:` frontmatter. If no pages were consulted — a genuine gap — say so explicitly:
+One entry per consulted wiki page: the wikilink title followed by the raw source file paths from that page's `sources:` frontmatter. If no pages were consulted — a genuine gap — say so explicitly:
 
 ```markdown
 ## Sources
@@ -137,7 +137,7 @@ When a query answer is needed as portable markdown (for a PR comment, email, or 
 /claude-wiki-pages:markdown what does the wiki say about <topic>?
 ```
 
-The markdown skill runs the same query protocol, then renders the answer without `[[wikilinks]]`, Dataview blocks, or Obsidian callouts, and writes it to `vault/output/<slug>.md`. Provenance is preserved in the output file's trailing attribution.
+The markdown skill runs the same query protocol, then renders the answer without wikilinks, Dataview blocks, or Obsidian callouts, and writes it to `vault/output/<slug>.md`. Provenance is preserved in the output file's trailing attribution.
 
 ## Related
 

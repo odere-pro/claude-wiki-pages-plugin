@@ -28,7 +28,7 @@ The `vault/output/` directory is user-owned scratch space for deliverables compi
 
 "Portable" means the output does not rely on Obsidian-specific features:
 
-- `[[wikilinks]]` are rendered as plain text references or standard markdown links
+- wikilinks are rendered as plain text references or standard markdown links
 - Dataview query blocks are expanded or removed
 - Obsidian callout syntax (`> [!note]`) may be preserved (renders in many markdown renderers) or flattened to plain blockquotes
 - `## Sources` citations become numbered lists with plain text page titles

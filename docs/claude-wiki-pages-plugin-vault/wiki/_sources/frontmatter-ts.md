@@ -38,7 +38,7 @@ into its leading `--- … ---` YAML block and body), `parseFrontmatter` (parses 
 YAML block into an object, returning `{}` on absent or invalid input),
 `titleOf` (returns the `title:` value or falls back to the filename stem),
 `stringList` (coerces a frontmatter field into a list of strings, handling both
-inline and block YAML array forms), and `stripWikilink` (strips surrounding `[[ … ]]`
+inline and block YAML array forms), and `stripWikilink` (strips the double-bracket wikilink wrapper
 wikilink wrapper from a string).
 
 The `SplitDoc` interface carries `frontmatter: string | null` and `body: string`.
@@ -53,7 +53,7 @@ bash `sed` fallback behavior.
 - `titleOf` mirrors the bash default: returns the filename stem when `title:` is
   absent or empty.
 - `stringList` handles both `["a", "b"]` (array) and `"a"` (single string) input forms.
-- `stripWikilink` handles the `[[Target]]` → `Target` transformation used when
+- `stripWikilink` handles the wikilink-unwrap transformation (removes the double-bracket delimiters) used when
   processing the `sources:` and `related:` wikilink arrays.
 - Parity with `verify-ingest.sh` on well-formed fixtures is enforced by a gate test.
 

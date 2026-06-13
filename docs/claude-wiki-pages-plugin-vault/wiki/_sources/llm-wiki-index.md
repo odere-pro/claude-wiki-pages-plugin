@@ -32,8 +32,8 @@ Top-level user guide map. One command to remember: `/claude-wiki-pages:wiki`. Li
 
 ## Concepts Covered
 
-- [[One Advertised Path]]
-- [[Progressive Disclosure]]
+- One Advertised Path (`/claude-wiki-pages:wiki` is the single user-facing entry point)
+- Progressive Disclosure (`/doctor` and individual skills exist but are not the primary path)
 
 ## Grounded Pages
 

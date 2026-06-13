@@ -17,7 +17,7 @@ confidence: 1.0
 # Folder Note
 
 > [!summary]
-> A folder note is the per-folder index file — named exactly after its folder (`wiki/<topic>/<topic>.md`, `type: index`) — that serves as the navigable Map of Content (MOC) for that branch of the wiki topic tree. It is the structural anchor of the wiki: it lists every page in its folder and every sub-folder's folder note. Hierarchy fields (`parent`, `children`, `child_indexes`) must be quoted `"[[wikilink]]"` values — plain strings produce no graph edge and are a lint error. The [[Polish Agent]] keeps folder notes current after every write.
+> A folder note is the per-folder index file — named exactly after its folder (`wiki/<topic>/<topic>.md`, `type: index`) — that serves as the navigable Map of Content (MOC) for that branch of the wiki topic tree. It is the structural anchor of the wiki: it lists every page in its folder and every sub-folder's folder note. Hierarchy fields (`parent`, `children`, `child_indexes`) must be quoted wikilink values — plain strings produce no graph edge and are a lint error. The [[Polish Agent]] keeps folder notes current after every write.
 
 ## Definition
 
@@ -52,15 +52,15 @@ updated: 2026-06-13
 ```
 
 Key constraints:
-- `children` and `child_indexes` must be quoted `"[[wikilink]]"` entries — not plain titles.
+- `children` and `child_indexes` must be quoted wikilink entries — not plain titles.
 - `aliases` must include the `title` value as its first entry (ghost-node prevention).
-- `parent` must be a quoted `"[[wikilink]]"` — not a plain string.
+- `parent` must be a quoted wikilink — not a plain string.
 
 ## Why Wikilink Syntax Is Mandatory
 
 Obsidian's graph view and link resolution work through wikilinks, not plain text. A `children` entry like `"Four-Layer Stack"` (plain title) is invisible to the graph — it produces no edge. Only `"[[Four-Layer Stack]]"` creates a graph edge. The engine verifies this; `engine verify` reports plain-string hierarchy fields as ERROR findings.
 
-This is why the schema instruction reads: "MUST be quoted `'[[wikilink]]'` values — a plain title string produces no graph edge and is a lint finding."
+This is why the schema instruction reads: "MUST be quoted wikilink values — a plain title string produces no graph edge and is a lint finding."
 
 ## Aliases — Ghost Node Prevention
 
@@ -118,8 +118,8 @@ The [[Ingest Pipeline]] updates the folder note at step 11 of every ingest. The 
 ## What "Done" Looks Like
 
 A correct folder note:
-- All pages currently in the folder appear in `children` as `` "[[Title]]" `` entries.
-- All sub-folder folder notes appear in `child_indexes` as `` "[[SubfolderTitle]]" `` entries.
+- All pages currently in the folder appear in `children` as quoted wikilink entries.
+- All sub-folder folder notes appear in `child_indexes` as quoted wikilink entries.
 - `parent` points to the correct parent folder note (not a plain string).
 - `aliases` includes the `title` value as the first entry.
 - `type: index` (not `type: topic` or anything else).

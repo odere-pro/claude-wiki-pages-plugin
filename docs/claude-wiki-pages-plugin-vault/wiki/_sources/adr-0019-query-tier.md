@@ -35,7 +35,7 @@ Defines the `query` capability tier for local models: deterministic search selec
 ## Concepts Covered
 
 - [[Query Tier]]
-- [[Answer Verification]]
+- Answer Verification (runtime check: citation names real page, quote is verbatim substring)
 - [[Offline Policy]]
 - [[NO-RAG Principle]]
 

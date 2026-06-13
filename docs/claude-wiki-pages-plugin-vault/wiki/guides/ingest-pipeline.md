@@ -72,13 +72,13 @@ Do not create a duplicate page for an entity or concept that already has a page.
 **For genuinely new entities/concepts:** create a new page under the appropriate topic folder. Use the template from `_templates/<type>.md` for both frontmatter and body structure. The body template provides the section skeleton (e.g., concept → `## Definition`, `## Key Principles`, `## Examples`, `## Related Concepts`). Do not invent section headings not in the template — the structural lint flags missing template sections as `missing-section`.
 
 Set:
-- `parent: "[[FolderNoteTitle]]"` — wikilink to the topic folder note.
+- `parent:` — a wikilink to the topic folder note (e.g. `"[[Architecture]]"`).
 - `path: "<topic>"` — relative path from `wiki/`.
 - `created:` today's date.
 
 ### Step 7 — Update `sources:` Frontmatter
 
-On every page touched (existing or new), add the new source as `"[[Source Title]]"` to the `sources:` list. Always use wikilink syntax — never plain strings. The `check-wikilinks.sh` hook blocks plain strings as a lint error.
+On every page touched (existing or new), add the new source as a wikilink to its `_sources/` summary page in the `sources:` list. Always use wikilink syntax — never plain strings. The `check-wikilinks.sh` hook blocks plain strings as a lint error.
 
 ### Step 8 — Increment `update_count`
 
@@ -99,9 +99,9 @@ See the confidence calibration rules in `vault/CLAUDE.md` (§ Readability): 1.0 
 
 ### Step 11 — Update Folder Notes
 
-For every topic folder that received a new page (step 6): add the new page to the folder note's `children` list as `"[[PageTitle]]"`. For every new sub-folder created: add its folder note to the parent folder note's `child_indexes` list as `"[[SubFolderTitle]]"`.
+For every topic folder that received a new page (step 6): add the new page to the folder note's `children` list as a quoted wikilink entry. For every new sub-folder created: add its folder note to the parent folder note's `child_indexes` list as a quoted wikilink entry.
 
-All values must be quoted `"[[wikilink]]"` syntax. The [[Polish Agent]] reconciles any drift after the pipeline completes.
+All values must be quoted wikilink syntax. The [[Polish Agent]] reconciles any drift after the pipeline completes.
 
 ### Step 12 — Update `wiki/index.md`
 
@@ -119,7 +119,7 @@ This log entry is what the [[Orchestrator Agent]] checks to determine whether a 
 
 | Condition | What happens |
 | --- | --- |
-| `check-wikilinks.sh` finds a broken `[[link]]` in the new page | Write is blocked (PreToolUse exit 2) |
+| `check-wikilinks.sh` finds a broken wikilink in the new page | Write is blocked (PreToolUse exit 2) |
 | `validate-frontmatter.sh` finds missing required field | Write is blocked |
 | Source summary already exists (re-ingest) | Orchestrator skips (log entry present) |
 | Folder note missing after step 3 | `engine heal` creates it on next verify |

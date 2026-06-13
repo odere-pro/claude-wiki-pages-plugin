@@ -34,9 +34,9 @@ The `maintain-contract` skill (`skills/wiki-pages/SKILL.md`) is an agent-teachin
 
 - Three invariants govern all vault operations: (1) compute engine facts before reasoning; (2) never write to `raw/`; (3) git is the safety net — self-heal requires no user approval.
 - Ingest follows a fixed safe sequence: `snapshot.sh pre` → read source → write cited pages → `snapshot.sh post` → `engine.sh heal` → surface editorial items.
-- Retrieve is grounded: answer only from fetched wiki pages; cite every claim with `[[wikilink]]`; never invent a citation.
+- Retrieve is grounded: answer only from fetched wiki pages; cite every claim with a wikilink; never invent a citation.
 - Maintain loops: `engine.sh verify` → `engine.sh heal` → judgment fixes → re-verify (bounded by iteration cap).
-- Hard rules: never create a `[[wikilink]]` to a non-existent page; never forge provenance; never delete content; always read `vault/CLAUDE.md` first.
+- Hard rules: never create a wikilink to a non-existent page; never forge provenance; never delete content; always read `vault/CLAUDE.md` first.
 - Multi-vault Rule 1: always pass `--target <vault>` to every engine call.
 - Multi-vault Rule 2: pass `--other-vaults` from `registry_other_vaults` for cross-vault confinement.
 - Multi-vault Rule 3: reads from non-active registered vaults are permitted.

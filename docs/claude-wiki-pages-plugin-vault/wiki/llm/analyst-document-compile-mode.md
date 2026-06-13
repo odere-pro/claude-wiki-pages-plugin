@@ -36,7 +36,7 @@ Analyst Document Compile Mode is Mode 3 of the five [[Analyst Agent]] operating 
 | ADR | Architecture Decision Record | 1–2 pages |
 | Runbook | Reference documentation, operations guide | 3–20 pages |
 
-**Scope declaration and compile plan.** The analyst lists every page it intends to read before reading any. If the scope exceeds 10 pages, a compile plan must be written to `vault/output/_compile-plan-YYYY-MM-DD-<slug>.md` including: document type and target length, page list with `[[wikilinks]]`, and a full outline. The analyst then requests **approve / edit-then-approve / abort** and waits for explicit approval. On abort, the mode stops.
+**Scope declaration and compile plan.** The analyst lists every page it intends to read before reading any. If the scope exceeds 10 pages, a compile plan must be written to `vault/output/_compile-plan-YYYY-MM-DD-<slug>.md` including: document type and target length, page list with wikilinks, and a full outline. The analyst then requests **approve / edit-then-approve / abort** and waits for explicit approval. On abort, the mode stops.
 
 **Output target.** All compile output goes to `vault/output/<slug>.md`. This is plain markdown — no frontmatter required, no schema validation, not indexed. It is git-ignored scratch space. The compile mode never writes to `vault/wiki/`.
 

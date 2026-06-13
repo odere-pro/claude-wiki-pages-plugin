@@ -64,7 +64,7 @@ Several skills shipped with behaviors that conflict with the vault schema. CLAUD
 | --- | --- | --- |
 | `wiki/sources/` | `wiki/_sources/` | Always use `wiki/_sources/` |
 | `wiki/entities/` | topic folders | Place entities in topic folders, not a flat entities directory |
-| Plain-string sources | `[[wikilink]]` sources | Always use wikilink syntax in `sources:` |
+| Plain-string sources | wikilink sources | Always use wikilink syntax in `sources:` |
 | No `parent`/`path` | Required on all non-root pages | Always set both fields |
 | No `type` field | Required on every page | Always include `type` |
 | No aliases on indexes | Required | Add topic name variants |

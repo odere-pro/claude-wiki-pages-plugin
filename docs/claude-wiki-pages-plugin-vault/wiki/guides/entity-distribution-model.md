@@ -51,7 +51,7 @@ With this rule, the `update_count` field becomes meaningful:
 The schema enforces this through lint:
 
 - **One concept, one page.** If two pages would overlap by more than 50%, merge them (the curator's judgment-fix phase handles this).
-- **`sources:` as `[[wikilinks]]`:** every source reference must be a wikilink to a source summary in `_sources/` — never a plain string, never a file path.
+- **`sources:` as wikilinks:** every source reference must be a wikilink to a source summary in `_sources/` — never a plain string, never a file path.
 - **`update_count` tracking:** the ingest pipeline increments this on every touched page, so the evidence trail is visible in frontmatter.
 
 ## Examples from the Plugin

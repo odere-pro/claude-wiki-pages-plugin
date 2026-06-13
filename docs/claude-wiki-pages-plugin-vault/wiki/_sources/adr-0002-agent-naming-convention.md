@@ -35,8 +35,8 @@ Establishes the `{plugin-name}-{role}-agent` naming pattern for all plugin agent
 
 ## Concepts Covered
 
-- [[Agent Naming Convention]]
-- [[Skill Naming Convention]]
+- Agent Naming Convention (`claude-wiki-pages-{role}-agent` pattern)
+- Skill Naming Convention (single verbs: `ingest`, `query`, `lint`)
 
 ## Grounded Pages
 

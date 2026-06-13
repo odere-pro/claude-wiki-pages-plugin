@@ -45,7 +45,7 @@ const { refs } = walk({
   maxHops: 2,
 });
 // refs[] is sorted: (hop asc, score desc, file asc)
-// refs[0] = { hop: 1, via: "related", score: 2, wikilink: "[[...]]", ... }
+// refs[0] = { hop: 1, via: "related", score: 2, wikilink: "[[Firewall]]", ... }
 ```
 
 ## Related Concepts

@@ -22,7 +22,7 @@ confidence: 1.0
 ## Definition
 
 The wikilink extractor is a TypeScript module (`wikilinks.ts`) that extracts
-`[[Target]]` wikilinks from markdown body text and enforces the rule that wiki pages
+wikilinks from markdown body text and enforces the rule that wiki pages
 must not contain raw markdown links. It ports `check_content()` from
 `scripts/check-wikilinks.sh` and the link-scraping logic from `scripts/verify-ingest.sh`
 CHECK 1 into typed TypeScript.
@@ -35,7 +35,7 @@ the body before scanning.
 
 **Body-only extraction.** `extractWikilinks` operates on the body string alone —
 the caller must strip frontmatter first. This prevents false positives from frontmatter
-fields like `sources: ["[[A]]"]` being counted as body wikilinks.
+fields like `sources:` wikilink arrays being counted as body wikilinks.
 
 **Alias drop.** The extraction regex captures everything from `[[` to the next `]`
 or `|`, whichever comes first. The display alias after `|` is dropped — only the

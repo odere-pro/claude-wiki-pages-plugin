@@ -36,7 +36,7 @@ L2 component diagram mapping hooks to scripts, distinguishing action skills from
 
 - [[Four-Layer Stack]]
 - [[Hook System]]
-- [[Teaching Skill]]
+- Teaching Skill (agent-teaching skills provide reference material for agents, distinct from action skills)
 
 ## Grounded Pages
 

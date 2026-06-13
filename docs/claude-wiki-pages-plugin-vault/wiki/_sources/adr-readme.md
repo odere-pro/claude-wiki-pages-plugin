@@ -37,7 +37,7 @@ The ADR README indexes all 23 Architecture Decision Records for the `claude-wiki
 ## Concepts Covered
 
 - [[Architecture Decision Record]]
-- [[ADR Convention]]
+- ADR Convention (format: Status → Date → Context → Decision → Alternatives → Consequences → Revisit When)
 
 ## Grounded Pages
 

@@ -34,8 +34,8 @@ Establishes the `CAPABILITIES` table in `src/cli/cli.ts` as the single source of
 
 ## Concepts Covered
 
-- [[Engine Capabilities]]
-- [[Self-Description]]
+- Engine Capabilities (`CAPABILITIES` table in `cli.ts`; projected as `capabilities --json`)
+- Self-Description (engine exposes its own verb surface as machine-readable JSON at runtime)
 
 ## Grounded Pages
 

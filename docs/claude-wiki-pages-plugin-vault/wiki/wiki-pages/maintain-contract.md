@@ -49,7 +49,7 @@ Self-heal is automatic. Before structural changes, a checkpoint commit is writte
 
 1. `snapshot.sh pre` — checkpoint the pre-write state.
 2. Read each source in `raw/` completely.
-3. Write cited wiki pages (`sources:` as `[[wikilinks]]` to `_sources/` summaries), then `snapshot.sh post --label "ingest …"`.
+3. Write cited wiki pages (`sources:` as wikilinks to `_sources/` summaries), then `snapshot.sh post --label "ingest …"`.
 4. Run `engine.sh heal` — it checkpoints, then verify→fix→re-verify, then commits.
 5. Surface only what needs editorial intent (ambiguous merges, deletions).
 
@@ -57,7 +57,7 @@ Self-heal is automatic. Before structural changes, a checkpoint commit is writte
 
 1. Use grounded retrieval (engine `search`, or `grep` over `wiki/`) to fetch candidate pages.
 2. Answer **only** from those pages.
-3. Cite every claim with the `[[Page Title]]` it came from.
+3. Cite every claim with the wiki page it came from (using a wikilink).
 4. Never invent a citation; if the wiki cannot answer, say so explicitly.
 
 **Maintain (keep it healthy)**
@@ -71,7 +71,7 @@ Self-heal is automatic. Before structural changes, a checkpoint commit is writte
 
 These are explicit no-go lines from the contract:
 
-- Never create a `[[wikilink]]` to a non-existent page, and never create a stub just to satisfy a broken link.
+- Never create a wikilink to a non-existent page, and never create a stub just to satisfy a broken link.
 - Never forge provenance — do not edit `sources:` to manufacture a citation.
 - Never delete page content; connect orphans instead.
 - Always read `vault/CLAUDE.md` first — it is the authoritative schema and wins any conflict.

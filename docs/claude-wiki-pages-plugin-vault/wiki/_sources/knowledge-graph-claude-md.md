@@ -45,7 +45,7 @@ concept page, which already captures all the key claims from this document.
 - The `### Required fields by type` table is machine-parsed by `validate-frontmatter.sh`
   using grep/awk — no Bun required.
 - `entity_type` is the sole vault-extensible enum axis (via `entity_type_extensions:`).
-- Every non-root page requires `parent` as a quoted `"[[wikilink]]"` value; plain
+- Every non-root page requires `parent` as a quoted wikilink value; plain
   strings produce no graph edge.
 - `aliases` must include the `title` value as the first entry to prevent ghost nodes.
 - The ontology profile (`ontology-profile-v1`) is the single named contract for

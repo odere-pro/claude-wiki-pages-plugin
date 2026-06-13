@@ -51,7 +51,7 @@ Run `sync-source.sh pull [--name <n>]`. This copies changed docs into `raw/wired
 
 ### Step 5 — Mark superseded source notes
 
-For each new versioned snapshot the pull created: if an earlier snapshot of the same doc was already ingested (a `_sources/` summary page exists), edit that summary's frontmatter to set `superseded_by: "[[<new snapshot title>]]"` and append one body line noting the supersession. The `sources:` field on wiki pages is NOT changed — provenance history stays intact; the ingest pipeline's additive merge appends the new source when pages refresh.
+For each new versioned snapshot the pull created: if an earlier snapshot of the same doc was already ingested (a `_sources/` summary page exists), edit that summary's frontmatter to set `superseded_by:` to a wikilink pointing at the new snapshot's source summary page, and append one body line noting the supersession. The `sources:` field on wiki pages is NOT changed — provenance history stays intact; the ingest pipeline's additive merge appends the new source when pages refresh.
 
 ### Step 6 — Log
 

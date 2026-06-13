@@ -31,7 +31,7 @@ The problem ADR-0017 solved: early testing of `qwen3-coder:30b` produced `source
 **The partition test:**
 
 ```
-Given: a source_quotes entry { source: "[[S]]", quote: "some text" }
+Given: a source_quotes entry { source: "[[ADR-0017: Fabrication Floor — Verbatim Partition]]", quote: "some text" }
 Given: the raw input document I
 
 IF quote ∈ verbatim_substrings(whitespace_normalize(I)):

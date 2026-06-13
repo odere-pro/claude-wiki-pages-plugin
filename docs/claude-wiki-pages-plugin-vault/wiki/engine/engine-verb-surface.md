@@ -54,7 +54,7 @@ The Engine Verb Surface is the complete set of subcommands the deterministic eng
 | Verb | Fallback |
 | --- | --- |
 | `index` | Read `wiki/index.md` directly; use Glob for full enumeration |
-| `link-suggest` | grep/Glob over `wiki/` for exact `[[title]]` matches |
+| `link-suggest` | grep/Glob over `wiki/` for exact wikilink title matches |
 
 ## Related Concepts
 

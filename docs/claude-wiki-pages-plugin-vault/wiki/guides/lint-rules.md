@@ -44,7 +44,7 @@ The curator agent runs `engine heal` as its first step, then augments with the s
 
 | Check | Description |
 | --- | --- |
-| Broken wikilinks | `[[links]]` to pages that do not exist as files or aliases |
+| Broken wikilinks | wikilinks to pages that do not exist as files or aliases |
 | Missing required frontmatter | Any required field absent for the page's `type` (from the `### Required fields by type` table in `CLAUDE.md`) |
 | Title collisions | Two pages with identical `title` values (Obsidian graph collapses them) |
 | Index lists non-existent page | A folder note's `children` contains a wikilink to a page file that does not exist on disk |
@@ -76,7 +76,7 @@ Warnings are auto-healed by the curator's Phase 2 (mechanical fixes) or Phase 3 
 | --- | --- |
 | Stale confidence | `confidence` not updated despite newer related sources existing |
 | Body text mentions entity without wikilink | A concept is mentioned in prose but not linked to its page |
-| Ghost wikilinks in `log.md` | `log.md` body contains `[[links]]` to old/invalid patterns (use backtick code format instead) |
+| Ghost wikilinks in `log.md` | `log.md` body contains dangling wikilinks to old/invalid patterns (use backtick code format instead) |
 
 Info items are surfaced for awareness; they do not require immediate action but represent technical debt.
 
@@ -101,7 +101,7 @@ A missing required field on a Write/Edit fires the `validate-frontmatter.sh` Pre
 ## Auto-Healed vs Judgment Fixes
 
 The engine and curator auto-heal mechanical fixes:
-- Plain-string sources → wrapped in `[[wikilinks]]`
+- Plain-string sources → wrapped in wikilink syntax
 - Missing `parent`/`path` → filled from folder structure
 - Missing `title` from `aliases` → appended
 - `children` drift → appended (never deleted)
