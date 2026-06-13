@@ -57,7 +57,6 @@ Found 14 errors (9 plain-string sources, 5 index listing mismatches) and 13 orph
 - pre-state: 5adb70c
 - rollback: git revert the snapshot commit below
 
-
 ## [2026-06-13] curator | Health check and auto-repair
 
 Found 0 errors, 60 warnings, 0 info. Engine repaired 0, auto-applied 60 (index coverage), judgment 11 (page enrichment), surfaced 0. Rollback: git revert 776d0e6.
@@ -77,3 +76,8 @@ Enriched 26 content pages across architecture/, decisions/, guides/, and referen
 ## [2026-06-13] curator | Content enrichment phase 3 — scan and verify
 
 Scanned all wiki content pages for pages under 70 lines. Found 0 pages requiring enrichment — all content pages are already at target length (73-148 lines) from Phases 1 and 2. The only sub-70-line pages are structural index/folder notes (architecture.md 55L, guides.md 49L, reference.md 52L, decisions.md 67L, index.md 67L) which are correctly excluded from prose enrichment. Engine verify: 0 errors, 0 warnings, clean: true. 0 orphans. Rollback: git revert c10aaae.
+## [2026-06-13] snapshot | fill-gaps: stage curated repo sources (snap-20260613211022)
+
+- pre-state: 4ca3ffc
+- rollback: git revert the snapshot commit below
+
