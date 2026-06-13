@@ -11,10 +11,12 @@ child_indexes:
   - "[[guides]]"
   - "[[plugin]]"
   - "[[reference]]"
+  - "[[wiki-pages]]"
 aliases: ["Wiki Index"]
 tags: []
 created: 2026-06-13
 updated: 2026-06-13
+
 ---
 
 # Wiki Index
@@ -29,6 +31,7 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 - [[guides]] — 9 pages, last updated 2026-06-13
 - [[plugin]] — 5 pages, last updated 2026-06-13
 - [[reference]] — 7 pages, last updated 2026-06-13
+- [[wiki-pages]] — 3 pages, last updated 2026-06-13
 
 ## Special Collections
 
@@ -58,6 +61,10 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 
 [[Glossary Terms]] · [[Schema Authority]] · [[Multi-Vault Registry]] · [[Offline Policy]] · [[Approved Local Model]] · [[Backlog]] · [[Installation]]
 
+## Wiki Pages Pages
+
+[[Maintain Contract]] · [[Grounded Retrieval]] · [[Multi-Vault Operating Rules]]
+
 ## Source Summaries
 
 One summary per ingested raw source. See individual source pages for full context.
@@ -85,3 +92,7 @@ One summary per ingested raw source. See individual source pages for full contex
 ### Plugin Source Summaries
 
 [[Plugin README]] · [[Plugin CLAUDE.md]] · [[Plugin Manifest (plugin.json)]] · [[Orchestrator Agent Source]] · [[Ingest Agent Source]] · [[Curator Agent Source]] · [[Analyst Agent Source]] · [[Onboarding Agent Source]] · [[Maintenance Agent Source]] · [[Polish Agent Source]]
+
+### Skills Source Summaries
+
+[[Wiki Pages Skill (maintain-contract SKILL.md)]]

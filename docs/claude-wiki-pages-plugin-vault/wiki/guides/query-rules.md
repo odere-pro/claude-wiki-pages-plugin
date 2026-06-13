@@ -4,12 +4,12 @@ type: concept
 aliases: ["Query Rules", "query rules", "query workflow", "query protocol"]
 parent: "[[Guides]]"
 path: "guides"
-sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[ADR-0022: Folder Notes and Graph Quality]]"]
-related: ["[[Analyst Agent]]", "[[Challenge Mode]]", "[[Wiki-Native Recall]]", "[[Synthesis Note]]", "[[NO-RAG Principle]]"]
+sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[Analyst Agent]]", "[[Challenge Mode]]", "[[Wiki-Native Recall]]", "[[Synthesis Note]]", "[[NO-RAG Principle]]", "[[Grounded Retrieval]]"]
 tags: ["concept", "query"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 4
+update_count: 5
 status: active
 confidence: 1.0
 ---

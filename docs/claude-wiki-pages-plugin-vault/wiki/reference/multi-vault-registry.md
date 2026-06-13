@@ -4,12 +4,12 @@ type: concept
 aliases: ["Multi-Vault Registry", "multi-vault registry", "vault registry", "settings.json"]
 parent: "[[Reference]]"
 path: "reference"
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0012: Vault Merge Conflict Resolution]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Operations Guide]]"]
-related: ["[[Vault Resolution]]", "[[Firewall]]", "[[Active Vault]]", "[[Hook System]]"]
+sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0012: Vault Merge Conflict Resolution]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Operations Guide]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[Vault Resolution]]", "[[Firewall]]", "[[Active Vault]]", "[[Hook System]]", "[[Multi-Vault Operating Rules]]"]
 tags: ["concept", "vault", "registry"]
 created: 2026-06-13
 updated: 2026-06-13
-update_count: 4
+update_count: 5
 status: active
 confidence: 1.0
 ---

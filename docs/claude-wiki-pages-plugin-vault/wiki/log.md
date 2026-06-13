@@ -115,3 +115,19 @@ Updated existing pages: Orchestrator Agent (sources+, update_count 5→6), Inges
 - pre-state: 55ed08d
 - rollback: git revert the snapshot commit below
 
+## [2026-06-13] ingest | Wiki Pages Skill (maintain-contract SKILL.md)
+
+Processed `raw/repo/wiki-pages/SKILL.md`. Created 4 new pages, updated 4 existing.
+
+New folders: wiki-pages
+
+New sources: Wiki Pages Skill (maintain-contract SKILL.md)
+
+New concepts: Maintain Contract, Grounded Retrieval, Multi-Vault Operating Rules
+
+Updated existing pages: Ingest Pipeline (sources+, update_count 5→6), Auto-Heal (sources+, update_count 4→5), Query Rules (sources+, update_count 4→5), Multi-Vault Registry (sources+, update_count 4→5)
+## [2026-06-13] snapshot | ingest wiki-pages SKILL.md (maintain-contract) (snap-20260613214002)
+
+- pre-state: fe7371b
+- rollback: git revert the snapshot commit below
+
