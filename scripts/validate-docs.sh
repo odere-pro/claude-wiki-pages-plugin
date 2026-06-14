@@ -307,6 +307,65 @@ fi
 #   5f — router parity: every row in SOFTWARE-3-0.md's "Six surfaces" table must
 #        have non-empty human AND agent cells, with all links resolving.
 
+# Helper: resolve a relative link from a given directory.
+# Prints one of: OK | GITIGNORED | EXTERNAL | MISSING.
+# Usage: _resolve_link <dir> <link>
+#
+# Guard-clause early-return order keeps nesting ≤ 2 levels (M07).
+_resolve_link() {
+  local dir="$1" link="$2"
+
+  # Guard 1: external links — skip immediately.
+  case "$link" in http* | mailto*)
+    printf 'EXTERNAL'
+    return
+    ;;
+  esac
+
+  # Guard 2: strip trailing anchor; empty after strip means same-file link.
+  link="${link%%#*}"
+  [ -z "$link" ] && {
+    printf 'OK'
+    return
+  }
+
+  # Guard 3: resolve existence via subshell.
+  local exists
+  exists=$(cd "$dir" 2>/dev/null && { [ -e "$link" ] && printf 'OK' || printf 'MISSING'; }) || true
+  [ "$exists" = "OK" ] && {
+    printf 'OK'
+    return
+  }
+
+  # Guard 4: check if the missing path is gitignored (gitignored → treat as OK).
+  # Build absolute path with pure shell (no python3): walk . and .. segments.
+  local dirabs
+  dirabs=$(cd "$dir" 2>/dev/null && pwd) || true
+  [ -z "$dirabs" ] && {
+    printf 'MISSING'
+    return
+  }
+
+  local joined="$dirabs/$link"
+  local abs="" seg
+  local IFS='/'
+  for seg in $joined; do
+    case "$seg" in
+      '' | .) ;;
+      ..) abs="${abs%/*}" ;;
+      *) abs="$abs/$seg" ;;
+    esac
+  done
+  unset IFS
+  abs="${abs:-/}"
+  local rel="${abs#$(pwd)/}"
+  if git check-ignore -q "$rel" 2>/dev/null; then
+    printf 'GITIGNORED'
+    return
+  fi
+  printf 'MISSING'
+}
+
 header "Design-drift gate (Check 5)"
 
 # Guard: only run Check 5 if this looks like the full plugin repo.
@@ -316,61 +375,6 @@ header "Design-drift gate (Check 5)"
 if ! git ls-files -- 'hooks/hooks.json' 2>/dev/null | grep -q .; then
   ok "no hooks/hooks.json tracked — skipping design-drift check"
 else
-
-  # Helper: resolve a relative link from a given directory.
-  # Prints the resolved path if it exists, empty string if not.
-  # Gitignored paths are treated as "ok" (print "GITIGNORED").
-  # Usage: _resolve_link <dir> <link>
-  _resolve_link() {
-    local dir="$1" link="$2"
-    # Skip external links
-    case "$link" in http* | mailto*)
-      printf 'EXTERNAL'
-      return
-      ;;
-    esac
-    # Strip trailing anchor
-    link="${link%%#*}"
-    [ -z "$link" ] && {
-      printf 'OK'
-      return
-    }
-    # Resolve relative to dir using subshell
-    local exists
-    if exists=$(cd "$dir" 2>/dev/null && { [ -e "$link" ] && printf 'OK' || printf 'MISSING'; }); then
-      if [ "$exists" = "MISSING" ]; then
-        # Check if gitignored. Build absolute path with pure shell (no python3):
-        # get dir's physical absolute path, then walk the link's path segments.
-        local dirabs
-        dirabs=$(cd "$dir" 2>/dev/null && pwd) || true
-        if [ -n "$dirabs" ]; then
-          # Normalize: join dirabs + link, resolve . and .. segments.
-          local joined="$dirabs/$link"
-          local abs="" seg
-          local IFS='/'
-          for seg in $joined; do
-            case "$seg" in
-              '' | .) ;;
-              ..) abs="${abs%/*}" ;;
-              *) abs="$abs/$seg" ;;
-            esac
-          done
-          unset IFS
-          abs="${abs:-/}"
-          local rel="${abs#$(pwd)/}"
-          if git check-ignore -q "$rel" 2>/dev/null; then
-            printf 'GITIGNORED'
-            return
-          fi
-        fi
-        printf 'MISSING'
-      else
-        printf 'OK'
-      fi
-    else
-      printf 'MISSING'
-    fi
-  }
 
   # Helper: check if a file-form token resolves.
   # Returns 0 if resolved, 1 if not.
@@ -394,6 +398,103 @@ else
     # 141 pipeline status — falsely reporting the token unresolved on BSD/macOS.
     grep -qE "(^|/)${_escaped}$" <<<"$_GIT_LS" && return 0
     return 1
+  }
+
+  # ── Per-file scan helper ───────────────────────────────────────────────────────
+  # Extracted from the main loop to reduce nesting depth (M07).
+  # Runs sub-checks 5a, 5b, 5e on a single design doc.
+  # Side-effects: increments DRIFT_HITS (global); appends to _DESIGN_SH_TOKENS
+  # and _DESIGN_PRE_ORDER (globals set before call).
+  _scan_design_file() {
+    local file="$1"
+    local dir
+    dir=$(dirname "$file")
+
+    # 5a: extract mermaid tokens (always, for 5c Set A aggregation).
+    local FENCE_TOKENS
+    FENCE_TOKENS=$(awk \
+      '/^[[:space:]]*```mermaid/{f=1;next} /^[[:space:]]*```/{if(f)f=0;next} f' \
+      "$file" 2>/dev/null |
+      grep -oE '[A-Za-z0-9_-]+\.(sh|ts|json|md|yml|yaml)' | sort -u || true)
+
+    # Aggregate *.sh tokens into global Set A for 5c.
+    local _SH
+    _SH=$(printf '%s' "$FENCE_TOKENS" | grep '\.sh$' || true)
+    [ -n "$_SH" ] && _DESIGN_SH_TOKENS=$(printf '%s\n%s' "$_DESIGN_SH_TOKENS" "$_SH" | sort -u)
+
+    # Collect PreToolUse order from 02-component-design.md.
+    case "$file" in
+      */02-component-design.md)
+        _DESIGN_PRE_ORDER=$(awk '
+        /^[[:space:]]*```mermaid/{f=1;cnt=0;buf="";next}
+        /^[[:space:]]*```/{
+          if(f){
+            if(cnt>=5){print buf}
+            f=0;cnt=0;buf=""
+          }
+          next
+        }
+        f{
+          if(/SessionStart|UserPromptSubmit|PreToolUse|PostToolUse|SubagentStop|Stop|SessionEnd/)cnt++
+          if (/pre[[:space:]]*-->/ && match($0,/pre[[:space:]]*-->[^"]*"[A-Za-z0-9_-]+\.sh/)) {
+            s=substr($0,RSTART,RLENGTH)
+            sub(/.*"/, "", s)
+            buf=buf s "\n"
+          }
+        }
+        ' "$file" 2>/dev/null | awk '!seen[$0]++' || true)
+        ;;
+    esac
+
+    # 5a: grounding check — skip speculative docs.
+    if ! grep -q '\[speculative\]' "$file" 2>/dev/null; then
+      local tok
+      while IFS= read -r tok; do
+        [ -z "$tok" ] && continue
+        if ! _token_resolves "$tok"; then
+          err "unresolved mermaid token '$tok' in $file"
+          DRIFT_HITS=$((DRIFT_HITS + 1))
+        fi
+      done <<<"$FENCE_TOKENS"
+    fi
+
+    # 5b: relative link resolution.
+    local rawlink link result
+    while IFS= read -r rawlink; do
+      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
+      case "$link" in http* | mailto*) continue ;; esac
+      result=$(_resolve_link "$dir" "$link")
+      case "$result" in OK | GITIGNORED | EXTERNAL) ;;
+      *)
+        err "dead link in $file: $link"
+        printf '    (link does not resolve)\n'
+        DRIFT_HITS=$((DRIFT_HITS + 1))
+        ;;
+      esac
+    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
+      sed 's/^](\(.*\))$/\1/' || true)
+
+    # 5e: authority presence — each doc needs >=1 resolvable link to an authority surface.
+    local AUTH_FOUND=0
+    while IFS= read -r rawlink; do
+      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
+      case "$link" in http* | mailto*) continue ;; esac
+      if grep -qE 'CLAUDE\.md|architecture\.md|hooks\.json|plugin\.json|/docs/adr|docs/adr' <<<"$link"; then
+        result=$(_resolve_link "$dir" "$link")
+        case "$result" in OK | GITIGNORED)
+          AUTH_FOUND=1
+          break
+          ;;
+        esac
+      fi
+    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
+      sed 's/^](\(.*\))$/\1/' || true)
+
+    if [ "$AUTH_FOUND" -eq 0 ]; then
+      err "no resolvable authority link in $file"
+      printf '    (add a link to CLAUDE.md, docs/architecture.md, hooks/hooks.json, etc.)\n'
+      DRIFT_HITS=$((DRIFT_HITS + 1))
+    fi
   }
 
   # ── Collect all script tokens from design-doc mermaid fences for 5c ──────────
@@ -425,106 +526,10 @@ else
   in_pre && /^[[:space:]]*\]/ { in_pre=0 }
 ' hooks/hooks.json 2>/dev/null | awk '!seen[$0]++' || true)
 
-  # ── Per-file scans ────────────────────────────────────────────────────────────
+  # ── Per-file scans (delegated to _scan_design_file) ──────────────────────────
   while IFS= read -r file; do
     [ -f "$file" ] || continue
-    dir=$(dirname "$file")
-
-    # ── 5a: mermaid node grounding ─────────────────────────────────────────────
-    # Use anchored awk to avoid triggering on inline ` ```mermaid ` code spans.
-    # Always extract tokens (even from speculative docs) for 5c Set A collection.
-    # Only run the FAIL grounding check for non-speculative docs.
-    FENCE_TOKENS=$(awk \
-      '/^[[:space:]]*```mermaid/{f=1;next} /^[[:space:]]*```/{if(f)f=0;next} f' \
-      "$file" 2>/dev/null |
-      grep -oE '[A-Za-z0-9_-]+\.(sh|ts|json|md|yml|yaml)' | sort -u || true)
-
-    # Collect *.sh tokens for 5c Set A aggregation (regardless of speculative status).
-    if [ -n "$FENCE_TOKENS" ]; then
-      _SH=$(printf '%s' "$FENCE_TOKENS" | grep '\.sh$' || true)
-      if [ -n "$_SH" ]; then
-        _DESIGN_SH_TOKENS=$(printf '%s\n%s' "$_DESIGN_SH_TOKENS" "$_SH" | sort -u)
-      fi
-    fi
-
-    # Collect PreToolUse order from 02-component-design.md (regardless of speculative status).
-    case "$file" in
-      */02-component-design.md)
-        # Extract *.sh scripts from the fence that has >= 5 hook event names
-        # (the authoritative hook-chain diagram).
-        _DESIGN_PRE_ORDER=$(awk '
-        /^[[:space:]]*```mermaid/{f=1;cnt=0;buf="";next}
-        /^[[:space:]]*```/{
-          if(f){
-            if(cnt>=5){print buf}
-            f=0;cnt=0;buf=""
-          }
-          next
-        }
-        f{
-          if(/SessionStart|UserPromptSubmit|PreToolUse|PostToolUse|SubagentStop|Stop|SessionEnd/)cnt++
-          if (/pre[[:space:]]*-->/ && match($0,/pre[[:space:]]*-->[^"]*"[A-Za-z0-9_-]+\.sh/)) {
-            s=substr($0,RSTART,RLENGTH)
-            sub(/.*"/, "", s)
-            buf=buf s "\n"
-          }
-        }
-      ' "$file" 2>/dev/null | awk '!seen[$0]++' || true)
-        ;;
-    esac
-
-    # Run 5a FAIL check only for docs without [speculative].
-    if grep -q '\[speculative\]' "$file" 2>/dev/null; then
-      : # doc is speculative — exempt from grounding failures
-    else
-      while IFS= read -r tok; do
-        [ -z "$tok" ] && continue
-        if ! _token_resolves "$tok"; then
-          err "unresolved mermaid token '$tok' in $file"
-          DRIFT_HITS=$((DRIFT_HITS + 1))
-        fi
-      done <<<"$FENCE_TOKENS"
-    fi
-
-    # ── 5b: relative link resolution ───────────────────────────────────────────
-    while IFS= read -r rawlink; do
-      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
-      case "$link" in http* | mailto*) continue ;; esac
-      result=$(_resolve_link "$dir" "$link")
-      case "$result" in OK | GITIGNORED | EXTERNAL) ;; *)
-        err "dead link in $file: $link"
-        printf '    (link does not resolve)\n'
-        DRIFT_HITS=$((DRIFT_HITS + 1))
-        ;;
-      esac
-    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
-      sed 's/^](\(.*\))$/\1/' || true)
-
-    # ── 5e: authority presence ──────────────────────────────────────────────────
-    # Each scanned doc must carry >=1 resolvable relative link to an authority surface.
-    AUTH_FOUND=0
-    while IFS= read -r rawlink; do
-      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
-      case "$link" in http* | mailto*) continue ;; esac
-      # Is this link to an authority surface?
-      if grep -qE \
-        'CLAUDE\.md|architecture\.md|hooks\.json|plugin\.json|/docs/adr|docs/adr' <<<"$link"; then
-        result=$(_resolve_link "$dir" "$link")
-        case "$result" in OK | GITIGNORED)
-          AUTH_FOUND=1
-          break
-          ;;
-        esac
-      fi
-    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
-      sed 's/^](\(.*\))$/\1/' || true)
-
-    if [ "$AUTH_FOUND" -eq 0 ]; then
-      err "no resolvable authority link in $file"
-      printf '    (add a link to CLAUDE.md, docs/architecture.md, hooks/hooks.json, etc.)\n'
-      DRIFT_HITS=$((DRIFT_HITS + 1))
-    fi
-
+    _scan_design_file "$file"
   done < <(git ls-files -- 'docs/design/*.md' 'SOFTWARE-3-0.md' 2>/dev/null)
 
   # ── 5c: hook set-equality ─────────────────────────────────────────────────────

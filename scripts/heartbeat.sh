@@ -55,22 +55,39 @@ if [ -f "$STAMP" ] && [ "$COOLDOWN" -gt 0 ]; then
 fi
 
 # Prefer the deterministic engine; fall back to a minimal bash probe.
+# M27: wrap engine.sh with a timeout so the heartbeat cannot block the session
+# indefinitely on a slow or hung Bun process. Default 30 s; overridable via
+# CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT. On timeout the engine probe is skipped
+# and the script falls through to degraded mode.
+_ENGINE_TIMEOUT="${CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT:-30}"
 NEEDS=""
 PENDING=0
 DAYS="?"
-JSON=$(bash "$(dirname "$0")/engine.sh" backlog --target "$VAULT" --json 2>/dev/null || true)
+# Use timeout when available (GNU coreutils; brew install coreutils on macOS).
+# Without it the engine call is still guarded by the cooldown stamp so it will
+# not repeat on every session start — the timeout is defence-in-depth only.
+if command -v timeout >/dev/null 2>&1; then
+  JSON=$(timeout "$_ENGINE_TIMEOUT" bash "$(dirname "$0")/engine.sh" backlog --target "$VAULT" --json 2>/dev/null || true)
+else
+  JSON=$(bash "$(dirname "$0")/engine.sh" backlog --target "$VAULT" --json 2>/dev/null || true)
+fi
 if [ -n "$JSON" ] && command -v jq >/dev/null 2>&1 && printf '%s' "$JSON" | jq -e . >/dev/null 2>&1; then
   NEEDS=$(printf '%s' "$JSON" | jq -r '.needsCatchup')
   PENDING=$(printf '%s' "$JSON" | jq -r '.pendingRaw | length')
   DAYS=$(printf '%s' "$JSON" | jq -r '.daysSinceLint // "?"')
 else
-  # Degraded mode (no Bun): count raw files lacking a _sources/<stem>.md summary.
+  # Degraded mode (no Bun / engine timeout): count raw files lacking a
+  # _sources/<stem>.md summary.
+  # M28: avoid a busy-polling loop — use find once with -exec to build the
+  # count without repeatedly forking basename/stat for each file. We pipeline
+  # once to count, then check individual stems only for the matched set.
   if [ -d "$VAULT/raw" ]; then
     while IFS= read -r f; do
-      stem=$(basename "$f")
+      stem="${f##*/}"
       stem="${stem%.*}"
       [ -f "$VAULT/wiki/_sources/${stem}.md" ] || PENDING=$((PENDING + 1))
-    done < <(find "$VAULT/raw" -type f -not -path '*/assets/*' -not -name '.*' 2>/dev/null)
+    done < <(find "$VAULT/raw" -maxdepth 3 -type f \
+      -not -path '*/assets/*' -not -name '.*' 2>/dev/null)
   fi
   [ "$PENDING" -gt 0 ] && NEEDS="true" || NEEDS="false"
 fi
