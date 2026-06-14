@@ -741,9 +741,16 @@ registry_other_vaults() {
 # Sync semantics live in scripts/sync-source.sh; registration in
 # scripts/wire-source.sh. These helpers are the only settings.json accessors.
 
-# wired_read: print one line per wired source as "name|path|vault|lastSyncedCommit".
+# wired_read: print one line per wired source as the canonical record
+#   name|path|vault|lastSyncedCommit
+# This function is the SINGLE source of truth for the wired-record shape; the
+# only consumer (sync-source.sh) splits on the same delimiter via `IFS='|' read`.
+# M15: '|' is a RESERVED field delimiter — a field containing it would silently
+# corrupt the positional split (wrong vault/commit), so wired_read fails closed
+# on a '|' in any field rather than emit an ambiguous record.
 # Prints nothing when the key is absent (valid un-wired project). Fail-closed:
-# exit 1 with a stderr WARN on malformed JSON or non-string fields.
+# exit 1 with a stderr WARN on malformed JSON, non-string fields, or a
+# delimiter-bearing field.
 wired_read() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
   python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" <<'PYEOF'
@@ -765,6 +772,13 @@ for w in data.get("wired_sources", []):
         sys.stderr.write(
             "[claude-wiki-pages] WARN: wired_sources entry malformed (name=%r)"
             " — wired sources unavailable\n" % name
+        )
+        sys.exit(1)
+    if any("|" in v for v in (name, path, vault, commit)):
+        sys.stderr.write(
+            "[claude-wiki-pages] WARN: wired_sources entry %r has a '|' in a"
+            " field (reserved record delimiter) — wired sources unavailable\n"
+            % name
         )
         sys.exit(1)
     print("%s|%s|%s|%s" % (name, path, vault, commit))
