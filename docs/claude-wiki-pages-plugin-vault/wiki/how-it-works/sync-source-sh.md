@@ -17,8 +17,8 @@ related:
   ]
 tags: ["entity", "tool", "script", "sync"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 2
+updated: 2026-06-14
+update_count: 3
 status: active
 confidence: 1.0
 ---
@@ -39,6 +39,7 @@ The script is intentionally thin: no logic for deciding what to ingest, no wiki 
 - **Checksum deduplication**: before writing a new snapshot, the script computes the SHA of the source file content. If an existing snapshot in `raw/wired/<name>/` has the same content SHA, the copy is skipped. This prevents redundant ingests when a file appears changed by git diff but content is identical (e.g., line-ending normalization).
 - **Raw immutability**: the script never overwrites an existing snapshot. It always creates a new sibling file. The `protect-raw.sh` hook enforces this at the write level; the script honors the same invariant in its own logic.
 - **Idempotent**: running `pull` twice in a row produces `WIRED-CHANGES: <name> 0` on the second `status` check because the sync point has already been advanced to HEAD.
+- **Path & record hardening**: the destination under `raw/wired/<name>/` is resolved with physical `realpath`, so a crafted source path cannot escape the vault; and the registry reader (`wired_read` in `resolve-vault.sh`) treats `name|path|vault|lastSyncedCommit` as the canonical record, failing closed if any field contains the reserved `|` delimiter so a malformed registry cannot silently corrupt the positional split.
 
 ## Relationship to the Broader Pipeline
 

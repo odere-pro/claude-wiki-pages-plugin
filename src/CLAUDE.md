@@ -53,6 +53,6 @@ deliberately, so the bash and TypeScript matchers agree on every path.
 | ---------------------------------- | ------------------------------------------------------------- |
 | [`cli/`](./cli/CLAUDE.md)          | The argv router — parse, dispatch, emit, exit.                |
 | [`commands/`](./commands/CLAUDE.md)| The 10 implemented engine verbs; one handler per subdir.      |
-| [`core/`](./core/CLAUDE.md)        | The ~18 primitives: checks, builders, io, parsing, result model. |
+| [`core/`](./core/CLAUDE.md)        | The ~21 primitives: checks, builders, io, parsing, concurrency lock, result model. |
 | [`data/`](./data/CLAUDE.md)        | Config layering + embedded frontmatter templates.            |
 | [`test-helpers/`](./test-helpers/) | The `makeVault` sandbox and shared fixtures for `bun test`.   |

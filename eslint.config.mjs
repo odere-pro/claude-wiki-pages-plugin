@@ -1,8 +1,8 @@
 // ESLint 9 flat config — H21: upgraded from ESLint 8 (EOL) to ESLint 9.
 // @typescript-eslint/eslint-plugin@8.18.2 and @typescript-eslint/parser@8.18.2
 // already support ESLint 9's flat config format via their `configs` presets.
-// The legacy .eslintrc.cjs is no longer loaded when this flat config is present
-// (ESLint 9 uses flat config exclusively).
+// This flat config fully replaces the former .eslintrc.cjs, which has been
+// removed (ESLint 9 uses flat config exclusively).
 //
 // gate-11-eslint.sh runs `bun run lint` which resolves to this file once
 // ESLint 9 is installed via `bun install`.

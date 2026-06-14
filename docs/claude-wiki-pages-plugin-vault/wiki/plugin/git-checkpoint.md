@@ -24,8 +24,8 @@ related:
   ]
 tags: ["concept", "git"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 6
+updated: 2026-06-14
+update_count: 7
 status: active
 confidence: 1.0
 ---
@@ -71,6 +71,16 @@ Git-required per-vault init is a non-negotiable (decision #4). The rationale:
 | SubagentStop       | `subagent-commit-gate.sh` commits any uncommitted vault changes as backstop | SubagentStop hook (automatic) |
 
 `gitCheckpoint.mode` config: `bun` (primary, full engine), `bash` (shim when Bun is absent), `off`.
+
+## Concurrency Safety
+
+Concurrent write paths — a scheduled maintenance run, a `SubagentStop` backstop, and an interactive agent — can collide on the same vault's git index and `wiki/log.md`. Two mechanisms keep the `isClean → append/stash → commit` sequence race-free:
+
+- **Advisory vault lock.** `scripts/vault-lock.sh` (an `flock` on `<vault>/.git/claude-wiki-pages.lock`) and its in-process companion `src/core/vault-lock.ts` (`withVaultLock` / `withVaultLockSync`) serialize the snapshot / propose / migrate / heal commit sequences so two writers cannot interleave a check-then-commit. The lock is advisory: on a `VAULT_LOCK_TIMEOUT_SEC` (default 30 s) timeout it warns and proceeds rather than blocking the write phase.
+- **Bounded git calls.** Every git invocation in `src/core/git.ts` carries a timeout (`GIT_TIMEOUT_MS`, default 30 s, override `CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS`), so a stale `index.lock` can never hang the engine.
+
+> [!note] Why this exists
+> The bounded-parallel-extract and scheduled-upkeep work (ADR-0026) made it possible for more than one writer to touch a vault at once. The advisory lock plus bounded git calls close that parallel-writer race window.
 
 ## Rollback
 
