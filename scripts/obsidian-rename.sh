@@ -66,17 +66,41 @@ usage_error() {
 [ -d "$VAULT" ] || usage_error "vault not found: $VAULT"
 [ -f "$VAULT/$FROM" ] || usage_error "--from does not exist: $VAULT/$FROM"
 
-# Confinement: both paths must stay inside the vault (no traversal, no
-# absolute paths) and inside wiki/ — raw/ is immutable and out of scope.
-check_rel() {
-  case "$1" in
-    /* | *..*) usage_error "path escapes the vault: $1" ;;
+# Confinement: both paths must resolve physically inside vault/wiki/ using
+# realpath — mirrors protect-raw.sh/firewall.sh canonicalization so a
+# traversal (../../etc/passwd) or a symlink escape cannot slip past the check.
+# String-glob checks ("*..*") are insufficient because a crafted path like
+# "wiki/a%2F..%2F../etc" can bypass them on some filesystems.
+confine_to_wiki() {
+  local rel="$1" abs_vault abs_wiki abs_target
+  # Reject absolute paths before touching the filesystem.
+  case "$rel" in
+    /*) usage_error "path must be relative, not absolute: $rel" ;;
+  esac
+  # Reject the name-only case (must start with wiki/).
+  case "$rel" in
     wiki/*) ;;
-    *) usage_error "only wiki/ pages can be renamed (got: $1)" ;;
+    *) usage_error "only wiki/ pages can be renamed (got: $rel)" ;;
+  esac
+  # Resolve the vault to its canonical physical path.
+  abs_vault=$(cd "$VAULT" 2>/dev/null && pwd -P) || usage_error "cannot resolve vault: $VAULT"
+  abs_wiki="${abs_vault}/wiki"
+  # The FROM path must exist; the TO path may not exist yet. Resolve the
+  # parent directory and reattach the basename so realpath-style resolution
+  # works for both. The parent dir MUST exist for a safe rename.
+  local dir base
+  dir=$(dirname "${abs_vault}/${rel}")
+  base=$(basename "${abs_vault}/${rel}")
+  abs_target=$(cd "$dir" 2>/dev/null && printf '%s/%s' "$(pwd -P)" "$base") ||
+    usage_error "cannot resolve parent directory for path: $rel"
+  # Physical confinement: resolved path must have abs_wiki/ as its prefix.
+  case "$abs_target" in
+    "${abs_wiki}/"*) ;;
+    *) usage_error "path escapes the vault wiki/: $rel (resolved to $abs_target)" ;;
   esac
 }
-check_rel "$FROM"
-check_rel "$TO"
+confine_to_wiki "$FROM"
+confine_to_wiki "$TO"
 [ -e "$VAULT/$TO" ] && usage_error "--to already exists: $VAULT/$TO"
 
 skip() {

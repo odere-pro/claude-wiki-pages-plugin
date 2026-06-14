@@ -7,6 +7,12 @@
  * On success the auto-fixes land in a single `heal:` commit (rollback =
  * `git revert <heal>`); on non-convergence the checkpoint is left in place and
  * the unresolved findings are surfaced — the loop never spins forever.
+ *
+ * M17 (layering note): heal intentionally composes the verify and fix command
+ * handlers directly — it IS the verify → fix → re-verify loop, not a generic
+ * orchestrator. Shared primitives (git operations, log append, vault resolution)
+ * live in core/. No mediator layer is warranted here. Cross-reference:
+ * src/commands/CLAUDE.md — "Commands stay thin — they compose core checks."
  */
 
 import { verify } from "../verify/verify.ts";
@@ -21,6 +27,7 @@ import {
 } from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
 import { loadConfig } from "../../data/config/config.ts";
+import { withVaultLockSync } from "../../core/vault-lock.ts";
 
 const DEFAULT_MAX_ITERATIONS = 5;
 
@@ -82,22 +89,27 @@ export function heal(opts: HealOptions = {}): HealReport {
   }
 
   const clean = last.errors === 0;
-  // Record the operation in the log before committing, so the entry lands in the
-  // heal commit itself (the precise SHA lives in git; the log stays human-readable).
-  if (clean && changes.length > 0) {
-    appendLog(vault, {
-      verb: "heal",
-      summary: `errors ${before.errors} → ${last.errors} in ${iterations} iteration(s)`,
-      details: [
-        // Paper trace: the checkpoint SHA is the rollback anchor, known before
-        // the heal commit exists (a commit cannot contain its own SHA).
-        ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
-        "rollback: git revert the heal commit below",
-      ],
-      today: opts.today,
-    });
-  }
-  const healSha = clean && mode !== "off" ? commitHeal(vault, opId, iterations) : null;
+  // Guard the appendLog → commitHeal sequence with the advisory vault lock to
+  // prevent TOCTOU races between concurrent heal invocations (H08 / M29).
+  const healSha = withVaultLockSync(vault, () => {
+    // Record the operation in the log before committing, so the entry lands in
+    // the heal commit itself (the precise SHA lives in git; the log stays
+    // human-readable).
+    if (clean && changes.length > 0) {
+      appendLog(vault, {
+        verb: "heal",
+        summary: `errors ${before.errors} → ${last.errors} in ${iterations} iteration(s)`,
+        details: [
+          // Paper trace: the checkpoint SHA is the rollback anchor, known before
+          // the heal commit exists (a commit cannot contain its own SHA).
+          ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
+          "rollback: git revert the heal commit below",
+        ],
+        today: opts.today,
+      });
+    }
+    return clean && mode !== "off" ? commitHeal(vault, opId, iterations) : null;
+  });
   if (healSha && gitCfg.push === "auto") push(vault);
   const unresolved = clean
     ? []

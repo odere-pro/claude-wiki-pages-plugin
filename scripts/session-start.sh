@@ -59,7 +59,15 @@ fi
 
 # Surface a maintenance catch-up recommendation when enabled (maintenance.enabled).
 # Silent no-op by default; never mutates the vault.
-bash "$(dirname "$0")/heartbeat.sh" || true
+# M26: wrap heartbeat.sh with a timeout so SessionStart cannot hang when the
+# engine.sh backlog call blocks (e.g. on a slow filesystem or a hung git lock).
+# 10 s is generous for a heartbeat probe; adjust via CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT_SEC.
+_hb_timeout="${CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT_SEC:-10}"
+if command -v timeout >/dev/null 2>&1; then
+  timeout "${_hb_timeout}" bash "$(dirname "$0")/heartbeat.sh" || true
+else
+  bash "$(dirname "$0")/heartbeat.sh" || true
+fi
 
 # Degraded-mode advisory (ADR-0018): when a local model is enabled AND an offline
 # policy is set, probe reachability and surface which tier is available or BLOCKED.

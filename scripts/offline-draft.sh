@@ -39,6 +39,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/scripts/eval-produce-ollama.sh"
 # shellcheck source=resolve-vault.sh
 source "$ROOT/scripts/resolve-vault.sh"
+# M10: source the shared Ollama curl+backoff helper (DRY — previously triplicated).
+# shellcheck source=ollama-chat.sh
+source "$ROOT/scripts/ollama-chat.sh"
 
 usage() {
   sed -n '/^# Usage:/,/^set -uo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
@@ -55,39 +58,12 @@ stamp_frontmatter() { # $1 = file, $2 = proposed_by value
   ' "$1" >"$1.stamp" && mv "$1.stamp" "$1"
 }
 
-# Ask the local model to extract one source; mirrors eval-produce-ollama.sh's
-# produce step (curl + exponential-backoff retry). Echoes the model content.
+# Ask the local model to extract one source. Delegates to the shared
+# ollama_chat_call helper (M10 DRY fix — previously triplicated across
+# offline-draft.sh, eval-produce-ollama.sh, and eval-produce-ollama-query.sh).
 ollama_chat() { # $1 = model, $2 = system prompt, $3 = user prompt → stdout content
-  local model="$1" sys="$2" usr="$3" payload response attempt=0 t="$TIMEOUT" got=0
-  payload=$(mktemp) || die "mktemp failed"
-  response=$(mktemp) || die "mktemp failed"
-  jq -n --arg model "$model" --arg sys "$sys" --arg usr "$usr" --argjson nc "$NUM_CTX" \
-    '{model:$model, stream:false,
-      options:{temperature:0, seed:42, top_p:1, num_ctx:$nc, num_predict:-1},
-      messages:[{role:"system",content:$sys},{role:"user",content:$usr}]}' \
-    >"$payload" || die "payload build failed"
-  while :; do
-    if curl -sS --fail --connect-timeout 5 --max-time "$t" \
-      -H 'Content-Type: application/json' -d @"$payload" \
-      "$ENDPOINT/api/chat" >"$response"; then
-      got=1
-      break
-    fi
-    attempt=$((attempt + 1))
-    [ "$attempt" -gt "$RETRIES" ] && break
-    t=$((t * 2))
-    echo "[offline-draft] retry ${attempt}/${RETRIES} (timeout ${t}s — exponential backoff)" >&2
-  done
-  rm -f "$payload"
-  [ "$got" -eq 1 ] || {
-    rm -f "$response"
-    die "Ollama call failed after $attempt attempt(s) (last timeout ${t}s)"
-  }
-  jq -er '.message.content // empty' "$response" || {
-    rm -f "$response"
-    die "empty/missing .message.content in Ollama response"
-  }
-  rm -f "$response"
+  local model="$1" sys="$2" usr="$3"
+  ollama_chat_call "$ENDPOINT" "$model" "$sys" "$usr" "$NUM_CTX" "$TIMEOUT" "$RETRIES" "offline-draft:${model}"
 }
 
 main() {

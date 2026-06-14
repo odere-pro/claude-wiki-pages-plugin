@@ -45,12 +45,18 @@ usage() {
   sed -n '/^# Usage:/,/^set -uo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
 }
 
-# ── verification core (pure; sourced by offline-query.sh) ────────────────────
+# M12: named constant for the 0.90 threshold so all three uses share one
+# definition and a future calibration change is made in one place.
+readonly THRESH_QUERY_RECALL="0.90"
+readonly THRESH_QUERY_QUOTE="0.90"
 
-# Collapse every whitespace run to one space (ADR-0017 normalization).
-normalize_ws() {
-  tr '\n\t' '  ' | tr -s ' '
-}
+# H13: source the single canonical normalize_ws implementation so this file
+# and eval-ingest-extract.sh share one definition (DRY). The function
+# collapses every whitespace run to one space (ADR-0017 normalization).
+# shellcheck source=eval-normalize-ws.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/eval-normalize-ws.sh"
+
+# ── verification core (pure; sourced by offline-query.sh) ────────────────────
 
 # Parse the ANSWER protocol on stdin into $1/: answer.txt, coverage, citations.tsv
 # (TITLE<TAB>QUOTE per line). Fail-closed: missing/duplicated markers die rc 2.
@@ -204,8 +210,8 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
 
   local verdict="fail"
   if [ "$coverage_match" -eq 1 ] && [ "$fabricated" -eq 0 ] &&
-    awk -v r="$recall" 'BEGIN{exit !(r>=0.90)}' &&
-    awk -v q="$qcov" 'BEGIN{exit !(q>=0.90)}'; then
+    awk -v r="$recall" -v t="$THRESH_QUERY_RECALL" 'BEGIN{exit !(r>=t)}' &&
+    awk -v q="$qcov" -v t="$THRESH_QUERY_QUOTE" 'BEGIN{exit !(q>=t)}'; then
     verdict="pass"
   fi
 
@@ -213,11 +219,12 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
     jq -n --arg v "$verdict" --arg ec "$exp_cov" --arg gc "$got_cov" \
       --argjson cm "$coverage_match" --argjson fab "$fabricated" \
       --arg cr "$recall" --arg qc "$qcov" \
+      --arg tr "$THRESH_QUERY_RECALL" --arg tq "$THRESH_QUERY_QUOTE" \
       '{tier:"query", verdict:$v, coverage_match:($cm==1),
         expected_coverage:$ec, got_coverage:$gc,
         citation_recall:($cr|tonumber), quote_coverage:($qc|tonumber),
         fabricated_citations:$fab,
-        thresholds:{citation_recall:0.90, quote_coverage:0.90,
+        thresholds:{citation_recall:($tr|tonumber), quote_coverage:($tq|tonumber),
                     coverage_match:true, fabricated_citations:0}}'
   else
     [ -n "$problems" ] && printf '%s\n' "$problems"

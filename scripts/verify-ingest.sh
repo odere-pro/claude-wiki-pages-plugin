@@ -30,6 +30,67 @@ yellow() { printf '\033[0;33mWARN:  %s\033[0m\n' "$1"; }
 green() { printf '\033[0;32mOK:    %s\033[0m\n' "$1"; }
 header() { printf '\n\033[1m=== %s ===\033[0m\n' "$1"; }
 
+# M11: single shared YAML list extractor for sources:, children:, and any
+# other inline-or-multi-line list field. Reads YAML text from stdin, extracts
+# the named field's list entries (one per output line, quotes/brackets stripped,
+# wikilink markers stripped).
+# Usage: _extract_yaml_list <field-name>  (reads frontmatter from stdin)
+_extract_yaml_list() {
+  local field="$1"
+  awk -v field="$field" '
+    $0 ~ ("^" field ":") {
+      if ($0 ~ /\[/) {
+        line = $0
+        # Strip everything up to and including the opening [
+        sub(/.*\[/, "", line)
+        # Strip trailing ] and beyond
+        sub(/\].*/, "", line)
+        n = split(line, items, ",")
+        for (i = 1; i <= n; i++) {
+          gsub(/^[ "\x27]+|[ "\x27]+$/, "", items[i])
+          gsub(/^\[\[|\]\]$/, "", items[i])
+          if (items[i] != "") print items[i]
+        }
+        next
+      }
+      # Multi-line array: read subsequent "  - " lines
+      while ((getline line) > 0) {
+        if (line !~ /^[[:space:]]*-/) break
+        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
+        gsub(/"?[[:space:]]*$/, "", line)
+        gsub(/^\[\[|\]\]$/, "", line)
+        if (line != "") print line
+      }
+    }
+  '
+}
+
+# Variant: extract sources: entries WITHOUT stripping wikilink [[ ]] so the
+# wikilink-format check (CHECK 2) can test the brackets.
+_extract_sources_raw() {
+  awk '
+    /^sources:/ {
+      if ($0 ~ /\[/) {
+        line = $0
+        sub(/^sources:[[:space:]]*\[/, "", line)
+        sub(/\][[:space:]]*$/, "", line)
+        n = split(line, items, ",")
+        for (i = 1; i <= n; i++) {
+          gsub(/^[[:space:]"'\'']+|[[:space:]"'\'']+$/, "", items[i])
+          if (items[i] != "") print items[i]
+        }
+        next
+      }
+      while ((getline line) > 0) {
+        if (line !~ /^[[:space:]]*-/) break
+        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
+        gsub(/"?[[:space:]]*$/, "", line)
+        if (line != "") print line
+      }
+    }
+  '
+}
+
 # Folder note (schema v3): filename stem equals its parent directory name AND
 # frontmatter declares `type: index`. Twin of isFolderNote in src/core/fs.ts —
 # both names (folder note and legacy _index.md) classify as index files
@@ -155,37 +216,9 @@ while IFS= read -r filepath; do
   # Extract frontmatter block
   FRONTMATTER=$(sed -n '/^---$/,/^---$/p' "$filepath")
 
-  # Extract sources array entries — handles both inline and multi-line YAML
-  # Inline: sources: ["[[A]]", "[[B]]"]
-  # Multi-line:
-  #   sources:
-  #     - "[[A]]"
-  #     - "[[B]]"
-  SOURCES_ENTRIES=$(echo "$FRONTMATTER" | awk '
-    /^sources:/ {
-      # Check for inline array on same line
-      if ($0 ~ /\[/) {
-        # Extract items from inline array
-        line = $0
-        # Strip key and outermost brackets only (not inner [[ ]])
-        sub(/^sources:[[:space:]]*\[/, "", line)
-        sub(/\][[:space:]]*$/, "", line)
-        n = split(line, items, ",")
-        for (i = 1; i <= n; i++) {
-          gsub(/^[[:space:]"'\'']+|[[:space:]"'\'']+$/, "", items[i])
-          if (items[i] != "") print items[i]
-        }
-        next
-      }
-      # Multi-line array — read subsequent "  - " lines
-      while ((getline line) > 0) {
-        if (line !~ /^[[:space:]]*-/) break
-        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
-        gsub(/"?[[:space:]]*$/, "", line)
-        if (line != "") print line
-      }
-    }
-  ')
+  # M11: use the shared _extract_sources_raw helper (DRY — previously duplicated
+  # in CHECK 2, CHECK 4, and CHECK 5a).
+  SOURCES_ENTRIES=$(printf '%s\n' "$FRONTMATTER" | _extract_sources_raw)
 
   if [ -z "$SOURCES_ENTRIES" ]; then
     continue
@@ -232,56 +265,13 @@ while IFS= read -r index_file; do
   FOLDER_NAME=$(basename "$FOLDER")
   INDEX_BASENAME=$(basename "$index_file")
 
-  # Get children listed in the index frontmatter
+  # Get children listed in the index frontmatter.
+  # M06/M11: use the shared _extract_yaml_list helper (DRY + flattened nesting).
   INDEX_FRONTMATTER=$(sed -n '/^---$/,/^---$/p' "$index_file")
-  INDEX_CHILDREN=$(echo "$INDEX_FRONTMATTER" | awk '
-    /^children:/ {
-      if ($0 ~ /\[/) {
-        line = $0
-        gsub(/.*\[/, "", line)
-        gsub(/\].*/, "", line)
-        n = split(line, items, ",")
-        for (i = 1; i <= n; i++) {
-          gsub(/^[ "'\'']+|[ "'\'']+$/, "", items[i])
-          gsub(/^\[\[|\]\]$/, "", items[i])
-          if (items[i] != "") print items[i]
-        }
-        next
-      }
-      while ((getline line) > 0) {
-        if (line !~ /^[[:space:]]*-/) break
-        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
-        gsub(/"?[[:space:]]*$/, "", line)
-        gsub(/^\[\[|\]\]$/, "", line)
-        if (line != "") print line
-      }
-    }
-  ')
-
-  # shellcheck disable=SC2034  # Reserved for the spec §12 child_indexes drift check; parse kept so the check can be wired without re-deriving the awk.
-  INDEX_CHILD_INDEXES=$(echo "$INDEX_FRONTMATTER" | awk '
-    /^child_indexes:/ {
-      if ($0 ~ /\[/) {
-        line = $0
-        gsub(/.*\[/, "", line)
-        gsub(/\].*/, "", line)
-        n = split(line, items, ",")
-        for (i = 1; i <= n; i++) {
-          gsub(/^[ "'\'']+|[ "'\'']+$/, "", items[i])
-          gsub(/^\[\[|\]\]$/, "", items[i])
-          if (items[i] != "") print items[i]
-        }
-        next
-      }
-      while ((getline line) > 0) {
-        if (line !~ /^[[:space:]]*-/) break
-        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
-        gsub(/"?[[:space:]]*$/, "", line)
-        gsub(/^\[\[|\]\]$/, "", line)
-        if (line != "") print line
-      }
-    }
-  ')
+  INDEX_CHILDREN=$(printf '%s\n' "$INDEX_FRONTMATTER" | _extract_yaml_list "children")
+  # M09: INDEX_CHILD_INDEXES was extracted here every scan but never consumed
+  # (commented "Reserved for spec §12"). Removed as dead code (YAGNI); restore
+  # it when the check is actually wired — use `_extract_yaml_list "child_indexes".
 
   # Get actual .md files in this folder (excluding the index files themselves)
   ACTUAL_FILES=""
@@ -489,28 +479,8 @@ while IFS= read -r filepath; do
   PAGE_UPDATED=$(_fm_field "$filepath" "updated")
   [ -z "$PAGE_UPDATED" ] && continue # no updated: field — skip staleness check
 
-  # Extract sources: wikilink entries from frontmatter.
-  PAGE_SOURCES=$(sed -n '/^---$/,/^---$/p' "$filepath" | awk '
-    /^sources:/ {
-      if ($0 ~ /\[/) {
-        line = $0
-        sub(/^sources:[[:space:]]*\[/, "", line)
-        sub(/\][[:space:]]*$/, "", line)
-        n = split(line, items, ",")
-        for (i = 1; i <= n; i++) {
-          gsub(/^[[:space:]"'\'']+|[[:space:]"'\'']+$/, "", items[i])
-          if (items[i] != "") print items[i]
-        }
-        next
-      }
-      while ((getline line) > 0) {
-        if (line !~ /^[[:space:]]*-/) break
-        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
-        gsub(/"?[[:space:]]*$/, "", line)
-        if (line != "") print line
-      }
-    }
-  ')
+  # M11: use shared _extract_sources_raw helper (DRY — third occurrence).
+  PAGE_SOURCES=$(sed -n '/^---$/,/^---$/p' "$filepath" | _extract_sources_raw)
   [ -z "$PAGE_SOURCES" ] && continue
 
   while IFS= read -r entry; do
@@ -594,37 +564,11 @@ while IFS= read -r filepath; do
   done
 
   if [ "$IS_REQUIRING" -eq 1 ]; then
-    # Count entries in sources:. We need the raw count regardless of format
-    # so that malformed-but-present entries are not double-flagged.
-    ENTRY_COUNT=$(sed -n '/^---$/,/^---$/p' "$filepath" | awk '
-      /^sources:/ {
-        if ($0 ~ /\[/) {
-          # Inline array: count comma-separated tokens inside the brackets.
-          line = $0
-          sub(/^sources:[[:space:]]*\[/, "", line)
-          sub(/\][[:space:]]*$/, "", line)
-          # Empty inline array: "[]"
-          if (line == "") { print 0; exit }
-          n = split(line, items, ",")
-          count = 0
-          for (i = 1; i <= n; i++) {
-            gsub(/^[[:space:]"'\'']+|[[:space:]"'\'']+$/, "", items[i])
-            if (items[i] != "") count++
-          }
-          print count; exit
-        }
-        # Multi-line array: count "- " lines.
-        count = 0
-        while ((getline line) > 0) {
-          if (line !~ /^[[:space:]]*-/) break
-          gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
-          gsub(/"?[[:space:]]*$/, "", line)
-          if (line != "") count++
-        }
-        print count; exit
-      }
-    ')
-    # If awk printed nothing, sources: is absent — treat as 0.
+    # Count entries in sources: via the shared helper. We need the raw count
+    # regardless of format so that malformed-but-present entries are not
+    # double-flagged. M11: uses _extract_sources_raw instead of an inline awk.
+    _fm_block=$(sed -n '/^---$/,/^---$/p' "$filepath")
+    ENTRY_COUNT=$(printf '%s\n' "$_fm_block" | _extract_sources_raw | grep -c . || true)
     ENTRY_COUNT="${ENTRY_COUNT:-0}"
 
     if [ "$ENTRY_COUNT" -eq 0 ]; then

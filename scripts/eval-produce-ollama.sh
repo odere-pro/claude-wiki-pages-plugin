@@ -46,6 +46,12 @@ die() {
   exit 2
 }
 
+# M10: source the shared Ollama curl+backoff helper (DRY — previously
+# triplicated across this file, offline-draft.sh, and eval-produce-ollama-query.sh).
+# The `die` function above must be defined before sourcing.
+# shellcheck source=ollama-chat.sh
+source "$ROOT/scripts/ollama-chat.sh"
+
 usage() {
   sed -n '/^# Usage:/,/^set -uo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
   echo "Flags: --model <m> (required) --case <name> --out <dir> --endpoint <url>"
@@ -220,8 +226,8 @@ parse_response() { # $1 = candidate vault dir
 
 # ── produce one case ──────────────────────────────────────────────────────────
 produce_case() { # $1 = model, $2 = case name
-  local model="$1" case_name="$2" input sys usr payload response content
-  local slug case_out
+  local model="$1" case_name="$2" input sys usr content
+  local slug case_out response_audit
   input="$CASES_DIR/$case_name/input.md"
   [ -r "$input" ] || die "unknown case (no input.md): $case_name"
 
@@ -235,40 +241,19 @@ produce_case() { # $1 = model, $2 = case name
 
   slug=$(printf '%s' "$model" | tr ':/' '--')
   case_out="$OUT_DIR/$slug/$case_name"
+  # Audit file: the raw Ollama JSON response, persisted OUTSIDE the candidate
+  # vault dir for replay and debugging (matches the original pre-M10 location).
+  local response_audit="$OUT_DIR/$slug/$case_name.response.json"
   rm -rf "$case_out"
-  mkdir -p "$case_out"
+  mkdir -p "$case_out" "$(dirname "$response_audit")"
 
-  payload=$(mktemp) || die "mktemp failed"
-  jq -n --arg model "$model" --arg sys "$sys" --arg usr "$usr" --argjson nc "$NUM_CTX" \
-    '{model:$model, stream:false,
-      options:{temperature:0, seed:42, top_p:1, num_ctx:$nc, num_predict:-1},
-      messages:[{role:"system",content:$sys},{role:"user",content:$usr}]}' \
-    >"$payload" || die "payload build failed"
-
+  # M10: use the shared ollama_chat_call helper (DRY — previously inline here).
+  # Pass the audit file path as the 9th argument so the raw JSON is persisted
+  # for review and fail-closed error messages.
   echo "[produce] $model × $case_name → $case_out (timeout ${TIMEOUT}s, retries ${RETRIES})"
-  response="$OUT_DIR/$slug/$case_name.response.json"
-  # Exponential timeout backoff: stream:false means zero bytes arrive until the
-  # model finishes, so a slow model looks identical to a hung one — each retry
-  # doubles --max-time instead of hammering the same too-short budget.
-  local attempt=0 t="$TIMEOUT" got=0
-  while :; do
-    if curl -sS --fail --connect-timeout 5 --max-time "$t" \
-      -H 'Content-Type: application/json' -d @"$payload" \
-      "$ENDPOINT/api/chat" >"$response"; then
-      got=1
-      break
-    fi
-    attempt=$((attempt + 1))
-    [ "$attempt" -gt "$RETRIES" ] && break
-    t=$((t * 2))
-    echo "[produce] retry ${attempt}/${RETRIES} for $model × $case_name (timeout ${t}s — exponential backoff)"
-  done
-  rm -f "$payload"
-  [ "$got" -eq 1 ] ||
-    die "Ollama call failed for $model × $case_name after $((attempt)) attempt(s) (last timeout ${t}s)"
-
-  content=$(jq -er '.message.content // empty' "$response") ||
-    die "empty/missing .message.content in response for $model × $case_name"
+  content=$(ollama_chat_call "$ENDPOINT" "$model" "$sys" "$usr" "$NUM_CTX" "$TIMEOUT" "$RETRIES" \
+    "$model × $case_name" "$response_audit") ||
+    die "Ollama call failed for $model × $case_name"
 
   # Scaffold the vault root (mirrors production: scaffold-vault.sh creates the
   # vault before ingest writes pages — the model is measured on extraction).
@@ -287,7 +272,7 @@ EOF
   # script, so the pipeline status must be checked explicitly (fail-closed;
   # a protocol-violating response must never yield a "ready" candidate).
   printf '%s\n' "$content" | parse_response "$case_out" ||
-    die "response did not follow the FILE protocol for $model × $case_name (raw kept at $response)"
+    die "response did not follow the FILE protocol for $model × $case_name (raw kept at $response_audit)"
   echo "[produce] candidate ready: $case_out"
 }
 

@@ -74,7 +74,7 @@ echo "[smoke] (STUB) run /claude-wiki-pages:ingest"
 # -- Stage 6: verify the post-ingest state. -----------------------------------
 
 echo "[smoke] running verify-ingest.sh against the scratch vault"
-if "$REPO_ROOT/scripts/verify-ingest.sh" "$TMP_PROJECT/vault"; then
+if "$REPO_ROOT/scripts/verify-ingest.sh" --target "$TMP_PROJECT/vault"; then
   echo "[smoke] PASS"
   exit 0
 else

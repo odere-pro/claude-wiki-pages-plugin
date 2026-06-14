@@ -28,6 +28,7 @@ import { buildManifest, MANIFEST_RELATIVE } from "../../core/manifest.ts";
 import { ensureRepo, applyCheckpointMode, commit, push } from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
 import { loadConfig } from "../../data/config/config.ts";
+import { withVaultLockSync } from "../../core/vault-lock.ts";
 import { TOPIC_TEMPLATE, PROJECT_TEMPLATE } from "../../data/templates.ts";
 
 export interface MigrateChange {
@@ -247,21 +248,27 @@ export function migrate(opts: MigrateOptions = {}): MigrateReport {
     writeFileSync(p.change.file, p.content);
   }
 
-  // Record the migration in the log, then commit everything as one revertible unit.
-  appendLog(vault, {
-    verb: "migrate",
-    summary: `schema_version ${from ?? "?"} → ${to} (${changes.length} change(s))`,
-    details: [
-      ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
-      ...(renames.length > 0 ? [`renamed ${renames.length} legacy _index.md to folder notes`] : []),
-      ...(conflicts.length > 0 ? [`skipped ${conflicts.length} rename conflict(s)`] : []),
-      "rollback: git revert the migrate commit below",
-    ],
-    today,
+  // Guard the appendLog → commit sequence with the advisory vault lock to
+  // prevent TOCTOU races between concurrent migrate invocations (H08 / M29).
+  const migrateCommit = withVaultLockSync(vault, () => {
+    // Record the migration in the log, then commit everything as one revertible unit.
+    appendLog(vault, {
+      verb: "migrate",
+      summary: `schema_version ${from ?? "?"} → ${to} (${changes.length} change(s))`,
+      details: [
+        ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
+        ...(renames.length > 0
+          ? [`renamed ${renames.length} legacy _index.md to folder notes`]
+          : []),
+        ...(conflicts.length > 0 ? [`skipped ${conflicts.length} rename conflict(s)`] : []),
+        "rollback: git revert the migrate commit below",
+      ],
+      today,
+    });
+    return gitOn
+      ? commit(vault, `migrate: claude-wiki-pages schema_version ${from ?? "?"} → ${to} ${opId}`)
+      : null;
   });
-  const migrateCommit = gitOn
-    ? commit(vault, `migrate: claude-wiki-pages schema_version ${from ?? "?"} → ${to} ${opId}`)
-    : null;
   if (gitCfg.push === "auto") push(vault);
 
   return report(

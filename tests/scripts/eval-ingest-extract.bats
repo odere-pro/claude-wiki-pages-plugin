@@ -371,6 +371,7 @@ _setup_eval_artifact_repo() {
   mkdir -p "$EVAL_REPO/scripts" "$EVAL_REPO/src" "$EVAL_REPO/tests/eval" \
     "$EVAL_REPO/skills/init/template"
   cp "$REPO_ROOT/scripts/eval-ingest-extract.sh" \
+    "$REPO_ROOT/scripts/eval-normalize-ws.sh" \
     "$REPO_ROOT/scripts/verify-ingest.sh" \
     "$REPO_ROOT/scripts/validate-frontmatter.sh" \
     "$REPO_ROOT/scripts/resolve-vault.sh" "$EVAL_REPO/scripts/"
