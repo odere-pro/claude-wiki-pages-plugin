@@ -932,7 +932,15 @@ groups:
 // The reference vault ships an empty lexicon; assert that contract directly so a
 // future accidental re-introduction of a group is a deliberate, reviewed change.
 describe("reference vault — synonym lexicon present and currently empty", () => {
-  const REFERENCE_VAULT = join(import.meta.dir, "..", "..", "..", "tests", "fixtures", "reference-vault");
+  const REFERENCE_VAULT = join(
+    import.meta.dir,
+    "..",
+    "..",
+    "..",
+    "tests",
+    "fixtures",
+    "reference-vault",
+  );
 
   test("the reference vault and its _vocabulary.md exist", () => {
     expect(existsSync(REFERENCE_VAULT)).toBe(true);
