@@ -372,3 +372,8 @@ Supplemental checks — all passed:
 Issues found: 0 real | Issues fixed: 0 | Judgment fixes: 0 | Surfaced: 1 (engine/plugin folders at 27/23 pages — advisory, not actionable)
 
 Checkpoint commit: 126353e. Rollback: `git revert 126353e`.
+## [2026-06-14] snapshot | polish (snap-20260615015746)
+
+- pre-state: c8b345b
+- rollback: git revert the snapshot commit below
+

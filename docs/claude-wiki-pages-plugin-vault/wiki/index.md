@@ -15,7 +15,7 @@ child_indexes:
 aliases: ["Wiki Index"]
 tags: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 ---
 
 # Wiki Index
@@ -24,7 +24,7 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 
 ## Topic Clusters
 
-- [[plugin]] — the plugin itself, agents, four-layer stack, hooks, orchestration, slash commands, marketplace/manifest, git-checkpoint, parallel-extract (28 pages)
+- [[plugin]] — the plugin itself, agents, four-layer stack, hooks, orchestration, slash commands, marketplace/manifest, git-checkpoint, parallel-extract (23 pages)
 - [[engine]] — Bun engine, verify/heal/fix/search/snapshot/route/migrate, search score, graph traversal, stemming, vocabulary, firewall, determinism, dangling-wikilink check (27 pages)
 - [[wiki-pages]] — page schema, page types, templates, frontmatter, provenance, sources, ingest pipeline, folder notes, lint rules, query rules (17 pages)
 - [[llm]] — local models, Ollama, offline policy, NO-RAG / wiki-native recall, fabrication floor, drafting, Software 3.0, local-model quality gate (15 pages)
