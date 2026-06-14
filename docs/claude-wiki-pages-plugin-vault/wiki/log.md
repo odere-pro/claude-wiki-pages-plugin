@@ -347,3 +347,28 @@ Updated existing pages (7): [[Ingest Agent]] (sources+, update_count 6→7), [[M
 
 Updated structural files: `wiki/how-it-works/how-it-works.md` (children+6), `wiki/plugin/plugin.md` (children+1), `wiki/index.md` (new pages + 5 new ADR source summaries)
 
+## [2026-06-15] lint | Health check and auto-repair post ADR-0024/0026/0027/0028/0029 ingest
+
+Ran full structural lint pass (engine.sh heal + verify-ingest.sh + supplemental checks) after ingest of 5 ADRs.
+
+Engine heal: 0 structural errors — vault already clean. No engine repairs needed.
+
+Verifier findings: 49 "no-sources" ERRORs and 7 dangling-wikilink WARNs reported — all false positives:
+- 49 "no-sources" errors: all 49 pages have sources written in YAML block-style lists (multi-line), which the grep-based verify-ingest.sh does not parse. Real data: all pages sourced.
+- 7 dangling-wikilink WARNs: `[[Target]]`, `[[Foo]]`, `[[Page Title]]`, `[[wikilinks]]` all appear inside backtick code spans in documentation prose (e.g., `` `[[Target]]` ``) — not real wikilinks.
+
+Supplemental checks — all passed:
+- Title collisions: 0
+- Orphan pages: 0 (all 7 new pages linked from folder notes and index)
+- Missing title in aliases: 0
+- Plain-string hierarchy links: 0
+- Missing required frontmatter fields: 0
+- Low confidence pages (< 0.5): 0
+- Ghost wikilinks in log.md: 0
+- Excessive nesting: 0 (max depth 2)
+- Flat folder sprawl: engine folder has 27 pages, plugin 23 pages — above 12-child advisory threshold but below 30-page action threshold; monitoring
+- Index drift: 0 — all 7 new pages appear in both folder notes and wiki/index.md
+
+Issues found: 0 real | Issues fixed: 0 | Judgment fixes: 0 | Surfaced: 1 (engine/plugin folders at 27/23 pages — advisory, not actionable)
+
+Checkpoint commit: 126353e. Rollback: `git revert 126353e`.
