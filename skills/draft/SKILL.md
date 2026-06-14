@@ -19,6 +19,10 @@ uses a local model to produce candidate wiki pages into `vault/_proposed/`
 Local models make more mistakes than cloud models — the `_proposed/` staging
 area plus the review gate is exactly the safety margin that makes them usable.
 
+Author drafts to the house voice — see [`skills/voice`](../voice/SKILL.md): a
+one-line plain-language definition first, then the typed content in the engineer
+register, with no marketing language inside the vault.
+
 ## When to invoke
 
 - The user explicitly wants local/offline/private drafting.

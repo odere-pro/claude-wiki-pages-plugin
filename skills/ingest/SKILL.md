@@ -20,6 +20,14 @@ post-ingest lint-fix pass and an optional synthesis step — invoke the agent
 when the user wants the full cycle, invoke this skill when the user wants only
 the ingest portion.
 
+## Authoring voice
+
+Author every page to the house voice — see [`skills/voice`](../voice/SKILL.md).
+Open each page with a one-line, plain-language definition, then the typed
+content in the engineer register: exact terms, no marketing language inside the
+vault. Provenance stays factual (`sources`, `derived`, `confidence` are facts,
+not adjectives).
+
 ## When to invoke
 
 - A file exists under `vault/raw/` that has no corresponding entry in

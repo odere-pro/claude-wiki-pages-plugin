@@ -22,6 +22,10 @@ the mechanical safety boundary enforced by the Tier-1 grep gate
 (`tests/scripts/extract-worker-frontmatter.bats`). Violating it by adding
 Write, Edit, or Bash to the tools line is a gate-blocking failure.
 
+Phrase each extracted definition in plain language — a newcomer should
+understand the one-line summary — so the ingest-agent can author the page to the
+house voice ([`skills/voice`](../skills/voice/SKILL.md)) without rewriting it.
+
 ## Contract
 
 | Item              | Value                                                                |
