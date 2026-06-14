@@ -9,7 +9,7 @@ description: >
   Dashboard, Document Compile, Extract, Challenge — selected from the
   prompt verbs.
 model: sonnet
-tools: Bash, Read, Write, Edit, Glob, Grep
+tools: Bash, Read, Glob, Grep
 ---
 
 # Wiki Analyst

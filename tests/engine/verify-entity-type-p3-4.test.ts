@@ -111,7 +111,10 @@ let tmpEntityFile: string;
 let tmpWiki: string;
 
 beforeEach(() => {
-  tmpDir = join(tmpdir(), `p3-4-entity-type-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  tmpDir = join(
+    tmpdir(),
+    `p3-4-entity-type-test-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
   mkdirSync(tmpDir, { recursive: true });
   tmpWiki = join(tmpDir, "wiki");
   mkdirSync(join(tmpWiki, "_sources"), { recursive: true });

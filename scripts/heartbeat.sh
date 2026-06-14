@@ -7,6 +7,11 @@
 # *recommends* running /claude-wiki-pages:wiki, which is the LLM step. Off by
 # default (maintenance.enabled=false) so nothing autonomous runs unbidden; a
 # cooldown stamp prevents it from nagging every session.
+#
+# Resilience: this script exits 0 on any failure so it never interrupts
+# SessionStart. The strict mode applies so unintentional bugs surface in tests;
+# individual fallible calls use `|| true` or `|| exit 0` where needed.
+set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"

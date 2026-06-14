@@ -400,11 +400,91 @@ else
     return 1
   }
 
-  # ── Per-file scan helper ───────────────────────────────────────────────────────
-  # Extracted from the main loop to reduce nesting depth (M07).
-  # Runs sub-checks 5a, 5b, 5e on a single design doc.
+  # ── Per-file scan helpers ──────────────────────────────────────────────────────
+  # Extracted from the main loop to reduce nesting depth.
   # Side-effects: increments DRIFT_HITS (global); appends to _DESIGN_SH_TOKENS
   # and _DESIGN_PRE_ORDER (globals set before call).
+
+  # _scan_5a_grounding <file> <fence_tokens>
+  # Check 5a: verify each mermaid file-form token resolves (skip speculative docs).
+  _scan_5a_grounding() {
+    local file="$1" fence_tokens="$2"
+    grep -q '\[speculative\]' "$file" 2>/dev/null && return
+    local tok
+    while IFS= read -r tok; do
+      [ -z "$tok" ] && continue
+      _token_resolves "$tok" && continue
+      err "unresolved mermaid token '$tok' in $file"
+      DRIFT_HITS=$((DRIFT_HITS + 1))
+    done <<<"$fence_tokens"
+  }
+
+  # _scan_5b_links <file> <dir>
+  # Check 5b: verify every relative markdown link resolves.
+  _scan_5b_links() {
+    local file="$1" dir="$2"
+    local rawlink link result
+    while IFS= read -r rawlink; do
+      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
+      case "$link" in http* | mailto*) continue ;; esac
+      result=$(_resolve_link "$dir" "$link")
+      case "$result" in OK | GITIGNORED | EXTERNAL) continue ;; esac
+      err "dead link in $file: $link"
+      printf '    (link does not resolve)\n'
+      DRIFT_HITS=$((DRIFT_HITS + 1))
+    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
+      sed 's/^](\(.*\))$/\1/' || true)
+  }
+
+  # _scan_5e_authority <file> <dir>
+  # Check 5e: ensure the doc has at least one resolvable link to an authority surface.
+  _scan_5e_authority() {
+    local file="$1" dir="$2"
+    local rawlink link result AUTH_FOUND=0
+    while IFS= read -r rawlink; do
+      [ "$AUTH_FOUND" -eq 1 ] && break
+      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
+      case "$link" in http* | mailto*) continue ;; esac
+      grep -qE 'CLAUDE\.md|architecture\.md|hooks\.json|plugin\.json|/docs/adr|docs/adr' <<<"$link" || continue
+      result=$(_resolve_link "$dir" "$link")
+      case "$result" in OK | GITIGNORED) AUTH_FOUND=1 ;; esac
+    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
+      sed 's/^](\(.*\))$/\1/' || true)
+
+    if [ "$AUTH_FOUND" -eq 0 ]; then
+      err "no resolvable authority link in $file"
+      printf '    (add a link to CLAUDE.md, docs/architecture.md, hooks/hooks.json, etc.)\n'
+      DRIFT_HITS=$((DRIFT_HITS + 1))
+    fi
+  }
+
+  # _scan_pre_order <file>
+  # Collect PreToolUse script ordering from 02-component-design.md for check 5c.
+  _scan_pre_order() {
+    local file="$1"
+    case "$file" in */02-component-design.md) ;; *) return ;; esac
+    _DESIGN_PRE_ORDER=$(awk '
+    /^[[:space:]]*```mermaid/{f=1;cnt=0;buf="";next}
+    /^[[:space:]]*```/{
+      if(f){
+        if(cnt>=5){print buf}
+        f=0;cnt=0;buf=""
+      }
+      next
+    }
+    f{
+      if(/SessionStart|UserPromptSubmit|PreToolUse|PostToolUse|SubagentStop|Stop|SessionEnd/)cnt++
+      if (/pre[[:space:]]*-->/ && match($0,/pre[[:space:]]*-->[^"]*"[A-Za-z0-9_-]+\.sh/)) {
+        s=substr($0,RSTART,RLENGTH)
+        sub(/.*"/, "", s)
+        buf=buf s "\n"
+      }
+    }
+    ' "$file" 2>/dev/null | awk '!seen[$0]++' || true)
+  }
+
+  # _scan_design_file <file>
+  # Orchestrate sub-checks 5a, 5b, 5e on a single design doc.
   _scan_design_file() {
     local file="$1"
     local dir
@@ -422,79 +502,13 @@ else
     _SH=$(printf '%s' "$FENCE_TOKENS" | grep '\.sh$' || true)
     [ -n "$_SH" ] && _DESIGN_SH_TOKENS=$(printf '%s\n%s' "$_DESIGN_SH_TOKENS" "$_SH" | sort -u)
 
-    # Collect PreToolUse order from 02-component-design.md.
-    case "$file" in
-      */02-component-design.md)
-        _DESIGN_PRE_ORDER=$(awk '
-        /^[[:space:]]*```mermaid/{f=1;cnt=0;buf="";next}
-        /^[[:space:]]*```/{
-          if(f){
-            if(cnt>=5){print buf}
-            f=0;cnt=0;buf=""
-          }
-          next
-        }
-        f{
-          if(/SessionStart|UserPromptSubmit|PreToolUse|PostToolUse|SubagentStop|Stop|SessionEnd/)cnt++
-          if (/pre[[:space:]]*-->/ && match($0,/pre[[:space:]]*-->[^"]*"[A-Za-z0-9_-]+\.sh/)) {
-            s=substr($0,RSTART,RLENGTH)
-            sub(/.*"/, "", s)
-            buf=buf s "\n"
-          }
-        }
-        ' "$file" 2>/dev/null | awk '!seen[$0]++' || true)
-        ;;
-    esac
+    # Collect PreToolUse order (5c) from 02-component-design.md.
+    _scan_pre_order "$file"
 
-    # 5a: grounding check — skip speculative docs.
-    if ! grep -q '\[speculative\]' "$file" 2>/dev/null; then
-      local tok
-      while IFS= read -r tok; do
-        [ -z "$tok" ] && continue
-        if ! _token_resolves "$tok"; then
-          err "unresolved mermaid token '$tok' in $file"
-          DRIFT_HITS=$((DRIFT_HITS + 1))
-        fi
-      done <<<"$FENCE_TOKENS"
-    fi
-
-    # 5b: relative link resolution.
-    local rawlink link result
-    while IFS= read -r rawlink; do
-      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
-      case "$link" in http* | mailto*) continue ;; esac
-      result=$(_resolve_link "$dir" "$link")
-      case "$result" in OK | GITIGNORED | EXTERNAL) ;;
-      *)
-        err "dead link in $file: $link"
-        printf '    (link does not resolve)\n'
-        DRIFT_HITS=$((DRIFT_HITS + 1))
-        ;;
-      esac
-    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
-      sed 's/^](\(.*\))$/\1/' || true)
-
-    # 5e: authority presence — each doc needs >=1 resolvable link to an authority surface.
-    local AUTH_FOUND=0
-    while IFS= read -r rawlink; do
-      link=$(printf '%s' "$rawlink" | sed 's/^](\(.*\))$/\1/')
-      case "$link" in http* | mailto*) continue ;; esac
-      if grep -qE 'CLAUDE\.md|architecture\.md|hooks\.json|plugin\.json|/docs/adr|docs/adr' <<<"$link"; then
-        result=$(_resolve_link "$dir" "$link")
-        case "$result" in OK | GITIGNORED)
-          AUTH_FOUND=1
-          break
-          ;;
-        esac
-      fi
-    done < <(grep -oE '\]\(\.(\.)?/[^)]+\)' "$file" 2>/dev/null |
-      sed 's/^](\(.*\))$/\1/' || true)
-
-    if [ "$AUTH_FOUND" -eq 0 ]; then
-      err "no resolvable authority link in $file"
-      printf '    (add a link to CLAUDE.md, docs/architecture.md, hooks/hooks.json, etc.)\n'
-      DRIFT_HITS=$((DRIFT_HITS + 1))
-    fi
+    # Run the three per-file sub-checks.
+    _scan_5a_grounding "$file" "$FENCE_TOKENS"
+    _scan_5b_links "$file" "$dir"
+    _scan_5e_authority "$file" "$dir"
   }
 
   # ── Collect all script tokens from design-doc mermaid fences for 5c ──────────
@@ -733,7 +747,7 @@ else
       fi
     fi
   else
-    ok "5g: $ONTOLOGY_DOC not yet tracked — predicate-node grounding TODO (not a CI failure)"
+    ok "5g: $ONTOLOGY_DOC not yet tracked — predicate-node grounding skipped (not a CI failure)"
   fi
 
   if [ "$DRIFT_HITS" -eq 0 ]; then

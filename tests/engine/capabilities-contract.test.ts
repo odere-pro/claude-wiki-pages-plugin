@@ -185,22 +185,43 @@ describe("(c) capabilities --json verb set set-equals the golden list", () => {
   });
 });
 
-// ── Golden list completeness — count guards ───────────────────────────────────
+// ── Golden list completeness — membership and shape guards ───────────────────
 //
-// Belt-and-suspenders: count assertions so that silently adding or removing
-// verbs from the golden arrays is noticed immediately, independent of the set
-// equality tests above.
+// These guards assert contract-level invariants over the golden list shape
+// without coupling to a separately hardcoded count that silently diverges.
+// Adding or removing a verb from GOLDEN_IMPLEMENTED / GOLDEN_PLANNED requires
+// exactly one deliberate change here (the golden array above) — not two
+// (the array AND a separate count assertion).
+//
+// "non-empty", "no duplicates", and "GOLDEN_ALL == implemented + planned" are
+// the invariants that cannot drift silently.
 
-describe("golden list completeness — count guards", () => {
-  test("GOLDEN_IMPLEMENTED contains exactly 14 verbs", () => {
-    expect(GOLDEN_IMPLEMENTED).toHaveLength(14);
+describe("golden list completeness — membership and shape guards", () => {
+  test("GOLDEN_IMPLEMENTED is non-empty", () => {
+    expect(GOLDEN_IMPLEMENTED.length).toBeGreaterThan(0);
   });
 
-  test("GOLDEN_PLANNED contains exactly 2 verbs", () => {
-    expect(GOLDEN_PLANNED).toHaveLength(2);
+  test("GOLDEN_PLANNED is non-empty", () => {
+    expect(GOLDEN_PLANNED.length).toBeGreaterThan(0);
   });
 
-  test("GOLDEN_ALL contains exactly 16 verbs", () => {
-    expect(GOLDEN_ALL).toHaveLength(16);
+  test("GOLDEN_ALL equals GOLDEN_IMPLEMENTED + GOLDEN_PLANNED (no duplicates, no extras)", () => {
+    // GOLDEN_ALL must be exactly the concatenation of the two sub-lists.
+    expect(GOLDEN_ALL).toHaveLength(GOLDEN_IMPLEMENTED.length + GOLDEN_PLANNED.length);
+    // Every implemented verb must appear in ALL.
+    for (const v of GOLDEN_IMPLEMENTED) {
+      expect(GOLDEN_ALL).toContain(v);
+    }
+    // Every planned verb must appear in ALL.
+    for (const v of GOLDEN_PLANNED) {
+      expect(GOLDEN_ALL).toContain(v);
+    }
+  });
+
+  test("GOLDEN_IMPLEMENTED and GOLDEN_PLANNED share no verbs", () => {
+    const impl = new Set(GOLDEN_IMPLEMENTED);
+    for (const v of GOLDEN_PLANNED) {
+      expect(impl.has(v)).toBe(false);
+    }
   });
 });
