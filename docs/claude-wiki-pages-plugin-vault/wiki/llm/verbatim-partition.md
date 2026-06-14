@@ -1,11 +1,24 @@
 ---
 title: "Verbatim Partition"
 type: concept
-aliases: ["Verbatim Partition", "verbatim partition", "verbatim test", "over-citation vs fabrication", "substring test"]
+aliases:
+  [
+    "Verbatim Partition",
+    "verbatim partition",
+    "verbatim test",
+    "over-citation vs fabrication",
+    "substring test",
+  ]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[ADR-0017: Fabrication Floor — Verbatim Partition]]"]
-related: ["[[Zero-Fabrication Floor]]", "[[Local Model Quality Gate]]", "[[Golden Set]]", "[[Approved Local Model]]"]
+related:
+  [
+    "[[Zero-Fabrication Floor]]",
+    "[[Local Model Quality Gate]]",
+    "[[Golden Set]]",
+    "[[Approved Local Model]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,6 +34,37 @@ confidence: 1.0
 
 > [!summary]
 > The verbatim partition is the ADR-0017 refinement of the [[Zero-Fabrication Floor]] that distinguishes fabrication from over-citation using a verbatim substring test. A `source_quotes` entry whose `quote` is a whitespace-normalized verbatim substring of the raw input is over-citation (acceptable). A `source_quotes` entry whose `quote` is not a substring of the raw input is fabrication (disqualifying).
+
+## Key Principles
+
+- The verbatim partition distinguishes two failure modes: fabrication (text not in the input) and over-citation (real text, not in the gold set).
+- Only fabrication triggers the zero-fabrication floor; over-citation is acceptable and indicates the model found real evidence the evaluator missed.
+- The test is exact string containment after whitespace normalization — a `string.includes()` call, not similarity scoring.
+- The partition was introduced in ADR-0017 after early testing showed good models citing real sentences that happened not to be in the gold set.
+- `qwen3-coder:30b` produces no fabrications and some over-citations — it passes the partition test on all golden-set fixtures including the provenance trap.
+
+## Examples
+
+The partition test applied to a `source_quotes` entry:
+
+```
+source_quotes:
+  - source: "[[ADR-0017: Fabrication Floor — Verbatim Partition]]"
+    quote: "a `source_quotes` entry whose quote is NOT a verbatim substring"
+
+raw_input: "...a source_quotes entry whose quote is NOT a verbatim substring of the raw input..."
+```
+
+`quote` IS a whitespace-normalized substring of `raw_input` → this is over-citation (the gold set might not have included it, but the text is real). The floor does NOT fire.
+
+Fabrication example:
+
+```
+quote: "The plugin was released in 2024 and immediately won awards."
+raw_input: "[nowhere in this document]"
+```
+
+`quote` is NOT a substring of `raw_input` → this is fabrication. The floor fires and the model is disqualified at this tier.
 
 ## Definition
 

@@ -291,3 +291,67 @@ MD
   assert_success
   refute_output_contains "derived-high-confidence"
 }
+
+# ──────────────────────────────────────────────────────────────────────────────
+# FU1 (ADR-0028): dangling-wikilink WARN check
+# ──────────────────────────────────────────────────────────────────────────────
+
+@test "verify-ingest FU1: clean when all wikilinks resolve" {
+  # The minimal-vault fixture has only resolvable [[wikilinks]] — no dangling.
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  refute_output_contains "dangling-wikilink"
+  assert_output_contains "No dangling wikilinks found"
+}
+
+@test "verify-ingest FU1: warns on a dangling [[Ghost]] wikilink in a topic page" {
+  local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # Append a dangling wikilink to the body.
+  printf '\n[[Ghost Page]] is referenced here.\n' >>"$page"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # WARN severity: exit 0 (no errors), but warning present.
+  assert_success
+  assert_output_contains "dangling-wikilink"
+  assert_output_contains "Ghost Page"
+}
+
+@test "verify-ingest FU1: bookkeeping pages are not scanned as subjects" {
+  # Add a dangling link to index.md — a bookkeeping page; must produce no finding.
+  local idx="$FIXTURE_VAULT/wiki/index.md"
+  printf '\n- [[Totally Missing Page]]\n' >>"$idx"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  # The index.md addition makes the INDEX check emit a "page not found" warn,
+  # but there must be NO dangling-wikilink warn from the bookkeeping page.
+  refute_output_contains "dangling-wikilink: [[Totally Missing Page]]"
+}
+
+@test "verify-ingest FU1: one finding per (page, distinct-normalized-target) — repeated link counts once" {
+  local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # Append the same dangling target three times — must produce ONE warning.
+  printf '\n[[Repeating Ghost]] and [[Repeating Ghost]] and [[Repeating Ghost]].\n' >>"$page"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  # Count lines containing "Repeating Ghost"
+  local count
+  count=$(printf '%s\n' "$output" | grep -c "Repeating Ghost" || true)
+  assert_eq "$count" "1"
+}
+
+@test "verify-ingest FU1: alias resolves the link — no false dangling warning" {
+  local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # "sample-entity" is an alias on sample-entity.md; linking it must not be flagged.
+  printf '\nSee [[sample-entity]] for details.\n' >>"$page"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  # The alias link must not appear in dangling output.
+  refute_output_contains "dangling-wikilink: [[sample-entity]]"
+}

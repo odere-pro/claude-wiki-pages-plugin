@@ -5,8 +5,15 @@ entity_type: product
 aliases: ["Plugin Manifest", "plugin manifest", "plugin.json", "claude-wiki-pages manifest"]
 parent: "[[Plugin]]"
 path: "plugin"
-sources: ["[[Plugin Manifest (plugin.json)]]", "[[Plugin README]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[claude-wiki-pages Plugin]]", "[[Plugin Dev-Time vs Runtime]]", "[[Hook System]]", "[[Schema Version Gate]]"]
+sources:
+  ["[[Plugin Manifest (plugin.json)]]", "[[Plugin README]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
+related:
+  [
+    "[[claude-wiki-pages Plugin]]",
+    "[[Plugin Dev-Time vs Runtime]]",
+    "[[Hook System]]",
+    "[[Schema Version Gate]]",
+  ]
 tags: ["plugin", "manifest", "metadata"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -37,12 +44,12 @@ The manifest is a dev-time artifact — it ships in the plugin cache but is not 
 
 The `supported_schema_versions` array declares which vault `schema_version` values this release can manage. A vault declaring `schema_version: 3` in its `CLAUDE.md` is handled by this plugin version.
 
-| Schema version | Status in this release |
-|---|---|
-| 1 | Supported (baseline) |
-| 2 | Supported (adds `topic`, `project`, `manifest` types; `source_quotes`, `derived`) |
-| 3 | Supported (folder notes: `<folder>/<folder>.md` replaces `_index.md`) |
-| 4+ | Requires a plugin update |
+| Schema version | Status in this release                                                            |
+| -------------- | --------------------------------------------------------------------------------- |
+| 1              | Supported (baseline)                                                              |
+| 2              | Supported (adds `topic`, `project`, `manifest` types; `source_quotes`, `derived`) |
+| 3              | Supported (folder notes: `<folder>/<folder>.md` replaces `_index.md`)             |
+| 4+             | Requires a plugin update                                                          |
 
 If a vault declares a higher schema version than any entry in this array, the `doctor` command reports a compatibility mismatch and recommends updating the plugin.
 

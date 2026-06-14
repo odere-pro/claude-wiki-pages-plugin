@@ -4,8 +4,26 @@ type: concept
 aliases: ["Query Rules", "query rules", "query workflow", "query protocol"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]", "[[Analyst Modes Skill (SKILL.md)]]"]
-related: ["[[Analyst Agent]]", "[[Challenge Mode]]", "[[Wiki-Native Recall]]", "[[Synthesis Note]]", "[[NO-RAG Principle]]", "[[Grounded Retrieval]]", "[[Analyst Dashboard Mode]]", "[[Analyst Document Compile Mode]]", "[[Analyst Extract Mode]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[User Guide 07: Query the Wiki]]",
+    "[[ADR-0022: Folder Notes and Graph Quality]]",
+    "[[Wiki Pages Skill (maintain-contract SKILL.md)]]",
+    "[[Analyst Modes Skill (SKILL.md)]]",
+  ]
+related:
+  [
+    "[[Analyst Agent]]",
+    "[[Challenge Mode]]",
+    "[[Wiki-Native Recall]]",
+    "[[Synthesis Note]]",
+    "[[NO-RAG Principle]]",
+    "[[Grounded Retrieval]]",
+    "[[Analyst Dashboard Mode]]",
+    "[[Analyst Document Compile Mode]]",
+    "[[Analyst Extract Mode]]",
+  ]
 tags: ["concept", "query"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +36,38 @@ confidence: 1.0
 
 > [!summary]
 > Query rules are the structured workflow for answering questions from the wiki. Every answer must cite pages via wikilinks and end with a `## Sources` section (ADR-0022) — numbered, research-paper style. The workflow follows the topic tree from root to specific pages, never guessing at answers not grounded in wiki content. If the answer is novel, the agent offers to file it as a synthesis note. If the wiki has no answer, the agent says so explicitly.
+
+## Definition
+
+Query rules are the structured 7-step workflow for answering questions from the wiki. Every answer must cite pages via inline wikilinks and end with a `## Sources` section (ADR-0022) — numbered, research-paper style with one entry per consulted page listing its raw source file paths.
+
+## Key Principles
+
+- The answer must come from explicit wiki pages — do not synthesize from training knowledge not on any wiki page; if the wiki lacks an answer, say so explicitly.
+- Every answer ends with `## Sources` — mandatory per ADR-0022; if no pages were consulted, say so in the section rather than omitting it.
+- Traverse the topic tree top-down: read `wiki/index.md` first, then the folder note, then specific pages — more efficient than scanning all pages.
+- Follow wikilinks at most 2 hops from seed pages (the N≤2 limit from ADR-0008); pages at hop 2 contribute supporting context, not primary evidence.
+- If the synthesized answer is novel, offer to file it as a synthesis note under `wiki/_synthesis/`.
+
+## Examples
+
+A well-formed `## Sources` section:
+
+```markdown
+## Sources
+
+1. [[Firewall]] — raw/docs/adr/ADR-0009-multi-vault-confinement.md
+2. [[Vault Resolution]] — raw/docs/operations.md
+```
+
+A gap-acknowledgement `## Sources` section:
+
+```markdown
+## Sources
+
+No wiki pages consulted — this question is not covered by the current wiki.
+Consider dropping the source document into vault/raw/ and running the pipeline.
+```
 
 ## Purpose
 
@@ -36,6 +86,7 @@ If the query is broad (spans multiple topics), note all relevant topic folders b
 ### Step 2 — Traverse the Topic Tree
 
 For topic-scoped queries, start from the relevant folder note and traverse downward:
+
 - Read the topic folder note to see all pages in the folder.
 - Follow `child_indexes` to reach sub-topic folder notes.
 - Identify which pages are most relevant to the question.
@@ -107,6 +158,7 @@ The [[Analyst Agent]] in Challenge mode will surface this gap explicitly if the 
 ## Confidence and Citation Discipline
 
 When reading a page to answer a query, check:
+
 - **`sources:`** — is the claim backed by a real source in `wiki/_sources/`?
 - **`confidence:`** — values below 0.7 signal weakly evidenced claims; treat accordingly and note the low confidence in the answer.
 - **`updated:`** — a stale page (30+ days without update despite newer related sources) may have been overtaken by new material.
@@ -139,7 +191,7 @@ When a query answer is needed as portable markdown (for a PR comment, email, or 
 
 The markdown skill runs the same query protocol, then renders the answer without wikilinks, Dataview blocks, or Obsidian callouts, and writes it to `vault/output/<slug>.md`. Provenance is preserved in the output file's trailing attribution.
 
-## Related
+## Related Concepts
 
 - [[Analyst Agent]] — executes queries in Query mode and four other modes
 - [[Challenge Mode]] — adversarial query variant for pre-decision pushback

@@ -1,7 +1,15 @@
 ---
 title: "Shell-TS Parity"
 type: concept
-aliases: ["Shell-TS Parity", "shell-ts parity", "bash-TypeScript parity", "firewall parity", "verify parity", "parity gates"]
+aliases:
+  [
+    "Shell-TS Parity",
+    "shell-ts parity",
+    "bash-TypeScript parity",
+    "firewall parity",
+    "verify parity",
+    "parity gates",
+  ]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[Engine Scripts Layer (CLAUDE.md)]]", "[[firewall.ts Source]]"]
@@ -22,14 +30,43 @@ confidence: 1.0
 > [!summary]
 > Shell-TS parity is the requirement that two pairs of scripts — `firewall.sh`/`firewall.ts` and `verify-ingest.sh`/engine `verify` — produce byte-aligned equivalent results. Parity is enforced by CI gates: `gate-11-firewall-parity` and `gate-05`. When Bun is absent, the shell twin remains active; when Bun is present, both twins are available and must agree.
 
+## Key Principles
+
+- Two implementations, one contract: the bash twin runs in every environment; the TypeScript twin is available when Bun is installed. Both must produce the same output.
+- Parity is enforced by CI gates, but the development discipline is to change both twins in the same commit.
+- Byte-aligned comparison means even a whitespace difference in a non-semantic field fails the gate — this strictness prevents semantic drift from accumulating under "harmless" formatting changes.
+- The shell twin remains active in degraded mode; parity guarantees that degraded users get identical enforcement to Bun-enabled users.
+- `hooks.json`, the scripts, and the bats tests are a coupled unit alongside the parity pair: change all three together when updating a hook.
+
+## Examples
+
+Verifying parity locally (before committing a firewall change):
+
+```bash
+bash tests/gates/gate-11-firewall-parity.sh
+```
+
+What the gate does internally:
+
+```bash
+# Run bash twin against fixture
+bash scripts/firewall.sh --fixture tests/scripts/fixtures/cross-vault.json > /tmp/shell-out.json
+
+# Run TS twin against same fixture
+bun run src/core/firewall.ts --fixture tests/scripts/fixtures/cross-vault.json > /tmp/ts-out.json
+
+# Compare outputs (must be byte-identical after whitespace normalization)
+diff <(jq -cS . /tmp/shell-out.json) <(jq -cS . /tmp/ts-out.json) || exit 1
+```
+
 ## Definition
 
 The plugin's Layer 4 (Orchestration) is deliberately shell-first: hooks run synchronously and per-keystroke, so they must be available in any environment, including environments where Bun/Node is not installed. But the engine (Layer 4 TypeScript) provides richer functionality and better testability. Two components are therefore implemented twice — once as bash scripts and once as TypeScript modules:
 
-| Shell twin | TypeScript twin | Parity gate |
-| --- | --- | --- |
-| `scripts/firewall.sh` | `src/core/firewall.ts` | `gate-11-firewall-parity` |
-| `scripts/verify-ingest.sh` | engine `verify` verb | `gate-05` |
+| Shell twin                 | TypeScript twin        | Parity gate               |
+| -------------------------- | ---------------------- | ------------------------- |
+| `scripts/firewall.sh`      | `src/core/firewall.ts` | `gate-11-firewall-parity` |
+| `scripts/verify-ingest.sh` | engine `verify` verb   | `gate-05`                 |
 
 Both twins in each pair must produce the same output for the same input. If they diverge, the parity gate fails CI and blocks the commit.
 

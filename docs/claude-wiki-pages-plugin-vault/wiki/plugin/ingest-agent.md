@@ -5,8 +5,25 @@ entity_type: tool
 aliases: ["Ingest Agent", "ingest agent", "claude-wiki-pages-ingest-agent", "pipeline"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[ADR-0002: Agent Naming Convention]]", "[[ADR-0010: Durable-Memory Carve-Out]]", "[[User Guide 03: Update Existing Vault]]", "[[Operations Guide]]", "[[Ingest Agent Source]]"]
-related: ["[[Orchestrator Agent]]", "[[Curator Agent]]", "[[Polish Agent]]", "[[Ingest Pipeline]]", "[[Git Checkpoint]]", "[[Entity Distribution Model]]", "[[Agent Tool Restriction]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[ADR-0002: Agent Naming Convention]]",
+    "[[ADR-0010: Durable-Memory Carve-Out]]",
+    "[[User Guide 03: Update Existing Vault]]",
+    "[[Operations Guide]]",
+    "[[Ingest Agent Source]]",
+  ]
+related:
+  [
+    "[[Orchestrator Agent]]",
+    "[[Curator Agent]]",
+    "[[Polish Agent]]",
+    "[[Ingest Pipeline]]",
+    "[[Git Checkpoint]]",
+    "[[Entity Distribution Model]]",
+    "[[Agent Tool Restriction]]",
+  ]
 tags: ["agent", "ingest"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -20,6 +37,16 @@ confidence: 1.0
 > [!summary]
 > The `claude-wiki-pages-ingest-agent` is Layer 3's ingest specialist. It processes raw source files from `vault/raw/` into provenance-tracked wiki pages, following the 13-step ingest rules in `vault/CLAUDE.md`. The write phase is bounded by git snapshot checkpoints. After the agent returns, the `subagent-ingest-gate.sh` hook automatically runs `verify-ingest.sh` to ensure no half-written state was left. The [[Polish Agent]] runs as a tail step after ingest completes.
 
+## Key Facts
+
+- Type: tool (Layer 3 agent, `user-invocable: true` via `/claude-wiki-pages:claude-wiki-pages-ingest-agent`)
+- Agent name: `claude-wiki-pages-ingest-agent` (renamed from `llm-wiki-ingest-pipeline` in version 0.2.0, ADR-0002)
+- Dispatched by: [[Orchestrator Agent]] when files exist in `vault/raw/` that have no entry in `wiki/log.md`
+- Follows: the 13-step ingest rules in `vault/CLAUDE.md` — the skill provides workflow structure; `CLAUDE.md` provides the schema
+- Write phase bounded by git snapshot checkpoints (pre-snapshot before writes, post-snapshot after)
+- Gate: `subagent-ingest-gate.sh` hook fires automatically on return and runs `verify-ingest.sh`; ERROR findings are surfaced to the orchestrator
+- DRY rule enforced: updates existing pages rather than creating duplicates ([[Entity Distribution Model]])
+
 ## Overview
 
 The `claude-wiki-pages-ingest-agent` (renamed from `llm-wiki-ingest-pipeline` in version 0.2.0, ADR-0002) is dispatched by the [[Orchestrator Agent]] when files exist in `vault/raw/` that have no corresponding entry in `wiki/log.md`. The agent follows the ingest rules in `vault/CLAUDE.md` exactly — not the simpler defaults in the `ingest` skill. The skill provides workflow structure; `CLAUDE.md` provides the schema.
@@ -27,6 +54,7 @@ The `claude-wiki-pages-ingest-agent` (renamed from `llm-wiki-ingest-pipeline` in
 ## Dispatch Condition
 
 The orchestrator runs:
+
 1. Reads `wiki/log.md` for the set of ingested source titles.
 2. Lists `vault/raw/` recursively (excluding `raw/agent-sessions/`, which is the durable-memory carve-out).
 3. Compares the two sets. If any raw file is absent from the log, dispatch the ingest agent.
@@ -48,6 +76,7 @@ Creates a `snapshot: pre-ingest` git commit. If the ingest fails partway through
 ### 2. Source Summary Creation (Step 1)
 
 For each pending raw source, the agent creates a `wiki/_sources/<slug>.md` page with `type: source` frontmatter. This establishes the provenance anchor for everything else. The source page includes:
+
 - `title`, `source_type`, `url`, `author`, `publisher`, `date_published`, `date_ingested`
 - `sources: []` (source pages cite themselves only)
 - `status: active`, `confidence: 1.0`
@@ -55,6 +84,7 @@ For each pending raw source, the agent creates a `wiki/_sources/<slug>.md` page 
 ### 3. Entity and Concept Extraction (Steps 2–6)
 
 The agent extracts entities and concepts from the source. For each extracted item:
+
 - Determines the topic folder it belongs to. Creates `wiki/<topic>/<topic>.md` (the folder note) if the folder does not exist.
 - Searches the wiki for an existing page on this entity/concept.
 - **Updates existing pages rather than creating duplicates** (the [[Entity Distribution Model]]). This is the DRY rule: one source rewrites many existing pages rather than spawning one summary.
@@ -63,6 +93,7 @@ The agent extracts entities and concepts from the source. For each extracted ite
 ### 4. Provenance Updates (Steps 7–10)
 
 On every page touched:
+
 - Adds the new source to `sources:` as a wikilink to its `_sources/` summary page (never plain strings).
 - Increments `update_count`.
 - Sets `updated:` to today's date.
@@ -89,6 +120,7 @@ When the ingest agent returns, the `subagent-ingest-gate.sh` hook fires automati
 ## Polish Tail Step
 
 After a successful ingest, the [[Orchestrator Agent]] fans out the [[Polish Agent]] to:
+
 1. Apply graph colors for any new top-level topic folders.
 2. Regenerate `wiki/index.md` from per-folder folder notes with current page counts.
 3. Reconcile every folder note's `children`/`child_indexes` against actual filesystem siblings.

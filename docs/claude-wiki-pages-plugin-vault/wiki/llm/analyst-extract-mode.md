@@ -1,11 +1,24 @@
 ---
 title: "Analyst Extract Mode"
 type: concept
-aliases: ["Analyst Extract Mode", "analyst extract mode", "Extract Mode", "Mode 4 Extract", "structured data extraction"]
+aliases:
+  [
+    "Analyst Extract Mode",
+    "analyst extract mode",
+    "Extract Mode",
+    "Mode 4 Extract",
+    "structured data extraction",
+  ]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related: ["[[Analyst Agent]]", "[[Analyst Dashboard Mode]]", "[[Analyst Document Compile Mode]]", "[[Query Rules]]"]
+related:
+  [
+    "[[Analyst Agent]]",
+    "[[Analyst Dashboard Mode]]",
+    "[[Analyst Document Compile Mode]]",
+    "[[Query Rules]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -33,12 +46,12 @@ Analyst Extract Mode is Mode 4 of the five [[Analyst Agent]] operating modes. It
 
 **Output formats.** Extract Mode supports four output formats:
 
-| Format | Target | Use for |
-|---|---|---|
-| Markdown table | Inline in conversation | Human review |
-| CSV | `vault/output/<name>.csv` | External tools, spreadsheets |
-| Structured list | Inline, grouped by category with wikilinks | Navigation |
-| Frontmatter report | Inline | All metadata for a filtered page set |
+| Format             | Target                                     | Use for                              |
+| ------------------ | ------------------------------------------ | ------------------------------------ |
+| Markdown table     | Inline in conversation                     | Human review                         |
+| CSV                | `vault/output/<name>.csv`                  | External tools, spreadsheets         |
+| Structured list    | Inline, grouped by category with wikilinks | Navigation                           |
+| Frontmatter report | Inline                                     | All metadata for a filtered page set |
 
 **Uncertainty annotation.** Any row where `confidence < 0.6` or `sources` contains fewer than 2 entries is annotated in the output. This prevents raw extraction output from being taken as settled fact when the underlying pages are weakly evidenced.
 

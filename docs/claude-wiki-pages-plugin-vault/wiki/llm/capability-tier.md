@@ -1,11 +1,33 @@
 ---
 title: "Capability Tier"
 type: concept
-aliases: ["Capability Tier", "capability tier", "capability tiers", "model tier", "ingest-extract tier", "query tier", "draft tier"]
+aliases:
+  [
+    "Capability Tier",
+    "capability tier",
+    "capability tiers",
+    "model tier",
+    "ingest-extract tier",
+    "query tier",
+    "draft tier",
+  ]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0018: Offline Policy and Degraded-Mode Routing]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Local Models]]"]
-related: ["[[Local Model Quality Gate]]", "[[Approved Local Model]]", "[[Zero-Fabrication Floor]]", "[[Offline Policy]]", "[[Golden Set]]"]
+sources:
+  [
+    "[[ADR-0011: Local-Model Quality Gate]]",
+    "[[ADR-0018: Offline Policy and Degraded-Mode Routing]]",
+    "[[ADR-0019: Query Tier and Answer Verification]]",
+    "[[Local Models]]",
+  ]
+related:
+  [
+    "[[Local Model Quality Gate]]",
+    "[[Approved Local Model]]",
+    "[[Zero-Fabrication Floor]]",
+    "[[Offline Policy]]",
+    "[[Golden Set]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -22,17 +44,35 @@ confidence: 1.0
 > [!summary]
 > A capability tier is a named, independently gateable slot that controls which model executes a specific plugin operation. Three tiers are defined: `ingest-extract` (structure raw sources into wiki pages), `query` (compose cited answers), and `draft` (produce `_proposed/` draft pages). Each tier requires its own golden-set evaluation before a local model is approved. Claude Code is the primary for all tiers; a local model is the fallback only when `offlinePolicy: prefer-local` is set and the model has passed its tier's gate.
 
+## Examples
+
+Checking the current routing decision for a vault:
+
+```bash
+bash scripts/engine.sh route --target <vault> --json
+# Output: { "decision": "claude" | "local" | "blocked", "tier": "ingest-extract", "reason": "..." }
+```
+
+Tier progression is sequential and evidence-gated:
+
+| Tier             | Status                | What is needed to unlock                                |
+| ---------------- | --------------------- | ------------------------------------------------------- |
+| `ingest-extract` | UNLOCKED (qwen3:30b)  | ADR-0011 golden-set evidence committed                  |
+| `query`          | UNLOCKED (qwen3:30b)  | ADR-0019 runtime verification evidence committed        |
+| `draft`          | WIRED but BLOCKED     | Golden set for the draft tier must be defined and run   |
+| full ingest etc. | Not wired             | Future tier; needs its own golden set and ADR amendment |
+
 ## Definition
 
 The capability tier system partitions the plugin's LLM-dependent operations into distinct, independently evaluated slots. Each slot has its own quality requirements, its own golden set, and its own entry in `APPROVED_LOCAL_MODELS_BY_TIER`. A model approved for one tier is not automatically eligible for another — progression is one tier at a time on measured evidence.
 
 The three tiers:
 
-| Tier | Operation | Status |
-| --- | --- | --- |
-| `ingest-extract` | Structure raw source content into schema-valid wiki pages | UNLOCKED for `qwen3-coder:30b` |
-| `query` | Compose cited answers from pages selected by deterministic search | UNLOCKED for `qwen3-coder:30b` |
-| `draft` | Produce `_proposed/` draft pages via `offline-draft.sh` | WIRED but BLOCKED — no golden set defined |
+| Tier             | Operation                                                         | Status                                    |
+| ---------------- | ----------------------------------------------------------------- | ----------------------------------------- |
+| `ingest-extract` | Structure raw source content into schema-valid wiki pages         | UNLOCKED for `qwen3-coder:30b`            |
+| `query`          | Compose cited answers from pages selected by deterministic search | UNLOCKED for `qwen3-coder:30b`            |
+| `draft`          | Produce `_proposed/` draft pages via `offline-draft.sh`           | WIRED but BLOCKED — no golden set defined |
 
 ## Key Principles
 

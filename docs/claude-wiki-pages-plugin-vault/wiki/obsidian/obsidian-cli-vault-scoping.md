@@ -1,11 +1,23 @@
 ---
 title: "Obsidian CLI Vault Scoping"
 type: concept
-aliases: ["Obsidian CLI Vault Scoping", "obsidian cli vault scoping", "vault scoping convention", "obsidian CLI scoping"]
+aliases:
+  [
+    "Obsidian CLI Vault Scoping",
+    "obsidian cli vault scoping",
+    "vault scoping convention",
+    "obsidian CLI scoping",
+  ]
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[Obsidian Vault Skill (SKILL.md)]]"]
-related: ["[[obsidian-vault Skill]]", "[[Defense-in-Depth Scoping]]", "[[Vault Resolution]]", "[[Firewall]]"]
+related:
+  [
+    "[[obsidian-vault Skill]]",
+    "[[Defense-in-Depth Scoping]]",
+    "[[Vault Resolution]]",
+    "[[Firewall]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: ["[[Vault Resolution]]"]

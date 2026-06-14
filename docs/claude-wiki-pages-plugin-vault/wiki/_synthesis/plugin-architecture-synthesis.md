@@ -39,6 +39,20 @@ The four-layer stack (Data / Skills / Agents / Orchestration) is the organizatio
 
 The plugin's quality discipline extends to local models: the quality gate (ADR-0011) measures four metrics and applies a zero-fabrication hard floor. `qwen3-coder:30b` is the only approved model today — not because Ollama models are generally weak, but because the gate is specific and evidence-based. The scaffolding ablation (ADR-0020) proves that the plugin scaffolding itself — the schema, provenance contract, and citation rules — is what drives quality, not the model alone.
 
+## Analysis
+
+The three design themes — determinism, provenance, and fail-closed safety — are mutually reinforcing rather than independent. Determinism makes provenance checkable: because retrieval is keyword-based and graph-based rather than embedding-based, every retrieval step can be replayed and audited. Provenance makes fail-closed safety meaningful: the system fails closed precisely because it knows what a valid provenance chain looks like and rejects deviations. Fail-closed defaults protect determinism: by blocking invalid writes before they land, the hook system prevents the kind of frontmatter corruption that would make provenance tracing break.
+
+The specialist-agent pattern (orchestrator probes, specialists trust payload) is the architectural expression of these themes at the agent layer. The orchestrator is the one place that touches vault state for routing purposes; once routing is done, each specialist operates within a well-defined scope without re-probing. This single probe + confinement pattern mirrors the firewall's vault confinement: every layer narrows scope exactly once and then operates within that scope without escaping.
+
+## Key Insights
+
+1. The scaffolding gap measurement (ADR-0020) is evidence that the plugin's primary value is contractual, not computational. The LLM is the same in both conditions; the scaffolding — schema, provenance contract, citation rules — is what changes outcomes.
+
+2. Regenerable graph config (ADR-0023) resolves a recurring class of drift bugs by reclassifying `.obsidian/graph.json` from precious state to derived cache. The same reclassification logic could be applied to other derived artifacts (index pages, manifest files) where idempotent regeneration is cheaper than drift repair.
+
+3. The quality gate's verbatim partition (distinguishing over-citation from fabrication) is a precision technique that protects against two opposite failure modes with a single mechanism. It shows that precision metrics in provenance-tracking contexts require finer-grained partitioning than standard NLP metrics.
+
 ## Key Findings
 
 1. **Determinism is a non-negotiable.** The NO-RAG principle (ADR-0007) eliminates embeddings from the retrieval path entirely. Every search operation is keyword matching, frontmatter parsing, or graph traversal — same input, same output, always auditable. The deterministic engine (`src/cli/cli.ts`) enforces this in code, not just convention.
@@ -49,7 +63,7 @@ The plugin's quality discipline extends to local models: the quality gate (ADR-0
 
 4. **The scaffolding gap is real and measurable.** The ablation evaluation (ADR-0020) shows that the same model, given a generic prompt vs. the full plugin scaffolding (schema, provenance, anti-fabrication rules), produces measurably better output with scaffolding on every metric: schema-validity, fidelity, field accuracy, and dedup. The plugin's value is not primarily the LLM — it's the contractual scaffolding around the LLM.
 
-5. **Graph quality is maintained by regeneration, not repair.** ADR-0023 declares graph config (``.obsidian/graph.json``) regenerable cache rather than precious state. The wiki-only graph contract (exclude raw/, _templates/, _proposed/) is asserted idempotently by the polish agent after every write. This eliminates the class of "graph got out of sync" bugs — the config is always freshly derived from the topic tree.
+5. **Graph quality is maintained by regeneration, not repair.** ADR-0023 declares graph config (`.obsidian/graph.json`) regenerable cache rather than precious state. The wiki-only graph contract (exclude raw/, \_templates/, \_proposed/) is asserted idempotently by the polish agent after every write. This eliminates the class of "graph got out of sync" bugs — the config is always freshly derived from the topic tree.
 
 6. **The specialist pattern enables independent evolution.** The orchestrator probes state once; specialists trust its payload and never re-probe. This boundary means each specialist agent can be tested, improved, or replaced without touching the others. The curator can apply more aggressive auto-heals; the analyst can add new modes; the ingest agent can handle new source formats — all without changing the orchestrator or the other specialists.
 
@@ -73,3 +87,20 @@ The [[Orchestrator Agent]] routes to [[Ingest Agent]] → [[Curator Agent]] → 
 3. **Write the missing L3 sequence diagrams** for the maintenance loop and the firewall decision tree. The design-drift gate (ADR-0013) will enforce them once written.
 4. **Add "Synonym Lexicon" and "Stemmer" concept pages** to `wiki/decisions/` to make the retrieval pipeline fully browsable from the wiki.
 5. **Consider a `doctor` sub-check** that validates the `.obsidian/app.json` `userIgnoreFilters` match the expected set. Currently the polish agent asserts them idempotently, but there is no doctor check for drift.
+
+## Sources Consulted
+
+- [[Four-Layer Stack]] — the organizational backbone and layer boundary model
+- [[Deterministic Engine]] — the Bun CLI implementing the NO-RAG enforcement
+- [[NO-RAG Principle]] — the retrieval philosophy eliminating embeddings
+- [[Firewall]] — the write-confinement mechanism for cross-vault safety
+- [[Git Checkpoint]] — the snapshot/post pattern enabling safe autonomous operation
+- [[Ontology Profile v1]] — the named typed-relationship contract
+- [[Scaffolding Ablation]] — the measured evidence for contractual value
+- [[Local Model Quality Gate]] — the four-metric evidence gate for local models
+- [[Architecture Documentation]] — the four-layer contract authority
+- [[ADR-0007: Wiki-Native Recall]] — the NO-RAG decision and retrieval design
+- [[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]] — the firewall and confinement design
+- [[ADR-0011: Local-Model Quality Gate]] — the quality gate metrics and threshold
+- [[ADR-0020: The Scaffolding Ablation]] — the measured gap between scaffolded and unscaffolded output
+- [[ADR-0023: Wiki-Only Graph]] — the regenerable graph config decision

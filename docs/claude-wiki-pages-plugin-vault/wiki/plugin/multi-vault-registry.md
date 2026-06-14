@@ -4,8 +4,22 @@ type: concept
 aliases: ["Multi-Vault Registry", "multi-vault registry", "vault registry", "settings.json"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0012: Vault Merge Conflict Resolution]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Operations Guide]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Vault Resolution]]", "[[Firewall]]", "[[Active Vault]]", "[[Hook System]]", "[[Multi-Vault Operating Rules]]"]
+sources:
+  [
+    "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]",
+    "[[ADR-0012: Vault Merge Conflict Resolution]]",
+    "[[ADR-0016: Simultaneous Multi-Vault Management]]",
+    "[[Operations Guide]]",
+    "[[Wiki Pages Skill (maintain-contract SKILL.md)]]",
+  ]
+related:
+  [
+    "[[Vault Resolution]]",
+    "[[Firewall]]",
+    "[[Active Vault]]",
+    "[[Hook System]]",
+    "[[Multi-Vault Operating Rules]]",
+  ]
 tags: ["concept", "vault", "registry"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +32,36 @@ confidence: 1.0
 
 > [!summary]
 > The multi-vault registry is the managed list of vaults known to the plugin, stored in `.claude/claude-wiki-pages/settings.json`. Exactly one vault is active at a time, pointed to by `current_vault_path`. The registry fails closed: a malformed JSON file or a violated invariant (where `current_vault_path` does not match any `vaults[].path`) blocks all writes. The [[Firewall]] uses the registry to enforce the `cross-vault` deny rule — a write to any inactive registered vault is blocked even if `allowPaths` is permissive.
+
+## Definition
+
+The multi-vault registry is the managed list of vaults known to the plugin, stored in `.claude/claude-wiki-pages/settings.json`. It holds the `current_vault_path` (the sole active vault pointer), `default_vault_path` (the factory reset reference), and a `vaults` array of `{ path, name }` objects. The [[Firewall]] uses the registry to enforce the `cross-vault` deny rule — writes to inactive registered vaults are blocked even when `allowPaths` is permissive (ADR-0009).
+
+## Key Principles
+
+- Exactly one vault is active at a time — `current_vault_path` is the single source of truth; there is no separate "active" flag.
+- The registry fails closed: malformed JSON or a violated invariant (where `current_vault_path` does not match any `vaults[].path`) causes `_vaults_read` to exit non-zero and blocks all writes.
+- The `cross-vault` deny rule sits at higher priority than `allowPaths` in the firewall's rule order — it cannot be accidentally overridden by a permissive allow-list entry.
+- Both firewall twins (bash + TypeScript) canonicalise paths via physical realpath before comparison, catching symlink-based cross-vault violations.
+- `merge` is explicitly not in the lifecycle command set — it is deferred to a future ADR (ADR-0012).
+
+## Examples
+
+Switching the active vault and listing the registry:
+
+```bash
+bash scripts/set-vault.sh switch projects/my-vault
+bash scripts/set-vault.sh list
+# Output: [*] projects/my-vault  (active)
+#         [ ] projects/archive
+```
+
+Testing whether a path is allowed or denied under the current active vault:
+
+```bash
+bash scripts/engine.sh firewall --target projects/my-vault --path projects/archive/wiki/index.md
+# Output: { "allowed": false, "matchedRule": "cross-vault" }
+```
 
 ## Registry Shape
 
@@ -32,11 +76,11 @@ confidence: 1.0
 }
 ```
 
-| Field | Role |
-| --- | --- |
+| Field                | Role                                                                          |
+| -------------------- | ----------------------------------------------------------------------------- |
 | `default_vault_path` | Factory default; never overwritten by lifecycle commands; the reset reference |
-| `current_vault_path` | **Sole active pointer**; read by `resolve_vault()` |
-| `vaults` | Array of `{ path, name }` objects; all registered vaults |
+| `current_vault_path` | **Sole active pointer**; read by `resolve_vault()`                            |
+| `vaults`             | Array of `{ path, name }` objects; all registered vaults                      |
 
 `current_vault_path` is the single source of truth for which vault is active. The active vault is derived as the registry entry whose `path` equals `current_vault_path` — there is no separate "active" flag. This DRY design ensures there is never a disagreement between two sources of truth.
 
@@ -61,12 +105,12 @@ A `settings.json` without the `vaults` key is valid. The `vaults` array is intro
 
 ## Lifecycle Commands (`scripts/set-vault.sh`)
 
-| Command | Effect |
-| --- | --- |
-| `set-vault.sh add <path> [name]` | Register a vault without switching; idempotent |
-| `set-vault.sh remove <path|name>` | Deregister only — never deletes data on disk. Refuses if it would remove the active vault or the last registered vault |
-| `set-vault.sh switch <path|name>` | Change `current_vault_path` to a registered vault |
-| `set-vault.sh list` | Print the registry; active vault marked with `*` |
+| Command                          | Effect                                           |
+| -------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `set-vault.sh add <path> [name]` | Register a vault without switching; idempotent   |
+| `set-vault.sh remove <path       | name>`                                           | Deregister only — never deletes data on disk. Refuses if it would remove the active vault or the last registered vault |
+| `set-vault.sh switch <path       | name>`                                           | Change `current_vault_path` to a registered vault                                                                      |
+| `set-vault.sh list`              | Print the registry; active vault marked with `*` |
 
 `remove` edits only the `settings.json` registry entry. The vault's directory, git history, and `raw/`/`wiki/` data are untouched. Re-`add`ing the path restores full registration.
 
@@ -94,12 +138,12 @@ The gate-11 test matrix includes a symlink fixture row that asserts both twins a
 
 ## Fail-Closed Behavior
 
-| Error condition | Result |
-| --- | --- |
-| `settings.json` missing | Vault resolution falls to Tier 3 (auto-detect) or Tier 4 (default) |
-| `settings.json` malformed JSON | `_vaults_read` exits non-zero; all writes blocked |
-| `current_vault_path` not in `vaults[]` | `_vaults_read` exits non-zero; all writes blocked |
-| Registry read error (permissions, etc.) | `_vaults_read` exits non-zero; all writes blocked |
+| Error condition                         | Result                                                             |
+| --------------------------------------- | ------------------------------------------------------------------ |
+| `settings.json` missing                 | Vault resolution falls to Tier 3 (auto-detect) or Tier 4 (default) |
+| `settings.json` malformed JSON          | `_vaults_read` exits non-zero; all writes blocked                  |
+| `current_vault_path` not in `vaults[]`  | `_vaults_read` exits non-zero; all writes blocked                  |
+| Registry read error (permissions, etc.) | `_vaults_read` exits non-zero; all writes blocked                  |
 
 Fail-closed means: when in doubt, block rather than guess. The safe default is "no write, surface the error."
 
@@ -107,7 +151,7 @@ Fail-closed means: when in doubt, block rather than guess. The safe default is "
 
 No external agent or LLM should read `settings.json` directly. Use `scripts/set-vault.sh list` to see the current registry state. Use `bash scripts/engine.sh firewall --target <vault> --path <p>` to test whether a specific path would be allowed or denied under the current active vault.
 
-## Related
+## Related Concepts
 
 - [[Vault Resolution]] — reads `current_vault_path` from this registry; Tier 2 in the 4-tier order
 - [[Firewall]] — uses `otherVaults` derived from this registry for `cross-vault` deny

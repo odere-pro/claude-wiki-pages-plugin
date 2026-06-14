@@ -52,7 +52,7 @@ maxPerRun, cooldownMinutes). An optional `modelHints` map allows per-task model 
   (advise only), `off` (pass-through). Default: `enforce`.
 - `firewall.denyPaths` always blocks `**/.ssh/**`, `**/.aws/**`, `**/.env`,
   `**/.git/config` even inside allowed roots.
-- `localModel.tier` has three levels: `draft` (_proposed/ only), `ingest-extract`
+- `localModel.tier` has three levels: `draft` (\_proposed/ only), `ingest-extract`
   (source extraction), `query` (cited answers). Gated per ADR-0018.
 - `localModel.offlinePolicy` controls Claude API fallback: `strict`, `prefer-local`,
   `off`. Default: `off`.

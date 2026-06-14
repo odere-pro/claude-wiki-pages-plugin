@@ -1,11 +1,26 @@
 ---
 title: "Draft Review Surface"
 type: concept
-aliases: ["Draft Review Surface", "_proposed/ gate", "propose verb", "review approve reject", "draft promotion"]
+aliases:
+  [
+    "Draft Review Surface",
+    "_proposed/ gate",
+    "propose verb",
+    "review approve reject",
+    "draft promotion",
+  ]
 parent: "[[Engine — Index]]"
 path: "engine"
-sources: ["[[propose.ts Source]]", "[[Engine API Skill (SKILL.md)]]", "[[SOFTWARE-3-0: Dual Entry Point]]"]
-related: ["[[Deterministic Engine]]", "[[Engine Verb Surface]]", "[[Git Checkpoint]]", "[[Dual Entry Point]]", "[[Dashboard Write Gate]]"]
+sources:
+  ["[[propose.ts Source]]", "[[Engine API Skill (SKILL.md)]]", "[[SOFTWARE-3-0: Dual Entry Point]]"]
+related:
+  [
+    "[[Deterministic Engine]]",
+    "[[Engine Verb Surface]]",
+    "[[Git Checkpoint]]",
+    "[[Dual Entry Point]]",
+    "[[Dashboard Write Gate]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: ["[[Git Checkpoint]]"]

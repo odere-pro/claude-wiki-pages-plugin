@@ -31,15 +31,15 @@ Degraded-Mode Routing is the `route` engine verb (ADR-0018) that determines whet
 - **BLOCKED is fail-closed**: a BLOCKED decision emits an error-severity finding so `exitCode()` returns 1. No write happens when the route is blocked.
 - **Policy matrix (ADR-0018 §4)**:
 
-| offlinePolicy | Claude reachable | Tier approved | Ollama up | Decision |
-| --- | --- | --- | --- | --- |
-| `off` | — | — | — | claude |
-| `strict` | true | — | — | claude |
-| `strict` | false | — | — | blocked |
-| `prefer-local` | true | — | — | claude |
-| `prefer-local` | false | true | true | local |
-| `prefer-local` | false | true | false | blocked |
-| `prefer-local` | false | false | — | blocked |
+| offlinePolicy  | Claude reachable | Tier approved | Ollama up | Decision |
+| -------------- | ---------------- | ------------- | --------- | -------- |
+| `off`          | —                | —             | —         | claude   |
+| `strict`       | true             | —             | —         | claude   |
+| `strict`       | false            | —             | —         | blocked  |
+| `prefer-local` | true             | —             | —         | claude   |
+| `prefer-local` | false            | true          | true      | local    |
+| `prefer-local` | false            | true          | false     | blocked  |
+| `prefer-local` | false            | false         | —         | blocked  |
 
 - **Tier approved only when fully configured**: `localModel.enabled` must be true AND `checkLocalModelApproval()` must return no errors. This reuses the same gate as `config validate`.
 

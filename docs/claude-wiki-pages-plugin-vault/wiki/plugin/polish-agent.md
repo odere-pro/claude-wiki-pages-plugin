@@ -5,8 +5,24 @@ entity_type: tool
 aliases: ["Polish Agent", "polish agent", "claude-wiki-pages-polish-agent", "polish"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0023: Wiki-Only Graph]]", "[[User Guide: Obsidian Experience]]", "[[Polish Agent Source]]"]
-related: ["[[Orchestrator Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Folder Note]]", "[[Wiki-Only Graph]]", "[[Obsidian Experience]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]",
+    "[[ADR-0022: Folder Notes and Graph Quality]]",
+    "[[ADR-0023: Wiki-Only Graph]]",
+    "[[User Guide: Obsidian Experience]]",
+    "[[Polish Agent Source]]",
+  ]
+related:
+  [
+    "[[Orchestrator Agent]]",
+    "[[Ingest Agent]]",
+    "[[Curator Agent]]",
+    "[[Folder Note]]",
+    "[[Wiki-Only Graph]]",
+    "[[Obsidian Experience]]",
+  ]
 tags: ["agent", "polish"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,6 +35,15 @@ confidence: 1.0
 
 > [!summary]
 > The `claude-wiki-pages-polish-agent` is the tail-of-write step that keeps the Obsidian-side experience consistent after every ingest or curator pass. It owns three idempotent steps: graph color application, `wiki/index.md` regeneration, and folder note reconciliation. It is not user-invocable directly — the [[Orchestrator Agent]] fans it out after ingest or curator success. It was introduced in ADR-0003 to centralise the Obsidian-side invariants, which were previously distributed across the ingest agent, the curator, and the standalone `llm-wiki-index` skill.
+
+## Key Facts
+
+- Type: tool (Layer 3 agent, `user-invocable: false` — has no standalone meaning; fanned out by the [[Orchestrator Agent]] after every ingest or curator pass)
+- Agent name: `claude-wiki-pages-polish-agent` (introduced in version 0.2.0, ADR-0003)
+- Three idempotent steps: (1) graph color application, (2) `wiki/index.md` regeneration, (3) folder note reconciliation
+- Headless fallback: writes `.obsidian/graph.json` directly when `obsidian eval` is unavailable; requires Obsidian restart to avoid clobber race
+- Also asserts `userIgnoreFilters: ["raw/", "_templates/", "_proposed/"]` in `.obsidian/app.json` after every ingest (merge-only: never removes user-added entries)
+- Failure isolation: a polish failure does not block ingest success — it appears as a warning rather than blocking the session (ADR-0003)
 
 ## Overview
 
@@ -55,6 +80,7 @@ New folders added by the ingest or curator pass get new color entries. Existing 
 ### Step 2 — Index Refresh
 
 Regenerates `wiki/index.md` from the per-folder folder notes. For each topic folder:
+
 - Lists all `wiki/<topic>/*.md` pages (excluding the folder note itself and sub-folder notes).
 - Updates the folder note's `children` count annotation.
 - Rebuilds the master index entry for the topic.
@@ -79,12 +105,12 @@ ADR-0003 specifies that a polish failure must not block a successful ingest resu
 
 The polish agent was added as a fourth specialist in 0.2.0, growing `agents/` from 3 to 4 files. The four roles now map cleanly to the four user-visible workflow phases:
 
-| Phase | Specialist |
-| --- | --- |
-| Init | Onboarding wizard |
-| Ingest | [[Ingest Agent]] |
-| Repair | [[Curator Agent]] |
-| Presentation | Polish Agent |
+| Phase        | Specialist        |
+| ------------ | ----------------- |
+| Init         | Onboarding wizard |
+| Ingest       | [[Ingest Agent]]  |
+| Repair       | [[Curator Agent]] |
+| Presentation | Polish Agent      |
 
 The polish agent's three steps are collectively "presentation" — they do not change wiki content, they sync how Obsidian renders it.
 

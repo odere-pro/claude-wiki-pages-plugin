@@ -4,8 +4,22 @@ type: concept
 aliases: ["Auto-Heal", "auto-heal", "automatic repair", "self-heal"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources: ["[[User Guide 04: Review Validate Fix]]", "[[Architecture Documentation]]", "[[Features]]", "[[Operations Guide]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Curator Agent]]", "[[Lint Rules]]", "[[Git Checkpoint]]", "[[Deterministic Engine]]", "[[Maintain Contract]]"]
+sources:
+  [
+    "[[User Guide 04: Review Validate Fix]]",
+    "[[Architecture Documentation]]",
+    "[[Features]]",
+    "[[Operations Guide]]",
+    "[[Wiki Pages Skill (maintain-contract SKILL.md)]]",
+  ]
+related:
+  [
+    "[[Curator Agent]]",
+    "[[Lint Rules]]",
+    "[[Git Checkpoint]]",
+    "[[Deterministic Engine]]",
+    "[[Maintain Contract]]",
+  ]
 tags: ["concept", "curator", "repair"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +32,36 @@ confidence: 1.0
 
 > [!summary]
 > Auto-heal is the mechanical fix step of the curator agent. It applies safe structural repairs without user approval because safety is git revert — every auto-heal change lands in a reversible commit. Judgment fixes (restructures, near-duplicate merges, large folder reorganizations) are applied automatically under the checkpoint because they are also reversible. The engine runs first (`engine.sh heal`), then the agent handles judgment items.
+
+## Key Principles
+
+- Safety is git revert, not approval gates. Every auto-heal change lands in a revertible git commit, so no pre-approval is needed.
+- The engine runs structural fixes first (`engine.sh heal`); the curator handles judgment items after.
+- Auto-heal is append-only on content: it never deletes page bodies, never removes `sources:` entries, and never lowers a `confidence` value.
+- Plain-string `sources:` entries are a common auto-fixable finding; wrapping them in wikilinks is always safe and idempotent.
+- `type: source` orphans are the one exception to auto-connection: connecting them would forge provenance, so they are reported but not healed.
+
+## Examples
+
+Before auto-heal (plain-string source and missing alias):
+
+```yaml
+sources: ["ADR-0001"]
+aliases: []
+```
+
+After auto-heal:
+
+```yaml
+sources: ["[[ADR-0001: Four-Layer Orchestrator]]"]
+aliases: ["Deterministic Engine", "deterministic engine", "Bun CLI", "engine"]
+```
+
+Rollback after a judgment heal:
+
+```bash
+git revert <heal-commit-sha>
+```
 
 ## Definition
 

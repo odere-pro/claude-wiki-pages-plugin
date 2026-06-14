@@ -1,11 +1,24 @@
 ---
 title: "Analyst Document Compile Mode"
 type: concept
-aliases: ["Analyst Document Compile Mode", "analyst document compile mode", "Document Compile Mode", "Mode 3 Compile", "document compilation"]
+aliases:
+  [
+    "Analyst Document Compile Mode",
+    "analyst document compile mode",
+    "Document Compile Mode",
+    "Mode 3 Compile",
+    "document compilation",
+  ]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related: ["[[Analyst Agent]]", "[[Analyst Dashboard Mode]]", "[[Analyst Extract Mode]]", "[[Draft Review Surface]]"]
+related:
+  [
+    "[[Analyst Agent]]",
+    "[[Analyst Dashboard Mode]]",
+    "[[Analyst Extract Mode]]",
+    "[[Draft Review Surface]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -27,14 +40,14 @@ Analyst Document Compile Mode is Mode 3 of the five [[Analyst Agent]] operating 
 
 **Document type declaration.** The analyst first declares the target document type: ADR, report, proposal, memo, brief, or runbook. The type determines the expected structure, citations, and typical length.
 
-| Type | Use for | Typical length |
-|---|---|---|
-| Brief | Executive summary, quick handoff | 1–2 pages |
-| Memo | Internal communication, decision record | 1–3 pages |
-| Report | Comprehensive analysis, status update | 3–10 pages |
-| Proposal | Recommended action with justification | 2–5 pages |
-| ADR | Architecture Decision Record | 1–2 pages |
-| Runbook | Reference documentation, operations guide | 3–20 pages |
+| Type     | Use for                                   | Typical length |
+| -------- | ----------------------------------------- | -------------- |
+| Brief    | Executive summary, quick handoff          | 1–2 pages      |
+| Memo     | Internal communication, decision record   | 1–3 pages      |
+| Report   | Comprehensive analysis, status update     | 3–10 pages     |
+| Proposal | Recommended action with justification     | 2–5 pages      |
+| ADR      | Architecture Decision Record              | 1–2 pages      |
+| Runbook  | Reference documentation, operations guide | 3–20 pages     |
 
 **Scope declaration and compile plan.** The analyst lists every page it intends to read before reading any. If the scope exceeds 10 pages, a compile plan must be written to `vault/output/_compile-plan-YYYY-MM-DD-<slug>.md` including: document type and target length, page list with wikilinks, and a full outline. The analyst then requests **approve / edit-then-approve / abort** and waits for explicit approval. On abort, the mode stops.
 

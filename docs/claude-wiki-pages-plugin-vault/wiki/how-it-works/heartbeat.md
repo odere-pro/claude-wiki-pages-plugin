@@ -22,6 +22,36 @@ confidence: 1.0
 > [!summary]
 > The heartbeat is a SessionStart hook that runs `scripts/heartbeat.sh` when `maintenance.enabled` is true and a backlog exists. It surfaces a one-line catch-up recommendation to the user. It never mutates the vault — it recommends only. The heartbeat makes backlog visible without requiring the user to actively check.
 
+## Key Principles
+
+- The heartbeat is advisory only: it prints one line but never ingests, heals, or writes.
+- It fires only when `maintenance.enabled: true`; when maintenance is off (the default), the heartbeat is always silent.
+- Backlog detection is O(1) — the heartbeat reads the source manifest rather than scanning `wiki/log.md`.
+- A cooldown stamp (`maintenance.cooldownMinutes`, default 60) prevents the recommendation from appearing on every consecutive session.
+- The heartbeat is the awareness layer; the orchestrator and maintenance agent are the action layer.
+
+## Examples
+
+Heartbeat output when maintenance is enabled and backlog is non-empty:
+
+```
+claude-wiki-pages: 3 source(s) pending + 2 stale pages — run /claude-wiki-pages:wiki to catch up.
+```
+
+Configuration to enable the heartbeat:
+
+```json
+{
+  "maintenance": {
+    "enabled": true,
+    "maxPerRun": 10,
+    "cooldownMinutes": 60
+  }
+}
+```
+
+With `enabled: false` (default), the heartbeat exits silently even when there is a large backlog.
+
 ## Definition
 
 The heartbeat (`scripts/heartbeat.sh`) is the plugin's passive monitoring mechanism. It fires at the start of every Claude Code session when the maintenance config has `enabled: true`. It checks for:
@@ -42,6 +72,7 @@ If no backlog exists, it exits silently.
 The heartbeat is a read-only probe. It never triggers ingest, heal, or any write operation — not even in `maintenance.enabled: true` mode. Its role is to surface the backlog for the human; acting on it is the orchestrator's job (when the user next invokes `/claude-wiki-pages:wiki`).
 
 This design separates two concerns:
+
 - **Awareness** (heartbeat's job): know that a backlog exists.
 - **Action** (orchestrator's job): decide when and whether to address it.
 
@@ -67,8 +98,8 @@ User invokes /claude-wiki-pages:wiki
 // .claude/claude-wiki-pages/settings.json
 {
   "maintenance": {
-    "enabled": false,     // off by default — opt-in
-    "maxPerRun": 10       // max sources per maintenance run
+    "enabled": false, // off by default — opt-in
+    "maxPerRun": 10 // max sources per maintenance run
   }
 }
 ```

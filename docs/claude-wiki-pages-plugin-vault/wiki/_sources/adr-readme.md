@@ -21,7 +21,7 @@ confidence: 1.0
 
 ## Summary
 
-The ADR README indexes all 23 Architecture Decision Records for the `claude-wiki-pages` plugin. Each ADR captures the rationale behind a system-design decision: what was decided, alternatives weighed, and revisit conditions. The contracts themselves live in `architecture.md` and `vault/CLAUDE.md`; ADRs explain *why* a path was taken.
+The ADR README indexes all 23 Architecture Decision Records for the `claude-wiki-pages` plugin. Each ADR captures the rationale behind a system-design decision: what was decided, alternatives weighed, and revisit conditions. The contracts themselves live in `architecture.md` and `vault/CLAUDE.md`; ADRs explain _why_ a path was taken.
 
 ## Key Claims
 

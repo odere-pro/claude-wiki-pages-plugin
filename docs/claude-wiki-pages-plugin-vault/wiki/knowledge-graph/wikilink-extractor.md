@@ -5,7 +5,13 @@ aliases: ["Wikilink Extractor", "wikilink extractor", "extractWikilinks", "markd
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[Wikilink Extractor (wikilinks.ts)]]"]
-related: ["[[Frontmatter Parser]]", "[[Provenance Checks]]", "[[MOC Repair Primitives]]", "[[Graph Walk Algorithm]]"]
+related:
+  [
+    "[[Frontmatter Parser]]",
+    "[[Provenance Checks]]",
+    "[[MOC Repair Primitives]]",
+    "[[Graph Walk Algorithm]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: ["[[Frontmatter Parser]]"]
@@ -56,11 +62,11 @@ or null when clean. This guard is the TypeScript port of the PostToolUse hook
 
 Three functions and their typical inputs/outputs:
 
-| Function | Input | Output | Use case |
-|----------|-------|--------|----------|
-| `extractWikilinks(body)` | Body string | `string[]` | Collect all wikilink targets |
-| `duplicates(targets)` | `string[]` | `Map<string, number>` | Detect repeated entries |
-| `markdownLinkViolation(content)` | Full file string | `string \| null` | Enforce wikilinks-only rule |
+| Function                         | Input            | Output                | Use case                     |
+| -------------------------------- | ---------------- | --------------------- | ---------------------------- |
+| `extractWikilinks(body)`         | Body string      | `string[]`            | Collect all wikilink targets |
+| `duplicates(targets)`            | `string[]`       | `Map<string, number>` | Detect repeated entries      |
+| `markdownLinkViolation(content)` | Full file string | `string \| null`      | Enforce wikilinks-only rule  |
 
 `extractWikilinks` feeds the graph walk: every target in the returned array is a
 potential graph edge to BFS-traverse. `markdownLinkViolation` is called at write

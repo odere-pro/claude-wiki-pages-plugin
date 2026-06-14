@@ -4,8 +4,24 @@ type: concept
 aliases: ["Ingest Pipeline", "ingest pipeline", "ingest workflow", "13-step ingest"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Architecture Documentation]]", "[[User Guide 02: Create a New Vault]]", "[[User Guide 03: Update Existing Vault]]", "[[ADR-0001: Four-Layer Orchestrator]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Ingest Agent]]", "[[Entity Distribution Model]]", "[[Git Checkpoint]]", "[[Folder Note]]", "[[Auto-Heal]]", "[[Schema Authority]]", "[[Maintain Contract]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[User Guide 02: Create a New Vault]]",
+    "[[User Guide 03: Update Existing Vault]]",
+    "[[ADR-0001: Four-Layer Orchestrator]]",
+    "[[Wiki Pages Skill (maintain-contract SKILL.md)]]",
+  ]
+related:
+  [
+    "[[Ingest Agent]]",
+    "[[Entity Distribution Model]]",
+    "[[Git Checkpoint]]",
+    "[[Folder Note]]",
+    "[[Auto-Heal]]",
+    "[[Schema Authority]]",
+    "[[Maintain Contract]]",
+  ]
 tags: ["concept", "ingest", "workflow"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,6 +35,34 @@ confidence: 1.0
 > [!summary]
 > The ingest pipeline is the 13-step process that transforms raw source files from `vault/raw/` into structured, provenance-tracked wiki pages in `vault/wiki/`. It is governed by the ingest rules in `vault/CLAUDE.md`. The core principle is the [[Entity Distribution Model]]: one source rewrites many existing pages rather than creating one summary. Every touched page receives an updated `sources`, incremented `update_count`, refreshed `updated` date, and recalibrated `confidence`. The pipeline is git-checkpointed at both ends and verified by the `subagent-ingest-gate.sh` hook on completion.
 
+## Definition
+
+The ingest pipeline is the 13-step process that transforms raw source files from `vault/raw/` into structured, provenance-tracked wiki pages in `vault/wiki/`. It is governed by the ingest rules in `vault/CLAUDE.md`. The core principle is the [[Entity Distribution Model]]: one source rewrites many existing pages rather than creating one summary.
+
+## Key Principles
+
+- The pipeline follows `vault/CLAUDE.md` ingest rules, not the skill's simpler defaults — the skill provides workflow structure; `CLAUDE.md` provides the schema.
+- Every touched page receives an updated `sources`, incremented `update_count`, refreshed `updated` date, and recalibrated `confidence`.
+- New pages are created from the template in `_templates/<type>.md` — do not invent section headings not in the template; missing template sections are flagged as `missing-section` by structural lint.
+- The pipeline is git-checkpointed at both ends (pre-snapshot before writes, post-snapshot after) and verified by the `subagent-ingest-gate.sh` hook on completion.
+- The log entry at step 13 is the idempotency key — re-running ingest on an already-processed source is detected by comparing `raw/` filenames to log entries.
+
+## Examples
+
+What "done" looks like after a successful ingest run:
+
+```bash
+bash scripts/engine.sh verify --target <vault> --json
+# Expected: { "errors": [], "warnings": [] }
+# git log shows: "snapshot: post-ingest | Source Title"
+```
+
+The log entry appended at step 13:
+
+```markdown
+## [2026-06-14] ingest | ADR-0023: Wiki-Only Graph
+```
+
 ## Purpose
 
 Raw sources are the evidence base of the wiki. The ingest pipeline is the mechanism by which evidence becomes structured, wikilinked, provenance-tracked knowledge. The pipeline is not a document summarizer — it is a knowledge base maintainer. It updates existing pages, creates new ones only when genuinely new entities or concepts are encountered, and always traces every claim back to a specific source.
@@ -26,6 +70,7 @@ Raw sources are the evidence base of the wiki. The ingest pipeline is the mechan
 ## Pre-Conditions
 
 Before the pipeline starts:
+
 - The user has placed source files (markdown documents, PDFs, notes) in `vault/raw/`.
 - `vault/CLAUDE.md` has been read — the pipeline follows its ingest rules, not the skill's simpler defaults.
 - A pre-snapshot git checkpoint is in place.
@@ -47,6 +92,7 @@ I1 classification uses the `entity_type` enum and `type` enum from [[Ontology Pr
 ### Step 3 — Assign to Topic Folders
 
 For each extracted item, determine which topic folder it belongs to. If the topic folder does not exist:
+
 - Create `wiki/<topic>/` directory.
 - Create `wiki/<topic>/<topic>.md` — the [[Folder Note]] — with `type: index`, correct `aliases`, `parent`, `path`, `children: []`, `child_indexes: []`.
 
@@ -55,6 +101,7 @@ If the topic folder already exists, proceed without creating a new folder note.
 ### Step 4 — Search for Existing Pages
 
 Search `wiki/<topic>/` for an existing page on each extracted entity/concept. Match by:
+
 - Filename (kebab-case of the entity/concept name)
 - `title` field
 - `aliases` field
@@ -72,6 +119,7 @@ Do not create a duplicate page for an entity or concept that already has a page.
 **For genuinely new entities/concepts:** create a new page under the appropriate topic folder. Use the template from `_templates/<type>.md` for both frontmatter and body structure. The body template provides the section skeleton (e.g., concept → `## Definition`, `## Key Principles`, `## Examples`, `## Related Concepts`). Do not invent section headings not in the template — the structural lint flags missing template sections as `missing-section`.
 
 Set:
+
 - `parent:` — a wikilink to the topic folder note (e.g. `"[[Wiki Engine]]"`).
 - `path: "<topic>"` — relative path from `wiki/`.
 - `created:` today's date.
@@ -91,6 +139,7 @@ On every page touched, set `updated:` to today's date in `YYYY-MM-DD` format.
 ### Step 10 — Update `confidence`
 
 Recalibrate `confidence` based on the new source:
+
 - **Confirming:** the new source corroborates existing claims → increase confidence (up to 1.0 maximum, but never use 1.0 unless all claims are directly quoted facts from authoritative sources).
 - **Contradicting:** the new source presents conflicting information → decrease confidence. Record the contradiction in the page body.
 - **New information:** if the source adds information not previously on the page, keep confidence unchanged (neither confirming nor contradicting existing claims).
@@ -117,16 +166,17 @@ This log entry is what the [[Orchestrator Agent]] checks to determine whether a 
 
 ## Error Conditions
 
-| Condition | What happens |
-| --- | --- |
-| `check-wikilinks.sh` finds a broken wikilink in the new page | Write is blocked (PreToolUse exit 2) |
-| `validate-frontmatter.sh` finds missing required field | Write is blocked |
-| Source summary already exists (re-ingest) | Orchestrator skips (log entry present) |
-| Folder note missing after step 3 | `engine heal` creates it on next verify |
+| Condition                                                    | What happens                            |
+| ------------------------------------------------------------ | --------------------------------------- |
+| `check-wikilinks.sh` finds a broken wikilink in the new page | Write is blocked (PreToolUse exit 2)    |
+| `validate-frontmatter.sh` finds missing required field       | Write is blocked                        |
+| Source summary already exists (re-ingest)                    | Orchestrator skips (log entry present)  |
+| Folder note missing after step 3                             | `engine heal` creates it on next verify |
 
 ## What "Done" Looks Like
 
 After a successful ingest:
+
 1. `wiki/_sources/<slug>.md` exists with correct frontmatter.
 2. All extracted entities/concepts have pages in the correct topic folders.
 3. Every touched page has the new source in `sources:`, incremented `update_count`, updated `updated` date.
@@ -136,7 +186,7 @@ After a successful ingest:
 7. `engine verify` reports 0 errors and 0 warnings.
 8. The post-snapshot commit is present in git history.
 
-## Related
+## Related Concepts
 
 - [[Ingest Agent]] — the agent that executes this pipeline
 - [[Entity Distribution Model]] — the DRY update-not-duplicate rule (step 5)

@@ -9,7 +9,13 @@ publisher: "claude-wiki-pages plugin"
 date_published: 2026-06-13
 date_ingested: 2026-06-13
 tags: ["skill", "maintain-contract", "wiki-operating-contract"]
-aliases: ["Wiki Pages Skill (maintain-contract SKILL.md)", "wiki-pages-skill", "maintain-contract skill", "Maintain Contract Skill"]
+aliases:
+  [
+    "Wiki Pages Skill (maintain-contract SKILL.md)",
+    "wiki-pages-skill",
+    "maintain-contract skill",
+    "Maintain Contract Skill",
+  ]
 sources: []
 created: 2026-06-13
 updated: 2026-06-13

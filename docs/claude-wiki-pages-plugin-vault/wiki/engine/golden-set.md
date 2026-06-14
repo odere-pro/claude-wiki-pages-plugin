@@ -4,8 +4,20 @@ type: concept
 aliases: ["Golden Set", "golden set", "golden-set", "eval fixtures", "golden_set_sha"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0020: The Scaffolding Ablation]]", "[[Local Models]]"]
-related: ["[[Local Model Quality Gate]]", "[[Zero-Fabrication Floor]]", "[[Approved Local Model]]", "[[Capability Tier]]", "[[Scaffolding Ablation]]"]
+sources:
+  [
+    "[[ADR-0011: Local-Model Quality Gate]]",
+    "[[ADR-0020: The Scaffolding Ablation]]",
+    "[[Local Models]]",
+  ]
+related:
+  [
+    "[[Local Model Quality Gate]]",
+    "[[Zero-Fabrication Floor]]",
+    "[[Approved Local Model]]",
+    "[[Capability Tier]]",
+    "[[Scaffolding Ablation]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -22,6 +34,34 @@ confidence: 1.0
 > [!summary]
 > The golden set is the checked-in fixtures corpus used to evaluate whether a local model is eligible for approval at a given [[Capability Tier]]. It consists of `(raw input → expected structured output)` pairs authored to the schema, adversarial-reviewed, and model-neutral. A `golden_set_sha` (git SHA of the fixture files) makes every evaluation reproducible against exactly the same inputs.
 
+## Key Principles
+
+- Golden set fixtures are model-neutral: authored by humans against the schema, not derived from any model's output.
+- Every evaluation run is identified by `golden_set_sha` — the git SHA of the fixture files at evaluation time — making results reproducible by anyone.
+- Auto-repair is never run before scoring: scoring after `fix`/`heal` would measure the repairer, not the model.
+- The provenance trap is structural: a fabricating model trips it by inventing a claim it cannot source; a correct model acknowledges the gap.
+- The same golden set is the common substrate for both the [[Local Model Quality Gate]] and the [[Scaffolding Ablation]], making the two studies directly comparable.
+
+## Examples
+
+Re-run evaluation against a specific golden-set commit:
+
+```bash
+git checkout <golden_set_sha> -- tests/eval/ingest-extract/
+bash scripts/eval-compare-ollama.sh --models "qwen3-coder:30b" --verify-artifact
+```
+
+Metric thresholds that a model must clear to be approved:
+
+| Metric                     | Threshold |
+| -------------------------- | --------- |
+| Schema-validity            | ≥ 0.98    |
+| Claim-source fidelity      | ≥ 0.97    |
+| Frontmatter-field accuracy | ≥ 0.90    |
+| Dedup correctness          | ≥ 0.90    |
+
+`qwen3-coder:30b` cleared all four thresholds in the first measured run and is the only model currently on the approved list.
+
 ## Definition
 
 The golden set lives in `tests/eval/ingest-extract/` and serves as the evaluation corpus for the [[Local Model Quality Gate]] (ADR-0011). It is:
@@ -31,6 +71,7 @@ The golden set lives in `tests/eval/ingest-extract/` and serves as the evaluatio
 - **Checked in** — committed to git; identified by `golden_set_sha` so any evaluation can be reproduced against exactly the same inputs.
 
 Each fixture pair contains:
+
 - A raw input document (the same material the model would receive at ingest time)
 - The expected structured output (schema-valid frontmatter + body matching the gold extraction)
 
@@ -44,12 +85,12 @@ The trap is structural: it is not a trick question but a case where the correct 
 
 The evaluation driver compares each model output to the gold fixture using exact structural comparison (not embeddings or similarity). Four metrics are computed over the full golden set:
 
-| Metric | Threshold |
-| --- | --- |
-| Schema-validity | ≥ 0.98 |
-| Claim-source fidelity | ≥ 0.97 |
-| Frontmatter-field accuracy | ≥ 0.90 |
-| Dedup correctness | ≥ 0.90 |
+| Metric                     | Threshold |
+| -------------------------- | --------- |
+| Schema-validity            | ≥ 0.98    |
+| Claim-source fidelity      | ≥ 0.97    |
+| Frontmatter-field accuracy | ≥ 0.90    |
+| Dedup correctness          | ≥ 0.90    |
 
 **Auto-repair is not run before scoring.** Scoring a model after running `fix`/`heal` on its output would measure the repairer, not the model. The candidate is scored exactly as emitted.
 

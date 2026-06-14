@@ -4,8 +4,21 @@ type: concept
 aliases: ["Local Model Quality Gate", "local model quality gate", "quality gate", "ADR-0011 gate"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[Local Models]]"]
-related: ["[[Golden Set]]", "[[Zero-Fabrication Floor]]", "[[Approved Local Model]]", "[[Capability Tier]]", "[[Offline Policy]]", "[[Scaffolding Ablation]]"]
+sources:
+  [
+    "[[ADR-0011: Local-Model Quality Gate]]",
+    "[[ADR-0017: Fabrication Floor — Verbatim Partition]]",
+    "[[Local Models]]",
+  ]
+related:
+  [
+    "[[Golden Set]]",
+    "[[Zero-Fabrication Floor]]",
+    "[[Approved Local Model]]",
+    "[[Capability Tier]]",
+    "[[Offline Policy]]",
+    "[[Scaffolding Ablation]]",
+  ]
 tags: ["concept", "local-model", "quality"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,11 +32,42 @@ confidence: 1.0
 > [!summary]
 > The local model quality gate (ADR-0011) is the evaluation methodology that a local model must pass before joining the `APPROVED_LOCAL_MODELS_BY_TIER` allow-list. It uses a checked-in golden set of `(raw input → expected structured output)` pairs, scored by exact structural comparison — never embeddings or similarity. The gate is fail-closed: an unapproved model is blocked with a teaching message, never run silently. One model has passed so far: `qwen3-coder:30b` for the `ingest-extract` and `query` tiers.
 
+## Definition
+
+The local model quality gate (ADR-0011) is the evaluation methodology that a local model must pass before joining the `APPROVED_LOCAL_MODELS_BY_TIER` allow-list. It uses a checked-in golden set of `(raw input → expected structured output)` pairs, scored by exact structural comparison — never embeddings or similarity.
+
+## Key Principles
+
+- The gate is fail-closed: an unapproved model is blocked with a teaching message, never run silently.
+- Auto-repair is not run before scoring: measuring a model after `fix`/`heal` would score the repairer, not the model.
+- The zero-fabrication floor is a hard floor, not a calibratable threshold: one fabricated sourced claim disqualifies the model regardless of all other scores.
+- Over-citation (quoting real text not in the gold set) is not fabrication; it is acceptable (ADR-0017 verbatim partition).
+- Passing `ingest-extract` does not grant `query` access; each tier requires its own measured evidence artifact.
+
+## Examples
+
+Running the gate evaluation for a candidate model:
+
+```bash
+bash scripts/eval-compare-ollama.sh --models "qwen3-coder:30b" --retries 2
+```
+
+`qwen3-coder:30b` measured results (2026-06-11):
+
+| Metric               | Score | Threshold | Verdict |
+| -------------------- | ----- | --------- | ------- |
+| Schema-validity      | 1.0   | ≥ 0.98    | PASS    |
+| Claim-source fidelity | 1.0  | ≥ 0.97    | PASS    |
+| Field accuracy       | 0.93  | ≥ 0.90    | PASS    |
+| Dedup correctness    | 1.0   | ≥ 0.90    | PASS    |
+| Fabricated claims    | 0     | == 0      | PASS    |
+
 ## Problem Statement
 
 The plugin's north star is a full Claude→Ollama swap for offline use. But "local model quality" is not defined by a benchmark — it is defined by whether a specific model produces schema-valid, provenance-clean, non-fabricating output on the plugin's actual extraction task. Without a concrete evaluation methodology, "use a local model" is an unverifiable claim.
 
 Two constraints frame the gate design and are non-negotiable:
+
 1. **NO-RAG is absolute (§5).** The evaluation must not score output by embedding it and measuring vector similarity — that would smuggle the forbidden mechanism into the test layer. Correct means structurally equal under a deterministic comparator.
 2. **One-mechanism discipline.** The eval extends the apparatus the plugin already owns; it is not a parallel verifier.
 
@@ -39,12 +83,12 @@ The set is identified by a `golden_set_sha` (the git SHA of the fixture files) s
 
 A model must clear **all four** over the full golden set:
 
-| Metric | Threshold | What it measures |
-| --- | --- | --- |
-| Schema-validity | ≥ 0.98 | Pages are valid YAML frontmatter against the schema, as-emitted (no auto-repair before scoring) |
-| Claim-source fidelity | ≥ 0.97 | Every extracted claim is present in the gold set; no claims dropped; citations correct |
-| Frontmatter-field accuracy | ≥ 0.90 | `type`, enum values, `title`, `parent`, `path`, `sources` — correctly classified and placed |
-| Dedup correctness | ≥ 0.90 | The model updates an existing page rather than spawning a duplicate |
+| Metric                     | Threshold | What it measures                                                                                |
+| -------------------------- | --------- | ----------------------------------------------------------------------------------------------- |
+| Schema-validity            | ≥ 0.98    | Pages are valid YAML frontmatter against the schema, as-emitted (no auto-repair before scoring) |
+| Claim-source fidelity      | ≥ 0.97    | Every extracted claim is present in the gold set; no claims dropped; citations correct          |
+| Frontmatter-field accuracy | ≥ 0.90    | `type`, enum values, `title`, `parent`, `path`, `sources` — correctly classified and placed     |
+| Dedup correctness          | ≥ 0.90    | The model updates an existing page rather than spawning a duplicate                             |
 
 **Auto-repair is not run before scoring.** Scoring a model after running `fix`/`heal` on its output would measure the repairer, not the model. The candidate is scored exactly as emitted.
 
@@ -65,6 +109,7 @@ A vendor claim or a screenshot is not acceptable evidence. The artifact must be 
 ## Implementation
 
 The gate runs via:
+
 ```bash
 bash scripts/eval-compare-ollama.sh --models "<name:tag>"
 ```
@@ -82,17 +127,19 @@ A model that later regresses below the bar on a golden-set re-run reverts its ti
 ## Measured Results
 
 **`qwen3-coder:30b`** — the only model to pass (measured 2026-06-11):
+
 - Schema-validity: 1.0, Claim-source fidelity: 1.0, Field accuracy: 0.93, Dedup: 1.0
 - Zero fabricated sourced claims (provenance trap: not triggered)
 - Evidence: `tests/eval/runs/ingest-extract/qwen3-coder-30b/` — `--verify-artifact` reproducible
 
 Rejected models and reasons:
+
 - `qwen3.5:27b` — fails dedup (0.33): emits more pages than the gold set.
 - `gemma4:31b/26b` — fails dedup and schema-validity; output protocol unstable.
 - `gpt-oss:20b` — **the only fabricator**: invented a sourced claim on the provenance trap.
 - `qwen3-vl:30b` — vision model on a text task; claim-source fidelity 0.00.
 
-## Related
+## Related Concepts
 
 - [[Golden Set]] — the checked-in fixtures used for eval scoring
 - [[Zero-Fabrication Floor]] — the hard floor for fabricated sourced claims

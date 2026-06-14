@@ -4,7 +4,13 @@ type: concept
 aliases: ["Obsidian Experience", "obsidian experience", "Obsidian integration", "graph view"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources: ["[[User Guide: Obsidian Experience]]", "[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]"]
+sources:
+  [
+    "[[User Guide: Obsidian Experience]]",
+    "[[ADR-0023: Wiki-Only Graph]]",
+    "[[ADR-0022: Folder Notes and Graph Quality]]",
+    "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]",
+  ]
 related: ["[[Polish Agent]]", "[[Wiki-Only Graph]]", "[[Folder Note]]", "[[Vault Resolution]]"]
 tags: ["concept", "obsidian", "guide"]
 created: 2026-06-13
@@ -18,6 +24,30 @@ confidence: 1.0
 
 > [!summary]
 > The Obsidian experience refers to the graph view, search results, and link autocomplete behavior that the [[Polish Agent]] maintains after every ingest or curator pass. The wiki-only graph (ADR-0023) shows only `wiki/` pages — `raw/`, `_templates/`, and `_proposed/` are excluded via `userIgnoreFilters`. Topic branches are color-coded. The graph state is regenerable cache: if `.obsidian/graph.json` is lost, re-run the graph-colors skill to rebuild it deterministically.
+
+## Definition
+
+The Obsidian experience is the graph view, search, and link autocomplete behavior that the [[Polish Agent]] maintains after every ingest or curator pass. It encompasses the wiki-only graph contract, topic color groups, and vault MOC regeneration.
+
+## Key Principles
+
+- The graph shows only generated wiki pages; `raw/`, `_templates/`, and `_proposed/` are excluded from the Obsidian index via `userIgnoreFilters`.
+- Graph config is regenerable cache: `.obsidian/` is entirely gitignored and rebuilt deterministically from the `wiki/` topic tree.
+- The polish agent owns three Obsidian-side steps: graph color application, `wiki/index.md` regeneration, and folder note reconciliation.
+- Color groups are idempotent: the polish agent adds groups for new topic folders but never removes user-added groups.
+- The headless fallback (direct `.obsidian/graph.json` write) works in CI but requires an Obsidian restart to take effect when Obsidian is running.
+
+## Examples
+
+Troubleshooting the Obsidian experience:
+
+| Symptom                             | Remedy                                                       |
+| ----------------------------------- | ------------------------------------------------------------ |
+| All graph nodes are one color        | Run `/claude-wiki-pages:obsidian-graph-colors`               |
+| New topic folder has no color        | Run the polish agent after ingest                            |
+| `raw/` files appearing in graph      | Polish agent re-asserts `userIgnoreFilters`; or add `"raw/"` manually |
+| Corrupted `.obsidian/` state         | Delete `.obsidian/graph.json`; re-run `obsidian-graph-colors` |
+| Page not showing up in search        | Confirm file is in `wiki/` and not in an excluded directory  |
 
 ## Overview
 
@@ -36,6 +66,7 @@ Three directories are excluded from Obsidian's index via `.obsidian/app.json` `u
 ```
 
 This exclusion means:
+
 - `raw/` markdown files (source materials) are not indexed, not searchable, and not visible in the graph.
 - `_templates/` files do not appear as nodes.
 - `_proposed/` drafts awaiting review are not visible until promoted to `wiki/`.
@@ -79,13 +110,13 @@ The headless fallback means graph colors are always applied, even in CI or termi
 
 ## Troubleshooting
 
-| Symptom | Cause | Remedy |
-| --- | --- | --- |
-| All graph nodes are one color (monochrome) | Color groups missing from `.obsidian/graph.json` | Run `/claude-wiki-pages:obsidian-graph-colors` |
-| New topic folder has no color | Polish agent not run after ingest | Run `/claude-wiki-pages:claude-wiki-pages-polish-agent` |
-| `raw/` files appearing in graph | `userIgnoreFilters` missing or overridden | Polish agent re-asserts it; or manually add `"raw/"` to `userIgnoreFilters` in `.obsidian/app.json` |
-| Corrupted `.obsidian/` state | Partial write or conflict | Delete `.obsidian/graph.json`, re-run `obsidian-graph-colors` |
-| Page not showing up in search | File not indexed by Obsidian | Check that the file is in `wiki/` and not in an excluded directory |
+| Symptom                                    | Cause                                            | Remedy                                                                                              |
+| ------------------------------------------ | ------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| All graph nodes are one color (monochrome) | Color groups missing from `.obsidian/graph.json` | Run `/claude-wiki-pages:obsidian-graph-colors`                                                      |
+| New topic folder has no color              | Polish agent not run after ingest                | Run `/claude-wiki-pages:claude-wiki-pages-polish-agent`                                             |
+| `raw/` files appearing in graph            | `userIgnoreFilters` missing or overridden        | Polish agent re-asserts it; or manually add `"raw/"` to `userIgnoreFilters` in `.obsidian/app.json` |
+| Corrupted `.obsidian/` state               | Partial write or conflict                        | Delete `.obsidian/graph.json`, re-run `obsidian-graph-colors`                                       |
+| Page not showing up in search              | File not indexed by Obsidian                     | Check that the file is in `wiki/` and not in an excluded directory                                  |
 
 ## Folder Notes and Graph Quality (ADR-0022)
 
@@ -99,11 +130,12 @@ Every query answer must end with a `## Sources` section — numbered, research-p
 
 ```markdown
 ## Sources
+
 1. [[Analyst Agent]] — raw/docs/architecture.md
 2. [[Query Rules]] — raw/docs/llm-wiki/07-query-the-wiki.md
 ```
 
-## Related
+## Related Concepts
 
 - [[Polish Agent]] — owns all three Obsidian-side steps
 - [[Wiki-Only Graph]] — the exclusion contract for the graph view

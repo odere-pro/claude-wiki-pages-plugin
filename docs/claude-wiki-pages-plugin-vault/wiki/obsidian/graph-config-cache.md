@@ -1,7 +1,14 @@
 ---
 title: "Graph Config Cache"
 type: concept
-aliases: ["Graph Config Cache", "graph config cache", "regenerable cache", ".obsidian/ cache", "graph.json cache"]
+aliases:
+  [
+    "Graph Config Cache",
+    "graph config cache",
+    "regenerable cache",
+    ".obsidian/ cache",
+    "graph.json cache",
+  ]
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[ADR-0023: Wiki-Only Graph]]", "[[User Guide: Obsidian Experience]]"]
@@ -21,6 +28,43 @@ confidence: 1.0
 
 > [!summary]
 > Graph config cache is the classification of `.obsidian/graph.json` and the plugin-owned keys in `.obsidian/app.json` as regenerable cache, not tracked state. Every value in these files derives deterministically from the `wiki/` topic tree plus the color palette table. The entire `.obsidian/` directory is gitignored. A deleted or corrupted `.obsidian/` is rebuilt by running `/claude-wiki-pages:obsidian-graph-colors`.
+
+## Key Principles
+
+- Regenerable cache has three properties: derivable (all values follow from topic tree + palette), idempotent (rebuilding always gives the same result), and disposable (deleting it loses no information).
+- The entire `.obsidian/` directory is gitignored — graph config is never committed to git.
+- The polish agent rebuilds, not patches, the config after every ingest — stale groups from deleted topics are cleared automatically.
+- `vault/output/` is not excluded from the Obsidian index: it is user-owned deliverable space, not plugin plumbing.
+- The clobber race (Obsidian overwriting a direct file write) is handled by restarting Obsidian after a headless write.
+
+## Examples
+
+Complete rebuild after a deleted `.obsidian/graph.json`:
+
+```bash
+/claude-wiki-pages:obsidian-graph-colors
+```
+
+What the rebuild produces — the three layers of `.obsidian/app.json` keys managed by the plugin:
+
+```json
+{
+  "userIgnoreFilters": ["raw/", "_templates/", "_proposed/"]
+}
+```
+
+And `.obsidian/graph.json` color groups:
+
+```json
+{
+  "collapse-color-groups": false,
+  "colorGroups": [
+    { "query": "path:wiki/engine",     "color": { "r": 0.3, "g": 0.6, "b": 1.0 } },
+    { "query": "path:wiki/_sources",   "color": { "r": 0.6, "g": 0.6, "b": 0.6 } },
+    { "query": "path:wiki/_synthesis", "color": { "r": 0.9, "g": 0.9, "b": 0.1 } }
+  ]
+}
+```
 
 ## Definition
 

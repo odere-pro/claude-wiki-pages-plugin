@@ -1,11 +1,27 @@
 ---
 title: "Onboarding Wizard"
 type: concept
-aliases: ["Onboarding Wizard", "onboarding-wizard", "onboarding wizard", "init wizard", "first-run wizard"]
+aliases:
+  ["Onboarding Wizard", "onboarding-wizard", "onboarding wizard", "init wizard", "first-run wizard"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources: ["[[Getting Started (CLI Quickstart)]]", "[[User Guide: Index]]", "[[User Guide 01: Getting Started]]", "[[User Guide 02: Create a New Vault]]", "[[Installation Guide]]", "[[Onboarding Agent Source]]"]
-related: ["[[Installation]]", "[[Ingest Pipeline]]", "[[Vault Resolution]]", "[[Git Checkpoint]]", "[[claude-wiki-pages Plugin]]"]
+sources:
+  [
+    "[[Getting Started (CLI Quickstart)]]",
+    "[[User Guide: Index]]",
+    "[[User Guide 01: Getting Started]]",
+    "[[User Guide 02: Create a New Vault]]",
+    "[[Installation Guide]]",
+    "[[Onboarding Agent Source]]",
+  ]
+related:
+  [
+    "[[Installation]]",
+    "[[Ingest Pipeline]]",
+    "[[Vault Resolution]]",
+    "[[Git Checkpoint]]",
+    "[[claude-wiki-pages Plugin]]",
+  ]
 tags: ["onboarding", "guides", "getting-started"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +34,40 @@ confidence: 1.0
 
 > [!summary]
 > The Onboarding Wizard is the guided first-run experience invoked by `/claude-wiki-pages:onboarding` (or automatically by the orchestrator when no vault exists). It walks a user from a fresh plugin install to a working, queryable wiki in a single Claude Code session. The wizard is idempotent — running it again on a partially onboarded vault is safe.
+
+## Key Principles
+
+- The wizard is idempotent: running it again on a partially onboarded vault resumes from where it left off — no content is overwritten.
+- The wizard's goal is TTFV: minimize the time from install to the user's first cited answer.
+- Advanced features (local model configuration, multi-vault registry, maintenance automation) are not surfaced during onboarding — they are progressive-disclosure items.
+- The ingest write phase runs inside a `snapshot pre` → write → `snapshot post` git checkpoint envelope, making it fully reversible.
+- Each step probes state before acting; the wizard never overwrites existing vault content.
+
+## Examples
+
+Two entry points — the orchestrator detects no vault and dispatches automatically, or the user invokes directly:
+
+```
+/claude-wiki-pages:wiki             # auto-dispatch when no vault detected
+/claude-wiki-pages:onboarding       # direct invocation
+```
+
+Vault structure scaffolded by the wizard:
+
+```
+vault/
+├── CLAUDE.md               # authoritative schema for the vault
+├── _templates/             # frontmatter templates per type
+├── raw/
+│   ├── sample-source.md    # bundled sample for first ingest
+│   └── assets/
+├── wiki/
+│   ├── index.md            # vault MOC
+│   ├── log.md              # operations log
+│   ├── _sources/
+│   └── _synthesis/
+└── output/
+```
 
 ## Definition
 
@@ -37,6 +87,7 @@ The orchestrator's dispatch rule: if no vault exists (no `vault/CLAUDE.md` with 
 ### 1. Health Check
 
 Runs `engine.sh verify` to confirm prerequisites:
+
 - git initialized and vault is a repo
 - schema version present in `CLAUDE.md`
 - `wiki/index.md` exists
@@ -68,6 +119,7 @@ Guides the user to drop a document into `raw/` and confirms it appears. The bund
 ### 4. Ingest
 
 Triggers the full 13-step ingest pipeline under a git checkpoint:
+
 - Source summary written to `wiki/_sources/`
 - Entities/concepts extracted to topic folders
 - Folder notes updated

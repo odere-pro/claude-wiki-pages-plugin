@@ -5,7 +5,14 @@ aliases: ["Plugin Arm", "plugin arm", "plugin scaffolding arm", "full scaffoldin
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[ADR-0020: The Scaffolding Ablation]]", "[[Features]]"]
-related: ["[[Baseline Arm]]", "[[Scaffolding Ablation]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]", "[[Local Model Quality Gate]]"]
+related:
+  [
+    "[[Baseline Arm]]",
+    "[[Scaffolding Ablation]]",
+    "[[Golden Set]]",
+    "[[Zero-Fabrication Floor]]",
+    "[[Local Model Quality Gate]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,6 +28,32 @@ confidence: 1.0
 
 > [!summary]
 > The plugin arm is one of two evaluation conditions in the [[Scaffolding Ablation]] (ADR-0020). It runs the same model on the same golden inputs but with the full plugin scaffolding: schema excerpt, provenance contract, verbatim `source_quotes` rule, and anti-fabrication hard rules. The plugin arm's results are compared against the [[Baseline Arm]] to measure what the scaffolding buys.
+
+## Key Principles
+
+- The plugin arm's advantage is structural, not luck: the schema prompt forces organization the engine can validate, the provenance contract forces attribution, and the `source_quotes` rule forces verbatim grounding.
+- The four elements injected into the plugin arm prompt: schema excerpt, provenance contract, `source_quotes` verbatim rule, and anti-fabrication hard rules.
+- The baseline arm's zero-fabrication floor is vacuous — the baseline produces no `sources` fields, so fabrication cannot be detected by the same mechanism as the plugin arm.
+- Measured results (2026-06-11): schema-validity ≥ 0.98, fidelity ≥ 0.97, field accuracy ≥ 0.90, dedup ≥ 0.90, zero fabrications enforced.
+- The experiment uses the same golden inputs as the [[Local Model Quality Gate]], making the ablation findings directly comparable to per-model tier results.
+
+## Examples
+
+Running the ablation comparison:
+
+```bash
+bash scripts/engine.sh ablation --golden tests/golden-set/ --output docs/features.md
+# Runs both plugin-arm and baseline-arm against the golden fixtures
+```
+
+Plugin-arm vs baseline summary (from `docs/features.md`):
+
+| Metric                | Plugin Arm | Baseline Arm            |
+| --------------------- | ---------- | ----------------------- |
+| Schema-validity       | ≥ 0.98     | N/A (no schema)         |
+| Claim-source fidelity | ≥ 0.97     | N/A (no provenance)     |
+| Dedup correctness     | ≥ 0.90     | Lower (spawns dupes)    |
+| Zero fabrications     | Enforced   | Vacuous (not sourced)   |
 
 ## Definition
 
@@ -42,13 +75,13 @@ The plugin arm represents what the model produces when properly scaffolded. The 
 
 From `docs/features.md` (measured 2026-06-11):
 
-| Metric | Plugin Arm | Baseline Arm |
-| --- | --- | --- |
-| Schema-validity | ≥ 0.98 | — (no schema to validate against) |
-| Claim-source fidelity | ≥ 0.97 | — (no provenance contract) |
-| Frontmatter-field accuracy | ≥ 0.90 | — |
-| Dedup correctness | ≥ 0.90 | Lower (baseline tends to spawn duplicates) |
-| Zero fabrications | Enforced | Vacuous (nothing is sourced, so nothing can fabricate) |
+| Metric                     | Plugin Arm | Baseline Arm                                           |
+| -------------------------- | ---------- | ------------------------------------------------------ |
+| Schema-validity            | ≥ 0.98     | — (no schema to validate against)                      |
+| Claim-source fidelity      | ≥ 0.97     | — (no provenance contract)                             |
+| Frontmatter-field accuracy | ≥ 0.90     | —                                                      |
+| Dedup correctness          | ≥ 0.90     | Lower (baseline tends to spawn duplicates)             |
+| Zero fabrications          | Enforced   | Vacuous (nothing is sourced, so nothing can fabricate) |
 
 The baseline arm's zero-fabrication floor is vacuous because the baseline produces no `sources` fields — nothing it claims is sourced, so fabrication cannot be detected by the same mechanism.
 

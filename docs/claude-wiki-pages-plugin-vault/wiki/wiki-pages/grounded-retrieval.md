@@ -1,11 +1,20 @@
 ---
 title: "Grounded Retrieval"
 type: concept
-aliases: ["Grounded Retrieval", "grounded retrieval", "ground-then-judge", "engine-grounded retrieval"]
+aliases:
+  ["Grounded Retrieval", "grounded retrieval", "ground-then-judge", "engine-grounded retrieval"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Maintain Contract]]", "[[Query Rules]]", "[[Deterministic Engine]]", "[[NO-RAG Principle]]", "[[Wiki-Native Recall]]", "[[Provenance Checks]]"]
+related:
+  [
+    "[[Maintain Contract]]",
+    "[[Query Rules]]",
+    "[[Deterministic Engine]]",
+    "[[NO-RAG Principle]]",
+    "[[Wiki-Native Recall]]",
+    "[[Provenance Checks]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: ["[[Deterministic Engine]]", "[[NO-RAG Principle]]"]
@@ -65,12 +74,13 @@ Correct grounded-retrieval answer:
 > The firewall confines all writes to the active vault root and fails closed when the registry is malformed [[Firewall]]. Cross-vault writes are blocked before the `allowPaths` check — even a permissive allow-list cannot override the `cross-vault` deny rule [[Multi-Vault Registry]].
 >
 > ## Sources
+>
 > 1. [[Firewall]] — raw/docs/adr/ADR-0009-multi-vault-confinement.md
 > 2. [[Multi-Vault Registry]] — raw/docs/adr/ADR-0016-simultaneous-multi-vault-management.md
 
 Incorrect (not grounded):
 
-> The firewall uses RSA-256 encryption to protect vault boundaries. *(no citation — this claim is not on any wiki page)*
+> The firewall uses RSA-256 encryption to protect vault boundaries. _(no citation — this claim is not on any wiki page)_
 
 ## Related Concepts
 

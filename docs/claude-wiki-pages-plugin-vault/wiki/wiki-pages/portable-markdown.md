@@ -1,7 +1,14 @@
 ---
 title: "Portable Markdown"
 type: concept
-aliases: ["Portable Markdown", "portable markdown", "markdown export", "vault/output/", "deliverable markdown"]
+aliases:
+  [
+    "Portable Markdown",
+    "portable markdown",
+    "markdown export",
+    "vault/output/",
+    "deliverable markdown",
+  ]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Getting Started (CLI Quickstart)]]", "[[User Guide 05: Export Outputs]]"]
@@ -21,6 +28,30 @@ confidence: 1.0
 
 > [!summary]
 > Portable markdown is the output format of `/claude-wiki-pages:markdown` — a query answer rendered as plain markdown in `vault/output/` that is readable outside Obsidian (no wikilinks, no Dataview, no callouts). It is a deliverable format for sharing wiki knowledge with audiences who do not use Obsidian. The `vault/output/` directory is git-ignored and not schema-tracked.
+
+## Key Principles
+
+- Portable markdown is plain markdown — no wikilinks, no Dataview blocks, no Obsidian callouts — readable outside Obsidian by any markdown renderer.
+- `vault/output/` is git-ignored and not schema-tracked; these files are deliverables, not wiki knowledge.
+- The knowledge source is the wiki; the output is a derived deliverable — synthesis notes are permanent wiki knowledge, output files are context-specific documents.
+- The `## Sources` citations in portable output become numbered lists with plain text page titles (wikilinks flattened or removed).
+- Pandoc is the supported path for PDF/DOCX conversion of output files; the plugin does not ship a Pandoc wrapper.
+
+## Examples
+
+Exporting a query answer as portable markdown:
+
+```bash
+/claude-wiki-pages:markdown what does the wiki say about the firewall?
+# Writes to: vault/output/firewall-2026-06-14.md
+# Output: plain markdown, wikilinks → plain text references, sources → numbered list
+```
+
+Converting the output to PDF with Pandoc:
+
+```bash
+pandoc vault/output/firewall-2026-06-14.md -o firewall-report.pdf
+```
 
 ## Definition
 
@@ -53,12 +84,12 @@ The [[Analyst Agent]]'s "document compile" mode produces a longer-form document 
 
 User Guide 05 draws a clear line:
 
-| Synthesis Note | Portable Markdown Output |
-| --- | --- |
-| Belongs in `wiki/_synthesis/` | Belongs in `vault/output/` |
+| Synthesis Note                         | Portable Markdown Output             |
+| -------------------------------------- | ------------------------------------ |
+| Belongs in `wiki/_synthesis/`          | Belongs in `vault/output/`           |
 | Schema-tracked, validated, git-tracked | No schema, not validated, gitignored |
-| Permanent wiki knowledge | Context-specific deliverable |
-| Cited by other wiki pages | Not part of the wiki graph |
+| Permanent wiki knowledge               | Context-specific deliverable         |
+| Cited by other wiki pages              | Not part of the wiki graph           |
 
 An output file can cite a synthesis note (by mentioning it by name), but the synthesis note does not cite the output file. Synthesis is the knowledge; output is the derived deliverable.
 

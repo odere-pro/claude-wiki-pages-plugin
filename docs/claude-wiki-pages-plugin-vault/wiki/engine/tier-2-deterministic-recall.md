@@ -4,8 +4,22 @@ type: concept
 aliases: ["Tier-2 Deterministic Recall", "Tier-2 recall", "synonym+stemming expansion", "tier 2"]
 parent: "[[Engine — Index]]"
 path: "engine"
-sources: ["[[search.ts Source]]", "[[vocabulary.ts Source]]", "[[stem.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[Search Scoring Algorithm]]", "[[Synonym Lexicon]]", "[[Porter Stemmer]]", "[[Wiki-Native Recall]]", "[[Deterministic Engine]]", "[[Graph Traversal Primitive]]"]
+sources:
+  [
+    "[[search.ts Source]]",
+    "[[vocabulary.ts Source]]",
+    "[[stem.ts Source]]",
+    "[[Engine API Skill (SKILL.md)]]",
+  ]
+related:
+  [
+    "[[Search Scoring Algorithm]]",
+    "[[Synonym Lexicon]]",
+    "[[Porter Stemmer]]",
+    "[[Wiki-Native Recall]]",
+    "[[Deterministic Engine]]",
+    "[[Graph Traversal Primitive]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: ["[[Synonym Lexicon]]", "[[Porter Stemmer]]"]
@@ -37,11 +51,11 @@ The design sits inside the [[Wiki-Native Recall]] architecture: no RAG pipeline,
 
 The three channels and their per-field weights:
 
-| Channel | Title | Tags | Body |
-|---|---|---|---|
-| Exact match | 5 | 3 | 1 |
-| Synonym match | 2 | 1.5 | 0.5 |
-| Stem match | 1 | 0.5 | 0.25 |
+| Channel       | Title | Tags | Body |
+| ------------- | ----- | ---- | ---- |
+| Exact match   | 5     | 3    | 1    |
+| Synonym match | 2     | 1.5  | 0.5  |
+| Stem match    | 1     | 0.5  | 0.25 |
 
 Exact title hits always rank above synonym or stem hits on any other field. The scoring function is additive across all matched `(term, field, channel)` triples, with the deduplication contract ensuring no triple is counted twice.
 
@@ -70,6 +84,7 @@ After the scoring loop returns a ranked hit list, the `--graph` flag enables [[G
 ## Examples
 
 Given query `"healing"` and synonym group `{canonical:"heal", variants:["fix","repair"]}`:
+
 - The stem channel converts `"healing"` → `"heal"` and matches pages containing the token `"heal"`.
 - The synonym channel matches pages whose title/tags/body contain `"heal"`, `"fix"`, or `"repair"` (but not `"healing"` itself, which the exact channel covers).
 

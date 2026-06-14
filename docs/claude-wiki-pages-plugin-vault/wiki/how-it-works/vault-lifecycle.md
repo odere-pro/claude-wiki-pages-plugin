@@ -1,10 +1,21 @@
 ---
 title: "Vault Lifecycle"
 type: concept
-aliases: ["Vault Lifecycle", "vault lifecycle", "vault lifecycle commands", "vault init add switch remove merge"]
+aliases:
+  [
+    "Vault Lifecycle",
+    "vault lifecycle",
+    "vault lifecycle commands",
+    "vault init add switch remove merge",
+  ]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0012: Vault Merge Conflict Resolution]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]"]
+sources:
+  [
+    "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]",
+    "[[ADR-0012: Vault Merge Conflict Resolution]]",
+    "[[ADR-0016: Simultaneous Multi-Vault Management]]",
+  ]
 related: ["[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Firewall]]", "[[Vault Resolution]]"]
 contradicts: []
 supersedes: []
@@ -21,6 +32,32 @@ confidence: 1.0
 
 > [!summary]
 > The vault lifecycle is the set of named operations that manage the set of registered vaults and which vault is active. Four operations are implemented: `init` (scaffold a new vault), `vault_add` (register an existing vault), `switch` (change the active vault), and `remove` (deregister without deleting). A fifth operation, `merge`, is design-accepted but not yet implemented (deferred by ADR-0012).
+
+## Key Principles
+
+- No lifecycle operation deletes vault files from disk; the plugin owns the registration, not the data.
+- All lifecycle operations work through `scripts/set-vault.sh` and the registry in `.claude/claude-wiki-pages/settings.json`.
+- The `switch` operation changes only `current_vault_path`; it never moves, copies, or merges vault files.
+- The registry fails closed: if `current_vault_path` does not match any `vaults[].path`, all writes are blocked until the invariant is restored.
+- The `merge` operation is design-accepted (ADR-0012) but deferred — it is listed in help text as "coming soon" and exits non-zero until implemented.
+
+## Examples
+
+Switching between two registered vaults:
+
+```bash
+# Current: /Users/alex/work-vault
+bash scripts/set-vault.sh /Users/alex/personal-vault
+# Now: /Users/alex/personal-vault is active; work-vault still registered but inactive
+```
+
+Registering an existing vault without switching:
+
+```bash
+bash scripts/set-vault.sh add /path/to/second-vault "secondary"
+```
+
+The merge design (deferred): pages are matched by `sources` chain and title. Exact matches are merged taking the higher `confidence`; collisions go to `_proposed/` for review; source vault is read-only during merge.
 
 ## Definition
 

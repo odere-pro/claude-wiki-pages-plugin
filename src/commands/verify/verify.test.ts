@@ -373,4 +373,75 @@ describe("verify", () => {
     expect(report.warnings).toBe(5);
     sb.cleanup();
   });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // FU1 (ADR-0028): dangling-wikilink WARN check
+  // ──────────────────────────────────────────────────────────────────────────
+
+  test("FU1: dangling [[Target]] yields a wikilink-dangling WARN finding", () => {
+    // A fully-wired vault (folder note present) with one dangling link.
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/topics.md":
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
+      "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nSee [[Nonexistent Target]] here.\n",
+    });
+    const report = verify({ target: sb.vault });
+
+    // A dangling link is WARN, not error — exit code stays 0.
+    expect(report.errors).toBe(0);
+    expect(report.clean).toBe(true);
+
+    const dangling = report.findings.filter((f) => f.check === "wikilink-dangling");
+    expect(dangling).toHaveLength(1);
+    expect(dangling[0]?.severity).toBe("warn");
+    expect(dangling[0]?.message).toContain("Nonexistent Target");
+    sb.cleanup();
+  });
+
+  test("FU1: all-resolved vault produces no wikilink-dangling findings", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
+      "wiki/index.md":
+        "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n- [[Another Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/topics.md":
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]", "[[Another Page]]"]\n---\n',
+      "wiki/topics/real-page.md":
+        '---\ntitle: Real Page\naliases: ["real"]\n---\nSee [[Another Page]].\n',
+      "wiki/topics/another-page.md": "---\ntitle: Another Page\n---\nRefers to [[Real Page]].\n",
+    });
+    const report = verify({ target: sb.vault });
+
+    expect(report.findings.filter((f) => f.check === "wikilink-dangling")).toHaveLength(0);
+    sb.cleanup();
+  });
+
+  test("FU1: dangling-wikilink does not change exit code (WARN severity)", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/topics.md":
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
+      "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nSee [[Ghost]].\n",
+    });
+    const report = verify({ target: sb.vault });
+
+    expect(report.errors).toBe(0);
+    expect(report.clean).toBe(true);
+    expect(exitCode(report)).toBe(0);
+    sb.cleanup();
+  });
+
+  test("FU1: DIRTY_VAULT dangling check does not raise errors (warnings only)", () => {
+    // DIRTY_VAULT has bookkeeping pages and a topics/ page with sources; ensure
+    // the dangling check does not add errors to the existing 5-error baseline.
+    const sb = makeVault(DIRTY_VAULT);
+    const report = verify({ target: sb.vault });
+    expect(report.errors).toBe(5); // unchanged from existing test
+    sb.cleanup();
+  });
 });

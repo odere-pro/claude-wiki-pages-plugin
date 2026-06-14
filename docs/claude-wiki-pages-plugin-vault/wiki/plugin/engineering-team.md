@@ -25,14 +25,14 @@ The engineering team (`wiki-dev`) is a dev-only Claude Code agent team stored in
 
 **Composition (9 roles across 4 lanes):**
 
-| Lane | Focus | Roles |
-| --- | --- | --- |
-| A | Retrieval/Engine | Senior Engineer A |
-| B | Schema/Ontology/Multi-vault | Senior Engineer B |
-| C | Ingest/Context/Memory | Senior Engineer C |
-| D | Portability/UX/DX | Senior Engineer D |
-| — | Management | Manager, PM, Architect |
-| — | Quality | QA-functional, QA-adversarial |
+| Lane | Focus                       | Roles                         |
+| ---- | --------------------------- | ----------------------------- |
+| A    | Retrieval/Engine            | Senior Engineer A             |
+| B    | Schema/Ontology/Multi-vault | Senior Engineer B             |
+| C    | Ingest/Context/Memory       | Senior Engineer C             |
+| D    | Portability/UX/DX           | Senior Engineer D             |
+| —    | Management                  | Manager, PM, Architect        |
+| —    | Quality                     | QA-functional, QA-adversarial |
 
 **Flow:** PM spec → Architect verdict → TDD (each engineer) → QA-functional → QA-adversarial → PM acceptance → Delivery Lead integrates.
 

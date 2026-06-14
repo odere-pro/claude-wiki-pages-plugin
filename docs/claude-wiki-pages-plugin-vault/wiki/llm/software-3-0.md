@@ -1,7 +1,8 @@
 ---
 title: "Software 3.0"
 type: concept
-aliases: ["Software 3.0", "software 3.0", "Software3.0", "agent-first design", "human-agent symmetry"]
+aliases:
+  ["Software 3.0", "software 3.0", "Software3.0", "agent-first design", "human-agent symmetry"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design README]]"]
@@ -22,6 +23,28 @@ confidence: 1.0
 > [!summary]
 > Software 3.0 is the design posture of the claude-wiki-pages project: every project surface — every command, every script, every API endpoint — must be equally usable by humans and autonomous agents. The posture is embodied in the dual-entry router table and enforced by the [[Parity Gate]] in CI. It motivates the four-layer stack's separation of concerns and the preference for deterministic, auditable mechanisms over implicit or model-dependent ones.
 
+## Key Principles
+
+- Every project surface must be equally usable by humans and autonomous agents — no operation is agent-only or human-only.
+- The dual-entry router table is the concrete enforcement artifact: it maps each surface to its human form and its agent form; neither column may be empty.
+- The [[Parity Gate]] in CI enforces the dual-entry table — an asymmetric surface fails CI.
+- Bash-first Layer 4 and `--json` endpoints are two implementations of the same principle: humans can read and run the same scripts and commands that agents use.
+- The readable schema authority (`vault/CLAUDE.md`) is written in English prose for humans and structured with machine-parseable tables for agents; both read the same file.
+
+## Examples
+
+Dual-entry router table (partial):
+
+| Surface       | Human form                   | Agent form                                   |
+| ------------- | ---------------------------- | -------------------------------------------- |
+| Ingest        | `/claude-wiki-pages:wiki`    | `claude-wiki-pages-ingest-agent`             |
+| Verify vault  | `engine.sh verify`           | `engine.sh verify --json`                    |
+| Health check  | `/claude-wiki-pages:doctor`  | `engine.sh doctor --json`                    |
+| Search        | `/claude-wiki-pages:query`   | `engine.sh search --query "..." --json`      |
+| Firewall eval | Inspect `firewall.sh` output | `engine.sh firewall --path <p> --json`       |
+
+A row with an empty "Agent form" column fails the [[Parity Gate]] in CI.
+
 ## Definition
 
 The term "Software 3.0" references the evolution of software design from imperative code (1.0) through declarative/functional approaches (2.0) to LLM-augmented systems (3.0) where AI agents are first-class actors alongside humans. In this framing, a well-designed Software 3.0 system is one where agents can operate as effectively as humans, with the same visibility and the same control surface.
@@ -31,6 +54,7 @@ For claude-wiki-pages, this manifests as a concrete design rule articulated in A
 > **Every project surface must be equally usable by humans and agents.**
 
 "Equally usable" means:
+
 - If a human can perform an operation via a slash command, an agent can perform the same operation via a scriptable equivalent.
 - If an agent can query a data structure programmatically, a human can inspect it via a documented command or readable file.
 - No operation is agent-only (opaque to humans) or human-only (inaccessible to agents).

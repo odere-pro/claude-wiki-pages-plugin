@@ -5,7 +5,14 @@ aliases: ["Review Gate", "review gate", "_proposed/ gate", "proposed gate", "dra
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[ADR-0010: Durable-Memory Carve-Out]]", "[[Design: Sequences]]"]
-related: ["[[Durable Memory]]", "[[Draft Review Surface]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Firewall]]"]
+related:
+  [
+    "[[Durable Memory]]",
+    "[[Draft Review Surface]]",
+    "[[Ingest Agent]]",
+    "[[Curator Agent]]",
+    "[[Firewall]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,6 +28,32 @@ confidence: 1.0
 
 > [!summary]
 > The review gate is the `_proposed/` staging area that sits between agent-produced drafts and the live wiki. Every draft (whether from a local model via `offline-draft.sh` or from durable memory write-backs) lands in `_proposed/wiki/<topic>/<slug>.md` and must be explicitly approved by a human before promotion to `wiki/`. The gate is the trust boundary between LLM output and curated knowledge.
+
+## Key Principles
+
+- The review gate is the trust boundary between LLM output and curated knowledge — no draft enters `wiki/` without explicit human approval.
+- Drafts in `_proposed/` are outside every wiki-scoped check (frontmatter validation, wikilinks, lint, index membership) and cannot pollute the wiki until promoted.
+- Two sources of drafts: durable memory write-backs (agent sessions → `raw/agent-sessions/` → ingest → `_proposed/`) and local model offline drafts (`scripts/offline-draft.sh` → `_proposed/`).
+- Drafts carry `proposed_by:` to record the producer; this field is removed on promotion, but the git history retains the provenance audit trail.
+- Rejection moves drafts to `_proposed/rejected/` rather than deleting them, preserving the audit trail.
+
+## Examples
+
+Reviewing pending drafts and approving one:
+
+```bash
+bash scripts/engine.sh review list --target <vault> --json
+# Output: [{ "path": "_proposed/wiki/engine/new-concept.md", "proposed_by": "claude", "status": "draft" }]
+
+bash scripts/engine.sh review approve _proposed/wiki/engine/new-concept.md --target <vault>
+# Clears proposed_by, sets status: active, stamps updated, adds to topic index, git checkpoint
+```
+
+Or via slash command:
+
+```
+/claude-wiki-pages:review
+```
 
 ## Definition
 
@@ -47,6 +80,7 @@ engine.sh review reject <draft-path> --target <vault>
 ```
 
 Or via slash command:
+
 ```
 /claude-wiki-pages:review
 ```
@@ -61,7 +95,7 @@ Drafts in `_proposed/` carry two additional frontmatter fields not present on li
 
 ```yaml
 status: draft
-proposed_by: "ollama:qwen3-coder:30b"  # or "claude" for session write-backs
+proposed_by: "ollama:qwen3-coder:30b" # or "claude" for session write-backs
 ```
 
 `proposed_by` records what produced the draft. Removed on promotion. This makes it possible to audit the provenance of every page in the wiki: if it was ever a draft, the git history shows when it was proposed and when it was approved.

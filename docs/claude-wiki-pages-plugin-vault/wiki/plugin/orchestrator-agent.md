@@ -2,11 +2,34 @@
 title: "Orchestrator Agent"
 type: entity
 entity_type: tool
-aliases: ["Orchestrator Agent", "orchestrator agent", "claude-wiki-pages-orchestrator-agent", "orchestrator"]
+aliases:
+  [
+    "Orchestrator Agent",
+    "orchestrator agent",
+    "claude-wiki-pages-orchestrator-agent",
+    "orchestrator",
+  ]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[ADR-0001: Four-Layer Orchestrator]]", "[[ADR-0002: Agent Naming Convention]]", "[[Operations Guide]]", "[[Orchestrator Agent Source]]"]
-related: ["[[Ingest Agent]]", "[[Curator Agent]]", "[[Analyst Agent]]", "[[Polish Agent]]", "[[Maintenance Agent]]", "[[Four-Layer Stack]]", "[[Vault Resolution]]", "[[Single-Pass Dispatch]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[ADR-0001: Four-Layer Orchestrator]]",
+    "[[ADR-0002: Agent Naming Convention]]",
+    "[[Operations Guide]]",
+    "[[Orchestrator Agent Source]]",
+  ]
+related:
+  [
+    "[[Ingest Agent]]",
+    "[[Curator Agent]]",
+    "[[Analyst Agent]]",
+    "[[Polish Agent]]",
+    "[[Maintenance Agent]]",
+    "[[Four-Layer Stack]]",
+    "[[Vault Resolution]]",
+    "[[Single-Pass Dispatch]]",
+  ]
 tags: ["agent", "orchestrator"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,6 +42,16 @@ confidence: 1.0
 
 > [!summary]
 > The `claude-wiki-pages-orchestrator-agent` is the top-level entry agent for `/claude-wiki-pages:wiki`. It is the sole `user-invocable: true` agent. Its one job is a single-pass vault state probe followed by dispatch to exactly one specialist. Specialists never re-probe state — they trust the orchestrator's payload. The user's mental model is one verb: `/claude-wiki-pages:wiki`. The orchestrator figures out the rest.
+
+## Key Facts
+
+- Type: tool (Layer 3 agent, `user-invocable: true` — the sole agent with this flag; entry point is `/claude-wiki-pages:wiki`)
+- Agent name: `claude-wiki-pages-orchestrator-agent` (named under the `{plugin-name}-{role}-agent` convention, ADR-0002)
+- Introduced by: ADR-0001 (the four-layer orchestrator decision)
+- Routing: single-pass vault state probe followed by dispatch to exactly one specialist — never fans out on ambiguity
+- State probe reads: `vault/raw/`, `wiki/log.md`, `wiki/index.md`, `vault/_proposed/`, and optionally runs `engine backlog`
+- Specialists constraint: dispatched agents (`user-invocable: false`) must not re-probe vault state; they trust the orchestrator's payload
+- Polish agent runs as a tail step after every successful ingest or curator pass, in parallel with the final-report compose step
 
 ## Overview
 
@@ -35,6 +68,7 @@ The agent was added as part of ADR-0001 (the four-layer orchestrator decision) a
 ```
 
 Pass any free-form goal:
+
 - `/claude-wiki-pages:wiki ingest the new papers`
 - `/claude-wiki-pages:wiki what does the wiki say about retrieval?`
 - `/claude-wiki-pages:wiki` (no argument — orchestrator probes and dispatches)
@@ -55,14 +89,14 @@ This sequence runs once and produces the dispatch payload.
 
 ## Routing Table
 
-| State found | Specialist dispatched |
-| --- | --- |
-| No vault or no `schema_version` | Onboarding wizard (scaffold + orient) |
-| Files in `raw/` not in `wiki/log.md` | [[Ingest Agent]] |
-| Previous ingest not followed by lint | [[Curator Agent]] (audit-and-repair) |
-| Analytical prompt (`what`, `why`, `compare`, …) | [[Analyst Agent]] |
-| Pending drafts in `_proposed/` | Review gate |
-| `maintenance.enabled` + backlog | [[Maintenance Agent]] |
+| State found                                     | Specialist dispatched                 |
+| ----------------------------------------------- | ------------------------------------- |
+| No vault or no `schema_version`                 | Onboarding wizard (scaffold + orient) |
+| Files in `raw/` not in `wiki/log.md`            | [[Ingest Agent]]                      |
+| Previous ingest not followed by lint            | [[Curator Agent]] (audit-and-repair)  |
+| Analytical prompt (`what`, `why`, `compare`, …) | [[Analyst Agent]]                     |
+| Pending drafts in `_proposed/`                  | Review gate                           |
+| `maintenance.enabled` + backlog                 | [[Maintenance Agent]]                 |
 
 Priority goes top to bottom: if raw files are pending AND the prompt is analytical, the ingest takes precedence (stale sources degrade the answer quality anyway).
 
@@ -94,12 +128,12 @@ The latency cost of the orchestrator hop is one filesystem probe — acceptable 
 
 When the routing is known in advance and the probe is wasted work:
 
-| Bypass | When to use |
-| --- | --- |
-| `/claude-wiki-pages:claude-wiki-pages-ingest-agent` | Scripted batch ingest |
-| `/claude-wiki-pages:claude-wiki-pages-curator-agent` | Direct audit-and-repair without ingest |
-| `/claude-wiki-pages:claude-wiki-pages-analyst-agent` | Direct query when routing is unambiguous |
-| `/claude-wiki-pages:claude-wiki-pages-polish-agent` | Manual graph/index refresh after a direct agent call |
+| Bypass                                               | When to use                                          |
+| ---------------------------------------------------- | ---------------------------------------------------- |
+| `/claude-wiki-pages:claude-wiki-pages-ingest-agent`  | Scripted batch ingest                                |
+| `/claude-wiki-pages:claude-wiki-pages-curator-agent` | Direct audit-and-repair without ingest               |
+| `/claude-wiki-pages:claude-wiki-pages-analyst-agent` | Direct query when routing is unambiguous             |
+| `/claude-wiki-pages:claude-wiki-pages-polish-agent`  | Manual graph/index refresh after a direct agent call |
 
 Bypassing the orchestrator also bypasses the polish tail step. Run `/claude-wiki-pages:claude-wiki-pages-polish-agent` manually afterward if Obsidian sync is needed.
 

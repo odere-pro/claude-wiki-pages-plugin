@@ -1,11 +1,18 @@
 ---
 title: "Multi-Vault Operating Rules"
 type: concept
-aliases: ["Multi-Vault Operating Rules", "multi-vault operating rules", "multi-vault agent rules", "vault operating rules"]
+aliases:
+  [
+    "Multi-Vault Operating Rules",
+    "multi-vault operating rules",
+    "multi-vault agent rules",
+    "vault operating rules",
+  ]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Maintain Contract]]", "[[Multi-Vault Registry]]", "[[Firewall]]", "[[Vault Resolution]]"]
+related:
+  ["[[Maintain Contract]]", "[[Multi-Vault Registry]]", "[[Firewall]]", "[[Vault Resolution]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Multi-Vault Registry]]", "[[Firewall]]", "[[Vault Resolution]]"]
@@ -61,7 +68,7 @@ grep -r "entity_type" /path/to/other-vault/wiki/
 
 ### Rule 4 — Writes to Any Non-Active Vault Are Firewall-BLOCKED
 
-The `cross-vault` deny rule fires before the `allowPaths` check (precedence: deny → cross-vault → vault → allowPaths → outside-vault). Passing `--other-vaults` does not grant write access — it provides the root set the firewall uses to *identify and block* cross-vault writes.
+The `cross-vault` deny rule fires before the `allowPaths` check (precedence: deny → cross-vault → vault → allowPaths → outside-vault). Passing `--other-vaults` does not grant write access — it provides the root set the firewall uses to _identify and block_ cross-vault writes.
 
 No `firewall.allowPaths` entry can override a `cross-vault` block. To write to a different vault, first switch the active vault:
 
@@ -89,6 +96,7 @@ bash engine.sh verify --target "$VAULT" --other-vaults "$registry_other_vaults"
 ```
 
 Registry inconsistency flow:
+
 - `resolve-vault.sh` exits non-zero → Rule 5 fires → zero writable roots
 - Agent reports failure; does not proceed with writes
 - User runs `set-vault.sh list` to diagnose

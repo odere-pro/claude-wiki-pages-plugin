@@ -5,8 +5,27 @@ entity_type: tool
 aliases: ["Analyst Agent", "analyst agent", "claude-wiki-pages-analyst-agent", "analyst"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[User Guide 05: Export Outputs]]", "[[Operations Guide]]", "[[Analyst Agent Source]]", "[[Analyst Modes Skill (SKILL.md)]]"]
-related: ["[[Orchestrator Agent]]", "[[Query Rules]]", "[[Challenge Mode]]", "[[Synthesis Note]]", "[[Wiki-Native Recall]]", "[[Analyst Dashboard Mode]]", "[[Analyst Document Compile Mode]]", "[[Analyst Extract Mode]]", "[[Dashboard Write Gate]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[User Guide 07: Query the Wiki]]",
+    "[[User Guide 05: Export Outputs]]",
+    "[[Operations Guide]]",
+    "[[Analyst Agent Source]]",
+    "[[Analyst Modes Skill (SKILL.md)]]",
+  ]
+related:
+  [
+    "[[Orchestrator Agent]]",
+    "[[Query Rules]]",
+    "[[Challenge Mode]]",
+    "[[Synthesis Note]]",
+    "[[Wiki-Native Recall]]",
+    "[[Analyst Dashboard Mode]]",
+    "[[Analyst Document Compile Mode]]",
+    "[[Analyst Extract Mode]]",
+    "[[Dashboard Write Gate]]",
+  ]
 tags: ["agent", "analyst"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,6 +38,15 @@ confidence: 1.0
 
 > [!summary]
 > The `claude-wiki-pages-analyst-agent` answers questions from the wiki in five distinct operating modes: Query, Dashboard, Document Compile, Extract, and Challenge. It is dispatched by the [[Orchestrator Agent]] when the user's prompt carries an analytical verb. Every answer ends with a `## Sources` section — wikilink citations in research-paper style. The agent reads but never writes the wiki.
+
+## Key Facts
+
+- Type: tool (Layer 3 agent, `user-invocable: false` as a first-class entry; accessible as a bypass via `/claude-wiki-pages:claude-wiki-pages-analyst-agent`)
+- Agent name: `claude-wiki-pages-analyst-agent` (renamed from `llm-wiki-analyst` in version 0.2.0, ADR-0002)
+- Dispatched by: [[Orchestrator Agent]] when the user prompt contains an analytical verb (`what`, `why`, `compare`, `how`, `which`, `summarize`)
+- Five operating modes: Query, Dashboard, Document Compile, Extract, Challenge
+- Write access: read-only with respect to `wiki/` except for `wiki/log.md` append and optional synthesis note creation in `wiki/_synthesis/`
+- Every answer ends with a `## Sources` section (required by ADR-0022); if no pages were consulted the section says so explicitly
 
 ## Overview
 

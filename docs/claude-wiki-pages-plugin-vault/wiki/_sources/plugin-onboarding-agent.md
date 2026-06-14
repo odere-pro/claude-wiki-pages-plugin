@@ -9,7 +9,12 @@ publisher: "odere-pro/claude-wiki-pages-plugin"
 date_published: 2026-06-13
 date_ingested: 2026-06-13
 tags: ["agent", "onboarding", "plugin"]
-aliases: ["Onboarding Agent Source", "plugin-onboarding-agent", "claude-wiki-pages-onboarding-agent source"]
+aliases:
+  [
+    "Onboarding Agent Source",
+    "plugin-onboarding-agent",
+    "claude-wiki-pages-onboarding-agent source",
+  ]
 sources: []
 created: 2026-06-13
 updated: 2026-06-13

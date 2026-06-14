@@ -2,11 +2,28 @@
 title: "claude-wiki-pages (Plugin)"
 type: entity
 entity_type: product
-aliases: ["claude-wiki-pages (Plugin)", "claude-wiki-pages Plugin", "claude-wiki-pages", "the plugin"]
+aliases:
+  ["claude-wiki-pages (Plugin)", "claude-wiki-pages Plugin", "claude-wiki-pages", "the plugin"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[Installation Guide]]", "[[Features]]", "[[Getting Started (CLI Quickstart)]]", "[[Plugin README]]", "[[Plugin Manifest (plugin.json)]]"]
-related: ["[[Orchestrator Agent]]", "[[Deterministic Engine]]", "[[Four-Layer Stack]]", "[[Hook System]]", "[[Installation]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[Glossary]]",
+    "[[Installation Guide]]",
+    "[[Features]]",
+    "[[Getting Started (CLI Quickstart)]]",
+    "[[Plugin README]]",
+    "[[Plugin Manifest (plugin.json)]]",
+  ]
+related:
+  [
+    "[[Orchestrator Agent]]",
+    "[[Deterministic Engine]]",
+    "[[Four-Layer Stack]]",
+    "[[Hook System]]",
+    "[[Installation]]",
+  ]
 tags: ["plugin", "product"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -43,12 +60,12 @@ Most LLM-wiki implementations are one layer: a prompt and a folder convention. `
 
 ## What the Plugin Ships
 
-| Component type | Count | Examples |
-| --- | --- | --- |
-| Skills | 24 | `init`, `ingest`, `query`, `lint`, `fix`, `synthesize`, `index`, `markdown`, `search`, `review`, `draft`, `sync`, `onboarding`, `obsidian-graph-colors` + 5 agent-teaching + 3 third-party |
-| Agents | 7 | orchestrator, onboarding, ingest, curator, analyst, polish, maintenance |
-| Slash commands | 3 | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:onboarding`, `/claude-wiki-pages:doctor` |
-| Hook events | 7 | `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop`, `Stop`, `SessionEnd` |
+| Component type | Count | Examples                                                                                                                                                                                   |
+| -------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Skills         | 24    | `init`, `ingest`, `query`, `lint`, `fix`, `synthesize`, `index`, `markdown`, `search`, `review`, `draft`, `sync`, `onboarding`, `obsidian-graph-colors` + 5 agent-teaching + 3 third-party |
+| Agents         | 7     | orchestrator, onboarding, ingest, curator, analyst, polish, maintenance                                                                                                                    |
+| Slash commands | 3     | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:onboarding`, `/claude-wiki-pages:doctor`                                                                                                    |
+| Hook events    | 7     | `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop`, `Stop`, `SessionEnd`                                                                                      |
 
 ## Data Flow (One Ingest)
 
@@ -67,12 +84,12 @@ Most LLM-wiki implementations are one layer: a prompt and a folder convention. `
 
 The [[Scaffolding Ablation]] (ADR-0020) runs the same model through two prompt arms — the plugin's full prompts vs a generic "extract the knowledge into well-organized notes" prompt. Key measured results (`qwen3-coder:30b`):
 
-| Capability | With plugin | Without plugin |
-| --- | --- | --- |
-| `schema_validity` | 1.00 | 0.00 |
-| `claim_source_fidelity` | 1.00 | 0.00 |
-| `dedup_correctness` | 1.00 | 0.00 |
-| Answer citation protocol | PASS | Unscorable (drifted off-protocol) |
+| Capability               | With plugin | Without plugin                    |
+| ------------------------ | ----------- | --------------------------------- |
+| `schema_validity`        | 1.00        | 0.00                              |
+| `claim_source_fidelity`  | 1.00        | 0.00                              |
+| `dedup_correctness`      | 1.00        | 0.00                              |
+| Answer citation protocol | PASS        | Unscorable (drifted off-protocol) |
 
 ## Related
 

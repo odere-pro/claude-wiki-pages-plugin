@@ -4,8 +4,24 @@ type: concept
 aliases: ["Git Checkpoint", "git checkpoint", "snapshot", "git-checkpointed", "commit backstop"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0005: Git Required Per-Vault Init]]", "[[Design: Sequences]]", "[[Features]]", "[[Operations Guide]]", "[[snapshot.ts Source]]"]
-related: ["[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Hook System]]", "[[Auto-Heal]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[Glossary]]",
+    "[[ADR-0005: Git Required Per-Vault Init]]",
+    "[[Design: Sequences]]",
+    "[[Features]]",
+    "[[Operations Guide]]",
+    "[[snapshot.ts Source]]",
+  ]
+related:
+  [
+    "[[Deterministic Engine]]",
+    "[[Ingest Agent]]",
+    "[[Curator Agent]]",
+    "[[Hook System]]",
+    "[[Auto-Heal]]",
+  ]
 tags: ["concept", "git"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +34,14 @@ confidence: 1.0
 
 > [!summary]
 > A git checkpoint (snapshot) is a git commit that bounds an LLM write phase, making every vault mutation reversible with `git revert`. Every write-path agent calls `scripts/snapshot.sh pre` before writing and `scripts/snapshot.sh post` after. A commit backstop in `SubagentStop` ensures no uncommitted changes escape a write phase. Git is a hard dependency — required per ADR-0005 regardless of whether Bun is installed.
+
+## Key Principles
+
+- The git checkpoint pattern makes every vault mutation reversible: pre-snapshot (rollback point) before writing, post-snapshot after, and a `SubagentStop` backstop that commits any uncommitted changes.
+- Git is a hard dependency per ADR-0005 — required regardless of whether Bun is installed. Without a repo, the durable-memory and self-heal story breaks.
+- The bash shim (`scripts/snapshot.sh`) reproduces `ensureRepo`'s end state exactly when Bun is unavailable: same identity, same flags.
+- The nesting guard runs `git rev-parse --is-inside-work-tree` before any git-init; if the vault is already inside a work tree, it skips init and records `git=skipped(already-in-repo)`.
+- The `subagent-commit-gate.sh` backstop never blocks and always exits 0 — it is the last safety net, not a blocking gate.
 
 ## Definition
 
@@ -40,11 +64,11 @@ Git-required per-vault init is a non-negotiable (decision #4). The rationale:
 
 ## Checkpoint Semantics
 
-| Moment | What happens | Who calls it |
-| --- | --- | --- |
-| Before write phase | `snapshot pre` → `snapshot:` commit (pre-write state, rollback point) | Ingest agent, curator agent |
-| After write phase | `snapshot post` → `snapshot:` commit (all writes as one unit) | Ingest agent, curator agent |
-| SubagentStop | `subagent-commit-gate.sh` commits any uncommitted vault changes as backstop | SubagentStop hook (automatic) |
+| Moment             | What happens                                                                | Who calls it                  |
+| ------------------ | --------------------------------------------------------------------------- | ----------------------------- |
+| Before write phase | `snapshot pre` → `snapshot:` commit (pre-write state, rollback point)       | Ingest agent, curator agent   |
+| After write phase  | `snapshot post` → `snapshot:` commit (all writes as one unit)               | Ingest agent, curator agent   |
+| SubagentStop       | `subagent-commit-gate.sh` commits any uncommitted vault changes as backstop | SubagentStop hook (automatic) |
 
 `gitCheckpoint.mode` config: `bun` (primary, full engine), `bash` (shim when Bun is absent), `off`.
 

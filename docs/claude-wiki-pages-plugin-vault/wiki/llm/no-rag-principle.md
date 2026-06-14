@@ -4,8 +4,23 @@ type: concept
 aliases: ["NO-RAG Principle", "NO-RAG", "no embeddings", "no-rag", "wiki-native recall"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0007: Wiki-Native Recall]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Architecture Documentation]]", "[[Glossary]]"]
-related: ["[[Wiki-Native Recall]]", "[[Deterministic Engine]]", "[[Query Rules]]", "[[Search Score Object]]", "[[Ingest Pipeline]]", "[[Approved Local Model]]", "[[Local Model Quality Gate]]"]
+sources:
+  [
+    "[[ADR-0007: Wiki-Native Recall]]",
+    "[[ADR-0019: Query Tier and Answer Verification]]",
+    "[[Architecture Documentation]]",
+    "[[Glossary]]",
+  ]
+related:
+  [
+    "[[Wiki-Native Recall]]",
+    "[[Deterministic Engine]]",
+    "[[Query Rules]]",
+    "[[Search Score Object]]",
+    "[[Ingest Pipeline]]",
+    "[[Approved Local Model]]",
+    "[[Local Model Quality Gate]]",
+  ]
 contradicts: []
 tags: ["concept", "retrieval", "non-negotiable"]
 created: 2026-06-13
@@ -19,6 +34,43 @@ confidence: 1.0
 
 > [!summary]
 > The NO-RAG principle is a project non-negotiable (§5): no vector embeddings on the default retrieval path, ever. Retrieval is wiki pages + wikilinks + frontmatter, implemented as deterministic keyword matching, synonym expansion, Porter-style stemming, and graph traversal. It is enforced at the CI level by `gate-13-no-rag.sh`, which scans retrieval source files for forbidden imports and self-tests against a planted violation. The rationale: embeddings require external services, drift silently, and cannot be audited. Deterministic search is reproducible, explainable, and auditable.
+
+## Key Principles
+
+- NO-RAG is §5 of the project SPEC — an absolute non-negotiable, not a revisitable design preference.
+- The rationale is structural: embeddings introduce external service dependencies, drift silently between model versions, and cannot be audited.
+- The positive alternative is deterministic wiki-native recall: keyword matching + curated synonym lexicon + Porter-style stemming + graph link-walk.
+- CI enforcement (`gate-13-no-rag.sh`) scans retrieval source files for forbidden imports and self-tests by planting a known violation.
+- The NO-RAG rule extends to the test layer: golden-set eval scores output by exact structural comparison, never by embedding similarity.
+
+## Examples
+
+How `gate-13-no-rag.sh` works (self-tests against a planted violation):
+
+```bash
+# The gate scans these files for forbidden imports:
+# src/commands/search/search.ts
+# src/core/vocabulary.ts
+# src/core/stem.ts
+# src/core/graph.ts
+
+# --self-test plants "import { createEmbedding } from 'openai'" in a temp copy
+# and asserts the gate catches it
+bash tests/gates/gate-13-no-rag.sh --self-test
+```
+
+Search result with a fully auditable score breakdown (no hidden similarity scores):
+
+```json
+{
+  "page": "Firewall",
+  "score": 4.7,
+  "matched": [
+    { "channel": "title-term", "term": "firewall", "points": 4.0 },
+    { "channel": "body-term", "term": "confinement", "points": 0.7 }
+  ]
+}
+```
 
 ## Definition
 
@@ -49,6 +101,7 @@ The entire retrieval path is offline, deterministic, and auditable. Same query +
 ## CI Enforcement
 
 `tests/gates/gate-13-no-rag.sh` scans the retrieval source files — `src/commands/search/search.ts`, `src/core/vocabulary.ts`, `src/core/stem.ts`, `src/core/graph.ts` — for forbidden imports:
+
 - Any HTTP client (`fetch`, `axios`, `http`, `https`)
 - Any embedding library (`openai`, `@anthropic-ai/sdk` on this path, `faiss`, `@qdrant`)
 - Any similarity-scoring function call
@@ -70,7 +123,7 @@ ADR-0011 explicitly addresses this: the golden-set eval scores candidate output 
 - **LLM synthesis.** The LLM reads wiki pages and reasons over them. The LLM uses its training to synthesize an answer — that is not "RAG" retrieval; that is the LLM's native capability applied to explicitly retrieved content.
 - **The curated lexicon.** Synonyms in `vault/_vocabulary.md` are lookup tables, not learned representations.
 
-## Related
+## Related Concepts
 
 - [[Wiki-Native Recall]] — the positive, deterministic retrieval alternative
 - [[Deterministic Engine]] — the Bun CLI that implements NO-RAG in code

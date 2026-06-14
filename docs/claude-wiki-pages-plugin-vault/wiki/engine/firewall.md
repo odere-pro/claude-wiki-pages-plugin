@@ -5,8 +5,25 @@ entity_type: tool
 aliases: ["Firewall", "firewall", "write confinement", "per-vault write confinement"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Design: Claude Config and Security]]", "[[firewall.ts Source]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[Multi-Vault Registry]]", "[[Vault Resolution]]", "[[Deterministic Engine]]", "[[Active Vault]]", "[[Hook System]]", "[[Scripts Layer]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[Glossary]]",
+    "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]",
+    "[[ADR-0016: Simultaneous Multi-Vault Management]]",
+    "[[Design: Claude Config and Security]]",
+    "[[firewall.ts Source]]",
+    "[[Engine Scripts Layer (CLAUDE.md)]]",
+  ]
+related:
+  [
+    "[[Multi-Vault Registry]]",
+    "[[Vault Resolution]]",
+    "[[Deterministic Engine]]",
+    "[[Active Vault]]",
+    "[[Hook System]]",
+    "[[Scripts Layer]]",
+  ]
 tags: ["tool", "security"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,6 +36,17 @@ confidence: 1.0
 
 > [!summary]
 > The firewall is the vault isolation mechanism — a `PreToolUse` boundary that confines all agent and tool writes to the resolved vault. It is implemented as twin enforcement points: `scripts/firewall.sh` (bash hook) and `src/core/firewall.ts` (TypeScript engine). Both twins must produce identical verdicts for every test case (enforced by gate-11). Cross-vault writes are always denied with a dedicated `cross-vault` rule that cannot be overridden by `allowPaths`. The firewall fails closed on any error: no write, not "write anyway."
+
+## Key Facts
+
+- **Type:** tool (dual-implementation: `scripts/firewall.sh` bash hook + `src/core/firewall.ts` TypeScript engine)
+- **Event:** fires on every `PreToolUse` for Write/Edit tool calls, before any other validator
+- **Default mode:** `enforce` — blocks writes with exit code 2; `warn` and `off` modes exist for debugging only
+- **Cross-vault rule:** sits at priority 2, before `allowPaths`; cannot be overridden by a permissive allow entry
+- **Fail-closed behavior:** malformed registry → `otherVaults` = all registered vaults → all writes to any registered vault blocked
+- **Symlink hardening:** both twins canonicalise paths physically (`cd && pwd -P` in bash; `realpathSync()` in TypeScript) to catch symlink escapes
+- **Parity gate:** `tests/gates/gate-11-firewall-parity.sh` keeps both twins byte-aligned; divergence fails CI
+- **Companion hook:** `protect-raw.sh` enforces the complementary constraint — writes within the vault are restricted to `wiki/` and `raw/agent-sessions/`
 
 ## Overview
 
@@ -40,6 +68,7 @@ The firewall is implemented twice — in bash and in TypeScript — because the 
 - **`src/core/firewall.ts`** — the engine's twin; callable as `bash scripts/engine.sh firewall --target <vault> --path <p>`. Uses `resolve()` for logical path canonicalisation.
 
 Gate-11 (`tests/gates/gate-11-firewall-parity.sh`) pins the two twins against a fixture matrix that includes:
+
 - Active vault writes → verdict `vault`
 - Sibling vault writes → verdict `cross-vault`
 - deny-inside-sibling → verdict `deny` (deny overrides cross-vault)
@@ -50,24 +79,24 @@ If the two twins diverge on any case, gate-11 fails CI.
 
 ## Rule Precedence
 
-| Priority | Rule | Description |
-| --- | --- | --- |
-| 1 | `deny` | Explicit deny list entries; overrides everything |
-| 2 | `cross-vault` | Write lands inside a registered inactive vault root |
-| 3 | `vault` | Write lands inside the active vault root → allow |
-| 4 | `allowPaths` | Explicit allow-list entries inside the vault |
-| 5 | `denyPaths` | Glob-pattern deny list inside the vault |
-| 6 | `outside-vault` | Write is outside the active vault and not caught above → deny |
+| Priority | Rule            | Description                                                   |
+| -------- | --------------- | ------------------------------------------------------------- |
+| 1        | `deny`          | Explicit deny list entries; overrides everything              |
+| 2        | `cross-vault`   | Write lands inside a registered inactive vault root           |
+| 3        | `vault`         | Write lands inside the active vault root → allow              |
+| 4        | `allowPaths`    | Explicit allow-list entries inside the vault                  |
+| 5        | `denyPaths`     | Glob-pattern deny list inside the vault                       |
+| 6        | `outside-vault` | Write is outside the active vault and not caught above → deny |
 
 The `cross-vault` rule is placed at priority 2 — before the active-vault allow and before `allowPaths`. This means: even if an `allowPaths` entry is broad enough to cover a sibling vault's path, the `cross-vault` rule fires first and blocks the write. This is the key security property that makes multi-vault management safe.
 
 ## Modes
 
-| Mode | Behavior |
-| --- | --- |
-| `enforce` | Block and exit 2 on violation |
-| `warn` | Log the violation but allow the write |
-| `off` | Disabled entirely |
+| Mode      | Behavior                              |
+| --------- | ------------------------------------- |
+| `enforce` | Block and exit 2 on violation         |
+| `warn`    | Log the violation but allow the write |
+| `off`     | Disabled entirely                     |
 
 The default mode is `enforce`. The `warn` mode exists for debugging, but should never be the production setting — it defeats the write-confinement guarantee.
 

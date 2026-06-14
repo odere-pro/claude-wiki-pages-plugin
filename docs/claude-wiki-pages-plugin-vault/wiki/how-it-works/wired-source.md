@@ -5,7 +5,16 @@ aliases: ["Wired Source", "wired source", "wired repo", "wired source repository
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[Sync Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[Sync Skill]]", "[[Sync Workflow]]", "[[sync-source.sh]]", "[[Ingest Pipeline]]", "[[Firewall]]", "[[Git Checkpoint]]", "[[Vault Resolution]]"]
+related:
+  [
+    "[[Sync Skill]]",
+    "[[Sync Workflow]]",
+    "[[sync-source.sh]]",
+    "[[Ingest Pipeline]]",
+    "[[Firewall]]",
+    "[[Git Checkpoint]]",
+    "[[Vault Resolution]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -35,12 +44,12 @@ A wired source is a git work tree — typically the host project — that has be
 
 A wired source is registered by `wire-source.sh add --vault <vault>` (or manually). The registration record in `settings.json` stores:
 
-| Field | Purpose |
-|---|---|
-| `name` | Short identifier for the wired source (used as the `raw/wired/<name>/` directory name) |
-| `path` | Absolute path to the wired git work tree |
-| `includeGlobs` | Docs-only whitelist (e.g., `["README.md", "docs/**", "docs/adr/**"]`) |
-| `lastSyncedSHA` | The HEAD commit SHA at the time of the last successful pull |
+| Field           | Purpose                                                                                |
+| --------------- | -------------------------------------------------------------------------------------- |
+| `name`          | Short identifier for the wired source (used as the `raw/wired/<name>/` directory name) |
+| `path`          | Absolute path to the wired git work tree                                               |
+| `includeGlobs`  | Docs-only whitelist (e.g., `["README.md", "docs/**", "docs/adr/**"]`)                  |
+| `lastSyncedSHA` | The HEAD commit SHA at the time of the last successful pull                            |
 
 The `scripts/set-vault.sh` family manages registry operations: `add`, `switch`, `remove`, `list`. These are separate from the sync pull — registration is a one-time setup; sync is a repeating operation.
 

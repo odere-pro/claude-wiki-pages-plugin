@@ -32,29 +32,55 @@ The Engine Verb Surface is the complete set of subcommands the deterministic eng
 
 ## Implemented Verbs (14)
 
-| Verb | Purpose |
-| --- | --- |
-| `verify` | Vault integrity check; emits `{findings[], errors, warnings, clean}` |
-| `fix` | Idempotent structural repairs; never touches body prose |
-| `heal` | Git-checkpoint + verify → fix loop until clean |
-| `doctor` | Environment health checks D01–D12; `--fix` auto-repairs |
-| `config` | Show/validate/path the effective merged configuration |
-| `migrate` | Schema upgrade v1→v2→v3; `--write` applies under git checkpoint |
-| `search` | Deterministic keyword search with Tier-2 recall + R2 graph |
-| `firewall` | Evaluate a path against per-vault write confinement rules |
-| `backlog` | O(1) pending-source + overdue-lint detection via source manifest |
-| `propose` | `_proposed/` review gate: review / approve / reject |
-| `capabilities` | Emit the CAPABILITIES table as JSON |
-| `ontology` | Parse and emit ontology-profile-v1 as JSON |
-| `route` | Network-free degraded-mode routing decision |
-| `snapshot` | Git-bound write phases: pre checkpoint + post commit |
+| Verb           | Purpose                                                              |
+| -------------- | -------------------------------------------------------------------- |
+| `verify`       | Vault integrity check; emits `{findings[], errors, warnings, clean}` |
+| `fix`          | Idempotent structural repairs; never touches body prose              |
+| `heal`         | Git-checkpoint + verify → fix loop until clean                       |
+| `doctor`       | Environment health checks D01–D12; `--fix` auto-repairs              |
+| `config`       | Show/validate/path the effective merged configuration                |
+| `migrate`      | Schema upgrade v1→v2→v3; `--write` applies under git checkpoint      |
+| `search`       | Deterministic keyword search with Tier-2 recall + R2 graph           |
+| `firewall`     | Evaluate a path against per-vault write confinement rules            |
+| `backlog`      | O(1) pending-source + overdue-lint detection via source manifest     |
+| `propose`      | `_proposed/` review gate: review / approve / reject                  |
+| `capabilities` | Emit the CAPABILITIES table as JSON                                  |
+| `ontology`     | Parse and emit ontology-profile-v1 as JSON                           |
+| `route`        | Network-free degraded-mode routing decision                          |
+| `snapshot`     | Git-bound write phases: pre checkpoint + post commit                 |
 
 ## Planned Verbs (2)
 
-| Verb | Fallback |
-| --- | --- |
-| `index` | Read `wiki/index.md` directly; use Glob for full enumeration |
-| `link-suggest` | grep/Glob over `wiki/` for exact wikilink title matches |
+| Verb           | Fallback                                                     |
+| -------------- | ------------------------------------------------------------ |
+| `index`        | Read `wiki/index.md` directly; use Glob for full enumeration |
+| `link-suggest` | grep/Glob over `wiki/` for exact wikilink title matches      |
+
+## Examples
+
+Discover the current verb surface at runtime (no hardcoded assumptions):
+
+```bash
+bash scripts/engine.sh capabilities --json
+```
+
+Output structure:
+
+```json
+{
+  "verbs": [
+    { "name": "verify", "status": "implemented" },
+    { "name": "heal", "status": "implemented" },
+    { "name": "index", "status": "planned" }
+  ]
+}
+```
+
+A planned verb call returns a stable degradation object rather than an error:
+
+```json
+{ "status": "not-implemented", "fallback": "Read wiki/index.md directly; use Glob for full enumeration" }
+```
 
 ## Related Concepts
 

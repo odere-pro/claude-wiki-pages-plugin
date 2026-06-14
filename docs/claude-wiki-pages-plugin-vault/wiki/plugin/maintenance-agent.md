@@ -5,8 +5,22 @@ entity_type: tool
 aliases: ["Maintenance Agent", "maintenance agent", "claude-wiki-pages-maintenance-agent"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[Automation]]", "[[Agent Teams]]", "[[Operations Guide]]", "[[Maintenance Agent Source]]"]
-related: ["[[Orchestrator Agent]]", "[[Backlog]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Polish Agent]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[Automation]]",
+    "[[Agent Teams]]",
+    "[[Operations Guide]]",
+    "[[Maintenance Agent Source]]",
+  ]
+related:
+  [
+    "[[Orchestrator Agent]]",
+    "[[Backlog]]",
+    "[[Ingest Agent]]",
+    "[[Curator Agent]]",
+    "[[Polish Agent]]",
+  ]
 tags: ["agent", "automation"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -20,6 +34,16 @@ confidence: 1.0
 > [!summary]
 > The `claude-wiki-pages-maintenance-agent` runs the full catch-up loop — ingest → curator → polish → lint — in one autonomous invocation. It is off by default and gated behind `maintenance.enabled: true` in config. Each step in the loop is git-checkpointed and bounded by `maintenance.maxPerRun`. The [[Backlog]] detection is O(1) via the source manifest. The SessionStart heartbeat recommends a catch-up run but never triggers one automatically.
 
+## Key Facts
+
+- Type: tool (Layer 3 agent, off by default — requires `maintenance.enabled: true` in config)
+- Agent name: `claude-wiki-pages-maintenance-agent`
+- Dispatched by: [[Orchestrator Agent]] when `maintenance.enabled: true` and `engine backlog` reports pending sources or overdue lint
+- Catch-up loop: 4 steps in sequence — Ingest (Step 1), Curator (Step 2), Polish (Step 3), Lint (Step 4)
+- Bounded by `maintenance.maxPerRun`: caps the number of raw sources processed per pass; remaining backlog is reported, not silently skipped
+- Every step creates its own git checkpoint commit for full reversibility
+- The heartbeat (`scripts/heartbeat.sh`) recommends a catch-up run at `SessionStart` but never triggers one automatically
+
 ## Overview
 
 The `claude-wiki-pages-maintenance-agent` is the Layer 3 agent for autonomous vault maintenance. Its role is to keep the wiki healthy when the user is not actively working with it — processing accumulated raw sources and running periodic lint — without requiring manual orchestration.
@@ -29,6 +53,7 @@ The agent is **off by default** and must be explicitly enabled. This design refl
 ## Dispatch Condition
 
 The [[Orchestrator Agent]] dispatches the maintenance agent when:
+
 1. `maintenance.enabled: true` is set in config.
 2. `engine backlog` reports pending sources or overdue lint.
 
@@ -50,13 +75,13 @@ In `.claude/claude-wiki-pages.json` (project-scoped) or `~/.config/claude-wiki-p
 }
 ```
 
-| Field | Purpose |
-| --- | --- |
-| `enabled` | Master switch; off by default |
-| `autoCatchupOnSessionStart` | Whether to dispatch on session open when backlog exists |
-| `lintEveryDays` | Days since last lint before overdue lint counts as backlog |
-| `maxPerRun` | Maximum raw sources processed per maintenance pass |
-| `cooldownMinutes` | Minimum time between heartbeat recommendations |
+| Field                       | Purpose                                                    |
+| --------------------------- | ---------------------------------------------------------- |
+| `enabled`                   | Master switch; off by default                              |
+| `autoCatchupOnSessionStart` | Whether to dispatch on session open when backlog exists    |
+| `lintEveryDays`             | Days since last lint before overdue lint counts as backlog |
+| `maxPerRun`                 | Maximum raw sources processed per maintenance pass         |
+| `cooldownMinutes`           | Minimum time between heartbeat recommendations             |
 
 ## The Catch-Up Loop
 

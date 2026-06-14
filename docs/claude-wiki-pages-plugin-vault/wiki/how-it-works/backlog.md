@@ -4,8 +4,15 @@ type: concept
 aliases: ["Backlog", "backlog", "pending sources", "catch-up", "engine backlog"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources: ["[[Automation]]", "[[Glossary]]", "[[User Guide 06: Check the Dashboard]]", "[[Operations Guide]]"]
-related: ["[[Maintenance Agent]]", "[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
+sources:
+  [
+    "[[Automation]]",
+    "[[Glossary]]",
+    "[[User Guide 06: Check the Dashboard]]",
+    "[[Operations Guide]]",
+  ]
+related:
+  ["[[Maintenance Agent]]", "[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
 tags: ["concept", "automation", "maintenance"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,6 +26,34 @@ confidence: 1.0
 > [!summary]
 > The backlog is the set of outstanding maintenance work: raw sources in `vault/raw/` with no `_sources/` summary (pending ingest) plus overdue lint (last lint older than `lintEveryDays` config). Detected in O(1) by `engine backlog` using the source manifest. The SessionStart heartbeat surfaces a one-line recommendation when the backlog is non-empty. The [[Maintenance Agent]] clears the backlog when `maintenance.enabled: true` is set.
 
+## Key Principles
+
+- The backlog has two components: pending raw sources (no `_sources/` summary yet) and overdue lint (last lint older than `lintEveryDays`).
+- Detection is O(1) via the source manifest — `engine backlog` never re-scans `wiki/log.md` on each session open.
+- The heartbeat is advisory only: it prints one line but never mutates the vault. Acting on the backlog is always the user's or orchestrator's job.
+- `maxPerRun` bounds each maintenance run; sources exceeding the limit remain in the backlog for the next session.
+- Maintenance automation is off by default (`enabled: false`) — users opt in explicitly.
+
+## Examples
+
+Sample `engine backlog --json` output with pending sources and overdue lint:
+
+```json
+{
+  "pendingRaw": 5,
+  "lastIngest": "2026-06-10",
+  "lastLint": "2026-05-30",
+  "daysSinceLint": 14,
+  "needsCatchup": true
+}
+```
+
+Heartbeat message surfaced at session start when `enabled: true` and backlog is non-empty:
+
+```
+CATCHUP: 3 pending source(s), 9 day(s) since lint — run /claude-wiki-pages:wiki to process the backlog.
+```
+
 ## Definition
 
 The backlog has two components:
@@ -27,6 +62,7 @@ The backlog has two components:
 2. **Overdue lint** — the last lint run (marked in `wiki/log.md`) is older than `maintenance.lintEveryDays` (default: 7 days). The wiki's structural health degrades silently without periodic lint.
 
 The `needsCatchup` flag is `true` when either component is non-zero:
+
 ```json
 {
   "pendingRaw": 5,
@@ -55,6 +91,7 @@ CATCHUP: 3 pending source(s), 9 day(s) since lint — run /claude-wiki-pages:wik
 ```
 
 Properties of the heartbeat:
+
 - **Advisory only** — the heartbeat never ingests or mutates the vault. Bash cannot call the LLM.
 - **Recommends** — prints one line. The actual catch-up is triggered by the user running `/claude-wiki-pages:wiki`.
 - **Cooldown** — a `cooldownMinutes` stamp prevents the same recommendation from appearing on every session. After the heartbeat fires, it stays quiet for `maintenance.cooldownMinutes` (default: 60) minutes.
@@ -74,6 +111,7 @@ The [[Orchestrator Agent]] finds the pending sources and runs the [[Ingest Agent
 ### Autonomous (when `maintenance.enabled: true`)
 
 With the maintenance flag set, `/claude-wiki-pages:wiki` routes to the [[Maintenance Agent]] when a backlog exists. The maintenance agent runs the full catch-up loop:
+
 1. [[Ingest Agent]] — up to `maxPerRun` pending sources.
 2. [[Curator Agent]] — audit-and-repair.
 3. [[Polish Agent]] — graph/index sync.
@@ -84,6 +122,7 @@ Each step is git-checkpointed. If `maxPerRun` is reached before all pending sour
 ## Backlog as a Health Signal
 
 The backlog size is a leading indicator of wiki health:
+
 - **0 pending, lint recent** — healthy. The wiki reflects current source material.
 - **1–10 pending** — normal accumulation between sessions.
 - **>10 pending** — meaningful backlog; consider enabling the maintenance agent or scheduling a catch-up session.
@@ -106,14 +145,14 @@ In `.claude/claude-wiki-pages.json` or `~/.config/claude-wiki-pages/config.json`
 }
 ```
 
-| Field | Default | Effect |
-| --- | --- | --- |
-| `enabled` | `false` | Master switch for autonomous maintenance |
-| `lintEveryDays` | `7` | Days before lint counts as overdue |
-| `maxPerRun` | `10` | Cap on sources processed per maintenance pass |
-| `cooldownMinutes` | `60` | Heartbeat quiet time after recommendation |
+| Field             | Default | Effect                                        |
+| ----------------- | ------- | --------------------------------------------- |
+| `enabled`         | `false` | Master switch for autonomous maintenance      |
+| `lintEveryDays`   | `7`     | Days before lint counts as overdue            |
+| `maxPerRun`       | `10`    | Cap on sources processed per maintenance pass |
+| `cooldownMinutes` | `60`    | Heartbeat quiet time after recommendation     |
 
-## Related
+## Related Concepts
 
 - [[Maintenance Agent]] — the autonomous agent that clears the backlog
 - [[Deterministic Engine]] — `engine backlog` command detects it in O(1)

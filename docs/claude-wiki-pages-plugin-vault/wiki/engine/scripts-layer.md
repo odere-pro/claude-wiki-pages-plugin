@@ -1,11 +1,20 @@
 ---
 title: "Scripts Layer"
 type: concept
-aliases: ["Scripts Layer", "Layer 4 shell", "scripts directory", "hook scripts", "shell orchestration"]
+aliases:
+  ["Scripts Layer", "Layer 4 shell", "scripts directory", "hook scripts", "shell orchestration"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[Engine Scripts Layer (CLAUDE.md)]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[engine.sh]]", "[[Hook System]]", "[[Firewall]]", "[[Vault Resolution]]", "[[Deterministic Engine]]", "[[Git Checkpoint]]"]
+related:
+  [
+    "[[engine.sh]]",
+    "[[Hook System]]",
+    "[[Firewall]]",
+    "[[Vault Resolution]]",
+    "[[Deterministic Engine]]",
+    "[[Git Checkpoint]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -36,15 +45,36 @@ The Scripts Layer is the `scripts/` directory of the plugin — the Layer 4 Orch
 
 ## Hook Wiring Table
 
-| Event | Matcher | Scripts (in order) |
-| --- | --- | --- |
-| `SessionStart` | — | `session-start.sh` |
-| `UserPromptSubmit` | — | `prompt-guard.sh` |
-| `PreToolUse` | `Write\|Edit` | `firewall.sh`, `validate-frontmatter.sh`, `check-wikilinks.sh`, `protect-raw.sh`, `validate-attachments.sh` |
-| `PreToolUse` | `Write\|Edit\|MultiEdit` | `enforce-dmi.sh`, `enforce-must-rule.sh` (path-filtered) |
-| `PostToolUse` | `Write\|Edit` | `post-wiki-write.sh`, `post-ingest-summary.sh` |
-| `SubagentStop` | — | `subagent-lint-gate.sh`, `subagent-ingest-gate.sh`, `subagent-commit-gate.sh` |
-| `Stop` / `SessionEnd` | — | `session-memory.sh` |
+| Event                 | Matcher                  | Scripts (in order)                                                                                          |
+| --------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `SessionStart`        | —                        | `session-start.sh`                                                                                          |
+| `UserPromptSubmit`    | —                        | `prompt-guard.sh`                                                                                           |
+| `PreToolUse`          | `Write\|Edit`            | `firewall.sh`, `validate-frontmatter.sh`, `check-wikilinks.sh`, `protect-raw.sh`, `validate-attachments.sh` |
+| `PreToolUse`          | `Write\|Edit\|MultiEdit` | `enforce-dmi.sh`, `enforce-must-rule.sh` (path-filtered)                                                    |
+| `PostToolUse`         | `Write\|Edit`            | `post-wiki-write.sh`, `post-ingest-summary.sh`                                                              |
+| `SubagentStop`        | —                        | `subagent-lint-gate.sh`, `subagent-ingest-gate.sh`, `subagent-commit-gate.sh`                               |
+| `Stop` / `SessionEnd` | —                        | `session-memory.sh`                                                                                         |
+
+## Examples
+
+Standard script header pattern (used by every executable in `scripts/`):
+
+```bash
+#!/bin/bash
+set -euo pipefail
+source "$(dirname "$0")/resolve-vault.sh"
+VAULT="$(resolve_vault)"
+```
+
+Hook mode vs CLI mode invocation:
+
+```bash
+# Hook mode (reads JSON from stdin, always exits 0)
+echo '{"tool":"Write","input":{"path":"docs/vault/wiki/engine/test.md"}}' | bash scripts/firewall.sh
+
+# CLI mode (accepts --target flag, uses real exit codes)
+bash scripts/firewall.sh --target docs/vault --file wiki/engine/test.md
+```
 
 ## Related Concepts
 

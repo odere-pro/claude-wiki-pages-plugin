@@ -4,8 +4,10 @@ type: concept
 aliases: ["Fail-Closed", "fail-closed", "fail closed", "fail-safe", "deny by default"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources: ["[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Design: Claude Config and Security]]"]
-related: ["[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Firewall]]", "[[Local Model Quality Gate]]"]
+sources:
+  ["[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Design: Claude Config and Security]]"]
+related:
+  ["[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Firewall]]", "[[Local Model Quality Gate]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,6 +23,31 @@ confidence: 1.0
 
 > [!summary]
 > Fail-closed is a safety posture applied throughout the plugin: when an error or ambiguous state is encountered, the system blocks the operation rather than proceeding with a potentially unsafe default. The opposite of fail-open (proceed and hope for the best). Fail-closed is applied to the vault registry, the firewall, the local model allow-list, and the design-drift gate.
+
+## Key Principles
+
+- Unknown state means block, not proceed. A malformed registry, an unapproved model tier, or a cross-vault write all produce a block, never a silent fallback.
+- Fail-closed violations are surfaced at detection time (session start for registry issues, write time for firewall issues) — never delayed until the user next notices a problem.
+- Every fail-closed error message teaches: a BLOCKED tier message names the missing evaluation; a malformed-registry message identifies the invariant that was violated.
+- CI gates (glossary gate, design-drift gate, `verify-ingest.sh`) are fail-closed: they fail the run rather than emitting warnings and continuing.
+- The fail-closed posture protects provenance discipline: a silent fallback to an unapproved model or a wrong vault would produce output with no visible trace of the compromise.
+
+## Examples
+
+Registry invariant violated — all writes blocked until repaired:
+
+```
+ERROR: settings.json invariant violated: current_vault_path "/path/a" is not in vaults[].
+All write operations are blocked. Run `bash scripts/set-vault.sh switch <valid-path>` to restore the registry.
+```
+
+Unapproved tier blocked with teaching message:
+
+```
+BLOCKED: No approved local model for tier "draft".
+To unlock: run the draft-tier golden-set eval against a candidate model and commit the evidence artifact.
+See docs/local-models.md for the evaluation procedure.
+```
 
 ## Definition
 

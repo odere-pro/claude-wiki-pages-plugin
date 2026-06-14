@@ -1,7 +1,14 @@
 ---
 title: "Banned Strings"
 type: concept
-aliases: ["Banned Strings", "banned strings", "retired terminology", "banned terms", "validate-docs banned"]
+aliases:
+  [
+    "Banned Strings",
+    "banned strings",
+    "retired terminology",
+    "banned terms",
+    "validate-docs banned",
+  ]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Glossary]]"]
@@ -22,18 +29,42 @@ confidence: 1.0
 > [!summary]
 > Banned strings are retired terminology that `scripts/validate-docs.sh` enforces as forbidden in all project docs, skills, and user-visible strings. The ban list is part of the [[Glossary Terms]] and is checked in CI Tier 0. Violations cause `validate-docs.sh` to exit non-zero with `path:line:column` diagnostics.
 
+## Key Principles
+
+- Banned strings are retired terminology enforced as forbidden in all project docs, skills, and user-visible strings; violations cause `validate-docs.sh` to exit non-zero with `path:line:column` diagnostics.
+- The ban is enforced in CI Tier 0 using bash and grep only — no Bun, no Node — making it the fastest terminology gate in the pipeline.
+- The check scans `docs/`, `skills/`, and `agents/` but excludes `raw/` (source material is data, not prose) and `vault/output/` (deliverable scratch space).
+- The Glossary is semver: new banned string additions are minor bumps; the enforcement check is updated in the same commit.
+- Using a banned string in a skill or agent file can cause the LLM to use old terminology in wiki pages, user answers, or commit messages — hence the strict CI enforcement.
+
+## Examples
+
+Terms banned at schema v1:
+
+| Banned string      | Reason                                                          |
+| ------------------ | --------------------------------------------------------------- |
+| `second-brain`     | Early plugin copy; retired in favor of "wiki"                   |
+| `vault-synthesize` | Early slash command form; replaced by `/claude-wiki-pages:wiki` |
+
+Running the ban check locally:
+
+```bash
+bash scripts/validate-docs.sh
+# Check 1 — glossary gate: scans docs/, skills/, agents/ for banned strings
+```
+
 ## Definition
 
 The Glossary (the source document, not the wiki page) maintains a list of strings that must not appear anywhere in the project's documentation and user-facing text. These are terms that were used in earlier versions of the plugin and were retired either at the initial schema v1 release or at the 1.0.0 rebrand.
 
 **Retired at schema v1:**
 
-| Banned string | Reason |
-| --- | --- |
-| `second-brain` | Early plugin copy; retired in favor of "wiki" |
-| `second brain` | Same (space variant) |
+| Banned string      | Reason                                                          |
+| ------------------ | --------------------------------------------------------------- |
+| `second-brain`     | Early plugin copy; retired in favor of "wiki"                   |
+| `second brain`     | Same (space variant)                                            |
 | `vault-synthesize` | Early slash command form; replaced by `/claude-wiki-pages:wiki` |
-| `vault-index` | Early slash command form; same replacement |
+| `vault-index`      | Early slash command form; same replacement                      |
 
 **Banned since 1.0.0 rebrand:**
 

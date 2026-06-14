@@ -5,7 +5,15 @@ aliases: ["Config Schema", "config schema", "config.schema.json", "plugin config
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[Config Schema (config.schema.json)]]"]
-related: ["[[Auto-Heal]]", "[[Git Checkpoint]]", "[[Firewall]]", "[[Offline Policy]]", "[[Local Model Quality Gate]]", "[[Degraded-Mode Routing]]"]
+related:
+  [
+    "[[Auto-Heal]]",
+    "[[Git Checkpoint]]",
+    "[[Firewall]]",
+    "[[Offline Policy]]",
+    "[[Local Model Quality Gate]]",
+    "[[Degraded-Mode Routing]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -80,6 +88,7 @@ Minimal valid project config at `.claude/claude-wiki-pages.json`:
 ```
 
 The `maintenance` group with its bounded defaults:
+
 - `maxPerRun`: integer 1–50, default 10
 - `lintEveryDays`: integer ≥ 1, default 7
 - `cooldownMinutes`: integer ≥ 0, default 60
