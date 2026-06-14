@@ -4,9 +4,10 @@
  * Validates that every `type: entity` note carries an `entity_type` value that
  * is a member of the COMPOSED set: core ∪ per-vault `entity_type_extensions`.
  *
- * The composed set is imported from src/commands/ontology/ (P3.3) — this file
- * contains ZERO hardcoded entity_type enum values. The schema markdown is the
- * sole authority (ADR-0015 V1 / TEAM-BRIEF §6 single-source invariant).
+ * The composed set is imported from src/core/ontology-profile (M16: moved from
+ * src/commands/ontology/ to fix a layering violation — commands must not import
+ * from peer commands/). This file contains ZERO hardcoded entity_type enum values;
+ * the schema markdown is the sole authority (ADR-0015 V1 / TEAM-BRIEF §6).
  *
  * D15 (docs/plan/0005-software-3-0-deferred.md):
  *   Only `entity_type` composes. A vault CLAUDE.md declaring any OTHER
@@ -36,7 +37,10 @@
 import { join } from "node:path";
 import { listMarkdownRecursive, readFileSafe, isBookkeepingFile } from "../../core/fs.ts";
 import { parseFrontmatter, titleOf } from "../../core/frontmatter.ts";
-import { parseOntologyProfile } from "../ontology/ontology.ts";
+// M16: import from core/ instead of peer commands/ontology/ — fixes the layering
+// violation (commands must not import from peer commands/). The parsing primitive
+// now lives in src/core/ontology-profile.ts; ontology.ts re-exports it for back-compat.
+import { parseOntologyProfile } from "../../core/ontology-profile.ts";
 import type { Finding } from "../../core/report.ts";
 import { basename } from "node:path";
 

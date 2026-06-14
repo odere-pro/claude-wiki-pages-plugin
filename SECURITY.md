@@ -67,6 +67,9 @@ See [`tests/README.md`](./tests/README.md) for the full tier contract and how to
 - Layer 2 (Skills): `ingest` reads the schema (`CLAUDE.md`) before reading the source. The schema is not a source — the LLM treats the schema as authority. Attacker-controlled text in `raw/` cannot redefine the schema.
 - Layer 4 (Orchestration): `validate-frontmatter.sh` blocks writes that lack a valid `type` or `sources` field. Output that would slip secrets into a wiki page as prose still requires valid provenance, which the attacker cannot forge.
 
+**Advisory scope of `prompt-guard.sh` (H04 / Architect ruling — intentional).**
+`prompt-guard.sh` is a `UserPromptSubmit` nudge that is **non-blocking and advisory-only**. It intentionally does NOT attempt semantic injection detection on user prompt bodies or on ingested `raw/` body content. A semantic barrier here would be theater that contradicts the documented structural-defense posture and the NO-RAG model (TEAM-BRIEF §5). The defense against injection via ingested sources is structural: `protect-raw.sh` immutability prevents source rewriting after ingestion, and `validate-frontmatter.sh` schema-gates every wiki write, tested by `tests/adversarial/replay-corpus.sh`.
+
 **What it does not prevent.** The LLM can still be persuaded to summarise a source incorrectly, or to attribute a quote to the wrong author. Defense: confidence discipline. Every claim decays from 1.0, and single-source claims above 0.8 are flagged by lint.
 
 **Tests covering this threat.**

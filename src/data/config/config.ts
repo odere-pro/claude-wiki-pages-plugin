@@ -2,6 +2,11 @@
  * Configuration loading: defaults ← user ← project ← env overrides, validated
  * against schemas/config.schema.json.
  *
+ * M02 / Architect ruling (document — intentional): Functional config — readonly
+ * Config bag + pure loaders (defaults←user←project←env), intentionally anemic.
+ * Converting to a class would break the structuredClone/deepMerge pipeline and
+ * add no value; see src/data/CLAUDE.md "Config layering" for the contract.
+ *
  *   user:    ${CLAUDE_CONFIG_DIR:-~/.config}/claude-wiki-pages/config.json
  *   project: .claude/claude-wiki-pages.json
  *   env:     CLAUDE_WIKI_PAGES_* (explicit leaf overrides — see ENV_MAP)

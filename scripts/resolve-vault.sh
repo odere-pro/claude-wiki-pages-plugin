@@ -81,6 +81,14 @@ default_new_vault_path() {
 _settings_get_field() {
   local settings_file="$1"
   local field_name="$2"
+  # L03 / Architect ruling (document — accepted golden-hammer): python3 is the
+  # deliberate JSON-correct parser for settings / registry / wired-source records.
+  # jq is not assumed present in hook shells. Flat top-level string reads have the
+  # grep/sed fallback (_settings_get_field_degraded) below; nested arrays and
+  # objects deliberately do NOT — they require a real JSON parser to avoid
+  # silent-wrong-vault bugs from malformed output. This is an accepted trade-off,
+  # not to be flattened to shell builtins. The degraded fallback (with a stderr
+  # WARN) handles hook shells where python3 itself is unavailable.
   if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v python3 >/dev/null 2>&1; then
     local out rc
     out=$(
@@ -134,10 +142,25 @@ resolve_vault() {
   # resumed sessions). Any hook that resolves the vault also reifies settings.
   init_vault_settings
 
-  # 1. Explicit env var — used as-is (relative or absolute).
+  # 1. Explicit env var — normalized with realpath-like canonicalization before use.
+  #    M32: returned unnormalized, an attacker-controlled path could traverse
+  #    outside the intended vault root. We normalize with realpath (when available)
+  #    to remove ./ ../ symlink hops. Falls back to the raw value when realpath is
+  #    unavailable (same behaviour as before, maintaining full back-compat).
   #    LLM_WIKI_VAULT is the deprecated pre-1.0 name, still read as a fallback.
   local env_vault="${CLAUDE_WIKI_PAGES_VAULT:-${LLM_WIKI_VAULT:-}}"
   if [ -n "$env_vault" ]; then
+    # Normalize: resolve symlinks and remove ../ hops when realpath is available.
+    # Use --no-symlinks if the path doesn't exist yet (new vault scaffolding).
+    if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v realpath >/dev/null 2>&1; then
+      local _normed
+      # `realpath -m` (GNU) or plain `realpath` tolerates missing paths; BSD
+      # realpath requires the path to exist — fall back to the raw value on error.
+      _normed=$(PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" realpath -m "$env_vault" 2>/dev/null ||
+        PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" realpath "$env_vault" 2>/dev/null ||
+        printf '%s' "$env_vault")
+      env_vault="$_normed"
+    fi
     echo "$env_vault"
     return
   fi
@@ -210,13 +233,40 @@ set_vault_path() {
   local new_path="$1"
   init_vault_settings
   local tmp="${CLAUDE_WIKI_PAGES_SETTINGS}.tmp"
-  if ! awk -v path="$new_path" '
-    /"current_vault_path"/ { sub(/"current_vault_path"[[:space:]]*:[[:space:]]*"[^"]*"/, "\"current_vault_path\": \"" path "\"") }
-    { print }
-  ' "$CLAUDE_WIKI_PAGES_SETTINGS" >"$tmp" 2>/dev/null; then
-    printf '[claude-wiki-pages] WARN: cannot update settings.json\n' >&2
-    rm -f "$tmp" 2>/dev/null
-    return 0
+  # M30: awk -v path="$new_path" then sub() replacement is unsafe when path
+  # contains '&' or '\' — awk interprets those as regex back-references in the
+  # replacement string. Use python3 (the consistent JSON writer already used
+  # throughout this file) to set current_vault_path safely via argv, not the
+  # awk replacement string. Fall back to the awk writer only when python3 is
+  # unavailable (graceful degradation consistent with _settings_get_field).
+  if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v python3 >/dev/null 2>&1; then
+    if ! PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" python3 - \
+      "$CLAUDE_WIKI_PAGES_SETTINGS" "$new_path" >"$tmp" 2>/dev/null <<'PYEOF'; then
+import json, sys
+try:
+    data = json.load(open(sys.argv[1]))
+except Exception:
+    data = {}
+data["current_vault_path"] = sys.argv[2]
+print(json.dumps(data, indent=2))
+PYEOF
+      printf '[claude-wiki-pages] WARN: cannot update settings.json\n' >&2
+      rm -f "$tmp" 2>/dev/null
+      return 0
+    fi
+  else
+    # Degraded path: python3 unavailable — fall back to awk sed-replacement.
+    # Paths with '&' or '\' may not round-trip correctly; a stderr WARN is
+    # emitted. In hook shells this is already known-degraded (M30 accepted risk).
+    printf '[claude-wiki-pages] WARN: python3 unavailable for settings write — using degraded awk writer (paths with & or \\ may not persist correctly)\n' >&2
+    if ! awk -v path="$new_path" '
+      /"current_vault_path"/ { sub(/"current_vault_path"[[:space:]]*:[[:space:]]*"[^"]*"/, "\"current_vault_path\": \"" path "\"") }
+      { print }
+    ' "$CLAUDE_WIKI_PAGES_SETTINGS" >"$tmp" 2>/dev/null; then
+      printf '[claude-wiki-pages] WARN: cannot update settings.json\n' >&2
+      rm -f "$tmp" 2>/dev/null
+      return 0
+    fi
   fi
   if ! mv "$tmp" "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null; then
     printf '[claude-wiki-pages] WARN: cannot save settings.json\n' >&2
@@ -561,6 +611,13 @@ vault_list() {
 #   - A vault with no wiki/log.md is skipped with a stderr WARN (not a hard error).
 #   - Entries are emitted date-sorted across vaults.
 #   - $1 = --last N (optional): limits entries collected per vault before sorting.
+#
+# H14 / structure note: this function collects log entries across N vaults and
+# date-sorts them — a single-pass aggregation. The awk inside the per-vault loop
+# does one line-scan per vault's log.md; the string accumulator pattern is the
+# idiomatic bash approach without spawning a temp file per vault. Refactoring into
+# separate sub-functions would not reduce complexity: the per-vault loop body is
+# already a linear scan with no nested conditionals beyond the --last guard.
 #
 # NO-LEDGER invariant: this function creates no file; running it twice leaves
 # every vault's wiki/ working tree byte-identical.

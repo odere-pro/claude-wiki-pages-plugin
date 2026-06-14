@@ -83,15 +83,11 @@ fi
 
 # ──────────────────────────────────────────────
 # Helper: extract the type: value from a file's frontmatter.
+# H12: _page_type() is now sourced from the shared helper to eliminate the
+# byte-for-byte duplicate that existed in lint-ontology.sh and lint-structural.sh.
 # ──────────────────────────────────────────────
-_page_type() {
-  local file="$1"
-  sed -n '/^---$/,/^---$/p' "$file" |
-    grep -m1 -E '^type:[[:space:]]' |
-    sed 's/^type:[[:space:]]*//' |
-    tr -d "\"'" ||
-    true
-}
+# shellcheck source=lib-page-type.sh
+source "$(dirname "$0")/lib-page-type.sh"
 
 # ──────────────────────────────────────────────
 # Walk wiki pages
