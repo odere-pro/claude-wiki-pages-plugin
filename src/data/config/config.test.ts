@@ -6,7 +6,6 @@ import {
   loadConfig,
   validateConfig,
   checkLocalModelApproval,
-  APPROVED_LOCAL_MODELS,
   APPROVED_LOCAL_MODELS_BY_TIER,
   DEFAULT_CONFIG,
   type Config,
@@ -149,9 +148,9 @@ describe("checkLocalModelApproval (ADR-0011 / ADR-0017 / ADR-0018 per-tier allow
     expect(checkLocalModelApproval(disabledButNamed)).toEqual([]);
   });
 
-  test("the per-tier map keeps the back-compat allow-list as the ingest-extract row", () => {
-    expect(APPROVED_LOCAL_MODELS).toContain("qwen3-coder:30b");
-    expect(APPROVED_LOCAL_MODELS_BY_TIER["ingest-extract"]).toEqual(APPROVED_LOCAL_MODELS);
+  test("the per-tier map has qwen3-coder:30b approved for ingest-extract only", () => {
+    // B09: APPROVED_LOCAL_MODELS alias removed; use APPROVED_LOCAL_MODELS_BY_TIER directly.
+    expect(APPROVED_LOCAL_MODELS_BY_TIER["ingest-extract"]).toContain("qwen3-coder:30b");
     expect(APPROVED_LOCAL_MODELS_BY_TIER["draft"]).toEqual([]);
   });
 

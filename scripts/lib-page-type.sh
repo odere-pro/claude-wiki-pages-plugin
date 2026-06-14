@@ -11,7 +11,7 @@
 # Prints the type string on stdout, or nothing if absent.
 _page_type() {
   local file="$1"
-  sed -n '/^---$/,/^---$/p' "$file" |
+  sed -n '/^---$/,/^---$/p' "$file" 2>/dev/null |
     grep -m1 -E '^type:[[:space:]]' |
     sed 's/^type:[[:space:]]*//' |
     tr -d "\"'" ||

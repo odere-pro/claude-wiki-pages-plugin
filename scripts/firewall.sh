@@ -9,9 +9,21 @@
 #
 # Decided entirely in bash (no Bun spawn per write). Globs are simple (`*`/`**`)
 # to stay in lock-step with core/firewall.ts.
-
+#
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
+# shellcheck source=lib-validate-gate.sh
+source "$(dirname "$0")/lib-validate-gate.sh"
+
+# B01 / strict mode: set -euo pipefail so any unset variable or failing command
+# aborts the script rather than silently expanding to empty.
+# The sourceable libs are loaded BEFORE strict mode is enabled — they are
+# designed to omit set -euo pipefail so they do not mutate the caller's options
+# (see scripts/CLAUDE.md "Sourceable vs. executable"). Strict mode here governs
+# only the operational code that follows — the arg-parsing loop, the decide()
+# function, and the hook/CLI dispatch blocks where an unset $VAULT_ABS must be
+# caught explicitly rather than silently expanding to empty.
+set -euo pipefail
 VAULT=$(resolve_vault)
 
 CLI_FILE=""
@@ -53,8 +65,12 @@ __FAIL_CLOSED__=0
 if [ -n "${CLAUDE_WIKI_PAGES_OTHER_VAULTS:-}" ]; then
   OTHER_VAULTS=$(printf '%s\n' "$CLAUDE_WIKI_PAGES_OTHER_VAULTS" | tr ':' '\n')
 else
-  OTHER_VAULTS=$(registry_other_vaults)
-  if [ $? -ne 0 ]; then
+  # B01: with set -e active, a failing $(registry_other_vaults) would abort the
+  # script before the exit-code check. Capture via || rc=$? to keep set -e but
+  # still handle the fail-closed case explicitly.
+  _ov_rc=0
+  OTHER_VAULTS=$(registry_other_vaults) || _ov_rc=$?
+  if [ "$_ov_rc" -ne 0 ]; then
     __FAIL_CLOSED__=1
     # Use the active vault path as a sentinel OTHER_VAULT so cross-vault fires
     # for every write, including to the active vault — zero writable roots.
@@ -189,9 +205,14 @@ _realpath_physical() {
     tail="$(basename "$target")${tail:+/}$tail"
     target="$(dirname "$target")"
   done
+  # B04: named constant for the symlink-loop guard. POSIX allows at most 8 levels
+  # of symlink indirection; Linux raises this to 40 (MAXSYMLINKS in limits.h).
+  # We mirror the kernel ceiling so the loop terminates on any real filesystem
+  # while still catching artificially deep chains in adversarial inputs.
+  local _SYMLINK_LOOP_MAX=40
   # Iteratively dereference leaf symlinks (dangling allowed).
   local guard=0
-  while [ -L "$target" ] && [ "$guard" -lt 40 ]; do
+  while [ -L "$target" ] && [ "$guard" -lt "$_SYMLINK_LOOP_MAX" ]; do
     local link
     link="$(readlink "$target")"
     case "$link" in
@@ -288,7 +309,9 @@ fi
 # so it is compared in the same namespace as the physical write target. If it
 # does not exist, firewall cannot meaningfully confine to it (e.g. pre-scaffold)
 # — allow and exit.
-VAULT_ABS=$(cd "$VAULT" 2>/dev/null && pwd -P)
+# B01: with set -e active, a failing $(cd ...) would abort the script. Use || true
+# so the assignment always succeeds (empty VAULT_ABS is handled by the next check).
+VAULT_ABS=$(cd "$VAULT" 2>/dev/null && pwd -P) || true
 if [ -z "$VAULT_ABS" ]; then
   if [ "$JSON_MODE" -eq 1 ]; then
     printf '{"findings":[]}\n'
@@ -328,13 +351,18 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // 
 
 read -r verdict rule <<<"$(decide "$FILE_PATH")"
 if [ "$verdict" = "block" ]; then
+  # B03: redact the absolute vault path (which contains the username) from the
+  # user-facing reason. Emit only the basename of the active vault so the message
+  # is useful without exposing internal filesystem paths.
+  _vault_display=$(basename "$VAULT_ABS")
   if [ "$rule" = "cross-vault" ]; then
-    reason="firewall: writes are confined to the active vault ($VAULT_ABS); target belongs to a different registered vault. Blocked by cross-vault rule. Switch vaults first to write there."
+    _reason="firewall: writes are confined to the active vault (${_vault_display}/); target belongs to a different registered vault. Blocked by cross-vault rule. Switch vaults first to write there."
   else
-    reason="firewall: writes are confined to the vault ($VAULT_ABS). Blocked by ${rule}. Add the path to firewall.allowPaths to permit it."
+    _reason="firewall: writes are confined to the vault (${_vault_display}/). Blocked by ${rule}. Add the path to firewall.allowPaths to permit it."
   fi
-  escaped=$(printf '%s' "$reason" | sed 's/"/\\"/g')
-  echo "{\"decision\":\"block\",\"reason\":\"${escaped}\"}"
+  # B02: use emit_block_decision (jq --arg) — never interpolate into a shell
+  # string. jq escapes backslash/newline/tab/C0 control chars automatically.
+  emit_block_decision "$_reason"
 elif [ "$rule" = "outside-vault" ] || [[ "$rule" == deny:* ]] || [ "$rule" = "cross-vault" ]; then
   # warn mode: advise on stderr, do not block
   echo "firewall (warn): ${FILE_PATH} is outside the vault ($rule)" >&2

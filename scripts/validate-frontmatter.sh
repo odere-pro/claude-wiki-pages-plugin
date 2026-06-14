@@ -21,6 +21,8 @@ set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
+# shellcheck source=lib-validate-gate.sh
+source "$(dirname "$0")/lib-validate-gate.sh"
 VAULT=$(resolve_vault)
 TARGET_SET=0
 JSON_MODE=0
@@ -437,8 +439,9 @@ CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
 
 err=$(validate_content "$FILE_PATH" "$CONTENT")
 if [ -n "$err" ]; then
-  # Encode as a valid JSON string: escape backslashes first, then quotes, then newlines.
-  escaped=$(printf '%s' "$err" | sed 's/\\/\\\\/g; s/"/\\"/g' | awk '{printf "%s\\n", $0}' | sed 's/\\n$//')
-  echo "{\"decision\":\"block\",\"reason\":\"${escaped}\"}"
+  # B05: use emit_block_decision (jq --arg) — never interpolate err into a shell
+  # string. jq escapes backslash/newline/tab/C0 control chars automatically,
+  # closing the injection window from the sed+awk chain this replaced.
+  emit_block_decision "$err"
 fi
 exit 0
