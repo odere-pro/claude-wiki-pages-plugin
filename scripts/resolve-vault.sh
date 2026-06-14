@@ -142,25 +142,18 @@ resolve_vault() {
   # resumed sessions). Any hook that resolves the vault also reifies settings.
   init_vault_settings
 
-  # 1. Explicit env var — normalized with realpath-like canonicalization before use.
-  #    M32: returned unnormalized, an attacker-controlled path could traverse
-  #    outside the intended vault root. We normalize with realpath (when available)
-  #    to remove ./ ../ symlink hops. Falls back to the raw value when realpath is
-  #    unavailable (same behaviour as before, maintaining full back-compat).
+  # 1. Explicit env var — used as-is (relative or absolute). This is tier 1, an
+  #    explicit operator / CI override (see CLAUDE.md "Vault location"), so it is
+  #    trusted input and returned verbatim — preserving relative-path overrides
+  #    and exact byte-parity with src/core/vault.ts (the TS twin returns it as-is).
+  #    M32: traversal confinement is enforced at WRITE time by firewall.sh and
+  #    protect-raw.sh (the actual security boundary), not at resolution time.
+  #    Canonicalizing here broke the verbatim contract and was non-portable
+  #    (GNU `realpath -m` resolves a relative value to absolute; BSD realpath has
+  #    no -m), which is why it diverged between Linux CI and macOS.
   #    LLM_WIKI_VAULT is the deprecated pre-1.0 name, still read as a fallback.
   local env_vault="${CLAUDE_WIKI_PAGES_VAULT:-${LLM_WIKI_VAULT:-}}"
   if [ -n "$env_vault" ]; then
-    # Normalize: resolve symlinks and remove ../ hops when realpath is available.
-    # Use --no-symlinks if the path doesn't exist yet (new vault scaffolding).
-    if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v realpath >/dev/null 2>&1; then
-      local _normed
-      # `realpath -m` (GNU) or plain `realpath` tolerates missing paths; BSD
-      # realpath requires the path to exist — fall back to the raw value on error.
-      _normed=$(PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" realpath -m "$env_vault" 2>/dev/null ||
-        PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" realpath "$env_vault" 2>/dev/null ||
-        printf '%s' "$env_vault")
-      env_vault="$_normed"
-    fi
     echo "$env_vault"
     return
   fi
