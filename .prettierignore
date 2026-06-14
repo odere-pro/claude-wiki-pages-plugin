@@ -1,0 +1,37 @@
+# Prettier ignore — aligns `bun run format` / `bun run format:check` with the
+# CI gate-08 scope (src/**/*.ts, schemas/**/*.json, templates/**/*.json).
+#
+# Rationale for each exclusion category:
+#
+# Markdown (*.md): Prettier reformats prose, rewraps tables, and alters
+# heading/list structure in ways that are lossy for curated authoring content
+# (ADRs, docs, CLAUDE.md authority files, skills, agents). Markdown formatting
+# is enforced by markdownlint (gate-10) which checks structure without mangling
+# prose. Adding prettier on top creates two competing formatters for .md.
+#
+# Dev-apparatus JSON (.claude/): Lives in .claude/ and never ships
+# (TEAM-BRIEF §5 "Do not pollute the shipped tree with dev apparatus").
+# Formatting run-artifacts (audit-findings, oop-glossary, eval/runs) can alter
+# the byte-exact fixtures that tests compare against.
+#
+# Vault and raw data (docs/vault-example/, docs/claude-wiki-pages-plugin-vault/,
+# tests/eval/runs/): These are data files — LLM outputs, vault content, eval
+# artifacts. Reformatting them would corrupt or alter factual meaning.
+#
+# The CI gate (gate-08-prettier.sh) enforces:
+#   src/**/*.ts, schemas/**/*.json, templates/**/*.json
+# This file makes `bun run format:check` agree with that scope.
+
+# Markdown — linted by markdownlint (gate-10), not prettier
+**/*.md
+
+# Dev-apparatus and plugin configuration (never shipped)
+.claude/
+.claude-plugin/
+
+# Vault data, raw content, and eval artifacts (data, not code)
+docs/vault-example/
+docs/claude-wiki-pages-plugin-vault/
+skills/init/template/
+tests/eval/
+tests/fixtures/
