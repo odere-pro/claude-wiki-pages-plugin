@@ -271,6 +271,7 @@ describe("ontology -- fail closed on malformed/missing table", () => {
     const result = parseOntologyProfile(malformedMd, undefined);
     // Empty or malformed tables must fail closed
     expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected parse to fail on malformed table, but it succeeded");
     const report = buildOntologyReport(undefined, result.errors);
     expect(exitCode(report)).toBeGreaterThan(0);
     expect(report.findings.some((f) => f.severity === "error")).toBe(true);

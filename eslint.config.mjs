@@ -7,11 +7,14 @@
 // gate-11-eslint.sh runs `bun run lint` which resolves to this file once
 // ESLint 9 is installed via `bun install`.
 
-// @ts-check
+// Flat config is executed by ESLint at runtime; correctness is verified by
+// `bun run lint` (gate-11-eslint), not tsc. No @ts-check here — the
+// @typescript-eslint plugin's `configs` types don't cleanly satisfy ESLint's
+// flat `Config` type when spread, which is a known ecosystem gap, not a bug.
+import js from "@eslint/js";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsparser from "@typescript-eslint/parser";
 
-/** @type {import("eslint").Linter.FlatConfig[]} */
 export default [
   // Global ignores (replaces ignorePatterns in .eslintrc.cjs)
   {
@@ -31,9 +34,16 @@ export default [
       "@typescript-eslint": tseslint,
     },
     rules: {
-      // Disable base no-unused-vars in favour of the TypeScript-aware version
+      // Faithful flat-config port of .eslintrc.cjs's
+      //   extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"]
+      // ESLint 9 dropped string `extends`, so the shareable presets are spread
+      // explicitly: eslint:recommended, then typescript-eslint's eslint-recommended
+      // (turns off base rules the TS rules supersede), then its recommended set.
+      ...js.configs.recommended.rules,
+      ...tseslint.configs["eslint-recommended"].overrides[0].rules,
+      ...tseslint.configs.recommended.rules,
+      // Project overrides (unchanged from .eslintrc.cjs)
       "no-unused-vars": "off",
-      // Same rules as .eslintrc.cjs — no behaviour change, only config format
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/consistent-type-imports": "error",
     },
