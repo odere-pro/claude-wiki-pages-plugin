@@ -10,12 +10,11 @@ import {
   ensureRepo,
   head,
   repoRoot,
-  stashUserChanges,
-  stashPop,
   checkpoint,
   applyCheckpointMode,
   commit,
   commitHeal,
+  defaultGitProvider,
 } from "./git.ts";
 
 // Provide a deterministic identity so commits succeed without relying on the
@@ -80,24 +79,6 @@ describe("head", () => {
     ensureRepo(dir);
     const sha = head(dir);
     expect(sha).toMatch(/^[0-9a-f]{7,}$/);
-  });
-});
-
-describe("stashUserChanges / stashPop", () => {
-  test("returns false when the tree is clean", () => {
-    ensureRepo(dir);
-    expect(stashUserChanges(dir, "label")).toBe(false);
-  });
-
-  test("stashes dirty work then restores it on pop (round-trip)", () => {
-    ensureRepo(dir);
-    writeFile("draft.md", "wip");
-    expect(stashUserChanges(dir, "pre-heal")).toBe(true);
-    expect(isClean(dir)).toBe(true);
-
-    const popped = stashPop(dir);
-    expect(popped.ok).toBe(true);
-    expect(isClean(dir)).toBe(false);
   });
 });
 
@@ -233,5 +214,37 @@ describe("commitHeal", () => {
     const msg = execFileSync("git", ["log", "-1", "--pretty=%s"], { cwd: dir, encoding: "utf8" });
     expect(msg).toContain("(1 iteration)");
     expect(msg).not.toContain("iterations");
+  });
+});
+
+// ── GitProvider gateway (C03) ─────────────────────────────────────────────────
+
+describe("defaultGitProvider", () => {
+  test("satisfies the GitProvider interface — all methods delegate correctly", () => {
+    // The gateway must expose every method required by the interface.
+    expect(typeof defaultGitProvider.isRepo).toBe("function");
+    expect(typeof defaultGitProvider.repoRoot).toBe("function");
+    expect(typeof defaultGitProvider.isClean).toBe("function");
+    expect(typeof defaultGitProvider.ensureRepo).toBe("function");
+    expect(typeof defaultGitProvider.head).toBe("function");
+    expect(typeof defaultGitProvider.checkpoint).toBe("function");
+    expect(typeof defaultGitProvider.applyCheckpointMode).toBe("function");
+    expect(typeof defaultGitProvider.push).toBe("function");
+    expect(typeof defaultGitProvider.commit).toBe("function");
+    expect(typeof defaultGitProvider.commitHeal).toBe("function");
+  });
+
+  test("isRepo delegates to the underlying git helper", () => {
+    expect(defaultGitProvider.isRepo(dir)).toBe(false);
+    defaultGitProvider.ensureRepo(dir);
+    expect(defaultGitProvider.isRepo(dir)).toBe(true);
+  });
+
+  test("head / commit through the gateway round-trips correctly", () => {
+    defaultGitProvider.ensureRepo(dir);
+    writeFile("gw.md", "via gateway");
+    const sha = defaultGitProvider.commit(dir, "test: gateway commit");
+    expect(sha).not.toBeNull();
+    expect(defaultGitProvider.head(dir)).toBe(sha);
   });
 });

@@ -30,6 +30,14 @@ yellow() { printf '\033[0;33mWARN:  %s\033[0m\n' "$1"; }
 green() { printf '\033[0;32mOK:    %s\033[0m\n' "$1"; }
 header() { printf '\n\033[1m=== %s ===\033[0m\n' "$1"; }
 
+# C08: single shared title extractor — extracts the `title:` value from YAML
+# frontmatter of a given file. Reads the file directly (not stdin) so it can
+# be called without a subshell pipeline at every call site.
+# Usage: _fm_title <file>  →  prints the title string, or empty if absent.
+_fm_title() {
+  sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$1"
+}
+
 # M11: single shared YAML list extractor for sources:, children:, and any
 # other inline-or-multi-line list field. Reads YAML text from stdin, extracts
 # the named field's list entries (one per output line, quotes/brackets stripped,
@@ -187,7 +195,7 @@ else
     esac
     if _is_folder_note "$filepath"; then continue; fi
     # Extract the title from frontmatter
-    TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$filepath")
+    TITLE=$(_fm_title "$filepath")
     if [ -z "$TITLE" ]; then
       TITLE="$BASENAME"
     fi
@@ -269,15 +277,12 @@ while IFS= read -r index_file; do
   # M06/M11: use the shared _extract_yaml_list helper (DRY + flattened nesting).
   INDEX_FRONTMATTER=$(sed -n '/^---$/,/^---$/p' "$index_file")
   INDEX_CHILDREN=$(printf '%s\n' "$INDEX_FRONTMATTER" | _extract_yaml_list "children")
-  # M09: INDEX_CHILD_INDEXES was extracted here every scan but never consumed
-  # (commented "Reserved for spec §12"). Removed as dead code (YAGNI); restore
-  # it when the check is actually wired — use `_extract_yaml_list "child_indexes".
 
-  # Get actual .md files in this folder (excluding the index files themselves)
+  # Get actual .md files in this folder (excluding the index files themselves).
   ACTUAL_FILES=""
   while IFS= read -r f; do
     if _is_folder_note "$f"; then continue; fi
-    TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$f")
+    TITLE=$(_fm_title "$f")
     if [ -n "$TITLE" ]; then
       ACTUAL_FILES="${ACTUAL_FILES}${TITLE}"$'\n'
     fi
@@ -344,7 +349,7 @@ if [ -d "$SOURCES_DIR" ]; then
     if [ "$SOURCE_TYPE" = "manifest" ]; then
       continue
     fi
-    SOURCE_TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$source_file")
+    SOURCE_TITLE=$(_fm_title "$source_file")
     if [ -z "$SOURCE_TITLE" ]; then
       SOURCE_TITLE=$(basename "$source_file" .md)
     fi
@@ -572,7 +577,7 @@ while IFS= read -r filepath; do
     ENTRY_COUNT="${ENTRY_COUNT:-0}"
 
     if [ "$ENTRY_COUNT" -eq 0 ]; then
-      PAGE_TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$filepath")
+      PAGE_TITLE=$(_fm_title "$filepath")
       [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
       red "no-sources: \"${PAGE_TITLE}\" ($(basename "$filepath")) has type \"${PAGE_TYPE}\" but no sources entries"
       PROVENANCE_ERRORS=$((PROVENANCE_ERRORS + 1))
@@ -591,7 +596,7 @@ while IFS= read -r filepath; do
       # Use awk for floating-point comparison (bash arithmetic is integer-only).
       IS_HIGH=$(awk -v c="$CONF_VAL" 'BEGIN { print (c + 0 >= 0.8) ? "1" : "0" }')
       if [ "$IS_HIGH" = "1" ]; then
-        PAGE_TITLE=$(sed -n '/^---$/,/^---$/{/^title:/{s/^title: *"*//;s/"*$//;p;q;};}' "$filepath")
+        PAGE_TITLE=$(_fm_title "$filepath")
         [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
         yellow "derived-high-confidence: \"${PAGE_TITLE}\" ($(basename "$filepath")) has derived: true but confidence ${CONF_VAL} >= 0.8 — lower confidence to reflect inferred status"
         DERIVED_WARNS=$((DERIVED_WARNS + 1))

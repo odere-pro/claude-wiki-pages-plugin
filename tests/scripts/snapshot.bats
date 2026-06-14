@@ -7,6 +7,10 @@
 #   - gitCheckpoint.mode=off (env override) → no git operations at all.
 #   - A clean vault post → no commit (never an empty snapshot commit).
 #   - Always exits 0, even on usage errors (snapshot reports, never gates).
+#   - C01: on lock-acquire timeout, skip git ops and exit 0 cleanly.
+#
+# `flock` is Linux-only; tests that exercise the git path provide a fake `flock`
+# shim in the PATH so lock acquisition succeeds on macOS and Linux alike.
 
 load '../test_helper/common'
 
@@ -16,11 +20,20 @@ setup() {
   VAULT="$PROJ/vault"
   mkdir -p "$VAULT/wiki"
   printf '%s\n' '---' 'schema_version: 2' '---' >"$VAULT/CLAUDE.md"
+
+  # Fake flock that always succeeds (returns 0) so vault_lock_acquire works on
+  # platforms where flock(1) is absent (macOS). The REAL lock semantics are
+  # tested separately; here we test snapshot behaviour, not the locking mechanism.
+  FAKEBIN="$BATS_TEST_TMPDIR/fakebin"
+  mkdir -p "$FAKEBIN"
+  printf '#!/bin/bash\nexec "$@" 2>/dev/null; exit 0\n' >"$FAKEBIN/flock"
+  chmod +x "$FAKEBIN/flock"
 }
 
-# Force the bash fallback by hiding bun: a PATH with only the system dirs.
+# Force the bash fallback by hiding bun; inject fake flock so lock acquisition
+# succeeds on all platforms.
 run_snap() {
-  run bash -c "cd '$PROJ'; export PATH='/usr/bin:/bin'; export CLAUDE_WIKI_PAGES_VAULT='$VAULT'; bash '$REPO_ROOT/scripts/snapshot.sh' $*"
+  run bash -c "cd '$PROJ'; export PATH='$FAKEBIN:/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin'; export CLAUDE_WIKI_PAGES_VAULT='$VAULT'; bash '$REPO_ROOT/scripts/snapshot.sh' $*"
 }
 
 @test "snapshot: pre initialises the repo and writes a checkpoint (fallback path)" {
@@ -59,7 +72,7 @@ run_snap() {
 }
 
 @test "snapshot: mode=off is a complete no-op (no repo, no commits)" {
-  run bash -c "cd '$PROJ'; export PATH='/usr/bin:/bin'; export CLAUDE_WIKI_PAGES_VAULT='$VAULT' CLAUDE_WIKI_PAGES_GITCHECKPOINT_MODE=off; bash '$REPO_ROOT/scripts/snapshot.sh' pre --op op4"
+  run bash -c "cd '$PROJ'; export PATH='$FAKEBIN:/usr/bin:/bin:/usr/local/bin:/opt/homebrew/bin'; export CLAUDE_WIKI_PAGES_VAULT='$VAULT' CLAUDE_WIKI_PAGES_GITCHECKPOINT_MODE=off; bash '$REPO_ROOT/scripts/snapshot.sh' pre --op op4"
   assert_success
   assert_output_contains "skipped (gitCheckpoint.mode=off)"
   [ ! -d "$VAULT/.git" ]
@@ -70,4 +83,27 @@ run_snap() {
   assert_success
   run_snap bogus
   assert_success
+}
+
+@test "snapshot: C01 — lock timeout exits cleanly, skips checkpoint commit (fail-closed)" {
+  # Fake flock that always times out (returns 1) to simulate lock contention.
+  printf '#!/bin/bash\nexit 1\n' >"$FAKEBIN/flock"
+  chmod +x "$FAKEBIN/flock"
+
+  run_snap pre --op op-lock-fail
+  assert_success
+  assert_output_contains "skipped"
+  # The ensureRepo block still runs (before lock acquisition), but the checkpoint
+  # commit (inside the lock) must NOT have been written.  The initial repo may
+  # exist; the key assertion is that no cwp-style commit was added.
+  if git -C "$VAULT" rev-parse HEAD >/dev/null 2>&1; then
+    # If a repo exists (ensureRepo ran), there should be no checkpoint commit.
+    COMMIT_MSG=$(git -C "$VAULT" log -1 --pretty=%s 2>/dev/null || true)
+    case "$COMMIT_MSG" in
+      "checkpoint: claude-wiki-pages"*)
+        echo "FAIL: checkpoint commit was written despite lock timeout" >&2
+        return 1
+        ;;
+    esac
+  fi
 }

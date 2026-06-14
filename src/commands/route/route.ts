@@ -149,37 +149,69 @@ export function decideParallelExtract(
   });
 }
 
-export function route(opts: RouteOptions = {}): RouteReport {
-  const { config } = loadConfig({ cwd: opts.cwd });
-  const policy = config.localModel.offlinePolicy;
-  const tier = config.localModel.tier;
+/**
+ * RouteInput is the focused, pre-resolved decision input extracted from Config
+ * (C11). route() passes this to decideRoute/decideParallelExtract instead of
+ * forwarding the full Config object, so callers read Config exactly once and
+ * downstream functions receive only the values they need.
+ */
+interface RouteInput {
+  readonly policy: Config["localModel"]["offlinePolicy"];
+  readonly tier: Config["localModel"]["tier"];
+  readonly tierApproved: boolean;
+  readonly claudeReachable: boolean;
+  readonly ollamaUp: boolean;
+  readonly maxParallelExtract: number | undefined;
+}
 
+/** Extract the focused routing inputs from Config (C11 — single read point). */
+function resolveRouteInput(config: Config, opts: RouteOptions): RouteInput {
   // A tier is usable only when localModel is enabled AND its model cleared the
-  // per-tier gate — reuse checkLocalModelApproval so this can never disagree with
-  // `config validate` (the single source of truth).
+  // per-tier gate — reuse checkLocalModelApproval so this can never disagree
+  // with `config validate` (the single source of truth).
   const tierApproved = config.localModel.enabled && checkLocalModelApproval(config).length === 0;
-
   // Reachability is an input. Defaults are Claude-favouring: an unknown/unprobed
   // Claude state is treated as reachable (prefer the primary), and an unknown
   // Ollama state is treated as not-up (do not assume a fallback exists).
   const claudeReachable = opts.claude !== "unreachable";
   const ollamaUp = opts.ollama === "up";
+  return {
+    policy: config.localModel.offlinePolicy,
+    tier: config.localModel.tier,
+    tierApproved,
+    claudeReachable,
+    ollamaUp,
+    // C12: Config.maintenance now declares maxParallelExtract; no cast needed.
+    maxParallelExtract: config.maintenance.maxParallelExtract,
+  };
+}
 
-  const { decision, reason } = decideRoute(policy, claudeReachable, tierApproved, ollamaUp);
+export function route(opts: RouteOptions = {}): RouteReport {
+  const { config } = loadConfig({ cwd: opts.cwd });
+  // C11: resolve all Config reads in one place; pass the focused input object.
+  const input = resolveRouteInput(config, opts);
 
-  // P1-A6: read maintenance.maxParallelExtract defensively — the key is added by
-  // Lane B (P1-A5). Until that lands, the field is absent and we default to 1.
-  // The type cast is intentional: Config.maintenance does not yet declare this
-  // key; Lane B will add it to the interface and the schema in P1-A5.
-  const maxParallelExtract = (config.maintenance as Record<string, unknown>)[
-    "maxParallelExtract"
-  ] as number | undefined;
-  const parallelExtract = decideParallelExtract(maxParallelExtract, decision);
+  const { decision, reason } = decideRoute(
+    input.policy,
+    input.claudeReachable,
+    input.tierApproved,
+    input.ollamaUp,
+  );
+
+  // P1-A6: read maintenance.maxParallelExtract — now typed in Config (C12).
+  const parallelExtract = decideParallelExtract(input.maxParallelExtract, decision);
 
   // A BLOCKED decision is an error-severity finding so exitCode() returns 1
   // (fail-closed), exactly like `config` and `firewall`.
   const findings: readonly Finding[] =
     decision === "blocked" ? [{ severity: "error", check: "route", message: reason }] : [];
   const base = buildReport("route", "", findings);
-  return Object.freeze({ ...base, decision, reason, tier, offlinePolicy: policy, parallelExtract });
+  return Object.freeze({
+    ...base,
+    decision,
+    reason,
+    tier: input.tier,
+    offlinePolicy: input.policy,
+    parallelExtract,
+  });
 }

@@ -4,7 +4,8 @@
  * Contracts exercised:
  *   - acquireVaultLockSync acquires and release returns the lock.
  *   - withVaultLockSync forwards the return value of fn().
- *   - Nested withVaultLockSync on the same vault does not deadlock (degrade path).
+ *   - C02: re-entrant acquireVaultLockSync on the same vault throws explicitly
+ *     (was a silent no-op; now surfaces the caller bug at development time).
  *   - withVaultLockSync on distinct vaults is independent (no cross-vault blocking).
  *   - withVaultLockSync releases the lock even when fn() throws.
  *
@@ -27,16 +28,20 @@ describe("acquireVaultLockSync", () => {
     expect(() => release()).not.toThrow();
   });
 
-  test("returns a no-op release when called re-entrantly on the same vault", () => {
-    // In a single-threaded synchronous context the lock is always immediately
-    // available, but re-entrant calls return a no-op release (defensive).
-    const vault = "/tmp/test-vault-lock-reentrant";
+  test("C02: re-entrant acquisition on the same vault throws (explicit caller-bug signal)", () => {
+    // Re-entrant withVaultLockSync on the same vault in synchronous code is a
+    // programming error. The old code silently returned a no-op release (the
+    // latent bug: the queue was never drained and the violation was invisible).
+    // The fix makes the violation explicit — a throw that surfaces immediately.
+    const vault = "/tmp/test-vault-lock-reentrant-c02";
     const release1 = acquireVaultLockSync(vault);
-    // Simulate a re-entrant attempt (e.g. nested withVaultLockSync):
-    const release2 = acquireVaultLockSync(vault);
-    // Both releases must be callable without throwing.
-    expect(() => release2()).not.toThrow();
-    expect(() => release1()).not.toThrow();
+    try {
+      // Re-entrant call on the same vault must throw.
+      expect(() => acquireVaultLockSync(vault)).toThrow("re-entrant acquisition");
+    } finally {
+      // Ensure the lock is always released regardless of test outcome.
+      release1();
+    }
   });
 });
 

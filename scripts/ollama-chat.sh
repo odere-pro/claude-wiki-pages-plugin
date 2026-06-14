@@ -27,6 +27,18 @@
 #    num_ctx, num_predict:-1}, messages:[{role:system},{role:user}]}
 # These options (M13) are the centralized Ollama sampling defaults; they are
 # defined once here rather than repeated per call site.
+#
+# C05 — strict mode:
+# This file is both sourceable AND safe to set -euo pipefail because the
+# guard below detects the source-vs-exec context. When sourced, the guard
+# returns early (the caller's strict mode is already in effect); when executed
+# directly (e.g. mistakenly), strict mode is set for the file's own scope so
+# silent failures cannot leave it in an unsafe state.
+if [ "${BASH_SOURCE[0]}" = "${0}" ]; then
+  # Executed directly — apply strict mode for this file's scope.
+  set -euo pipefail
+fi
+# When sourced, the caller's strict mode governs. Do not override it here.
 
 # ── Centralized Ollama sampling defaults (M13) ────────────────────────────────
 # These are the PM-ratified, reproducibility-critical options for every
@@ -71,6 +83,11 @@ ollama_chat_call() {
       messages:[{role:"system",content:$sys},{role:"user",content:$usr}]}' \
     >"$payload" || die "ollama_chat_call: payload build failed for $label"
 
+  # C06 — real backoff sleep between attempts.
+  # `sleep_sec` starts at 1 s and doubles each retry (capped at 30 s) so the
+  # loop does not busy-spin. The curl --max-time continues to double for
+  # request-level backoff; the sleep_sec provides the inter-attempt idle time.
+  local sleep_sec=1
   while :; do
     if curl -sS --fail --connect-timeout 5 --max-time "$t" \
       -H 'Content-Type: application/json' -d @"$payload" \
@@ -81,7 +98,11 @@ ollama_chat_call() {
     attempt=$((attempt + 1))
     [ "$attempt" -gt "$retries" ] && break
     t=$((t * 2))
-    echo "[ollama] retry ${attempt}/${retries} for $label (timeout ${t}s — exponential backoff)" >&2
+    echo "[ollama] retry ${attempt}/${retries} for $label (timeout ${t}s — exponential backoff; sleeping ${sleep_sec}s)" >&2
+    sleep "$sleep_sec"
+    # Double the inter-attempt sleep, capped at 30 s.
+    sleep_sec=$((sleep_sec * 2))
+    [ "$sleep_sec" -gt 30 ] && sleep_sec=30
   done
   rm -f "$payload"
 

@@ -2,17 +2,24 @@
  * Git helpers for the self-heal safety net.
  *
  * Auto-heal is fully automatic (no approval prompts); its safety comes from git.
- * Before changing anything, the engine stashes uncommitted user work and writes
- * a checkpoint commit, so every heal is reversible with `git revert` or a branch
- * checkout. These helpers wrap the few porcelain commands that loop needs.
+ * Before changing anything, the engine writes a checkpoint commit, so every
+ * heal is reversible with `git revert` or a branch checkout. These helpers wrap
+ * the few porcelain commands that loop needs.
  *
- * Concurrency note (H08 / M29): every read-then-write sequence (isClean →
- * stash/add → commit; isClean → appendLog → commit) that spans multiple git
- * calls is vulnerable to TOCTOU races when two callers operate on the same
- * vault concurrently. `withVaultLockSync` in `vault-lock.ts` guards these
- * sequences at the call-site level (snapshot.ts, heal.ts, migrate.ts,
- * propose.ts). All `execFileSync` calls carry a `GIT_TIMEOUT_MS` timeout to
- * prevent held index.lock hangs from blocking the process indefinitely (M29).
+ * Concurrency note (H08 / M29 / C03): every read-then-write sequence (isClean →
+ * add → commit; isClean → appendLog → commit) that spans multiple git calls is
+ * vulnerable to TOCTOU races when two callers operate on the same vault
+ * concurrently. `withVaultLockSync` in `vault-lock.ts` guards these sequences at
+ * the call-site level (snapshot.ts, heal.ts, migrate.ts, propose.ts). All
+ * `execFileSync` calls carry a `GIT_TIMEOUT_MS` timeout to prevent held
+ * index.lock hangs from blocking the process indefinitely (M29).
+ *
+ * Gateway (C03): `GitProvider` is the domain port that isolates git from core
+ * callers. `defaultGitProvider` is the default implementation backed by the git
+ * CLI. Callers that previously imported helpers directly now go through the
+ * provider; the top-level functions remain as thin shims for backwards
+ * compatibility with existing call sites. Tests and callers may inject a
+ * `GitProvider` implementation in place of the default for isolation.
  */
 
 import { execFileSync } from "node:child_process";
@@ -20,6 +27,40 @@ import { execFileSync } from "node:child_process";
 export interface GitResult {
   readonly ok: boolean;
   readonly stdout: string;
+}
+
+/**
+ * Gateway port (C03): domain-friendly interface that isolates callers from the
+ * git CLI. The default implementation (`defaultGitProvider`) shells out via
+ * `execFileSync`; tests may substitute an in-memory stub. Callers depend on
+ * this interface, not on the underlying CLI specifics.
+ */
+export interface GitProvider {
+  /** True when `dir` is inside a git work tree. */
+  isRepo(dir: string): boolean;
+  /** The work-tree root covering `dir`, or null when not in a repo. */
+  repoRoot(dir: string): string | null;
+  /** True when there are no staged or unstaged changes under `dir`. */
+  isClean(dir: string): boolean;
+  /** Initialise a repo (with an initial commit) if not already one. */
+  ensureRepo(dir: string): void;
+  /** The current HEAD short SHA, or null when unavailable. */
+  head(dir: string): string | null;
+  /** Write a checkpoint commit and optionally create a checkpoint branch. */
+  checkpoint(dir: string, opId: string, isoTime: string, branch?: boolean): string | null;
+  /** Apply the configured checkpoint mode before a write phase. */
+  applyCheckpointMode(
+    dir: string,
+    mode: CheckpointMode,
+    opId: string,
+    isoTime: string,
+  ): string | null;
+  /** Push to the configured upstream (best-effort, opt-in). */
+  push(dir: string): GitResult;
+  /** Commit the current state with an arbitrary message. */
+  commit(dir: string, message: string): string | null;
+  /** Commit the healed state with a descriptive message. */
+  commitHeal(dir: string, opId: string, iterations: number): string | null;
 }
 
 /**
@@ -120,18 +161,6 @@ export function head(dir: string): string | null {
   return r.ok && r.stdout ? r.stdout : null;
 }
 
-/** Stash uncommitted user work (including untracked). Returns true if a stash was created. */
-export function stashUserChanges(dir: string, label: string): boolean {
-  if (isClean(dir)) return false;
-  const r = git(dir, ["stash", "push", "--include-untracked", "-m", label]);
-  return r.ok;
-}
-
-/** Re-apply the most recent stash. */
-export function stashPop(dir: string): GitResult {
-  return git(dir, ["stash", "pop"]);
-}
-
 /**
  * Write a checkpoint commit (empty-ok) labelling the pre-heal state, and
  * optionally create a checkpoint branch. Returns the checkpoint SHA.
@@ -214,3 +243,22 @@ export function commitHeal(dir: string, opId: string, iterations: number): strin
   ]);
   return head(dir);
 }
+
+/**
+ * Default GitProvider implementation (C03 gateway): delegates every operation
+ * to the module-level functions above, which shell out to the git CLI via
+ * `execFileSync` with `GIT_TIMEOUT_MS`. Inject an alternative implementation
+ * for testing or to swap the underlying VCS.
+ */
+export const defaultGitProvider: GitProvider = {
+  isRepo,
+  repoRoot,
+  isClean,
+  ensureRepo,
+  head,
+  checkpoint,
+  applyCheckpointMode,
+  push,
+  commit,
+  commitHeal,
+};
