@@ -13,7 +13,7 @@ if ! command -v bun >/dev/null 2>&1; then
   exit 0
 fi
 
-VAULT="docs/vault-example"
+VAULT="tests/fixtures/reference-vault"
 VABS="$ROOT/$VAULT"
 
 # Representative paths: inside vault, outside, deny-glob hits, nested.
@@ -24,7 +24,7 @@ PATHS=(
   "$VABS/wiki/.git/config"
   "/etc/passwd"
   "/tmp/scratch.md"
-  "$ROOT/docs/vault-example-backup/x.md"
+  "$ROOT/tests/fixtures/reference-vault-backup/x.md"
 )
 
 fail=0

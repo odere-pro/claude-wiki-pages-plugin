@@ -17,7 +17,7 @@
 #   - RAW IMMUTABLE: this script never edits files in raw/; sync-source.sh
 #     enforces that contract for wired-source pulls.
 #   - SINGLE ACTIVE VAULT: resolves exactly one vault via resolve-vault.sh.
-#   - SAFETY GUARD: refuses to run against docs/vault-example (the reference
+#   - SAFETY GUARD: refuses to run against tests/fixtures/reference-vault (the reference
 #     fixture; it must stay immutable for gates and tests).
 #
 # Usage:
@@ -84,7 +84,7 @@ cfg_scalar() {
   printf '%s' "${val}"
 }
 
-# ── Safety guard: never target docs/vault-example ────────────────────────────
+# ── Safety guard: never target tests/fixtures/reference-vault ────────────────────────────
 # Canonicalize both paths (follow symlinks, resolve ..) before comparing so the
 # check is robust to how the caller sets CLAUDE_WIKI_PAGES_VAULT.
 _abs_vault=""
@@ -92,12 +92,12 @@ if [ -d "${VAULT}" ]; then
   _abs_vault=$(cd "${VAULT}" && pwd -P 2>/dev/null) || _abs_vault=""
 fi
 _repo_root="$(cd "${SCRIPT_DIR}/.." && pwd -P 2>/dev/null)" || _repo_root=""
-_example_vault="${_repo_root}/docs/vault-example"
+_example_vault="${_repo_root}/tests/fixtures/reference-vault"
 
-# Block if the resolved vault IS docs/vault-example (exact match after
-# canonicalization). A vault named docs/vault-example-extended is fine.
+# Block if the resolved vault IS tests/fixtures/reference-vault (exact match after
+# canonicalization). A vault named tests/fixtures/reference-vault-extended is fine.
 if [ -n "${_abs_vault}" ] && [ -n "${_example_vault}" ] && [ "${_abs_vault}" = "${_example_vault}" ]; then
-  echo "[maintenance-run] REFUSED: docs/vault-example is the reference fixture and must not be modified by scheduled runs. Set CLAUDE_WIKI_PAGES_VAULT to your project vault."
+  echo "[maintenance-run] REFUSED: tests/fixtures/reference-vault is the reference fixture and must not be modified by scheduled runs. Set CLAUDE_WIKI_PAGES_VAULT to your project vault."
   exit 0
 fi
 

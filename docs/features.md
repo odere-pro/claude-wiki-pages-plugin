@@ -10,7 +10,7 @@ What `claude-wiki-pages` actually gives you.
 - **Confidence discipline** — `confidence ≥ 0.8` requires two corroborating sources; `1.0` requires a direct quote.
 - **Cross-topic synthesis notes** with explicit `scope:` and `synthesis_type` (`comparison`, `theme`, `contradiction`, `gap`, `timeline`).
 
-Full schema lives in [`docs/vault-example/CLAUDE.md`](./vault-example/CLAUDE.md), the schema authority.
+Full schema lives in [`skills/init/template/CLAUDE.md`](../skills/init/template/CLAUDE.md), the schema authority.
 
 ## Hook-enforced safety
 

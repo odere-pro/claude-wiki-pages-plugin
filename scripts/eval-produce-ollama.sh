@@ -13,7 +13,7 @@
 # §5 NO-RAG: pure prompt + parse — no embeddings, no retrieval.
 #
 # Prompt sourcing: the required-fields table and enum list are extracted from
-# docs/vault-example/CLAUDE.md AT RUNTIME (the same single source of truth
+# skills/init/template/CLAUDE.md AT RUNTIME (the same single source of truth
 # scripts/validate-frontmatter.sh parses) — never copied into this script.
 #
 # Output contract the model must follow (delimiter blocks, not JSON — multiline
@@ -39,7 +39,7 @@ set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CASES_DIR="$ROOT/tests/eval/ingest-extract/cases"
-SCHEMA_DOC="$ROOT/docs/vault-example/CLAUDE.md"
+SCHEMA_DOC="$ROOT/skills/init/template/CLAUDE.md"
 
 die() {
   echo "ERROR: $*" >&2
@@ -265,7 +265,7 @@ produce_case() { # $1 = model, $2 = case name
 Candidate extraction of tests/eval/ingest-extract/cases/$case_name/input.md
 produced by $model via scripts/eval-produce-ollama.sh for the ADR-0011
 ingest-extract quality gate. The authoritative schema lives in
-docs/vault-example/CLAUDE.md.
+skills/init/template/CLAUDE.md.
 EOF
 
   # parse_response runs in a pipeline SUBSHELL — its die cannot stop this

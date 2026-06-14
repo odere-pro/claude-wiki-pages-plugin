@@ -100,7 +100,7 @@ export interface SearchOptions {
    * R1 candidate filter — restrict to pages whose frontmatter `type` equals
    * this value. Applied BEFORE scoring; does not affect the scoring weights.
    * Validation strategy (filter-only): the page-type enum is single-sourced in
-   * `ontology-profile-v1` (docs/vault-example/CLAUDE.md §"Enum list"); no copy
+   * `ontology-profile-v1` (skills/init/template/CLAUDE.md §"Enum list"); no copy
    * exists in the engine. An unknown type simply matches no pages → empty hits.
    */
   readonly type?: string;

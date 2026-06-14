@@ -41,7 +41,6 @@ tests/test_helper/bats-file/
 
 # Vault output scratch space (user projects and the reference demo)
 vault/output/
-**/vault-example/output/
 
 # Plugin wiki vault — tracked in the repo as the project knowledge base.
 # Only the scratch output/ subdirectory is ignored.

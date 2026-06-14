@@ -10,9 +10,8 @@
 # If <source-scaffold> is omitted, defaults to
 #   ${CLAUDE_PLUGIN_ROOT:-<repo-root>}/skills/init/template
 # — the empty starter vault that ships inside the onboarding skill so it is
-# guaranteed to be present in the runtime plugin install. (docs/vault-example/
-# is the populated demo; the onboarding skill copies from the skill's own
-# template, not the demo.)
+# guaranteed to be present in the runtime plugin install. (the docs example is the populated demo; the onboarding skill copies
+# from the skill's own template, not the demo.)
 #
 # Exit codes:
 #   0 — vault scaffolded or already complete (idempotent success).
@@ -81,7 +80,7 @@ done < <(find "$SOURCE" -mindepth 1 -maxdepth 1 2>/dev/null | sort)
 # ─── Git-required per-vault init ──────────────────────────────────────────────
 # Every vault must be its own git repo (TEAM-BRIEF.md §5, decision #4).
 # Guard: skip if the target is already inside a git work tree — this prevents
-# nesting a repo inside the plugin repo (e.g. docs/vault-example/) or a user's
+# nesting a repo inside the plugin repo (e.g. a vault under docs/) or a user's
 # project repo whose layout happens to contain the vault directory.
 GIT_STATE="initialised"
 if git -C "$TARGET" rev-parse --is-inside-work-tree >/dev/null 2>&1; then

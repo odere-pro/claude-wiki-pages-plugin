@@ -14,7 +14,7 @@
 # Formatting run-artifacts (audit-findings, oop-glossary, eval/runs) can alter
 # the byte-exact fixtures that tests compare against.
 #
-# Vault and raw data (docs/vault-example/, docs/claude-wiki-pages-plugin-vault/,
+# Vault and raw data (docs/claude-wiki-pages-plugin-vault/,
 # tests/eval/runs/): These are data files — LLM outputs, vault content, eval
 # artifacts. Reformatting them would corrupt or alter factual meaning.
 #
@@ -30,7 +30,6 @@
 .claude-plugin/
 
 # Vault data, raw content, and eval artifacts (data, not code)
-docs/vault-example/
 docs/claude-wiki-pages-plugin-vault/
 skills/init/template/
 tests/eval/

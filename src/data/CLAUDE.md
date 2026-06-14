@@ -27,7 +27,7 @@ frontmatter skeletons that [`migrate`](../commands/CLAUDE.md) writes into an
 upgrading vault's `_templates/` directory. Embedding them lets `migrate` upgrade
 a v1 vault without locating the plugin's template directory at runtime. These
 copies must stay in sync with the on-disk source of truth in
-[`../../docs/vault-example/_templates/`](../../docs/vault-example/_templates/)
+[`../../skills/init/template/_templates/`](../../skills/init/template/_templates/)
 and the copies `init` ships in
 [`../../skills/init/template/_templates/`](../../skills/init/template/_templates/);
 `rules/templates.md` is the contract.

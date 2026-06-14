@@ -2,7 +2,7 @@
 
 > Zoom: L2 Components
 > Perspective: feature-relations
-> Authority: [`docs/vault-example/CLAUDE.md` — ontology-profile-v1](../vault-example/CLAUDE.md#ontology-profile-ontology-profile-v1).
+> Authority: [`skills/init/template/CLAUDE.md` — ontology-profile-v1](../../skills/init/template/CLAUDE.md#ontology-profile-ontology-profile-v1).
 > This diagram visualizes the closed predicate domain→range table; it does not restate any row.
 
 ## Purpose
@@ -87,7 +87,7 @@ graph LR
 
 ## See also
 
-- [Predicate domain→range table](../vault-example/CLAUDE.md#ontology-profile-ontology-profile-v1) — the single-sourced authority; read it, do not copy its rows.
+- [Predicate domain→range table](../../skills/init/template/CLAUDE.md#ontology-profile-ontology-profile-v1) — the single-sourced authority; read it, do not copy its rows.
 - [01-system-context.md](./01-system-context.md) — one level up: the vault as a layer in the four-layer stack.
 - [06-feature-relations.md](./06-feature-relations.md) — how the engine, skills, and agents consume this ontology.
 - [`docs/architecture.md`](../architecture.md) — the four-layer contract that governs every consumer of this profile.

@@ -5,7 +5,7 @@
 #   - Refuses when maintenance.unattended is false (the default) — prints how to
 #     enable, exits 0 (idempotent, safe to cron).
 #   - No-op when there is no backlog (nothing to do) and exits 0.
-#   - Never targets docs/vault-example, even if the vault resolves there.
+#   - Never targets tests/fixtures/reference-vault, even if the vault resolves there.
 #
 # Every test runs against a scratch directory; no real vault or project config
 # is mutated. The script is callable without any LLM or Bun present: it reads
@@ -90,13 +90,13 @@ write_config() {
 }
 
 # ---------------------------------------------------------------------------
-# 3. Never targets docs/vault-example
+# 3. Never targets tests/fixtures/reference-vault
 # ---------------------------------------------------------------------------
 
-@test "maintenance-run: refuses to run against docs/vault-example" {
-  # Even if CLAUDE_WIKI_PAGES_VAULT is set to docs/vault-example the script
+@test "maintenance-run: refuses to run against tests/fixtures/reference-vault" {
+  # Even if CLAUDE_WIKI_PAGES_VAULT is set to tests/fixtures/reference-vault the script
   # must detect the protected path and abort with a clear message, exiting 0.
-  local EXAMPLE_VAULT="$REPO_ROOT/docs/vault-example"
+  local EXAMPLE_VAULT="$REPO_ROOT/tests/fixtures/reference-vault"
   run bash -c "
     cd '$PROJ'
     export CLAUDE_WIKI_PAGES_VAULT='$EXAMPLE_VAULT'
@@ -104,12 +104,12 @@ write_config() {
     bash '$REPO_ROOT/scripts/maintenance-run.sh'
   "
   assert_success
-  assert_output_contains "docs/vault-example"
+  assert_output_contains "tests/fixtures/reference-vault"
 }
 
 @test "maintenance-run: safe path check is path-prefix based (not substring)" {
-  # A vault named 'docs/vault-example-extended' must NOT be blocked.
-  local ALT_VAULT="$BATS_TEST_TMPDIR/docs/vault-example-extended"
+  # A vault named 'tests/fixtures/reference-vault-extended' must NOT be blocked.
+  local ALT_VAULT="$BATS_TEST_TMPDIR/tests/fixtures/reference-vault-extended"
   mkdir -p "$ALT_VAULT/raw" "$ALT_VAULT/wiki"
   # No config → unattended=false → refusal message (not the safety block).
   run bash -c "
@@ -121,5 +121,5 @@ write_config() {
   assert_success
   # Should print the unattended refusal message, NOT the vault-example guard.
   assert_output_contains "maintenance.unattended"
-  refute_output_contains "docs/vault-example"
+  refute_output_contains "tests/fixtures/reference-vault"
 }

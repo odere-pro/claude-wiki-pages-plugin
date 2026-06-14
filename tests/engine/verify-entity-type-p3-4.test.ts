@@ -29,7 +29,7 @@ import { mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { checkEntityType } from "../../src/commands/verify/check-entity-type.ts";
 
 const REPO_ROOT = join(import.meta.dir, "../..");
-const SCHEMA_PATH = join(REPO_ROOT, "docs/vault-example/CLAUDE.md");
+const SCHEMA_PATH = join(REPO_ROOT, "skills/init/template/CLAUDE.md");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -347,10 +347,10 @@ describe("checkEntityType — absent entity_type field is not this check's job",
 
 // ── 7. Reference vault — zero findings (gate-05 parity baseline) ─────────────
 
-describe("checkEntityType — docs/vault-example reference vault produces zero findings", () => {
+describe("checkEntityType — reference vault produces zero findings", () => {
   test("all entity_type values in the reference vault are in the core set", () => {
-    const refVaultWiki = join(REPO_ROOT, "docs/vault-example/wiki");
-    const refVaultClaudeMd = join(REPO_ROOT, "docs/vault-example/CLAUDE.md");
+    const refVaultWiki = join(REPO_ROOT, "tests/fixtures/reference-vault/wiki");
+    const refVaultClaudeMd = join(REPO_ROOT, "skills/init/template/CLAUDE.md");
 
     const findings = checkEntityType(refVaultWiki, SCHEMA_PATH, refVaultClaudeMd);
     const membershipErrors = findings.filter(

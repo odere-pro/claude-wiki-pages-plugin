@@ -16,7 +16,7 @@
  *
  * Parity invariant (gate-05): the counts produced here must match the bash
  * CHECK 5 added to `scripts/verify-ingest.sh` on CLEAN_VAULT, DIRTY_VAULT,
- * and the reference vault `docs/vault-example/`.
+ * and the reference vault `skills/init/template/`.
  *
  * Avoid-double-flag contract:
  * - The presence check counts source *entries*, not their format. A page that

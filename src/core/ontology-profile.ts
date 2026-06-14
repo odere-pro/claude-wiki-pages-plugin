@@ -324,7 +324,7 @@ function extractExtensionsFromText(text: string): readonly string[] {
 /**
  * Parse the ontology-profile-v1 from the given schema document path.
  *
- * @param schemaPath     Path to the profile document (docs/vault-example/CLAUDE.md or vault CLAUDE.md).
+ * @param schemaPath     Path to the profile document (skills/init/template/CLAUDE.md or vault CLAUDE.md).
  * @param vaultClaudeMd  Optional path to the target vault's CLAUDE.md for
  *                       entity_type_extensions composition. Pass undefined to
  *                       suppress extension lookup (core set only).

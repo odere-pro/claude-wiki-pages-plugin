@@ -2,7 +2,7 @@
 # Tests for the ontology-profile-v1 section in the schema files.
 #
 # Behavior under test (§6 single-source + parity invariant):
-#   - docs/vault-example/CLAUDE.md contains the ontology-profile-v1 section
+#   - tests/fixtures/reference-vault/CLAUDE.md contains the ontology-profile-v1 section
 #     heading, representative predicate rows, and the entity_type enum.
 #   - skills/init/template/CLAUDE.md is in parity: same section, same rows.
 #   - The entity_type_extensions calibration mechanism is documented in both.
@@ -13,12 +13,12 @@ load '../test_helper/common'
 
 setup() {
   _load_helpers
-  VAULT_SCHEMA="$REPO_ROOT/docs/vault-example/CLAUDE.md"
+  VAULT_SCHEMA="$REPO_ROOT/tests/fixtures/reference-vault/CLAUDE.md"
   TEMPLATE_SCHEMA="$REPO_ROOT/skills/init/template/CLAUDE.md"
 }
 
 # ---------------------------------------------------------------------------
-# docs/vault-example/CLAUDE.md — section presence
+# tests/fixtures/reference-vault/CLAUDE.md — section presence
 # ---------------------------------------------------------------------------
 
 @test "ontology-profile: vault schema contains ontology-profile-v1 heading" {

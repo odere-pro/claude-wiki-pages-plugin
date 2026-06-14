@@ -28,7 +28,7 @@
  *   - Only when `entity_type:` IS present (a missing field is the
  *     required-fields check's responsibility; double-flagging is avoided).
  *
- * Gate-05 parity: the reference vault (docs/vault-example/) has only valid
+ * Gate-05 parity: the reference vault (tests/fixtures/reference-vault/) has only valid
  * entity_type values, so this check emits zero findings there. The bash
  * verify-ingest.sh does not check entity_type membership, so the parity
  * invariant (error + warning counts match) is preserved on the reference vault.
@@ -78,7 +78,7 @@ function buildEntityTypeSet(
  *
  * @param wiki         Absolute path to the vault's wiki/ directory.
  * @param schemaPath   Path to the schema document (the ontology-profile-v1
- *                     authority — typically docs/vault-example/CLAUDE.md or
+ *                     authority — typically skills/init/template/CLAUDE.md or
  *                     the vault's own CLAUDE.md when it carries the profile).
  * @param vaultClaudeMd  Path to the vault's CLAUDE.md for entity_type_extensions
  *                       composition (D15: only this key is read).
@@ -137,7 +137,7 @@ export function checkEntityType(
  * Resolve the schema path to pass to checkEntityType.
  *
  * Resolution: use `<vault>/CLAUDE.md` if it exists, otherwise fall back to the
- * bundled profile document (`docs/vault-example/CLAUDE.md` relative to the
+ * bundled profile document (`skills/init/template/CLAUDE.md` relative to the
  * package root detected from this file's location).
  *
  * This mirrors the resolution used by the `ontology` verb in src/cli/cli.ts.

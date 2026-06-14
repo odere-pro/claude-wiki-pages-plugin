@@ -197,11 +197,11 @@ teardown() {
   [ -f "${vault_dir}/CLAUDE.md" ]
 }
 
-# P1.1: When vault resolves to a RELATIVE path (e.g. docs/vault-example),
+# P1.1: When vault resolves to a RELATIVE path (e.g. tests/fixtures/reference-vault),
 # the emitted REMINDER must still use the absolute canonical path.
 @test "session-start: REMINDER is absolute even when VAULT env var is relative" {
-  # Use a relative path inside the repo to simulate the docs/vault-example case.
-  local rel_vault="docs/vault-example"
+  # Use a relative path inside the repo to simulate the tests/fixtures/reference-vault case.
+  local rel_vault="tests/fixtures/reference-vault"
   local abs_vault
   # Use realpath when available (preferred) to get the case-canonical path on
   # case-insensitive macOS filesystems.  Bash -c subshells do not always
@@ -216,7 +216,7 @@ teardown() {
   fi
 
   # Skip if the reference vault does not exist (not a blocker on minimal CI).
-  [ -d "$REPO_ROOT/$rel_vault" ] || skip "docs/vault-example not present in this checkout"
+  [ -d "$REPO_ROOT/$rel_vault" ] || skip "tests/fixtures/reference-vault not present in this checkout"
 
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'

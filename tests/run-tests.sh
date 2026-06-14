@@ -66,7 +66,7 @@ run() {
 tier0() {
   run "shellcheck" shellcheck --severity=warning --format=gcc scripts/*.sh
   run "shfmt" shfmt -d -i 2 -ci scripts/
-  run "markdownlint" markdownlint-cli2 --config .markdownlint-cli2.jsonc "**/*.md" "!node_modules" "!tmp" "!tests/test_helper" "!docs/vault-example/wiki/log.md"
+  run "markdownlint" markdownlint-cli2 --config .markdownlint-cli2.jsonc "**/*.md" "!node_modules" "!tmp" "!tests/test_helper"
   run "lychee" lychee --config .lychee.toml --no-progress .
   run "gitleaks" gitleaks detect --config .gitleaks.toml --source . --no-git --redact
   run "manifest parse" jq -e . .claude-plugin/plugin.json hooks/hooks.json

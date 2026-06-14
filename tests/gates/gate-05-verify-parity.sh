@@ -18,7 +18,7 @@ fi
 FAIL=0
 
 # ── Row 1: verify-ingest.sh vs engine verify (reference vault) ───────────────
-VAULT="docs/vault-example"
+VAULT="tests/fixtures/reference-vault"
 bash_counts="$(bash scripts/verify-ingest.sh --target "$VAULT" 2>&1 | grep -E '^(Errors|Warnings):' | grep -oE '[0-9]+' | paste -sd, -)"
 eng_counts="$(bun src/cli/cli.ts verify --target "$VAULT" --json 2>/dev/null | bun -e 'const r=JSON.parse(await Bun.stdin.text());process.stdout.write(`${r.errors},${r.warnings}`)')"
 

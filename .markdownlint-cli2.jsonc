@@ -21,8 +21,6 @@
     "tmp",
     ".claude/worktrees",
     "tests/test_helper",
-    "docs/vault-example/raw",
-    "docs/vault-example/wiki/log.md",
     ".claude/fixtures",
     // As-emitted ADR-0011 evidence: reformatting would change the scores and
     // break --verify-artifact reproduction.

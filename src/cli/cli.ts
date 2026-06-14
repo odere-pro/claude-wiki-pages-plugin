@@ -591,14 +591,14 @@ function main(): number {
   }
 
   // ontology verb — projects ontology-profile-v1 via emit()/exitCode() (ADR-0015 N6, Part C).
-  // Resolves the schema document from --target or falls back to docs/vault-example/CLAUDE.md.
+  // Resolves the schema document from --target or falls back to skills/init/template/CLAUDE.md.
   if (command === "ontology") {
     // Resolve the schema path: the vault's CLAUDE.md is both the profile document
     // (contains ontology-profile-v1) and the vault-extension source for entity_type_extensions.
     // Fall back to the bundled example vault schema when no --target is given.
     const schemaPath = target
       ? pathJoin(target.replace(/\/+$/, ""), "CLAUDE.md")
-      : pathJoin(import.meta.dir, "../../docs/vault-example/CLAUDE.md");
+      : pathJoin(import.meta.dir, "../../skills/init/template/CLAUDE.md");
     const vaultClaudeMd = target ? pathJoin(target.replace(/\/+$/, ""), "CLAUDE.md") : undefined;
     const report: OntologyReport = ontology({ schemaPath, vaultClaudeMd });
     emit(report, json);

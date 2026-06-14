@@ -91,7 +91,7 @@ setup() {
 }
 
 @test "doctor: exit 0 against the bundled example vault" {
-  export CLAUDE_WIKI_PAGES_VAULT="$REPO_ROOT/docs/vault-example"
+  export CLAUDE_WIKI_PAGES_VAULT="$REPO_ROOT/tests/fixtures/reference-vault"
 
   run bash "$REPO_ROOT/$DOCTOR"
 

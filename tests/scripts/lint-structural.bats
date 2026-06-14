@@ -7,7 +7,7 @@
 #     skeleton is flagged with a WARN.
 #   - A page containing raw HTML (<div>, <span>, <table>) is flagged with a WARN.
 #   - A fully conformant page with no raw HTML exits 0 with no WARNs.
-#   - The reference vault docs/vault-example/ passes cleanly.
+#   - The reference vault tests/fixtures/reference-vault/ passes cleanly.
 #
 # All tests run against a fresh temp vault derived from tests/fixtures/minimal-vault/.
 
@@ -17,9 +17,9 @@ setup() {
   _load_helpers
   setup_fixture_vault
   # Copy the _templates directory from vault-example so the checker can read skeletons.
-  cp -R "$REPO_ROOT/docs/vault-example/_templates" "$FIXTURE_VAULT/_templates"
+  cp -R "$REPO_ROOT/skills/init/template/_templates" "$FIXTURE_VAULT/_templates"
   # Also copy the authoritative CLAUDE.md for profile reads (needed if checker references it).
-  cp "$REPO_ROOT/docs/vault-example/CLAUDE.md" "$FIXTURE_VAULT/CLAUDE.md"
+  cp "$REPO_ROOT/skills/init/template/CLAUDE.md" "$FIXTURE_VAULT/CLAUDE.md"
 }
 
 teardown() {
@@ -262,11 +262,11 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# S2-structural: reference vault docs/vault-example/ passes cleanly
+# S2-structural: reference vault tests/fixtures/reference-vault/ passes cleanly
 # ---------------------------------------------------------------------------
 
-@test "lint-structural: reference vault docs/vault-example passes with no WARNs" {
-  run bash "$SCRIPTS_DIR/lint-structural.sh" --target "$REPO_ROOT/docs/vault-example"
+@test "lint-structural: reference vault tests/fixtures/reference-vault passes with no WARNs" {
+  run bash "$SCRIPTS_DIR/lint-structural.sh" --target "$REPO_ROOT/tests/fixtures/reference-vault"
 
   assert_success
   refute_output_contains "WARN"

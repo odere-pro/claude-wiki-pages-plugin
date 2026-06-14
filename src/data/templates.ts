@@ -2,7 +2,7 @@
  * Canonical frontmatter skeletons for the schema-v2 page types that `migrate`
  * may write into an upgrading vault's `_templates/` directory.
  *
- * These mirror the on-disk templates in `docs/vault-example/_templates/` and
+ * These mirror the on-disk templates in `skills/init/template/_templates/` and
  * `skills/init/template/_templates/` (which init copies for new vaults). The
  * migrate command embeds them so it can upgrade a v1 vault without needing to
  * locate the plugin's template directory at runtime. Keep the three copies in
