@@ -11,6 +11,7 @@ sources:
     "[[ADR-0014: Single-Source Required Fields]]",
     "[[User Guide 02: Create a New Vault]]",
     "[[Knowledge Graph Schema (CLAUDE.md)]]",
+    "[[ADR-0029: Drop docs/vault-example]]",
   ]
 related:
   [
@@ -19,11 +20,13 @@ related:
     "[[Lint Rules]]",
     "[[Hook System]]",
     "[[Folder Note]]",
+    "[[Golden Set]]",
+    "[[Parity Gate]]",
   ]
 tags: ["concept", "schema", "authority"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 6
+updated: 2026-06-15
+update_count: 7
 status: active
 confidence: 1.0
 ---
@@ -144,6 +147,15 @@ The schema lives in a markdown file rather than a structured config file for thr
 2. **The required-fields table is both human-readable and machine-parseable.** `validate-frontmatter.sh` parses the markdown table with grep/awk; humans read it as a table. No translation step.
 3. **The [[Ontology Profile v1]] tables are authoritative prose.** The instruction "read these two tables and no other source" works in a human-readable file; it would be awkward in a pure config schema.
 
+## Consolidated Home After ADR-0029
+
+ADR-0029 deleted `docs/vault-example/` and established `skills/init/template/CLAUDE.md` as the **one** schema home. Previously, `vault-example/CLAUDE.md` and its `_templates/` were byte-identical duplicates of the shipped template, kept in sync only by a parity gate.
+
+After ADR-0029:
+- `validate-frontmatter.sh`, `validate-docs.sh`, and the eval harness all read `skills/init/template/CLAUDE.md` directly.
+- Golden/parity/lint tests target `tests/fixtures/reference-vault/` — a small, schema-v3, deliberately clean vault. Its `CLAUDE.md` is pinned to the template by `ontology-profile.bats`.
+- The [[Golden Set]] moves from `docs/vault-example/` to `tests/fixtures/reference-vault/`.
+
 ## Related Concepts
 
 - [[Ontology Profile v1]] — the named ontology block within this file
@@ -151,3 +163,5 @@ The schema lives in a markdown file rather than a structured config file for thr
 - [[Ingest Pipeline]] — follows the 13-step rules in this file
 - [[Hook System]] — `validate-frontmatter.sh` parses the required-fields table from this file
 - [[Folder Note]] — the schema for per-folder index files defined in this file
+- [[Golden Set]] — the reference vault that exercises the schema (now at `tests/fixtures/reference-vault/`)
+- [[Parity Gate]] — `ontology-profile.bats` pins fixture↔template after ADR-0029

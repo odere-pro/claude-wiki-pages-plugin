@@ -12,15 +12,15 @@ aliases:
   ]
 parent: "[[Engine — Index]]"
 path: "engine"
-sources: ["[[Engine Scripts Layer (CLAUDE.md)]]", "[[firewall.ts Source]]"]
-related: ["[[Scripts Layer]]", "[[Firewall]]", "[[engine.sh]]", "[[Degraded-Mode Routing]]"]
+sources: ["[[Engine Scripts Layer (CLAUDE.md)]]", "[[firewall.ts Source]]", "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
+related: ["[[Scripts Layer]]", "[[Firewall]]", "[[engine.sh]]", "[[Degraded-Mode Routing]]", "[[Dangling Wikilink]]", "[[Parity Gate]]"]
 contradicts: []
 supersedes: []
 depends_on: []
 tags: ["concept", "engine", "scripts", "parity"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 2
+updated: 2026-06-15
+update_count: 3
 status: active
 confidence: 1.0
 ---

@@ -11,16 +11,16 @@ aliases:
   ]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources: ["[[Automation]]", "[[Engine API Skill (SKILL.md)]]"]
+sources: ["[[Automation]]", "[[Engine API Skill (SKILL.md)]]", "[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
 related:
-  ["[[Heartbeat]]", "[[Backlog]]", "[[Maintenance Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
+  ["[[Heartbeat]]", "[[Backlog]]", "[[Maintenance Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Scheduled Upkeep]]", "[[Parallel Extract]]"]
 contradicts: []
 supersedes: []
 depends_on: []
 tags: ["concept", "reference", "automation", "maintenance"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 2
+updated: 2026-06-15
+update_count: 3
 status: active
 confidence: 1.0
 ---
@@ -106,6 +106,15 @@ Off by default. Enable when the vault has frequent source additions and the user
 
 The maintenance loop is not the same as the ingest pipeline step-by-step execution. The maintenance loop runs all four phases as a single bounded operation. The orchestrator can also run the individual phases on demand (e.g., run only ingest without lint) when the user invokes specific commands.
 
+## Scheduled (Unattended) Execution (ADR-0026)
+
+[[Scheduled Upkeep]] extends the maintenance loop with a host-owned, hands-off execution path. `scripts/maintenance-run.sh` is the thin wrapper a host OS/cloud cron invokes. The plugin ships no durable cron of its own.
+
+When `maintenance.unattended: true`, the loop enforces a strict subset of the interactive pipeline:
+- Step 3 Optimize is always hard-skipped (non-trivial restructures require human interaction)
+- Uncertain output (`derived:true` OR `confidence<0.8`) routes to `_proposed/`, never auto-promoted
+- A non-trivial topic-tree plan aborts with an `ingest-aborted` log entry
+
 ## Related Concepts
 
 - [[Heartbeat]] — the SessionStart probe that detects backlog and recommends running the maintenance loop
@@ -113,3 +122,5 @@ The maintenance loop is not the same as the ingest pipeline step-by-step executi
 - [[Maintenance Agent]] — the agent that orchestrates the four-phase maintenance loop
 - [[Ingest Agent]] — Phase 1 of the maintenance loop
 - [[Curator Agent]] — Phase 2 of the maintenance loop
+- [[Scheduled Upkeep]] — the host-owned scheduling path for unattended runs
+- [[Parallel Extract]] — optional performance enhancement for the ingest phase

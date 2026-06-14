@@ -15,6 +15,7 @@ sources:
     "[[engine.sh Source]]",
     "[[Engine API Skill (SKILL.md)]]",
     "[[verify.ts Source]]",
+    "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]",
   ]
 related:
   [
@@ -30,11 +31,13 @@ related:
     "[[Scripts Layer]]",
     "[[engine.sh]]",
     "[[cli.ts]]",
+    "[[Dangling Wikilink]]",
+    "[[Shell-TS Parity]]",
   ]
 tags: ["tool", "engine"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 6
+updated: 2026-06-15
+update_count: 7
 
 status: active
 confidence: 1.0

@@ -13,6 +13,8 @@ sources:
     "[[User Guide 03: Update Existing Vault]]",
     "[[Operations Guide]]",
     "[[Ingest Agent Source]]",
+    "[[ADR-0024: Host-Project Intake]]",
+    "[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]",
   ]
 related:
   [
@@ -23,11 +25,13 @@ related:
     "[[Git Checkpoint]]",
     "[[Entity Distribution Model]]",
     "[[Agent Tool Restriction]]",
+    "[[Host-Project Intake]]",
+    "[[Parallel Extract]]",
   ]
 tags: ["agent", "ingest"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 6
+updated: 2026-06-15
+update_count: 7
 status: active
 confidence: 1.0
 ---
@@ -126,6 +130,14 @@ After a successful ingest, the [[Orchestrator Agent]] fans out the [[Polish Agen
 3. Reconcile every folder note's `children`/`child_indexes` against actual filesystem siblings.
 
 The polish agent runs in parallel with the final-report compose step, so ingest success is reported immediately and polish runs concurrently.
+
+## Recursive Enumeration Fix (ADR-0024)
+
+Previously, the ingest agent enumerated `raw/` with a top-level glob (`raw/*.md`), which missed sources wired into nested subdirectories (`raw/wired/<name>/`). The agent now reads pending sources from `engine.sh backlog --json` (`.pendingRaw[]`) — already recursive, `assets/`-excluded, and log/manifest-deduped. The bash fallback is `find` (recursive), never a top-level glob. This makes the [[Host-Project Intake]] flow work end-to-end.
+
+## Parallel Extract (ADR-0026)
+
+When `maintenance.maxParallelExtract > 1`, the ingest agent fans out read-only extract workers (`claude-wiki-pages-extract-worker-agent`, `tools: Read, Glob, Grep` only). Workers return a typed EXTRACT envelope; a **single sequential writer** owns all dedup, page creation, and `wiki/log.md` append. Output is byte-identical at `maxParallelExtract=1` (the default). See [[Parallel Extract]] for the full contract.
 
 ## Durable-Memory Carve-Out (ADR-0010)
 

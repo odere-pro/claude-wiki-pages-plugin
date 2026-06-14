@@ -330,3 +330,20 @@ Moved 67 pages out of 4 legacy folders (architecture/22, decisions/20, guides/13
 - pre-state: bfcd4eb
 - rollback: git revert the snapshot commit below
 
+## [2026-06-15] ingest | ADRs 0024, 0026, 0027, 0028, 0029 — host-project intake, parallel extract, fill-gaps, dangling-wikilink verify, drop vault-example
+
+Processed 5 new ADRs from `docs/adr/` (not previously in `raw/`):
+- ADR-0024: Host-Project Intake (recursive enumeration fix + first-class intake flow)
+- ADR-0026: Bounded Parallel Extract and Scheduled Upkeep
+- ADR-0027: Fill-Gaps Capability and Graph-Quality Detector
+- ADR-0028: Dangling-Wikilink WARN Check in Verify (WARN-tier parity gate)
+- ADR-0029: Drop docs/vault-example (schema authority → skills/init/template)
+
+New sources: [[ADR-0024: Host-Project Intake]], [[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]], [[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]], [[ADR-0028: Dangling-Wikilink WARN Check in Verify]], [[ADR-0029: Drop docs/vault-example]]
+
+New concept pages (6): [[Host-Project Intake]], [[Parallel Extract]], [[Scheduled Upkeep]], [[Fill-Gaps Skill]], [[Graph Quality]], [[Dangling Wikilink]], [[Node Concentration]]
+
+Updated existing pages (7): [[Ingest Agent]] (sources+, update_count 6→7), [[Maintenance Loop]] (sources+, update_count 2→3), [[Schema Authority]] (sources+, update_count 6→7), [[Deterministic Engine]] (sources+, update_count 6→7), [[Golden Set]] (sources+, update_count 3→4), [[Shell-TS Parity]] (sources+, update_count 2→3), [[Wired Source]] (sources+, update_count 2→3)
+
+Updated structural files: `wiki/how-it-works/how-it-works.md` (children+6), `wiki/plugin/plugin.md` (children+1), `wiki/index.md` (new pages + 5 new ADR source summaries)
+

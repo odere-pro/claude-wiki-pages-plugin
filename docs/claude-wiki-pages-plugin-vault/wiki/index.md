@@ -24,13 +24,13 @@ Master catalog of every page in this wiki. The wiki covers the `claude-wiki-page
 
 ## Topic Clusters
 
-- [[plugin]] — the plugin itself, agents, four-layer stack, hooks, orchestration, slash commands, marketplace/manifest, git-checkpoint (27 pages)
-- [[engine]] — Bun engine, verify/heal/fix/search/snapshot/route/migrate, search score, graph traversal, stemming, vocabulary, firewall, determinism (27 pages)
+- [[plugin]] — the plugin itself, agents, four-layer stack, hooks, orchestration, slash commands, marketplace/manifest, git-checkpoint, parallel-extract (28 pages)
+- [[engine]] — Bun engine, verify/heal/fix/search/snapshot/route/migrate, search score, graph traversal, stemming, vocabulary, firewall, determinism, dangling-wikilink check (27 pages)
 - [[wiki-pages]] — page schema, page types, templates, frontmatter, provenance, sources, ingest pipeline, folder notes, lint rules, query rules (17 pages)
 - [[llm]] — local models, Ollama, offline policy, NO-RAG / wiki-native recall, fabrication floor, drafting, Software 3.0, local-model quality gate (15 pages)
 - [[obsidian]] — graph view, graph colors, wiki-only graph, obsidian experience, wikilinks, .obsidian config, folder-notes-and-graph-quality (7 pages)
 - [[knowledge-graph]] — ontology profile, predicate domain/range, how the graph is formed, the Knowledge Graph concept (6 pages)
-- [[how-it-works]] — end-to-end flow, onboarding, getting-started, maintenance loop, sync, status/dashboard, scaffolding ablation, lifecycle (16 pages)
+- [[how-it-works]] — end-to-end flow, onboarding, getting-started, maintenance loop, sync, status/dashboard, scaffolding ablation, lifecycle, host-project intake, fill-gaps, graph quality (22 pages)
 
 ## Hub Pages
 
@@ -50,7 +50,7 @@ These topic hub pages are the graph concentration points — each orients a majo
 
 ## Plugin Pages
 
-[[claude-wiki-pages (Plugin)]] · [[Four-Layer Stack]] · [[Hook System]] · [[Orchestrator Agent]] · [[Ingest Agent]] · [[Curator Agent]] · [[Analyst Agent]] · [[Polish Agent]] · [[Maintenance Agent]] · [[Git Checkpoint]] · [[Brainstorming Team]] · [[Engineering Team]] · [[Design Diagrams]] · [[Design-Drift Gate]] · [[Parity Gate]] · [[Plugin Arm]] · [[Multi-Vault Registry]] · [[Plugin Manifest]] · [[Agent Contract Table]] · [[Agent Tool Restriction]] · [[Single-Pass Dispatch]] · [[Plugin Dev-Time vs Runtime]]
+[[claude-wiki-pages (Plugin)]] · [[Four-Layer Stack]] · [[Hook System]] · [[Orchestrator Agent]] · [[Ingest Agent]] · [[Curator Agent]] · [[Analyst Agent]] · [[Polish Agent]] · [[Maintenance Agent]] · [[Git Checkpoint]] · [[Brainstorming Team]] · [[Engineering Team]] · [[Design Diagrams]] · [[Design-Drift Gate]] · [[Parity Gate]] · [[Plugin Arm]] · [[Multi-Vault Registry]] · [[Plugin Manifest]] · [[Agent Contract Table]] · [[Agent Tool Restriction]] · [[Single-Pass Dispatch]] · [[Plugin Dev-Time vs Runtime]] · [[Parallel Extract]]
 
 ## Engine Pages
 
@@ -74,7 +74,7 @@ These topic hub pages are the graph concentration points — each orients a majo
 
 ## How It Works Pages
 
-[[Sync Skill]] · [[Wired Source]] · [[Sync Workflow]] · [[sync-source.sh]] · [[Vault Lifecycle]] · [[Architecture Decision Record]] · [[Baseline Arm]] · [[Scaffolding Ablation]] · [[Challenge Mode]] · [[Onboarding Wizard]] · [[Time-to-First-Value]] · [[Backlog]] · [[Doctor Command]] · [[Heartbeat]] · [[Installation]] · [[Maintenance Loop]]
+[[Sync Skill]] · [[Wired Source]] · [[Sync Workflow]] · [[sync-source.sh]] · [[Vault Lifecycle]] · [[Architecture Decision Record]] · [[Baseline Arm]] · [[Scaffolding Ablation]] · [[Challenge Mode]] · [[Onboarding Wizard]] · [[Time-to-First-Value]] · [[Backlog]] · [[Doctor Command]] · [[Heartbeat]] · [[Installation]] · [[Maintenance Loop]] · [[Host-Project Intake]] · [[Scheduled Upkeep]] · [[Fill-Gaps Skill]] · [[Graph Quality]] · [[Dangling Wikilink]] · [[Node Concentration]]
 
 ## Source Summaries
 
@@ -82,7 +82,7 @@ One summary per ingested raw source. See individual source pages for full contex
 
 ### ADR Source Summaries
 
-[[ADR-0001: Four-Layer Orchestrator]] · [[ADR-0002: Agent Naming Convention]] · [[ADR-0003: Polish Agent and Obsidian-Side Experience]] · [[ADR-0004: Ontology Profile v1]] · [[ADR-0005: Git Required Per-Vault Init]] · [[ADR-0006: One Search Score Object]] · [[ADR-0007: Wiki-Native Recall]] · [[ADR-0008: One Graph-Traversal Primitive]] · [[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]] · [[ADR-0010: Durable-Memory Carve-Out]] · [[ADR-0011: Local-Model Quality Gate]] · [[ADR-0012: Vault Merge Conflict Resolution]] · [[ADR-0013: Design-Drift Gate]] · [[ADR-0014: Single-Source Required Fields]] · [[ADR-0015: Engine Self-Description Surfaces]] · [[ADR-0016: Simultaneous Multi-Vault Management]] · [[ADR-0017: Fabrication Floor — Verbatim Partition]] · [[ADR-0018: Offline Policy and Degraded-Mode Routing]] · [[ADR-0019: Query Tier and Answer Verification]] · [[ADR-0020: The Scaffolding Ablation]] · [[ADR-0022: Folder Notes and Graph Quality]] · [[ADR-0023: Wiki-Only Graph]] · [[ADR Index]]
+[[ADR-0001: Four-Layer Orchestrator]] · [[ADR-0002: Agent Naming Convention]] · [[ADR-0003: Polish Agent and Obsidian-Side Experience]] · [[ADR-0004: Ontology Profile v1]] · [[ADR-0005: Git Required Per-Vault Init]] · [[ADR-0006: One Search Score Object]] · [[ADR-0007: Wiki-Native Recall]] · [[ADR-0008: One Graph-Traversal Primitive]] · [[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]] · [[ADR-0010: Durable-Memory Carve-Out]] · [[ADR-0011: Local-Model Quality Gate]] · [[ADR-0012: Vault Merge Conflict Resolution]] · [[ADR-0013: Design-Drift Gate]] · [[ADR-0014: Single-Source Required Fields]] · [[ADR-0015: Engine Self-Description Surfaces]] · [[ADR-0016: Simultaneous Multi-Vault Management]] · [[ADR-0017: Fabrication Floor — Verbatim Partition]] · [[ADR-0018: Offline Policy and Degraded-Mode Routing]] · [[ADR-0019: Query Tier and Answer Verification]] · [[ADR-0020: The Scaffolding Ablation]] · [[ADR-0022: Folder Notes and Graph Quality]] · [[ADR-0023: Wiki-Only Graph]] · [[ADR-0024: Host-Project Intake]] · [[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]] · [[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]] · [[ADR-0028: Dangling-Wikilink WARN Check in Verify]] · [[ADR-0029: Drop docs/vault-example]] · [[ADR Index]]
 
 ### Design Doc Source Summaries
 

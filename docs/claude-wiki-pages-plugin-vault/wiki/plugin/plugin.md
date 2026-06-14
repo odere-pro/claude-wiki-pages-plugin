@@ -27,10 +27,11 @@ children:
   - "[[Parity Gate]]"
   - "[[Plugin Arm]]"
   - "[[Multi-Vault Registry]]"
+  - "[[Parallel Extract]]"
 child_indexes: []
 tags: ["plugin", "architecture", "agents"]
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 ---
 
 # claude-wiki-pages Plugin
