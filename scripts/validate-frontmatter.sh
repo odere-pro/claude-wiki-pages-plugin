@@ -6,12 +6,12 @@
 #
 # Required-field rules are single-sourced from the "### Required fields by type"
 # table in a CLAUDE.md schema (ADR-0014 Part A, amended). There is ONE table,
-# authored once and mirrored dev↔runtime (docs/vault-example/CLAUDE.md and
+# authored once and mirrored dev↔runtime (
 # skills/init/template/CLAUDE.md), kept in parity by tests/scripts/ontology-profile.bats.
 # Resolution order (first match wins):
 #   1. <vault>/CLAUDE.md table — if the heading AND data rows are present.
 #   2. The bundled runtime template skills/init/template/CLAUDE.md (script-relative)
-#      — if <vault>/CLAUDE.md has no such heading (or no CLAUDE.md). docs/vault-example/
+#      — if <vault>/CLAUDE.md has no such heading (or no CLAUDE.md). skills/init/template/
 #      is dev-only and not shipped at runtime, so the fallback points at the shipped
 #      template. This handles eval fixtures and pre-table vaults. No third inline copy.
 # Fail-CLOSED only when a table heading is PRESENT but zero data rows parse
@@ -108,7 +108,7 @@ _SCHEMA_FILE="${VAULT}/CLAUDE.md"
 # table source when <vault>/CLAUDE.md has no "### Required fields by type"
 # heading (eval fixtures, pre-table vaults, isolated test repos). This is the
 # SAME table parser applied to the bundled template — no third inline copy to
-# drift. skills/ ships at runtime; docs/vault-example/ does not.
+# drift. skills/ ships at runtime; the docs example does not.
 _BUNDLED_SCHEMA="$(dirname "$0")/../skills/init/template/CLAUDE.md"
 
 # _schema_has_table <file>

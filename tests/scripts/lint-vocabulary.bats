@@ -8,7 +8,7 @@
 #      re-run with --min-tag-usage 1 → singleton NOT flagged (named constant, not magic number).
 #   3. Fully-unreferenced group: ALL forms absent from the wiki → status 1,
 #      names the group ONCE by its canonical form (not one line per variant).
-#   4. Clean/no-false-positive: reference vault docs/vault-example verbatim →
+#   4. Clean/no-false-positive: reference vault tests/fixtures/reference-vault verbatim →
 #      assert_success, no WARN.
 #      Absent-_vocabulary.md case → assert_success + info line.
 #   5. Determinism: same injected vault run twice → byte-identical output.
@@ -182,13 +182,13 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
-# Case 4a: Clean — reference vault docs/vault-example passes with no WARNs.
-# The vocabulary in docs/vault-example/_vocabulary.md has all groups
+# Case 4a: Clean — reference vault tests/fixtures/reference-vault passes with no WARNs.
+# The vocabulary in tests/fixtures/reference-vault/_vocabulary.md ships empty (groups: [])
 # referenced in the wiki (ensured by the curated vocabulary file there).
 # ---------------------------------------------------------------------------
 
-@test "lint-vocabulary: reference vault docs/vault-example passes with no WARNs" {
-  run bash "$SCRIPTS_DIR/lint-vocabulary.sh" --target "$REPO_ROOT/docs/vault-example"
+@test "lint-vocabulary: reference vault tests/fixtures/reference-vault passes with no WARNs" {
+  run bash "$SCRIPTS_DIR/lint-vocabulary.sh" --target "$REPO_ROOT/tests/fixtures/reference-vault"
 
   assert_success
   refute_output_contains "WARN"

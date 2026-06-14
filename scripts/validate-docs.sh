@@ -72,7 +72,7 @@ SEO_EXEMPT=(
 # raw/ is already exempted per-check.)
 ls_prose() {
   git ls-files -- "$@" 2>/dev/null |
-    grep -vE '^docs/vault/|^docs/claude-wiki-pages-plugin-vault/|(^|/)\.obsidian/|^docs/vault-example/raw/' || true
+    grep -vE '^docs/vault/|^docs/claude-wiki-pages-plugin-vault/|(^|/)\.obsidian/' || true
 }
 
 # ─── Patterns ────────────────────────────────────────────────────────────────
@@ -302,7 +302,7 @@ fi
 #        counts must match reality.
 #   5e — authority presence: each scanned doc must carry ≥1 resolvable link to
 #        an authority surface (CLAUDE.md, docs/architecture.md,
-#        docs/vault-example/CLAUDE.md, hooks/hooks.json,
+#        skills/init/template/CLAUDE.md, hooks/hooks.json,
 #        .claude-plugin/plugin.json, docs/adr/).
 #   5f — router parity: every row in SOFTWARE-3-0.md's "Six surfaces" table must
 #        have non-empty human AND agent cells, with all links resolving.
@@ -698,7 +698,7 @@ else
   # ── 5g: ontology predicate-node grounding ────────────────────────────────────
   # Gated on docs/design/07-ontology.md being tracked.
   # Extracts predicate names from the ontology-profile-v1 predicate table in
-  # docs/vault-example/CLAUDE.md (the "|`predicate`|..." rows), then extracts
+  # skills/init/template/CLAUDE.md (the "|`predicate`|..." rows), then extracts
   # every edge-label token from mermaid fences in 07-ontology.md (the |label|
   # form used by mermaid graph edges), and asserts every diagram predicate label
   # exists in the grep-extracted authoritative set.
@@ -717,10 +717,10 @@ else
         tok=substr($0, RSTART+1, RLENGTH-2)
         print tok
       }
-    ' docs/vault-example/CLAUDE.md 2>/dev/null | sort -u || true)
+    ' skills/init/template/CLAUDE.md 2>/dev/null | sort -u || true)
 
     if [ -z "$_AUTHORITY_PREDICATES" ]; then
-      warn "5g: could not extract predicates from docs/vault-example/CLAUDE.md — skipping predicate-node grounding"
+      warn "5g: could not extract predicates from skills/init/template/CLAUDE.md — skipping predicate-node grounding"
     else
       # Extract edge-label tokens from mermaid fences in 07-ontology.md.
       # Mermaid graph edges with labels look like:  NodeA -->|label| NodeB
@@ -735,7 +735,7 @@ else
       while IFS= read -r pred; do
         [ -z "$pred" ] && continue
         if ! printf '%s\n' "$_AUTHORITY_PREDICATES" | grep -qxF "$pred"; then
-          err "5g: predicate node '$pred' in $ONTOLOGY_DOC is absent from the ontology-profile-v1 predicate table in docs/vault-example/CLAUDE.md"
+          err "5g: predicate node '$pred' in $ONTOLOGY_DOC is absent from the ontology-profile-v1 predicate table in skills/init/template/CLAUDE.md"
           PRED_HITS=$((PRED_HITS + 1))
         fi
       done <<<"$_DIAGRAM_PREDICATES"

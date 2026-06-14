@@ -27,7 +27,7 @@ registry.
 /claude-wiki-pages:init
 ```
 
-The third command runs the **onboarding wizard**, which scaffolds a vault by copying [`docs/vault-example/`](./vault-example/), smoke-tests the install, and prints the next three things to do. Walkthrough: [`docs/llm-wiki/01-getting-started.md`](./llm-wiki/01-getting-started.md).
+The third command runs the **onboarding wizard**, which scaffolds a vault by copying [`skills/init/template/`](../skills/init/template/), smoke-tests the install, and prints the next three things to do. Walkthrough: [`docs/llm-wiki/01-getting-started.md`](./llm-wiki/01-getting-started.md).
 
 ## Local — contributors and forks
 

@@ -4,11 +4,11 @@ This directory holds the immutable inputs the Bats and smoke tests consume: a cl
 
 ## `minimal-vault/`
 
-The canonical clean fixture vault: a tiny but fully schema-compliant tree (about 8 files) that mirrors the shape of `docs/vault-example/` while keeping every file to the minimum content needed to pass [`../../scripts/verify-ingest.sh`](../../scripts/verify-ingest.sh).
+The canonical clean fixture vault: a tiny but fully schema-compliant tree (about 8 files) that mirrors the shape of `skills/init/template/` while keeping every file to the minimum content needed to pass [`../../scripts/verify-ingest.sh`](../../scripts/verify-ingest.sh).
 
 ```text
 minimal-vault/
-├── CLAUDE.md                 # schema header (the authoritative schema is docs/vault-example/CLAUDE.md)
+├── CLAUDE.md                 # schema header (the authoritative schema is skills/init/template/CLAUDE.md)
 ├── raw/sample.md             # immutable source
 ├── output/example-export.md  # an export sample
 └── wiki/
@@ -20,7 +20,7 @@ minimal-vault/
         └── sample-entity.md
 ```
 
-Every wiki file carries full schema-compliant frontmatter, sources use `[[wikilink]]` syntax, and each folder's index file (the folder note `topics/topics.md`) agrees with its contents, so `verify-ingest.sh` returns `0`. Tests that need to mutate the vault call `setup_fixture_vault`, which copies the tree to a Bats tmpdir and exports `$FIXTURE_VAULT`; the source under `minimal-vault/` stays pristine. Treat it as a test input, not reference documentation — the authoritative schema lives in [`../../docs/vault-example/CLAUDE.md`](../../docs/vault-example/CLAUDE.md).
+Every wiki file carries full schema-compliant frontmatter, sources use `[[wikilink]]` syntax, and each folder's index file (the folder note `topics/topics.md`) agrees with its contents, so `verify-ingest.sh` returns `0`. Tests that need to mutate the vault call `setup_fixture_vault`, which copies the tree to a Bats tmpdir and exports `$FIXTURE_VAULT`; the source under `minimal-vault/` stays pristine. Treat it as a test input, not reference documentation — the authoritative schema lives in [`../../skills/init/template/CLAUDE.md`](../../skills/init/template/CLAUDE.md).
 
 ## `json/`
 

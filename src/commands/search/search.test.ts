@@ -798,7 +798,7 @@ const matchComponentComparatorFull = matchComponentComparator;
 // Synonym channel — reachability AND precision regression guard (D2).
 //
 // These tests run against a SANDBOX fixture, not the reference vault. The
-// reference vault (docs/vault-example) ships `groups: []` on purpose — this
+// reference vault (tests/fixtures/reference-vault) ships `groups: []` on purpose — this
 // small meta-vault has no term pair that clears every curation rule, so a
 // reference assertion would either be vacuous or force a bad group. The engine's
 // synonym channel still needs a regression guard, so we construct a synthetic
@@ -932,7 +932,7 @@ groups:
 // The reference vault ships an empty lexicon; assert that contract directly so a
 // future accidental re-introduction of a group is a deliberate, reviewed change.
 describe("reference vault — synonym lexicon present and currently empty", () => {
-  const REFERENCE_VAULT = join(import.meta.dir, "..", "..", "..", "docs", "vault-example");
+  const REFERENCE_VAULT = join(import.meta.dir, "..", "..", "..", "tests", "fixtures", "reference-vault");
 
   test("the reference vault and its _vocabulary.md exist", () => {
     expect(existsSync(REFERENCE_VAULT)).toBe(true);

@@ -4,7 +4,7 @@ This directory holds the ADRs for `claude-wiki-pages`. Each ADR captures the **r
 system-design decision: what was decided, the alternatives that were weighed, and the conditions
 under which the decision should be revisited. The _contracts_ themselves live in the documents that
 own them — [`architecture.md`](../architecture.md) (the four-layer model and command/agent
-contracts) and [`vault-example/CLAUDE.md`](../vault-example/CLAUDE.md) (the schema). ADRs explain
+contracts) and [`skills/init/template/CLAUDE.md`](../../skills/init/template/CLAUDE.md) (the schema). ADRs explain
 _why_ a particular path was taken; they are not the spec.
 
 ## Index

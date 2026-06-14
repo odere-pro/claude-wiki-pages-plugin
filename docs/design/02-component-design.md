@@ -3,7 +3,7 @@
 > Zoom into the layers. Components are real files; patterns are the recurring shapes that keep
 > the system coherent. Authority: [`docs/architecture.md`](../architecture.md),
 > [`hooks/hooks.json`](../../hooks/hooks.json), the schema in
-> [`docs/vault-example/CLAUDE.md`](../vault-example/CLAUDE.md).
+> [`skills/init/template/CLAUDE.md`](../../skills/init/template/CLAUDE.md).
 
 ## Orchestration components (Layer 4) — hooks → scripts
 

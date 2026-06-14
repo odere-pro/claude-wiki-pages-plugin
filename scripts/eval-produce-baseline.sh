@@ -141,7 +141,7 @@ produce_baseline_ingest() { # $1 = model, $2 = case
 BASELINE-ARM candidate (scaffolding ablation, ADR-0020) of
 tests/eval/ingest-extract/cases/$case_name/input.md produced by $model via
 scripts/eval-produce-baseline.sh — generic prompt, no schema/provenance
-contract. The authoritative schema lives in docs/vault-example/CLAUDE.md.
+contract. The authoritative schema lives in skills/init/template/CLAUDE.md.
 EOF
 
   printf '%s\n' "$content" | parse_response "$case_out" ||

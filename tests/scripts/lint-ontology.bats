@@ -19,7 +19,7 @@ setup() {
   setup_fixture_vault
   # Copy vault-example/CLAUDE.md (which has ontology-profile-v1) into the fixture vault
   # so the checker has a real profile to parse.
-  cp "$REPO_ROOT/docs/vault-example/CLAUDE.md" "$FIXTURE_VAULT/CLAUDE.md"
+  cp "$REPO_ROOT/skills/init/template/CLAUDE.md" "$FIXTURE_VAULT/CLAUDE.md"
 }
 
 teardown() {
@@ -239,8 +239,8 @@ EOF
 # S1-check: reference vault passes cleanly
 # ---------------------------------------------------------------------------
 
-@test "lint-ontology: reference vault docs/vault-example passes with no WARNs" {
-  run bash "$SCRIPTS_DIR/lint-ontology.sh" --target "$REPO_ROOT/docs/vault-example"
+@test "lint-ontology: reference vault tests/fixtures/reference-vault passes with no WARNs" {
+  run bash "$SCRIPTS_DIR/lint-ontology.sh" --target "$REPO_ROOT/tests/fixtures/reference-vault"
 
   assert_success
   refute_output_contains "WARN"

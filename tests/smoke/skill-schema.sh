@@ -103,7 +103,7 @@ sources_entries() {
 
 TMP_VAULT="$(mktemp -d -t skill-schema-smoke.XXXXXX)"
 trap 'rm -rf "$TMP_VAULT"' EXIT
-cp -R "$REPO_ROOT/docs/vault-example/." "$TMP_VAULT/"
+cp -R "$REPO_ROOT/tests/fixtures/reference-vault/." "$TMP_VAULT/"
 echo "[smoke] Scratch vault: $TMP_VAULT"
 
 # STUB: invoke each skill via `claude -p`. Fill in during Phase E.

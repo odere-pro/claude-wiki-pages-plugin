@@ -32,18 +32,18 @@ is the resolved vault's `CLAUDE.md`, surfaced by [`scripts/session-start.sh`](./
 | **Tools** | [docs/operations.md](./docs/operations.md) (the verbs), `/claude-wiki-pages:wiki` | [`skills/engine-api`](./skills/engine-api/SKILL.md) (engine subcommands, `--json`, exit codes) |
 | **Design** | [docs/architecture.md](./docs/architecture.md) (the four-layer stack), [docs/design/](./docs/design/README.md) (diagrams, multi-zoom) | [docs/design/](./docs/design/README.md) (mermaid source) + per-skill / per-agent frontmatter contracts |
 | **System design** | [docs/adr/](./docs/adr/README.md) (decisions), [docs/teams.md](./docs/teams.md) (who builds what), [docs/design/06-feature-relations.md](./docs/design/06-feature-relations.md) | [schemas/](./schemas/) + [hooks/hooks.json](./hooks/hooks.json) + [.claude-plugin/plugin.json](./.claude-plugin/plugin.json) |
-| **Context** | [docs/vault-example/CLAUDE.md](./docs/vault-example/CLAUDE.md#ontology-profile-ontology-profile-v1) (the schema, `ontology-profile-v1`) | same schema + [`skills/maintain-contract`](./skills/maintain-contract/SKILL.md) (what to read before acting) |
+| **Context** | [skills/init/template/CLAUDE.md](./skills/init/template/CLAUDE.md#ontology-profile-ontology-profile-v1) (the schema, `ontology-profile-v1`) | same schema + [`skills/maintain-contract`](./skills/maintain-contract/SKILL.md) (what to read before acting) |
 | **Memory** | [docs/adr/ADR-0010-durable-memory-carve-out.md](./docs/adr/ADR-0010-durable-memory-carve-out.md), the vault `wiki/log.md` | [`scripts/session-memory.sh`](./scripts/session-memory.sh) (`source_type: agent-session` provenance) |
 
 ## Authoring — one path, both writers
 
 A person and an agent author the **same** way: a typed template
-([docs/vault-example/_templates/](./docs/vault-example/_templates/)) →
+([skills/init/template/_templates/](./skills/init/template/_templates/)) →
 [`skills/draft`](./skills/draft/SKILL.md) writes to `_proposed/` →
 [`skills/review`](./skills/review/SKILL.md) gates promotion into `wiki/`. Nothing reaches the
 wiki unreviewed. The ontology a page must conform to (named classes, frontmatter properties,
 typed predicates) is the `ontology-profile-v1` contract in
-[docs/vault-example/CLAUDE.md](./docs/vault-example/CLAUDE.md) — read it, do not fork it.
+[skills/init/template/CLAUDE.md](./skills/init/template/CLAUDE.md) — read it, do not fork it.
 
 ## Secure & traceable by construction
 

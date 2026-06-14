@@ -2,7 +2,7 @@
  * P3.3 acceptance tests — `engine ontology --json`
  *
  * One parser home at src/commands/ontology/ that regex-parses the
- * ontology-profile-v1 markdown tables in docs/vault-example/CLAUDE.md at
+ * ontology-profile-v1 markdown tables in skills/init/template/CLAUDE.md at
  * read time, composes entity_type = core ∪ per-vault entity_type_extensions,
  * and emits predicates with extensible:false. (ADR-0015 N6, Part C.)
  *
@@ -34,7 +34,7 @@ import { exitCode } from "../../src/core/report.ts";
 
 // Resolve the canonical schema path — the single authority.
 const REPO_ROOT = join(import.meta.dir, "../..");
-const SCHEMA_PATH = join(REPO_ROOT, "docs/vault-example/CLAUDE.md");
+const SCHEMA_PATH = join(REPO_ROOT, "skills/init/template/CLAUDE.md");
 
 // ── 1. enums.type — page-type enum in document order ─────────────────────────
 
@@ -181,7 +181,7 @@ describe("ontology -- predicates", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("parse failed — test cannot continue");
-    // The predicate domain→range table in docs/vault-example/CLAUDE.md has 11 rows:
+    // The predicate domain→range table in skills/init/template/CLAUDE.md has 11 rows:
     // parent, sources, related, contradicts, supersedes, depends_on,
     // key_pages, members, scope, children, child_indexes
     expect(result.manifest.predicates).toHaveLength(11);
