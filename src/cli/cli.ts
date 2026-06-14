@@ -102,6 +102,39 @@ export function capabilitiesReport(): CapabilitiesReport {
   return Object.freeze({ ...base, manifest: Object.freeze(manifest) });
 }
 
+// ── Value-objects for constrained string fields (A01 — encapsulation) ─────────
+//
+// Raw strings standing in for a constrained domain concept are replaced by
+// explicit union types. These are value-objects: they carry no methods, only a
+// type constraint that the compiler enforces at every call site, preventing
+// invalid enum values from leaking into command handlers.
+
+/**
+ * Ollama reachability status, as reported by scripts/reachability.sh.
+ * "unprobed" is the default when the flag is omitted — the router treats it
+ * as "not up" (conservative / Claude-favouring fallback).
+ */
+export type OllamaStatus = "up" | "down" | "unprobed";
+
+/**
+ * Claude API reachability status, as reported by scripts/reachability.sh.
+ * "unprobed" is the default when the flag is omitted — the router treats it
+ * as "reachable" (conservative / Claude-favouring fallback, ADR-0018).
+ */
+export type ClaudeStatus = "reachable" | "unreachable" | "unprobed";
+
+/** Parse a raw --ollama flag value into the typed OllamaStatus value-object. */
+function parseOllamaStatus(raw: string | undefined): OllamaStatus {
+  if (raw === "up" || raw === "down") return raw;
+  return "unprobed";
+}
+
+/** Parse a raw --claude flag value into the typed ClaudeStatus value-object. */
+function parseClaudeStatus(raw: string | undefined): ClaudeStatus {
+  if (raw === "reachable" || raw === "unreachable") return raw;
+  return "unprobed";
+}
+
 interface ParsedArgs {
   readonly command: string | undefined;
   readonly sub: string | undefined;
@@ -122,76 +155,189 @@ interface ParsedArgs {
   readonly graph: boolean;
   /** S3 cross-vault: colon-separated list of other registered vault roots. */
   readonly otherVaults: string | undefined;
-  /** route: Ollama reachability ("up" | "down" | "unprobed") from the probe. */
-  readonly ollama: string | undefined;
-  /** route: Claude API reachability ("reachable" | "unreachable" | "unprobed"). */
-  readonly claude: string | undefined;
+  /** route: Ollama reachability value-object (OllamaStatus). */
+  readonly ollama: OllamaStatus;
+  /** route: Claude API reachability value-object (ClaudeStatus). */
+  readonly claude: ClaudeStatus;
   /** snapshot: operation id stamped into the commit message. */
   readonly op: string | undefined;
   /** snapshot post: human-readable label for the committed write phase. */
   readonly label: string | undefined;
 }
 
+/**
+ * Builder for ParsedArgs — accumulates flag values from a left-to-right argv
+ * scan and produces a frozen ParsedArgs. Tames assembly of the 17-field struct
+ * and ensures value-object constructors (OllamaStatus, ClaudeStatus) are the
+ * single parse point — invalid raw strings never escape into command handlers.
+ *
+ * A01 corrective pattern: Builder + value-object (encapsulation).
+ */
+class ParsedArgsBuilder {
+  private command: string | undefined = undefined;
+  private sub: string | undefined = undefined;
+  private json = false;
+  private target: string | undefined = undefined;
+  private help = false;
+  private fixFlag = false;
+  private strict = false;
+  private write = false;
+  private file: string | undefined = undefined;
+  private type: string | undefined = undefined;
+  private folder: string | undefined = undefined;
+  private tag: string | undefined = undefined;
+  private graph = false;
+  private otherVaults: string | undefined = undefined;
+  private rawOllama: string | undefined = undefined;
+  private rawClaude: string | undefined = undefined;
+  private op: string | undefined = undefined;
+  private label: string | undefined = undefined;
+
+  setJson(): this {
+    this.json = true;
+    return this;
+  }
+  setHelp(): this {
+    this.help = true;
+    return this;
+  }
+  setFix(): this {
+    this.fixFlag = true;
+    return this;
+  }
+  setStrict(): this {
+    this.strict = true;
+    return this;
+  }
+  setWrite(): this {
+    this.write = true;
+    return this;
+  }
+  setGraph(): this {
+    this.graph = true;
+    return this;
+  }
+  setTarget(v: string): this {
+    this.target = v;
+    return this;
+  }
+  setFile(v: string): this {
+    this.file = v;
+    return this;
+  }
+  setType(v: string): this {
+    this.type = v;
+    return this;
+  }
+  setFolder(v: string): this {
+    this.folder = v;
+    return this;
+  }
+  setTag(v: string): this {
+    this.tag = v;
+    return this;
+  }
+  setOtherVaults(v: string): this {
+    this.otherVaults = v;
+    return this;
+  }
+  setOllama(v: string): this {
+    this.rawOllama = v;
+    return this;
+  }
+  setClaude(v: string): this {
+    this.rawClaude = v;
+    return this;
+  }
+  setOp(v: string): this {
+    this.op = v;
+    return this;
+  }
+  setLabel(v: string): this {
+    this.label = v;
+    return this;
+  }
+  /**
+   * Accept a bare (non-flag) positional token. The first bare token becomes
+   * `command`; the second becomes `sub`. Subsequent bare tokens are ignored
+   * (matches the original left-to-right scan semantics).
+   */
+  addPositional(v: string): this {
+    if (this.command === undefined) {
+      this.command = v;
+    } else if (this.sub === undefined) {
+      this.sub = v;
+    }
+    return this;
+  }
+
+  build(): ParsedArgs {
+    return Object.freeze({
+      command: this.command,
+      sub: this.sub,
+      json: this.json,
+      target: this.target,
+      help: this.help,
+      fix: this.fixFlag,
+      strict: this.strict,
+      write: this.write,
+      file: this.file,
+      type: this.type,
+      folder: this.folder,
+      tag: this.tag,
+      graph: this.graph,
+      otherVaults: this.otherVaults,
+      ollama: parseOllamaStatus(this.rawOllama),
+      claude: parseClaudeStatus(this.rawClaude),
+      op: this.op,
+      label: this.label,
+    });
+  }
+}
+
 function parseArgs(argv: readonly string[]): ParsedArgs {
-  let command: string | undefined;
-  let sub: string | undefined;
-  let json = false;
-  let target: string | undefined;
-  let help = false;
-  let fixFlag = false;
-  let strict = false;
-  let write = false;
-  let file: string | undefined;
-  let type: string | undefined;
-  let folder: string | undefined;
-  let tag: string | undefined;
-  let graph = false;
-  let otherVaults: string | undefined;
-  let ollama: string | undefined;
-  let claude: string | undefined;
-  let op: string | undefined;
-  let label: string | undefined;
+  const b = new ParsedArgsBuilder();
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === "--json") json = true;
-    else if (a === "--help" || a === "-h") help = true;
-    else if (a === "--fix") fixFlag = true;
-    else if (a === "--strict") strict = true;
-    else if (a === "--write") write = true;
-    else if (a === "--target") target = argv[++i];
-    else if (a === "--file") file = argv[++i];
-    else if (a === "--type") type = argv[++i];
-    else if (a === "--folder") folder = argv[++i];
-    else if (a === "--tag") tag = argv[++i];
-    else if (a === "--graph") graph = true;
-    else if (a === "--other-vaults") otherVaults = argv[++i];
-    else if (a === "--ollama") ollama = argv[++i];
-    else if (a === "--claude") claude = argv[++i];
-    else if (a === "--op") op = argv[++i];
-    else if (a === "--label") label = argv[++i];
-    else if (a && !a.startsWith("-") && command === undefined) command = a;
-    else if (a && !a.startsWith("-") && sub === undefined) sub = a;
+    if (a === "--json") b.setJson();
+    else if (a === "--help" || a === "-h") b.setHelp();
+    else if (a === "--fix") b.setFix();
+    else if (a === "--strict") b.setStrict();
+    else if (a === "--write") b.setWrite();
+    else if (a === "--target") {
+      const v = argv[++i];
+      if (v) b.setTarget(v);
+    } else if (a === "--file") {
+      const v = argv[++i];
+      if (v) b.setFile(v);
+    } else if (a === "--type") {
+      const v = argv[++i];
+      if (v) b.setType(v);
+    } else if (a === "--folder") {
+      const v = argv[++i];
+      if (v) b.setFolder(v);
+    } else if (a === "--tag") {
+      const v = argv[++i];
+      if (v) b.setTag(v);
+    } else if (a === "--graph") b.setGraph();
+    else if (a === "--other-vaults") {
+      const v = argv[++i];
+      if (v) b.setOtherVaults(v);
+    } else if (a === "--ollama") {
+      const v = argv[++i];
+      if (v) b.setOllama(v);
+    } else if (a === "--claude") {
+      const v = argv[++i];
+      if (v) b.setClaude(v);
+    } else if (a === "--op") {
+      const v = argv[++i];
+      if (v) b.setOp(v);
+    } else if (a === "--label") {
+      const v = argv[++i];
+      if (v) b.setLabel(v);
+    } else if (a && !a.startsWith("-")) b.addPositional(a);
   }
-  return {
-    command,
-    sub,
-    json,
-    target,
-    help,
-    fix: fixFlag,
-    strict,
-    write,
-    file,
-    type,
-    folder,
-    tag,
-    graph,
-    otherVaults,
-    ollama,
-    claude,
-    op,
-    label,
-  };
+  return b.build();
 }
 
 function emit(report: Report, json: boolean): void {
