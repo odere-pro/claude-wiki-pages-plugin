@@ -90,12 +90,12 @@ All drafted content (local-model drafts, durable-memory write-backs, local-inges
 
 ## Offline / degraded mode (ADR-0018)
 
-When the network or the Claude API is unavailable, a gate-approved local model can stand in for the basic operations — **ingestion** (drafting into `_proposed/`) and **querying** (verified cited answers). The health check (`doctor`) is deterministic and needs no model. The fallback is opt-in and fail-closed; Claude stays primary by default, and a model or tier that has not sustained the quality bar is refused with a warning. It is governed by two `localModel` config fields (see [`schemas/config.schema.json`](../schemas/config.schema.json) and [`docs/local-models.md`](./local-models.md)):
+When the network or the Claude API is unavailable, a gate-approved local model can stand in for the basic operations — ingestion (drafting into `_proposed/`) and querying (verified cited answers). The health check (`doctor`) is deterministic and needs no model. The fallback is opt-in and fail-closed; Claude stays primary by default, and a model or tier that has not sustained the quality bar is refused with a warning. It is governed by two `localModel` config fields (see [`schemas/config.schema.json`](../schemas/config.schema.json) and [`docs/local-models.md`](./local-models.md)):
 
 - `offlinePolicy` — `off` (default; never probe, never fall back), `prefer-local` (fall back to an approved local tier when Claude is unreachable), or `strict` (fail if Claude is unreachable, no fallback).
 - `tier` — the capability tier the local model runs at; gated per-tier, so only `ingest-extract` is usable today.
 
-Three Layer 4 pieces implement it:
+Four Layer 4 scripts implement it:
 
 | Piece                      | Role                                                                                                                                                                                                                                                                                                                                            |
 | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -168,8 +168,6 @@ key. The `vaults` array is introduced only by the first `vault_add`. A fresh or 
 | Any Write or Edit   | `validate-frontmatter.sh`, `check-wikilinks.sh`, `protect-raw.sh`, `validate-attachments.sh` block-or-allow.                                                                                           |
 | After Write or Edit | `post-wiki-write.sh` and `post-ingest-summary.sh` emit reminders and counts.                                                                                                                           |
 | Subagent finishes   | `subagent-lint-gate.sh` and `subagent-ingest-gate.sh` block bad completions; `subagent-commit-gate.sh` then commits any vault changes a write-path agent left uncommitted (the commit backstop — never blocks). |
-
-The full hook contract is documented in this guide.
 
 ## Step-by-step walkthroughs
 

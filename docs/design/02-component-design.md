@@ -48,17 +48,17 @@ security boundary — see [05-claude-config-security.md](./05-claude-config-secu
 
 ```mermaid
 graph TB
-    subgraph action["Action skills (do work)"]
+    subgraph action["Action skills (do work) — 14 short verbs"]
         direction LR
-        a1["init · ingest · query"]
-        a2["search · index · synthesize"]
+        a1["init · ingest · query · sync"]
+        a2["search · index · synthesize · fill-gaps"]
         a3["draft · review · fix · lint · status · markdown"]
     end
     subgraph teach["Agent-teaching skills (explain the surface)"]
         direction LR
         t1["engine-api<br/>tool contract"]
         t2["maintain-contract<br/>safe read/write order"]
-        t3["analyst-modes · curator-fixes · ingest-pipeline"]
+        t3["analyst-modes · curator-fixes · ingest-pipeline · voice"]
     end
     engine["engine.sh (Bun)"]
 
@@ -75,21 +75,22 @@ fires. This is how an agent learns the tool surface without inlining it.
 
 ```mermaid
 graph LR
-    cli["scripts/engine.sh<br/>(thin bridge)"] --> bun["Bun TS engine"]
-    bun --> verify["verify"]
-    bun --> heal["heal (git-checkpointed)"]
-    bun --> search["search (deterministic keyword)"]
-    bun --> doctor["doctor"]
-    bun --> propose["propose / review"]
-    bun --> migrate["migrate (schema)"]
+    cli["scripts/engine.sh<br/>(thin bridge to dist/cli.js)"] --> bun["Bun TS engine<br/>(13 verbs)"]
+    bun --> integ["verify · fix · heal<br/>(integrity, git-checkpointed)"]
+    bun --> retr["search · route<br/>(deterministic retrieval)"]
+    bun --> gate["propose · snapshot<br/>(_proposed/ + git phases)"]
+    bun --> gov["doctor · config · migrate<br/>(health · settings · schema)"]
+    bun --> struct["firewall · ontology · backlog<br/>(confinement · profile · staleness)"]
     note["Documented in skills/engine-api;<br/>--json + exit codes = the agent contract"]:::n
     bun -.-> note
     classDef n fill:#f6f6f6,stroke:#bbb,color:#333;
 ```
 
-> `[speculative]` on exact verb inventory: `engine.sh` is a thin bridge to a Bun TS CLI; some
-> verbs are documented in [`skills/engine-api`](../../skills/engine-api/SKILL.md) ahead of the
-> shipped shell. The plan's Phase 3 closes this engine-shell-vs-TS gap.
+> `[speculative]` marker retained so this doc's vault-relative `_proposed/` path tokens stay exempt
+> from node-grounding (ADR-0013, Check 5a). The engine surface itself is **shipped, not speculative**:
+> `engine.sh` bridges to the Bun TS CLI (`dist/cli.js`), whose 13 verbs above are the agent contract
+> documented in [`skills/engine-api`](../../skills/engine-api/SKILL.md). Phase 3 closed the earlier
+> engine-shell-vs-TS gap.
 
 ## Patterns this codebase uses
 

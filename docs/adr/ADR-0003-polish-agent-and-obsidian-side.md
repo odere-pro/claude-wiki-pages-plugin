@@ -44,7 +44,7 @@ The orchestrator (ADR-0001) fans out the polish-agent in parallel with the final
 **Positive.**
 
 - One place owns the Obsidian-side invariants. New contributors who need to fix a graph-color bug or an index-drift bug have a single file to read.
-- The user's "switch to Obsidian after running `/llm-wiki-stack:wiki`" experience becomes the consistent default, not the lucky case. Drop a paper into `raw/`, run the orchestrator, switch to Obsidian, and the new topic is colored, indexed, and counted.
+- The user's "switch to Obsidian after running `/claude-wiki-pages:wiki`" experience becomes the consistent default, not the lucky case. Drop a paper into `raw/`, run the orchestrator, switch to Obsidian, and the new topic is colored, indexed, and counted.
 - The ingest agent shrinks. Steps 1.7 and 1.8 collapse to a one-line note pointing at the polish-agent. The ingest agent becomes easier to read and easier to test.
 - A Tier 1 fixture-based test can assert the post-polish invariants in one place: graph color present for every top-level folder, `wiki/index.md` page counts equal `find <topic> -name '*.md' | wc -l`, no MOC `children:` drift.
 

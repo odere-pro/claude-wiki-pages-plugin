@@ -41,7 +41,7 @@ See the **Out of scope** section in [SECURITY.md](./SECURITY.md) for the securit
 
 A bug report is actionable when it includes all of these:
 
-1. The **plugin version** (`/.claude-plugin/plugin.json#version`) and the **vault `schema_version`** (`docs/vault-example/CLAUDE.md` if you're using the example vault, otherwise your own).
+1. The **plugin version** (`/.claude-plugin/plugin.json#version`) and the **vault `schema_version`** (`skills/init/template/CLAUDE.md` for the bundled template, otherwise your own vault's `CLAUDE.md`).
 2. The **command sequence** that triggered the issue, including which `/claude-wiki-pages:*` slash command and any agent fan-out.
 3. A **minimal `vault/raw/` fixture** if the issue depends on input. Strip secrets; the fixture goes into a public issue.
 4. The **expected** versus **actual** behaviour, framed against a contract in [`docs/architecture.md`](./docs/architecture.md) when possible (e.g. "ingest writes a `wiki/log.md` entry; this run did not").

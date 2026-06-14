@@ -39,7 +39,7 @@ Or pick a path:
 
 ## 5. Run the wiki
 
-The recommended entry. Probes vault state and chains the right next step automatically — ingest if `raw/` has new files, curator if lint drift is pending, analyst if the prompt is a question.
+The recommended entry. It probes vault state and picks the right next step automatically: ingest when `raw/` has new files, curator when lint drift is pending, analyst when the prompt is a question.
 
 ```
 /claude-wiki-pages:wiki

@@ -55,10 +55,12 @@ graph LR
     acc --> intg["Manager integrates<br/>+ final gate"]
 ```
 
-## Runtime agents — 7 orchestrated executors
+## Runtime agents — 8 executors (orchestrator + 6 dispatched + 1 worker)
 
-These ship in the plugin and run inside a user's session. The **orchestrator** is the entry that
-probes vault state and dispatches.
+These ship in the plugin and run inside a user's session. The orchestrator is the entry that
+probes vault state and dispatches to one of six executors. The extract-worker is a read-only
+fan-out worker the ingest-agent spawns (one per raw source) when parallel extraction is enabled;
+it is never dispatched by the orchestrator and never called directly.
 
 ```mermaid
 graph TB
@@ -69,6 +71,8 @@ graph TB
     orch --> ana["analyst-agent"]
     orch --> pol["polish-agent"]
     orch --> mnt["maintenance-agent"]
+
+    ing ==>|"fan-out Task (read-only,<br/>maxParallelExtract>1)"| ext["extract-worker-agent<br/>(one per raw source)"]
 
     onb -.->|init / scaffold| eng["engine.sh"]
     ing -.->|collect & organize| eng
@@ -82,12 +86,13 @@ graph TB
 | --- | --- | --- |
 | orchestrator | (dispatch) | Probe vault, route to the right agent |
 | onboarding | init, onboarding | First-run scaffold + orient |
-| ingest | ingest, draft, review | Sources → typed wiki pages |
+| ingest | ingest, draft, review | Sources → typed wiki pages; spawns extract-workers |
+| extract-worker | (read-only extraction) | One raw source → typed EXTRACT envelope; returns to ingest, never writes |
 | curator | lint, fix | Keep the vault well-formed |
 | analyst | query, search, synthesize | Answer + cross-topic synthesis |
 | polish | markdown, index | Export + MOC upkeep |
 | maintenance | status, heartbeat | Staleness, self-heal, backlog |
 
-**Dev teams vs runtime agents are different populations:** `wiki-dev-*` and the brainstorm
-personas live in `.claude/` and `docs/` and never ship; the 7 `claude-wiki-pages-*-agent` files in
+Dev teams and runtime agents are different populations. The `wiki-dev-*` and brainstorm
+personas live in `.claude/` and `docs/` and never ship; the 8 `claude-wiki-pages-*-agent` files in
 `agents/` are runtime context loaded on install (per [`CLAUDE.md`](../../CLAUDE.md)).

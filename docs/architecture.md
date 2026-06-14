@@ -9,7 +9,7 @@ Most LLM-wiki implementations are one layer: a prompt and a folder convention. T
 | Layer                | Responsibility                                           | What lives here                                                        |
 | -------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------- |
 | **1. Data**          | Immutable sources + wiki schema                          | `skills/init/template/raw/`, `skills/init/template/wiki/`, `skills/init/template/CLAUDE.md` |
-| **2. Skills**        | Individual capabilities invoked by the human or an agent | `skills/` (25 skills)                                                  |
+| **2. Skills**        | Individual capabilities invoked by the human or an agent | `skills/` (26 skills)                                                  |
 | **3. Agents**        | Multi-step executors that orchestrate skills             | `agents/` (8 agents)                                                   |
 | **4. Orchestration** | Hooks, rules, provenance guards                          | `hooks/hooks.json`, `scripts/`, `rules/`                               |
 
@@ -19,11 +19,11 @@ Sources go into `raw/` and are never rewritten — the `protect-raw.sh` hook enf
 
 ### 2. Skills
 
-Each skill is a single-responsibility capability: `ingest` ingests sources, `query` answers questions, `lint` audits structure, `fix` repairs what lint reports, `synthesize` writes cross-topic analyses, `index` generates a top-level overview index across the vault, `markdown` exports a query answer as portable markdown into `vault/output/`, `fill-gaps` completes the vault into a gap-free, topic-clustered wiki, `obsidian-graph-colors` paints Obsidian's graph view. Skills are slash-command entry points; they do not know about each other. The plugin ships 25 (14 plugin-authored verbs + `onboarding` + 5 agent-teaching skills + `obsidian-graph-colors` + `obsidian-vault` + 3 MIT-licensed `obsidian-*` reference skills).
+Each skill is a single-responsibility capability. `ingest` ingests sources. `query` answers questions. `lint` audits structure. `fix` repairs what lint reports. `synthesize` writes cross-topic analyses. `index` generates a top-level overview index across the vault. `markdown` exports a query answer as portable markdown into `vault/output/`. `fill-gaps` completes the vault into a gap-free, topic-clustered wiki. Skills are slash-command entry points; they do not know about each other. The plugin ships 26: 14 plugin-authored verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`, `search`, `review`, `draft`, `sync`, `fill-gaps`) + `onboarding` + 5 agent-teaching skills (`engine-api`, `maintain-contract`, `analyst-modes`, `curator-fixes`, `ingest-pipeline`) + `voice` + `obsidian-graph-colors` + `obsidian-vault` + 3 MIT-licensed `obsidian-*` reference skills.
 
 ### 3. Agents
 
-Agents chain skills and tools. `claude-wiki-pages-orchestrator-agent` is the user-facing entry — it probes vault state and dispatches to one specialist per invocation. `claude-wiki-pages-onboarding-agent` guides first-run scaffold and orientation. `claude-wiki-pages-ingest-agent` runs the full ingest-then-verify-then-curate-then-synthesize cycle. `claude-wiki-pages-curator-agent` audits, auto-repairs, and gates judgment fixes (restructures, merges) behind explicit user approval. `claude-wiki-pages-analyst-agent` answers analytical questions that require traversing the topic tree. `claude-wiki-pages-polish-agent` runs the tail-of-write step (graph colors, vault MOC, per-folder MOC) after every ingest or curator pass. `claude-wiki-pages-maintenance-agent` runs the autonomous catch-up loop on a schedule. Agents are where multi-step reliability lives — they own sequencing, retries, and quality gates.
+Agents chain skills and tools across a multi-step flow. `claude-wiki-pages-orchestrator-agent` is the user-facing entry: it probes vault state and dispatches to one specialist per invocation. Behind it: `claude-wiki-pages-onboarding-agent` (first-run scaffold), `claude-wiki-pages-ingest-agent` (full ingest-verify-curate-synthesize cycle), `claude-wiki-pages-extract-worker-agent` (per-source extraction), `claude-wiki-pages-curator-agent` (audit, auto-repair, judgment fixes behind explicit approval), `claude-wiki-pages-analyst-agent` (analytical questions that traverse the topic tree), `claude-wiki-pages-polish-agent` (tail-of-write: graph colors, vault MOC, per-folder MOC), and `claude-wiki-pages-maintenance-agent` (autonomous catch-up on a schedule). Agents own sequencing, retries, and quality gates.
 
 ### 4. Orchestration
 
@@ -68,4 +68,4 @@ claude-wiki-pages/
 10. `wiki/log.md` gets a `## [YYYY-MM-DD] ingest | Source Title` entry.
 11. `SubagentStop` hook runs `verify-ingest.sh` — the human sees any drift immediately.
 
-Four layers, each visible in the flow. That is the four-layer stack.
+Four layers, each visible in the flow.

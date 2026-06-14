@@ -53,7 +53,7 @@ A wiki built by an LLM from human-curated sources is a soft target. This section
 
 - **Tier 1 (Bats unit)** — `tests/scripts/*.bats`. One `.bats` file per hook/script. Run via `bash tests/run-tests.sh tier1`.
 - **Tier 2 (smoke)** — `tests/smoke/fresh-install.sh`, `tests/smoke/skill-schema.sh`. Exercise an end-to-end ingest against a fixture. Run via `bash tests/run-tests.sh tier2`.
-- **Tier 4 (adversarial, weekly)** — `.github/workflows/adversarial.yml`. Three jobs: `osv-scanner`, a prompt-injection corpus replay, and `garak`. The corpus replay is **deterministic and live**: `tests/adversarial/replay-corpus.sh` replays the checked-in corpus (`tests/fixtures/adversarial/*.json`) against the real PreToolUse hook chain and asserts every `block-*` case is blocked and every `allow-*` case passes — no LLM or API key involved. `garak` remains probe-listing only until a target binding to the plugin surface exists.
+- **Tier 4 (adversarial, weekly)** — `.github/workflows/adversarial.yml`. Three jobs: `osv-scanner`, a prompt-injection corpus replay, and `garak`. The corpus replay is deterministic and live: `tests/adversarial/replay-corpus.sh` replays the checked-in corpus (`tests/fixtures/adversarial/*.json`) against the real PreToolUse hook chain and asserts every `block-*` case is blocked and every `allow-*` case passes — no LLM or API key involved. `garak` remains probe-listing only until a target binding to the plugin surface exists.
 
 See [`tests/README.md`](./tests/README.md) for the full tier contract and how to run everything locally.
 
@@ -63,9 +63,9 @@ See [`tests/README.md`](./tests/README.md) for the full tier contract and how to
 
 **What the four-layer model prevents.**
 
-- Layer 1 (Data): sources are immutable after ingestion (`protect-raw.sh`), so a malicious source cannot be rewritten to become more convincing over time.
-- Layer 2 (Skills): `ingest` reads the schema (`CLAUDE.md`) before reading the source. The schema is not a source — the LLM treats the schema as authority. Attacker-controlled text in `raw/` cannot redefine the schema.
-- Layer 4 (Orchestration): `validate-frontmatter.sh` blocks writes that lack a valid `type` or `sources` field. Output that would slip secrets into a wiki page as prose still requires valid provenance, which the attacker cannot forge.
+- Layer 1 — Data: sources are immutable after ingestion (`protect-raw.sh`), so a malicious source cannot be rewritten to become more convincing over time.
+- Layer 2 — Skills: `ingest` reads the schema (`CLAUDE.md`) before reading the source. The schema is not a source — the LLM treats the schema as authority. Attacker-controlled text in `raw/` cannot redefine the schema.
+- Layer 4 — Orchestration: `validate-frontmatter.sh` blocks writes that lack a valid `type` or `sources` field. Output that would slip secrets into a wiki page as prose still requires valid provenance, which the attacker cannot forge.
 
 **Advisory scope of `prompt-guard.sh` (H04 / Architect ruling — intentional).**
 `prompt-guard.sh` is a `UserPromptSubmit` nudge that is **non-blocking and advisory-only**. It intentionally does NOT attempt semantic injection detection on user prompt bodies or on ingested `raw/` body content. A semantic barrier here would be theater that contradicts the documented structural-defense posture and the NO-RAG model (TEAM-BRIEF §5). The defense against injection via ingested sources is structural: `protect-raw.sh` immutability prevents source rewriting after ingestion, and `validate-frontmatter.sh` schema-gates every wiki write, tested by `tests/adversarial/replay-corpus.sh`.
@@ -112,7 +112,7 @@ See [`tests/README.md`](./tests/README.md) for the full tier contract and how to
 
 ### MCP auth boundaries
 
-The plugin does not, today, expose its own MCP server. The only MCP integrations users may enable are general-purpose ones they configure in their own Claude Code settings. When this plugin adds an MCP server in a future version, it will be scoped read-only to `docs/vault-example/` and the user's configured vault path — never the wider filesystem.
+The plugin does not, today, expose its own MCP server. The only MCP integrations users may enable are general-purpose ones they configure in their own Claude Code settings. When this plugin adds an MCP server in a future version, it will be scoped read-only to the user's configured vault path — never the wider filesystem.
 
 If you install this plugin alongside MCP servers that provide filesystem, git, or shell access, the combined attack surface is _theirs_, not ours. Audit MCP configurations separately.
 

@@ -9,7 +9,7 @@
 | Aspect | Rule |
 |---|---|
 | Mission | Brainstorm the **UX & adoption** course of `claude-wiki-pages` — onboarding, authoring, capability across novice → power user → agent — and turn it into a **development-ready plan the engineering team can implement**. |
-| Authority | `docs/architecture.md`, `docs/GLOSSARY.md`, `docs/vault-example/CLAUDE.md` (schema wins). |
+| Authority | `docs/architecture.md`, `docs/GLOSSARY.md`, `skills/init/template/CLAUDE.md` (schema wins). |
 | Output | **A development-ready implementation plan** for the `wiki-dev` engineering team (`docs/teams.md`), written by the Product Manager (facilitator) at convergence — phased, with items mapped to lanes/owners, acceptance criteria, and a handover checklist. |
 | Mode | READ-ONLY / proposal-only. No teammate edits the plugin. |
 | Grounding | Every current-state claim cites a repo path. Uncited = labeled `[speculative]`. |
@@ -50,9 +50,9 @@ This team reads every goal through a UX & adoption lens: how does a user *notice
 
 Mature v1.0.0. Four-layer stack (`docs/architecture.md`):
 
-- **Layer 1 — Data** (`docs/vault-example/`): schema v2 in `docs/vault-example/CLAUDE.md`,
+- **Layer 1 — Data** (`skills/init/template/`): schema v3 in `skills/init/template/CLAUDE.md`,
   9 page types, provenance via `sources` / `source_quotes` / `derived` / `confidence`. Immutable
-  `raw/` enforced by hook. Templates in `docs/vault-example/_templates/`.
+  `raw/` enforced by hook. Templates in `skills/init/template/_templates/`.
 - **Layer 2 — Skills** (`skills/`): 23 skills including 5 agent-teaching skills
   (`engine-api`, `maintain-contract`, `analyst-modes`, `curator-fixes`, `ingest-pipeline`).
 - **Layer 3 — Agents** (`agents/`): 7 `claude-wiki-pages-*-agent` files.
@@ -65,10 +65,10 @@ UX & adoption facts every teammate must respect:
   orchestrator probes vault state and dispatches. `/claude-wiki-pages:onboarding` (run-once wizard)
   and `/claude-wiki-pages:doctor` (health check) are progressive-disclosure secondaries.
 - **Onboarding**: `skills/onboarding/SKILL.md` + `skills/init/SKILL.md` scaffold a vault by copying
-  `docs/vault-example/` into the user's project; `docs/getting-started.md` + `docs/install.md` are
+  `skills/init/template/` into the user's project; `docs/getting-started.md` + `docs/install.md` are
   the first docs a newcomer follows.
 - **Authoring**: `skills/draft/SKILL.md` writes to `_proposed/`; `skills/review/SKILL.md` gates
-  promotion. Pages are authored to `docs/vault-example/_templates/`;
+  promotion. Pages are authored to `skills/init/template/_templates/`;
   `scripts/validate-frontmatter.sh` enforces per-class requirements.
 - **Retrieval**: deterministic keyword `search` (`skills/search/SKILL.md`, fixed weights) returns a
   candidate set; `skills/query/SKILL.md` synthesizes a cited answer; `skills/index/SKILL.md` builds
@@ -87,8 +87,8 @@ UX & adoption facts every teammate must respect:
 
 - `docs/architecture.md` — the four-layer contract. Each layer must earn its place.
 - `docs/GLOSSARY.md` + `scripts/validate-docs.sh` — canonical terms, enforced in CI.
-- `docs/vault-example/CLAUDE.md` — the schema; wins any frontmatter conflict.
-- `docs/vault-example/_templates/` — the structured-authoring templates.
+- `skills/init/template/CLAUDE.md` — the schema; wins any frontmatter conflict.
+- `skills/init/template/_templates/` — the structured-authoring templates.
 - `CLAUDE.md` — the one entry verb and the dev-time vs runtime separation.
 - `docs/adr/` (decisions) vs `tmp/plan/` (proposals) — the roadmap is a proposal.
 

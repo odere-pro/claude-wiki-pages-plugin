@@ -2,7 +2,7 @@
 
 Shell-based test harness for the `claude-wiki-pages` plugin.
 
-This repo has no runtime — every layer is shell, YAML, and markdown. The
+This repo has no runtime. Every layer is shell, YAML, and markdown. The
 test layer is therefore also shell-based, using [Bats](https://bats-core.readthedocs.io/)
 for the unit-test tier and plain `bash` for the smoke tier.
 
@@ -213,7 +213,7 @@ with a readable diagnostic, so a red test tells you exactly what it
 expected.
 
 If a test raw-matches against `$output` — `case "$output" in …` or
-`[[ "$output" == "$exact" ]]` as the **last** command — that's fine. The
+`[[ "$output" == "$exact" ]]` as the **last** command, that's fine. The
 helpers are for the common substring / empty / status checks.
 
 ### Fixture and hook helpers
@@ -284,4 +284,4 @@ the test earns its place.
   assertions, no flaky wait-loops.
 - Tests must be idempotent. Mutations happen inside `$BATS_TEST_TMPDIR`.
 - Use absolute paths for fixtures: `$MINIMAL_VAULT_SRC`, `$JSON_FIXTURES_DIR`.
-- Never mutate files under the real `docs/vault-example/`, `scripts/`, etc.
+- Never mutate files under the real `tests/fixtures/`, `scripts/`, etc.

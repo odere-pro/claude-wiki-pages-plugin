@@ -26,7 +26,7 @@ The underlying `verify-ingest.sh` checks:
 - Source summaries that no wiki page cites (orphan sources).
 - Topic folders missing a per-folder MOC (the folder note).
 
-Green across the board means clean. Red means the status report points at the script that flagged the issue — fix the trivial cases by hand and hand the rest to Level 2.
+Green across the board means clean. Red means the status report points at the script that flagged the issue. Fix the trivial cases by hand and hand the rest to Level 2.
 
 ## Level 2 — `/claude-wiki-pages:lint` (read-only audit)
 

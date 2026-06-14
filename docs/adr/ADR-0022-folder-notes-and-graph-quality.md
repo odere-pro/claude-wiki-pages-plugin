@@ -84,7 +84,7 @@ canonical group order becomes:
 First match wins top-down, so specific topic groups must precede the broad
 layer queries — the ordering is part of the contract, not a styling choice.
 
-The `obsidian-graph-colors` skill gains a documented **HEADLESS FALLBACK**:
+The `obsidian-graph-colors` skill gains a documented headless fallback:
 when `obsidian eval` is unavailable (no CLI, no running Obsidian, CI), write
 `.obsidian/graph.json` directly, touching only the `colorGroups` and
 `collapse-color-groups` keys and preserving everything else byte-for-byte.

@@ -13,10 +13,10 @@ One sentence: what question does this diagram answer?
 
 ## Diagram
 
-Replace the placeholder nodes below with **real repo entities** (files, skills, agents, hooks, or
+Replace the placeholder nodes below with real repo entities (files, skills, agents, hooks, or
 scripts that exist in the tree). Layer names are Title Case per the glossary
 ("Layer 1 — Data", "Layer 2 — Skills", "Layer 3 — Agents", "Layer 4 — Orchestration").
-When every node is grounded, **remove the `[speculative]` marker above**.
+When every node is grounded, remove the `[speculative]` marker above.
 
 ```mermaid
 graph TB

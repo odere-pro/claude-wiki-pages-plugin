@@ -31,7 +31,7 @@ Then, from the second project directory, open Claude Code and run:
 /claude-wiki-pages:init
 ```
 
-The wizard scaffolds a fresh vault in that project. The two vaults are independent — different `vault/CLAUDE.md` files, different `vault/raw/` contents, different `wiki/` trees. Both are maintained by the same plugin install.
+The wizard scaffolds a fresh vault in that project. The two vaults are independent: different `vault/CLAUDE.md` files, different `vault/raw/` contents, different `wiki/` trees. Both are maintained by the same plugin install.
 
 ## What gets created
 
@@ -102,5 +102,4 @@ Green across the board means the ingest is clean: frontmatter valid, wikilinks r
 
 ## Next step
 
-- Keep adding material → [guide 3](./03-update-existing.md).
-- Ask a question against what you just ingested → [guide 7](./07-query-the-wiki.md).
+Keep adding material → [guide 3](./03-update-existing.md). When you're ready to ask questions against what you've ingested, see [guide 7](./07-query-the-wiki.md).

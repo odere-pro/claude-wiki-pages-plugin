@@ -298,7 +298,7 @@ than hardcoding assumptions about the shipped set.
 > **Gating note.** This section describes guidance that activates once P3.3
 > (the `ontology` verb, `src/commands/ontology/`) ships and `ontology --json`
 > is available. Until then, the `entity_type` allow-list is documented in
-> `docs/vault-example/CLAUDE.md` (the `ontology-profile-v1` section, enum table)
+> `skills/init/template/CLAUDE.md` (the `ontology-profile-v1` section, enum table)
 > and must be read from there directly. Do not write `entity_type` values without
 > consulting the allow-list from one of these two sources.
 
@@ -323,7 +323,7 @@ at read time by the engine. Do not cache it across vaults or across sessions.
 the value appears in `.enums.entity_type[]`. If the value is absent, stop and
 surface an error — do not write the page. If `ontology --json` is unavailable
 (P3.3 not yet shipped), read the core list from
-`docs/vault-example/CLAUDE.md` `ontology-profile-v1` enum table and apply the
+`skills/init/template/CLAUDE.md` `ontology-profile-v1` enum table and apply the
 same membership check there.
 
 **No other `*_extensions` field composes.** Only `entity_type_extensions` is

@@ -87,8 +87,8 @@ documentation placeholders in prose that _explains_ wikilink syntax (e.g.
 not broken knowledge links.
 
 So `verify docs/vault-example` will go from **0** to **10** WARN findings, and
-gate-05 must be re-pinned to that count. **The clean (zero-error) status is
-unaffected** — these are warnings, not errors. **Recommendation: cleaning
+gate-05 must be re-pinned to that count. The clean (zero-error) status is
+unaffected — these are warnings, not errors. **Recommendation: cleaning
 vault-example is out of scope for FU1.** The reference vault is schema-pinned
 and must not be edited by this team (it is the shipped parity anchor); rewriting
 example prose to dodge an advisory warning would distort the docs to serve a

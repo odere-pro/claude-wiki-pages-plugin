@@ -33,7 +33,7 @@ non-zero with a teaching message). The per-tier allow-list is
 | `draft`                           | ⛔ WIRED but BLOCKED | — (none yet)      | No golden-set eval defined yet; enabling it fails closed.                                                                                                                                                                                                                                    |
 | full ingest / curator / synthesis | ⛔ not wired         | —                 | Future tiers; each needs its own golden set, threshold, and ADR before it is added to the map. Claude-first until then.                                                                                                                                                                      |
 
-Unlocking a tier is the same governance act as adding a model (below): run the
+Qualifying a tier follows the same governance act as adding a model (below): run the
 tier's eval, commit reproducible evidence, add the model to that tier's row in
 `APPROVED_LOCAL_MODELS_BY_TIER`, and amend the ADR — all in one change.
 

@@ -179,7 +179,7 @@ roll-up*, and it must close a live security gap. Three things drive an ADR rathe
   §6 one-mechanism discipline is preserved while N vaults become manageable.
 - The audit roll-up gives the harness a deterministic, no-RAG, no-ledger view across registered vaults,
   reusing data that already exists (`wiki/log.md` + ADR-0010) and leaving every working tree clean.
-- Write-boundary and read-report surfaces are cleanly separated: the firewall token blocks writes; the
+- Write-boundary and read-report surfaces are separated: the firewall token blocks writes; the
   roll-up reports its own status. Neither leaks into the other.
 
 **Negative.**

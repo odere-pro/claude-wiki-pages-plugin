@@ -41,7 +41,7 @@ Sealed inputs this skill may read:
 - The plugin's own `${CLAUDE_PLUGIN_ROOT}/skills/init/template/` tree — the
   reference scaffold used as the copy source. This is always the plugin cache
   path, never a project-local path (even when the user's chosen vault
-  happens to be `docs/vault-example`).
+  happens to be `docs/vault`).
 - The plugin's `${CLAUDE_PLUGIN_ROOT}/skills/init/template/CLAUDE.md` — the
   authoritative schema.
 - The user's project root — to determine the target install path and detect a
@@ -112,7 +112,7 @@ a clean install. Every step tolerates pre-existing state and fills in only
 what is missing.
 
 1. **Resolve `<vault>`.** In priority order:
-   1. Path named in the user's prompt (e.g. "my vault is docs/vault-example").
+   1. Path named in the user's prompt (e.g. "my vault is docs/vault").
    2. `CLAUDE_WIKI_PAGES_VAULT` env var.
    3. `.claude/claude-wiki-pages/settings.json` → `current_vault_path`.
    4. Auto-detected directory (CLAUDE.md with `schema_version` + `wiki/` sibling).

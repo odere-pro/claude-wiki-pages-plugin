@@ -8,10 +8,10 @@
 
 ## Context
 
-The product requirement is that the **basic operations — ingestion and querying —
-are supported by a local model**, with health-check and maintenance optional, and
-with one hard rule: **if the local model does not sustain the quality level, throw
-a warning and deny the operation.**
+The product requirement is that the basic operations — ingestion and querying —
+are supported by a local model, with health-check and maintenance optional, and
+with one hard rule: if the local model does not sustain the quality level, throw
+a warning and deny the operation.
 
 Ingestion is already covered: the `ingest-extract` tier is unlocked for
 `qwen3-coder:30b` (ADR-0011/0017), and ADR-0018 added the offline machinery

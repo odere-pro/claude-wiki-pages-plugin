@@ -8,7 +8,8 @@
 
 Dogfood vault for verification:
 `docs/claude-wiki-pages-plugin-vault` (pass `--target` to every script; export
-`CLAUDE_WIKI_PAGES_VAULT` to the same path). Never edit `docs/vault-example/`.
+`CLAUDE_WIKI_PAGES_VAULT` to the same path). Never edit `tests/fixtures/reference-vault/`
+(it is the golden reference fixture; schema authority is `skills/init/template/CLAUDE.md`).
 
 Baseline measured 2026-06-14 on the dogfood vault (the "before" both items move from):
 
@@ -59,7 +60,7 @@ no space↔hyphen fuzzing (mirror Obsidian). WARN-tier only; never an error; nev
 
 4. **Parity holds (gate-05).**
 
-   - Given the reference vault `docs/vault-example` and the `tests/fixtures/minimal-vault` fixture,
+   - Given the reference vault `tests/fixtures/reference-vault` and the `tests/fixtures/minimal-vault` fixture,
    - When `tests/gates/gate-05-verify-parity.sh` runs,
    - Then both rows stay **OK**: `engine verify` and the bash twin agree field-for-field on
      error and warning counts. (If adding the check changes the reference-vault count, the
@@ -132,9 +133,9 @@ substantive body underneath is a failure of this item, not a pass.
 
 3. **Reference vault untouched.**
 
-   - Given `docs/vault-example/`,
+   - Given `tests/fixtures/reference-vault/`,
    - When `git status` is checked after the work,
-   - Then `docs/vault-example/` has **no** modifications (it is the shipped, schema-pinned reference).
+   - Then `tests/fixtures/reference-vault/` has **no** modifications (it is the golden reference fixture; schema authority is `skills/init/template/CLAUDE.md`).
 
 4. **No regression in grounding or graph quality.**
    - Given the edited dogfood vault,
@@ -154,7 +155,7 @@ that is an Architect conversation (template fit), not a license to stub.
 
 - [ ] `lint-structural.sh --target docs/claude-wiki-pages-plugin-vault` → `WARNINGS: 0`, exit 0.
 - [ ] Spot-check (QA + PM) confirms added sections carry real, page-derived content; no empty stubs.
-- [ ] `git status` shows `docs/vault-example/` unchanged.
+- [ ] `git status` shows `tests/fixtures/reference-vault/` unchanged.
 - [ ] `engine verify --target docs/claude-wiki-pages-plugin-vault` → 0 errors.
 - [ ] `graph-quality.sh --target docs/claude-wiki-pages-plugin-vault` → 0 dangling.
 - [ ] Tier 0 gates green for any vault content touched by doc gates (vault content is "data, not

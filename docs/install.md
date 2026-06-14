@@ -7,7 +7,7 @@ Three ways to install `claude-wiki-pages`. Pick the one that matches your situat
 - [Claude Code](https://docs.claude.com/en/docs/claude-code) `>= 2.0`, signed in.
 - macOS or Linux shell. Windows/WSL is unverified but should work for the markdown-only paths.
 - `bash`, `git`, `jq`, `find` on `PATH`. The plugin's `/claude-wiki-pages:doctor` enumerates anything missing.
-- **[Bun](https://bun.sh) `>= 1.2` (recommended).** Runs the deterministic engine (`verify`/`fix`/`heal`/`doctor`/`config`) and git-checkpointed self-heal. The plugin **degrades gracefully without it** — bash hooks still enforce the schema — but those commands are disabled until Bun is installed. Install:
+- **[Bun](https://bun.sh) `>= 1.2` (recommended).** Runs the deterministic engine (`verify`/`fix`/`heal`/`doctor`/`config`) and git-checkpointed self-heal. Bash hooks still enforce the schema without it, but those commands are disabled until Bun is installed. Install:
 
   ```sh
   curl -fsSL https://bun.sh/install | bash   # then restart the Claude Code session
@@ -27,7 +27,7 @@ registry.
 /claude-wiki-pages:init
 ```
 
-The third command runs the **onboarding wizard**, which scaffolds a vault by copying [`skills/init/template/`](../skills/init/template/), smoke-tests the install, and prints the next three things to do. Walkthrough: [`docs/llm-wiki/01-getting-started.md`](./llm-wiki/01-getting-started.md).
+The third command runs the **onboarding wizard**, which scaffolds a vault by copying [`skills/init/template/`](../skills/init/template/), smoke-tests the install, and prints your next step. Walkthrough: [`docs/llm-wiki/01-getting-started.md`](./llm-wiki/01-getting-started.md).
 
 ## Local — contributors and forks
 
@@ -87,7 +87,7 @@ Always run after install or update:
 /claude-wiki-pages:doctor
 ```
 
-Exit `0` and "OK" lines for every check means you're good. Any `FAIL[N]` line names the remedy. Exit codes documented in [`operations.md`](./operations.md).
+Exit `0` and "OK" on every check means all checks passed. Any `FAIL[N]` line names the remedy. Exit codes documented in [`operations.md`](./operations.md).
 
 ## Uninstall
 

@@ -1,4 +1,4 @@
-# ADR-0018: Offline policy and degraded-mode routing — the Claude→Ollama fallback machinery
+# ADR-0018: Offline policy and degraded-mode routing
 
 - **Status:** Accepted (2026-06-11)
 - **Date:** 2026-06-11
@@ -30,7 +30,7 @@ network is down" is therefore a feature to build, not a flag to flip.
 
 ## Decision
 
-Build the **complete** Claude→Ollama swap machinery, but keep every capability
+Build the complete Claude→Ollama swap machinery, but keep every capability
 tier **fail-closed** until it has cleared its own quality gate. Nothing ungated
 ever runs locally.
 
@@ -46,7 +46,7 @@ Wire the two already-declared fields into the engine config
 - `localModel.tier ∈ { draft, ingest-extract }`, default **`draft`**.
   (Extended by [ADR-0019](./ADR-0019-query-tier-and-answer-verification.md), which adds the read-only `query` tier to this enum.)
 
-Defaults are the **safest**, not the most capable: `off` guarantees zero network
+Defaults are the safest, not the most capable: `off` guarantees zero network
 at SessionStart unless explicitly opted in, and `draft` is the narrowest tier —
 and because the `draft` tier has no quality gate yet, a default-enabled
 misconfiguration lands fail-closed (BLOCKED), never on an unmeasured local run.
