@@ -1,11 +1,26 @@
 ---
 title: "Approved Local Model"
 type: concept
-aliases: ["Approved Local Model", "approved local model", "qwen3-coder:30b", "APPROVED_LOCAL_MODELS"]
+aliases:
+  ["Approved Local Model", "approved local model", "qwen3-coder:30b", "APPROVED_LOCAL_MODELS"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Local Models]]"]
-related: ["[[Local Model Quality Gate]]", "[[Capability Tier]]", "[[Offline Policy]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]", "[[Scaffolding Ablation]]"]
+sources:
+  [
+    "[[ADR-0011: Local-Model Quality Gate]]",
+    "[[ADR-0017: Fabrication Floor — Verbatim Partition]]",
+    "[[ADR-0019: Query Tier and Answer Verification]]",
+    "[[Local Models]]",
+  ]
+related:
+  [
+    "[[Local Model Quality Gate]]",
+    "[[Capability Tier]]",
+    "[[Offline Policy]]",
+    "[[Golden Set]]",
+    "[[Zero-Fabrication Floor]]",
+    "[[Scaffolding Ablation]]",
+  ]
 tags: ["concept", "local-model"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,21 +34,48 @@ confidence: 1.0
 > [!summary]
 > An approved local model is a local model (Ollama or LM Studio) that has passed the [[Local Model Quality Gate]] with committed, reproducible evidence and is on the `APPROVED_LOCAL_MODELS_BY_TIER` allow-list in `src/data/config/config.ts`. The engine enforces this list fail-closed: an unapproved model is blocked with a teaching message, never run silently. Claude Code stays primary by default. Currently approved: `qwen3-coder:30b` for both `ingest-extract` and `query` tiers.
 
+## Key Principles
+
+- Approved status is a code construct, not a marketing category: the model must be listed in `APPROVED_LOCAL_MODELS_BY_TIER` in `src/data/config/config.ts` for its specific tier.
+- Approval is enforced at three points: `config validate`, `engine route`, and `offline-draft.sh` — all fail closed with a teaching message on unapproved models.
+- Progression is one tier at a time on measured evidence; approval for `ingest-extract` does not grant `query` or `draft` access.
+- Claude Code stays primary by default; local model use requires explicit `localModel.enabled: true` and a non-`off` `offlinePolicy`.
+- A vendor benchmark is not acceptable evidence; the artifact must be machine-checkable and reproducible against the cited `golden_set_sha`.
+
+## Examples
+
+Currently approved models and tiers:
+
+| Model             | Tier             | Evidence artifact                                    |
+| ----------------- | ---------------- | ---------------------------------------------------- |
+| `qwen3-coder:30b` | `ingest-extract` | `tests/eval/runs/ingest-extract/qwen3-coder-30b/`    |
+| `qwen3-coder:30b` | `query`          | `tests/eval/runs/query/qwen3-coder-30b/`             |
+
+Adding a new model to the allow-list (all steps are inseparable):
+
+```bash
+# 1. Run the tier's eval
+bash scripts/eval-compare-ollama.sh --models "new-model:tag" --retries 2
+
+# 2. Commit artifacts, update code, amend ADR — all in one change
+```
+
 ## Definition
 
 "Approved local model" is not a marketing category — it is a specific code construct: an entry in the `APPROVED_LOCAL_MODELS_BY_TIER` map in `src/data/config/config.ts`. If a model's `name:tag` is not in that map for the requested tier, the engine exits non-zero with a teaching message, regardless of how capable the model is.
 
 The allow-list is enforced at three points:
+
 1. **`claude-wiki-pages config validate`** — fails closed (exit 1, teaching message) when `localModel.enabled` is true and the configured model is not on the list.
 2. **`engine route`** — the routing decision function calls `checkLocalModelApproval`, which reads the allow-list. An unapproved tier is `blocked`, not `local`.
 3. **`scripts/offline-draft.sh`** — refuses to run if the configured model is not approved at the `ingest-extract` tier.
 
 ## Currently Approved Models
 
-| Model | Tier | Evidence |
-| --- | --- | --- |
-| `qwen3-coder:30b` | `ingest-extract` | `tests/eval/runs/ingest-extract/qwen3-coder-30b/` — both golden-set cases pass, `--verify-artifact` reproducible |
-| `qwen3-coder:30b` | `query` | `tests/eval/runs/query/qwen3-coder-30b/` — both ADR-0019 cases pass: recall 1.0, quote coverage 1.0, fabricated 0 |
+| Model             | Tier             | Evidence                                                                                                          |
+| ----------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `qwen3-coder:30b` | `ingest-extract` | `tests/eval/runs/ingest-extract/qwen3-coder-30b/` — both golden-set cases pass, `--verify-artifact` reproducible  |
+| `qwen3-coder:30b` | `query`          | `tests/eval/runs/query/qwen3-coder-30b/` — both ADR-0019 cases pass: recall 1.0, quote coverage 1.0, fabricated 0 |
 
 `qwen3-coder:30b` is currently the only model on the list. It is a code-tuned model — the pattern observed is that code-tuned models are strong at exact structured output (YAML/frontmatter, file layout), which is precisely what the ingest-extract task requires.
 
@@ -41,12 +83,12 @@ The allow-list is enforced at three points:
 
 Local-model scope widens one capability tier at a time, each gated on its own measured evidence:
 
-| Tier | Status | Description |
-| --- | --- | --- |
-| `ingest-extract` | UNLOCKED | Local model drafts wiki stubs into `_proposed/` for review |
-| `query` | UNLOCKED | Local model answers queries with runtime answer verification |
-| `draft` | WIRED but BLOCKED | No golden-set eval defined yet; config accepted, engine refuses |
-| full ingest / curator / synthesis | Not wired | Future tiers; each needs its own golden set and ADR |
+| Tier                              | Status            | Description                                                     |
+| --------------------------------- | ----------------- | --------------------------------------------------------------- |
+| `ingest-extract`                  | UNLOCKED          | Local model drafts wiki stubs into `_proposed/` for review      |
+| `query`                           | UNLOCKED          | Local model answers queries with runtime answer verification    |
+| `draft`                           | WIRED but BLOCKED | No golden-set eval defined yet; config accepted, engine refuses |
+| full ingest / curator / synthesis | Not wired         | Future tiers; each needs its own golden set and ADR             |
 
 "WIRED but BLOCKED" means the configuration schema accepts the tier name, but the engine fails closed with an explanation until a model passes the gate for that tier.
 
@@ -54,13 +96,13 @@ Local-model scope widens one capability tier at a time, each gated on its own me
 
 All six models measured on 2026-06-11 (Ollama 0.30.7, Apple M1 Pro, 32 GB), both golden-set cases:
 
-| Model | Verdict | Key failure |
-| --- | --- | --- |
-| `qwen3.5:27b` | Rejected | Fails dedup (0.33): emits more pages than the gold set |
-| `gemma4:31b` | Rejected | Dedup 0.00, schema-validity 0.63 |
-| `gemma4:26b` | Rejected | Output-protocol unstable; malformed file stream on one case |
-| `qwen3-vl:30b` | Rejected | Vision model; claim-source fidelity 0.00 on text task |
-| `gpt-oss:20b` | Rejected | Only fabricator: invented a sourced claim on the provenance trap |
+| Model          | Verdict  | Key failure                                                      |
+| -------------- | -------- | ---------------------------------------------------------------- |
+| `qwen3.5:27b`  | Rejected | Fails dedup (0.33): emits more pages than the gold set           |
+| `gemma4:31b`   | Rejected | Dedup 0.00, schema-validity 0.63                                 |
+| `gemma4:26b`   | Rejected | Output-protocol unstable; malformed file stream on one case      |
+| `qwen3-vl:30b` | Rejected | Vision model; claim-source fidelity 0.00 on text task            |
+| `gpt-oss:20b`  | Rejected | Only fabricator: invented a sourced claim on the provenance trap |
 
 The pattern: five of six models invent nothing — provenance discipline is widespread among modern local models. The real wall is structural: producing exactly the right page-set with schema-valid frontmatter as-emitted and following the output protocol without drift.
 
@@ -88,7 +130,7 @@ For the `ingest-extract` tier, approved local model output goes to `_proposed/` 
 
 For the `query` tier, every local model answer is checked by runtime answer verification (ADR-0019): each cited quote must be a verbatim substring of the cited page. A non-verifying answer is denied, never shown.
 
-## Related
+## Related Concepts
 
 - [[Local Model Quality Gate]] — the evaluation methodology
 - [[Capability Tier]] — the tier a model is approved for (independent per tier)

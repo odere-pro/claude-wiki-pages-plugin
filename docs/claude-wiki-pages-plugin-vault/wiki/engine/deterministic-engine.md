@@ -5,8 +5,32 @@ entity_type: tool
 aliases: ["Deterministic Engine", "deterministic engine", "Bun CLI", "engine"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0015: Engine Self-Description Surfaces]]", "[[ADR-0005: Git Required Per-Vault Init]]", "[[cli.ts Source]]", "[[engine.sh Source]]", "[[Engine API Skill (SKILL.md)]]", "[[verify.ts Source]]"]
-related: ["[[Four-Layer Stack]]", "[[Wiki-Native Recall]]", "[[Graph Traversal Primitive]]", "[[Firewall]]", "[[Auto-Heal]]", "[[Lint Rules]]", "[[Local Model Quality Gate]]", "[[Engine Verb Surface]]", "[[Engine CLI Router]]", "[[Scripts Layer]]", "[[engine.sh]]", "[[cli.ts]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[Glossary]]",
+    "[[ADR-0015: Engine Self-Description Surfaces]]",
+    "[[ADR-0005: Git Required Per-Vault Init]]",
+    "[[cli.ts Source]]",
+    "[[engine.sh Source]]",
+    "[[Engine API Skill (SKILL.md)]]",
+    "[[verify.ts Source]]",
+  ]
+related:
+  [
+    "[[Four-Layer Stack]]",
+    "[[Wiki-Native Recall]]",
+    "[[Graph Traversal Primitive]]",
+    "[[Firewall]]",
+    "[[Auto-Heal]]",
+    "[[Lint Rules]]",
+    "[[Local Model Quality Gate]]",
+    "[[Engine Verb Surface]]",
+    "[[Engine CLI Router]]",
+    "[[Scripts Layer]]",
+    "[[engine.sh]]",
+    "[[cli.ts]]",
+  ]
 tags: ["tool", "engine"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -20,6 +44,17 @@ confidence: 1.0
 
 > [!summary]
 > The deterministic engine is the Bun CLI (`src/cli/cli.ts`) that validates, repairs, and describes the vault — all without embeddings or inference. Same input, same output, every run. It is invoked via `bash scripts/engine.sh <verb>` and exposes ten implemented verbs. When Bun is unavailable the plugin degrades gracefully: bash hooks still enforce the schema, but engine verbs are disabled. The engine's CAPABILITIES table is the single source of truth for the verb surface (ADR-0015).
+
+## Key Facts
+
+- **Type:** tool (Bun CLI TypeScript, `src/cli/cli.ts`)
+- **Entry point:** `bash scripts/engine.sh <verb>` — a shell bridge that resolves the vault then invokes Bun
+- **Requires:** Bun ≥ 1.2; degrades gracefully when Bun is absent (bash hooks still enforce the schema)
+- **Verb count:** 14 implemented, 2 planned (as of ADR-0015)
+- **Core invariant:** no embeddings, no inference — all operations are keyword matching, frontmatter parsing, or graph traversal
+- **Single source of truth for verb list:** the `CAPABILITIES` table in `src/cli/cli.ts` (ADR-0015)
+- **Self-description:** `capabilities --json` and `ontology --json` verbs make the engine discoverable by agents at runtime
+- **Parity:** the `verify` verb has a bash twin (`verify-ingest.sh`); the `firewall` verb has a bash twin (`firewall.sh`); both pairs are kept byte-aligned by CI gates
 
 ## Overview
 
@@ -44,20 +79,20 @@ This means adding or retiring a verb is a one-line table edit and every consumer
 
 ## Implemented Verbs
 
-| Verb | Purpose |
-| --- | --- |
-| `verify` | Validate the vault against the schema; emit JSON findings |
-| `heal` | Git-checkpoint + verify + fix structural errors + re-verify loop |
-| `search` | Keyword search with synonym expansion and stemming (wiki-native recall) |
-| `doctor` | Environment health checks (D01–D12); `--fix` auto-repairs |
-| `propose` | Route a draft through the `_proposed/` review gate |
-| `migrate` | Upgrade schema version (e.g. rename `_index.md` → folder notes) |
-| `route` | Network-free routing decision: claude / local / blocked |
-| `backlog` | O(1) pending-source and overdue-lint detection via the source manifest |
-| `snapshot` | Create git checkpoint commits (pre/post) |
-| `firewall` | Evaluate a path against the per-vault write confinement rules |
-| `capabilities` | Emit the CAPABILITIES table as JSON (ADR-0015) |
-| `ontology` | Parse and emit the ontology-profile-v1 as JSON (ADR-0015) |
+| Verb           | Purpose                                                                 |
+| -------------- | ----------------------------------------------------------------------- |
+| `verify`       | Validate the vault against the schema; emit JSON findings               |
+| `heal`         | Git-checkpoint + verify + fix structural errors + re-verify loop        |
+| `search`       | Keyword search with synonym expansion and stemming (wiki-native recall) |
+| `doctor`       | Environment health checks (D01–D12); `--fix` auto-repairs               |
+| `propose`      | Route a draft through the `_proposed/` review gate                      |
+| `migrate`      | Upgrade schema version (e.g. rename `_index.md` → folder notes)         |
+| `route`        | Network-free routing decision: claude / local / blocked                 |
+| `backlog`      | O(1) pending-source and overdue-lint detection via the source manifest  |
+| `snapshot`     | Create git checkpoint commits (pre/post)                                |
+| `firewall`     | Evaluate a path against the per-vault write confinement rules           |
+| `capabilities` | Emit the CAPABILITIES table as JSON (ADR-0015)                          |
+| `ontology`     | Parse and emit the ontology-profile-v1 as JSON (ADR-0015)               |
 
 The `verify` verb is the primary gate: it emits `Report{command, vault, findings[], errors, warnings, clean}` through a single structured envelope (`src/core/report.ts`). The `heal` verb wraps `verify` in a checkpoint loop. Most other verbs use their own exit expressions, a deliberate scoping decision (ADR-0015: retroactively refactoring working verbs would be an L-effort change for no gain).
 
@@ -68,6 +103,7 @@ Two verbs make the engine self-describing for agents that call it:
 **`capabilities --json`** emits `{ verbs: [{ name, status }] }` where `status ∈ {implemented, planned}`. Agents can discover the safe-to-call verb surface deterministically without parsing prose.
 
 **`ontology --json`** parses the `ontology-profile-v1` block from `vault/CLAUDE.md` at read time — a markdown-table extraction, never a duplicate file — and emits:
+
 - `enums.type` — the closed page-type enum
 - `enums.entity_type` — the core ∪ the vault's `entity_type_extensions`
 - `predicates[]` — one entry per predicate row (domain, range, direction, cardinality)

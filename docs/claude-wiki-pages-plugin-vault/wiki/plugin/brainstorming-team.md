@@ -24,6 +24,7 @@ The brainstorming team is a dev-only Claude Code agent team (not a runtime plugi
 ## Key Facts
 
 **Composition (11 personas):**
+
 - Product Manager — frames problems and acceptance criteria
 - Architect — technical feasibility and structural choices
 - Structure-Authoring Architect — information architecture and content modeling

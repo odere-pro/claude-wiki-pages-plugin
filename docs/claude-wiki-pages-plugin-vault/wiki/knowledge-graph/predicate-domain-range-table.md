@@ -1,11 +1,24 @@
 ---
 title: "Predicate Domain-Range Table"
 type: concept
-aliases: ["Predicate Domain-Range Table", "predicate domain-range table", "predicate table", "domain-range table", "ontology predicates"]
+aliases:
+  [
+    "Predicate Domain-Range Table",
+    "predicate domain-range table",
+    "predicate table",
+    "domain-range table",
+    "ontology predicates",
+  ]
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[ADR-0004: Ontology Profile v1]]", "[[Design: Ontology]]"]
-related: ["[[Ontology Profile v1]]", "[[Schema Authority]]", "[[Required Fields]]", "[[Graph Traversal Primitive]]"]
+related:
+  [
+    "[[Ontology Profile v1]]",
+    "[[Schema Authority]]",
+    "[[Required Fields]]",
+    "[[Graph Traversal Primitive]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -22,6 +35,36 @@ confidence: 1.0
 > [!summary]
 > The predicate domain-range table is one of two tables in the `ontology-profile-v1` block of `vault/CLAUDE.md`. It defines the valid domain→range combinations for typed frontmatter relationships: which `type:` of page can hold a given frontmatter predicate and what types of pages that predicate may point to. It constrains the wikilink graph to semantically valid edges.
 
+## Key Principles
+
+- The table is the single authority for predicate semantics: R2 traversal, C1 MOC descent, and I1 classification all read exclusively from this block in `CLAUDE.md`.
+- All predicates in the table are closed — adding a new predicate requires a new ADR and a template update.
+- `entity_type` is the sole vault-extensible axis; all other domain and range values are fixed by the core schema.
+- An edge violating a row's domain-range constraint is a future S1-check lint finding, not silently traversed.
+- The table must not be duplicated in any other file; the engine's `ontology --json` verb projects it at read time.
+
+## Examples
+
+Valid predicate usage (all domain/range constraints satisfied):
+
+```yaml
+# On a concept page — sources must point to source pages
+sources: ["[[ADR-0004: Ontology Profile v1]]"]  # type:source ✓
+related: ["[[Schema Authority]]"]                # type:concept ✓
+
+# On a synthesis page — scope may point to entity/concept/topic/project
+scope: ["[[Firewall]]", "[[Multi-Vault Registry]]"]  # both type:entity or type:concept ✓
+```
+
+Invalid predicate usage (domain-range violation, will fail future S1-check):
+
+```
+# On a source page — sources predicate domain is entity/concept/topic/project/synthesis only
+# A source page CANNOT be the domain of the sources predicate
+type: source
+sources: ["[Some Source Page]"]  # source page cannot hold sources: violates domain constraint
+```
+
 ## Definition
 
 ADR-0004 established the `ontology-profile-v1` block as the single authority for the plugin's ontology. The block contains two tables:
@@ -31,17 +74,17 @@ ADR-0004 established the `ontology-profile-v1` block as the single authority for
 
 The predicate domain-range table has three columns:
 
-| Predicate | Domain (page types that may hold it) | Range (page types it may point to) |
-| --- | --- | --- |
-| `sources` | entity, concept, topic, project, synthesis | source |
-| `related` | entity, concept, topic, project | entity, concept, topic, project |
-| `depends_on` | concept, topic | concept, topic, entity |
-| `contradicts` | concept, topic | concept, topic |
-| `supersedes` | concept, topic | concept, topic |
-| `parent` | entity, concept, topic, project, index | index |
-| `children` | index | entity, concept, topic, project |
-| `child_indexes` | index | index |
-| `scope` | synthesis | entity, concept, topic, project |
+| Predicate       | Domain (page types that may hold it)       | Range (page types it may point to) |
+| --------------- | ------------------------------------------ | ---------------------------------- |
+| `sources`       | entity, concept, topic, project, synthesis | source                             |
+| `related`       | entity, concept, topic, project            | entity, concept, topic, project    |
+| `depends_on`    | concept, topic                             | concept, topic, entity             |
+| `contradicts`   | concept, topic                             | concept, topic                     |
+| `supersedes`    | concept, topic                             | concept, topic                     |
+| `parent`        | entity, concept, topic, project, index     | index                              |
+| `children`      | index                                      | entity, concept, topic, project    |
+| `child_indexes` | index                                      | index                              |
+| `scope`         | synthesis                                  | entity, concept, topic, project    |
 
 ## Why Domain-Range Constraints Matter
 

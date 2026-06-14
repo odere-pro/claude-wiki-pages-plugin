@@ -1,11 +1,18 @@
 ---
 title: "Defense-in-Depth Scoping"
 type: concept
-aliases: ["Defense-in-Depth Scoping", "defense-in-depth scoping", "defense in depth scoping", "skill-hook defense pair"]
+aliases:
+  [
+    "Defense-in-Depth Scoping",
+    "defense-in-depth scoping",
+    "defense in depth scoping",
+    "skill-hook defense pair",
+  ]
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[Obsidian Vault Skill (SKILL.md)]]"]
-related: ["[[obsidian-vault Skill]]", "[[Obsidian CLI Vault Scoping]]", "[[Firewall]]", "[[Hook System]]"]
+related:
+  ["[[obsidian-vault Skill]]", "[[Obsidian CLI Vault Scoping]]", "[[Firewall]]", "[[Hook System]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Firewall]]", "[[Hook System]]"]
@@ -34,6 +41,7 @@ The `obsidian-vault` skill is loaded as session context whenever an agent is abo
 The `scripts/firewall.sh` `PreToolUse` hook fires on every Write and Edit tool call. It canonicalises the target path and checks it against the active vault root, the registered inactive vaults (cross-vault rule), explicit deny lists, and `denyPaths` patterns. A confused agent that ignores the skill is stopped deterministically at this layer.
 
 **Why both layers are necessary.**
+
 - The skill alone is insufficient: an agent that was not loaded with the skill, received conflicting instructions, or made a reasoning error would still issue an out-of-vault write. The hook provides a deterministic backstop.
 - The hook alone is insufficient: without the skill, agents would repeatedly issue out-of-vault calls and be blocked — noisy, slow, and unable to complete their task gracefully. The skill prevents those calls from being issued in the first place.
 

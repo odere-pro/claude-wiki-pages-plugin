@@ -1,7 +1,14 @@
 ---
 title: "Node Grounding"
 type: concept
-aliases: ["Node Grounding", "node grounding", "mermaid node grounding", "grounded node", "speculative marker"]
+aliases:
+  [
+    "Node Grounding",
+    "node grounding",
+    "mermaid node grounding",
+    "grounded node",
+    "speculative marker",
+  ]
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design README]]", "[[Design Diagram Template]]"]
@@ -22,11 +29,44 @@ confidence: 1.0
 > [!summary]
 > Node grounding is the property of a mermaid diagram node naming a file or path that exists on disk at CI gate time. Ungrounded nodes (paths that do not exist) are a drift violation caught by Check 5 of `scripts/validate-docs.sh`. A node annotated `[speculative]` is explicitly exempted from the grounding check.
 
+## Key Principles
+
+- A grounded node names a file or path that actually exists on disk at CI gate time; an ungrounded node names a path that does not exist.
+- The `[speculative]` annotation is the only sanctioned exemption — it must be explicit and literal in the mermaid source.
+- The check runs at CI time, not at document-write time: a diagram can become ungrounded later when named paths are deleted or renamed.
+- The check uses only `grep`, `awk`, and `bash` — no mermaid parser library (Tier 0, no external dependencies).
+- Node grounding is one of five drift categories checked by `validate-docs.sh` Check 5.
+
+## Examples
+
+A grounded and a speculative node in the same diagram:
+
+```mermaid
+flowchart LR
+  A[scripts/firewall.sh] --> B[scripts/vault-merge.sh [speculative]]
+```
+
+`scripts/firewall.sh` must exist on disk. `scripts/vault-merge.sh` is speculative and skipped by Check 5.
+
+An ungrounded node (will fail CI):
+
+```mermaid
+flowchart LR
+  A[scripts/old-deleted.sh] --> B[wiki/index.md]
+```
+
+If `scripts/old-deleted.sh` no longer exists, Check 5 emits:
+
+```
+docs/design/architecture.md:47:3 node-ungrounded scripts/old-deleted.sh
+```
+
 ## Definition
 
 Mermaid diagrams in `docs/design/*.md` serve as architectural blueprints that are expected to reflect the implemented codebase. Node grounding is the CI-enforced contract that keeps them honest: every node that names a file or directory path must resolve to a real path on disk.
 
 A node is considered ungrounded when:
+
 - It names a path (e.g., `scripts/missing.sh`) that does not exist under the repo root
 - It names a module or component (e.g., `src/core/missing.ts`) that has been removed or renamed
 
@@ -39,6 +79,7 @@ Design documents legitimately contain aspirational content — paths or componen
 The solution: nodes annotated with `[speculative]` in the mermaid source are exempted from the grounding check. The annotation must be explicit and load-bearing — the CI gate looks for it literally. An unexempted ungrounded node fails the gate.
 
 Example:
+
 ```mermaid
 flowchart LR
   A[scripts/firewall.sh] --> B[scripts/vault-merge.sh [speculative]]

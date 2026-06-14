@@ -4,8 +4,20 @@ type: concept
 aliases: ["Design Diagrams", "design diagrams", "C4 diagrams", "mermaid diagrams"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Design README]]", "[[Design: System Context]]", "[[Design: Component Design]]", "[[Design: Sequences]]", "[[Design: Teams and Agents]]", "[[Design: Claude Config and Security]]", "[[Design: Feature Relations]]", "[[Design: Ontology]]", "[[Design Diagram Template]]"]
-related: ["[[Four-Layer Stack]]", "[[Design-Drift Gate]]", "[[Hook System]]", "[[Orchestrator Agent]]"]
+sources:
+  [
+    "[[Design README]]",
+    "[[Design: System Context]]",
+    "[[Design: Component Design]]",
+    "[[Design: Sequences]]",
+    "[[Design: Teams and Agents]]",
+    "[[Design: Claude Config and Security]]",
+    "[[Design: Feature Relations]]",
+    "[[Design: Ontology]]",
+    "[[Design Diagram Template]]",
+  ]
+related:
+  ["[[Four-Layer Stack]]", "[[Design-Drift Gate]]", "[[Hook System]]", "[[Orchestrator Agent]]"]
 tags: ["concept", "design"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,6 +31,33 @@ confidence: 1.0
 > [!summary]
 > The design diagrams are committed mermaid markdown files in `docs/design/` that visualize the plugin architecture at C4-style zoom levels across seven perspectives. They are gate-checked by the design-drift gate (ADR-0013) and serve as the visual half of the `SOFTWARE-3-0.md` dual entry point. Every diagram node must reference a real repo entity.
 
+## Key Principles
+
+- Every diagram node that names a path must resolve to a real repo entity — the design-drift gate rejects ungrounded nodes at Tier-0 CI; use `[speculative]` for not-yet-built paths.
+- Diagrams stay DRY: they link to authorities (`docs/architecture.md`, `vault/CLAUDE.md`, `hooks/hooks.json`) rather than restating them.
+- One mermaid fence per diagram, one idea per fence — zoom in with a new diagram rather than overloading one.
+- Layer names are Title Case and follow the glossary exactly: "Layer 1 — Data", not "data layer" or "layer-1".
+- No RAG, no embeddings anywhere in the diagrams; a diagram implying similarity search is wrong.
+
+## Examples
+
+The system-context diagram at `docs/design/01-system-context.md` shows:
+
+```
+Person ──> [/claude-wiki-pages:wiki] ──> Orchestrator Agent ──> Specialists
+Agent  ──> [/claude-wiki-pages:wiki] ──> Orchestrator Agent ──> Specialists
+                                               │
+                                        [vault/raw/, wiki/]
+                                         git (no embed)
+```
+
+Running the design-drift gate locally:
+
+```bash
+bash scripts/validate-docs.sh
+# Check 5 — design-drift gate scans docs/design/*.md and SOFTWARE-3-0.md
+```
+
 ## Definition
 
 The design diagrams are versioned, diffable mermaid diagrams committed as Markdown in `docs/design/`. They are the visual half of the `SOFTWARE-3-0.md` dual-entry-point contract and stay DRY by linking to the authorities (`docs/architecture.md`, the schema, `hooks/hooks.json`) rather than restating them. Diagrams are readable by both humans and agents from the same source.
@@ -27,24 +66,24 @@ The design diagrams are versioned, diffable mermaid diagrams committed as Markdo
 
 C4 is a four-level zoom convention — Context → Container → Component → Code — applied here as:
 
-| Level | Question it answers | Files |
-| --- | --- | --- |
-| L0 — Context | Who uses the system, and what does it touch? | `01-system-context.md` |
-| L1 — Containers/Layers | What are the big moving parts (four-layer stack + engine + vault)? | `01-system-context.md` |
-| L2 — Components | What is inside each layer, and how do they wire together? | `02-component-design.md` |
-| L3 — Sequences | What happens step by step on the key flows? | `03-sequences.md` |
+| Level                  | Question it answers                                                | Files                    |
+| ---------------------- | ------------------------------------------------------------------ | ------------------------ |
+| L0 — Context           | Who uses the system, and what does it touch?                       | `01-system-context.md`   |
+| L1 — Containers/Layers | What are the big moving parts (four-layer stack + engine + vault)? | `01-system-context.md`   |
+| L2 — Components        | What is inside each layer, and how do they wire together?          | `02-component-design.md` |
+| L3 — Sequences         | What happens step by step on the key flows?                        | `03-sequences.md`        |
 
 ## Seven Perspectives
 
-| File | Perspective |
-| --- | --- |
-| `01-system-context.md` | L0/L1 — system context and four-layer stack |
-| `02-component-design.md` | L2 — hooks, skills, engine as components; recurring design patterns |
-| `03-sequences.md` | L3 — ingest write-path, SessionStart, agent write-back with human approval |
-| `04-teams-and-agents.md` | Dev teams + 7 runtime agents and how they relate |
-| `05-claude-config-security.md` | Config, security, isolation, multi-vault structure |
-| `06-feature-relations.md` | Claude Code platform features vs plugin-defined features |
-| `07-ontology.md` | ER-style predicate diagram from `ontology-profile-v1` |
+| File                           | Perspective                                                                |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| `01-system-context.md`         | L0/L1 — system context and four-layer stack                                |
+| `02-component-design.md`       | L2 — hooks, skills, engine as components; recurring design patterns        |
+| `03-sequences.md`              | L3 — ingest write-path, SessionStart, agent write-back with human approval |
+| `04-teams-and-agents.md`       | Dev teams + 7 runtime agents and how they relate                           |
+| `05-claude-config-security.md` | Config, security, isolation, multi-vault structure                         |
+| `06-feature-relations.md`      | Claude Code platform features vs plugin-defined features                   |
+| `07-ontology.md`               | ER-style predicate diagram from `ontology-profile-v1`                      |
 
 ## Key Conventions
 

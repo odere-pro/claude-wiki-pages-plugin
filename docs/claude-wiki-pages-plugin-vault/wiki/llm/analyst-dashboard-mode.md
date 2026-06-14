@@ -1,11 +1,19 @@
 ---
 title: "Analyst Dashboard Mode"
 type: concept
-aliases: ["Analyst Dashboard Mode", "analyst dashboard mode", "Dashboard Mode", "Mode 2 Dashboard", "vault health dashboard"]
+aliases:
+  [
+    "Analyst Dashboard Mode",
+    "analyst dashboard mode",
+    "Dashboard Mode",
+    "Mode 2 Dashboard",
+    "vault health dashboard",
+  ]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related: ["[[Analyst Agent]]", "[[Dashboard Write Gate]]", "[[Analyst Extract Mode]]", "[[Query Rules]]"]
+related:
+  ["[[Analyst Agent]]", "[[Dashboard Write Gate]]", "[[Analyst Extract Mode]]", "[[Query Rules]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -31,14 +39,14 @@ Analyst Dashboard Mode is Mode 2 of the five [[Analyst Agent]] operating modes. 
 
 **Standard metric catalog.** Dashboard Mode defines six standard metric categories:
 
-| Category | What it measures |
-|---|---|
-| Coverage | Pages per topic, pages per type, source count |
-| Health | Orphan pages, broken links, stale pages, low-confidence pages |
-| Evidence | Average `update_count`, sources per page, confidence distribution |
-| Freshness | Pages updated in last 7/30/90 days |
-| Connectivity | Average `related` links, most/least linked pages |
-| Gaps | Entities mentioned in text but lacking their own page |
+| Category     | What it measures                                                  |
+| ------------ | ----------------------------------------------------------------- |
+| Coverage     | Pages per topic, pages per type, source count                     |
+| Health       | Orphan pages, broken links, stale pages, low-confidence pages     |
+| Evidence     | Average `update_count`, sources per page, confidence distribution |
+| Freshness    | Pages updated in last 7/30/90 days                                |
+| Connectivity | Average `related` links, most/least linked pages                  |
+| Gaps         | Entities mentioned in text but lacking their own page             |
 
 **Confidence discipline.** A dashboard over pages with average confidence below `0.6` must include a caveat row noting that results may reflect weakly evidenced material. An orphan-heavy section must call that out explicitly rather than presenting orphan pages as normal content.
 

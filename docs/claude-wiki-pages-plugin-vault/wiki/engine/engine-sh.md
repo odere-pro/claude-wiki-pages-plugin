@@ -5,8 +5,21 @@ entity_type: tool
 aliases: ["engine.sh", "engine shell bridge", "bash-to-Bun bridge"]
 parent: "[[Engine — Index]]"
 path: "engine"
-sources: ["[[engine.sh Source]]", "[[Engine Scripts Layer (CLAUDE.md)]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[cli.ts]]", "[[Deterministic Engine]]", "[[Scripts Layer]]", "[[Engine CLI Router]]", "[[Degraded-Mode Routing]]", "[[Shell-TS Parity]]"]
+sources:
+  [
+    "[[engine.sh Source]]",
+    "[[Engine Scripts Layer (CLAUDE.md)]]",
+    "[[Engine API Skill (SKILL.md)]]",
+  ]
+related:
+  [
+    "[[cli.ts]]",
+    "[[Deterministic Engine]]",
+    "[[Scripts Layer]]",
+    "[[Engine CLI Router]]",
+    "[[Degraded-Mode Routing]]",
+    "[[Shell-TS Parity]]",
+  ]
 tags: ["tool", "bash", "engine"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -41,13 +54,13 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh" <command> --target <vault> --json
 
 When Bun is absent the plugin operates in a reduced-capability mode:
 
-| Capability | With Bun | Without Bun |
-|---|---|---|
+| Capability        | With Bun        | Without Bun                      |
+| ----------------- | --------------- | -------------------------------- |
 | Schema validation | Engine `verify` | `verify-ingest.sh` bash fallback |
-| Auto-heal | Engine `heal` | Not available |
-| Search / recall | Engine `search` | Not available |
-| Frontmatter gates | bash hooks | bash hooks (unchanged) |
-| Wikilink gates | bash hooks | bash hooks (unchanged) |
+| Auto-heal         | Engine `heal`   | Not available                    |
+| Search / recall   | Engine `search` | Not available                    |
+| Frontmatter gates | bash hooks      | bash hooks (unchanged)           |
+| Wikilink gates    | bash hooks      | bash hooks (unchanged)           |
 
 The `doctor` verb (`engine.sh doctor`) detects this state and prints a `D04/D05` finding with an install hint. The `SessionStart` hook also prints a one-line notice when Bun is missing.
 

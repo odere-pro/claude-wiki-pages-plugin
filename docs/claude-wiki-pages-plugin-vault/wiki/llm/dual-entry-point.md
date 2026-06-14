@@ -1,11 +1,24 @@
 ---
 title: "Dual Entry Point"
 type: concept
-aliases: ["Dual Entry Point", "dual entry point", "SOFTWARE-3-0 pattern", "front door pattern", "dual reader"]
+aliases:
+  [
+    "Dual Entry Point",
+    "dual entry point",
+    "SOFTWARE-3-0 pattern",
+    "front door pattern",
+    "dual reader",
+  ]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[SOFTWARE-3-0: Dual Entry Point]]"]
-related: ["[[Six Surfaces Dual-Reader Contract]]", "[[Plugin Dev-Time vs Runtime]]", "[[Draft Review Surface]]", "[[Ingest Pipeline]]"]
+related:
+  [
+    "[[Six Surfaces Dual-Reader Contract]]",
+    "[[Plugin Dev-Time vs Runtime]]",
+    "[[Draft Review Surface]]",
+    "[[Ingest Pipeline]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -47,5 +60,5 @@ When an agent starts a session to work on the plugin repository, it loads `SOFTW
 
 - [[Six Surfaces Dual-Reader Contract]] — the six-row table that is the dual entry point's core structure
 - [[Plugin Dev-Time vs Runtime]] — the boundary that determines what this file covers vs. what the runtime vault's CLAUDE.md covers
-- [[Draft Review Surface]] — the engine gate that implements the _proposed/ → wiki/ authoring path mentioned in this file
+- [[Draft Review Surface]] — the engine gate that implements the \_proposed/ → wiki/ authoring path mentioned in this file
 - [[Ingest Pipeline]] — the agent workflow that runs when new raw sources are added to the vault

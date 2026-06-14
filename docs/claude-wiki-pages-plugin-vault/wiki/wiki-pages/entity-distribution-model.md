@@ -1,10 +1,12 @@
 ---
 title: "Entity Distribution Model"
 type: concept
-aliases: ["Entity Distribution Model", "entity distribution model", "DRY ingest", "update not duplicate"]
+aliases:
+  ["Entity Distribution Model", "entity distribution model", "DRY ingest", "update not duplicate"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[User Guide 03: Update Existing Vault]]", "[[Architecture Documentation]]", "[[Glossary]]"]
+sources:
+  ["[[User Guide 03: Update Existing Vault]]", "[[Architecture Documentation]]", "[[Glossary]]"]
 related: ["[[Ingest Pipeline]]", "[[Ingest Agent]]", "[[Schema Authority]]", "[[Lint Rules]]"]
 tags: ["concept", "ingest", "dry"]
 created: 2026-06-13
@@ -19,9 +21,25 @@ confidence: 1.0
 > [!summary]
 > The entity distribution model is the DRY ingest rule: ingesting one source rewrites and extends multiple existing pages rather than creating one summary page per source. This prevents near-duplicate pages and enforces single-sourcing. The core principle is "update existing pages rather than creating duplicates" — a new source about `Obsidian` appends to the existing `obsidian.md` page's `sources:` rather than creating a duplicate page.
 
+## Key Principles
+
+- The core rule: before creating a new page, search the wiki for an existing page; if one exists, update it rather than creating a duplicate.
+- A new source about a concept appends to the existing page's `sources:` and extends the body with new facts — one concept, one page, many sources.
+- `update_count` becomes meaningful evidence: high count = well-evidenced, low count = peripheral candidate for lint review.
+- Single-sourcing is enforced structurally by `sources:` wikilinks and by lint (near-duplicate detection flags pages with >50% content overlap).
+- The ingest pipeline enforces the model at step 4/5 of the 13-step ingest rules; no other path may create wiki pages.
+
+## Examples
+
+When ingesting ADR-0022 (Folder Notes and Graph Quality):
+
+- The existing [[Folder Note]] page gains `"[[ADR-0022: Folder Notes and Graph Quality]]"` in its `sources:` and new detail about schema v3 naming conventions.
+- The existing [[Graph Coloring]] page gains the same source and new detail about canonical group order.
+- No duplicate page is created for ADR-0022 itself — it is a source summary in `_sources/`, not a new concept page.
+
 ## Definition
 
-The entity distribution model is how the ingest pipeline handles knowledge that overlaps with existing wiki content. The name comes from the idea that the knowledge contained in a raw source is *distributed* across the existing pages that cover those concepts, rather than concentrated in one new summary page per source.
+The entity distribution model is how the ingest pipeline handles knowledge that overlaps with existing wiki content. The name comes from the idea that the knowledge contained in a raw source is _distributed_ across the existing pages that cover those concepts, rather than concentrated in one new summary page per source.
 
 This is the DRY principle applied to knowledge management: one fact exists in exactly one wiki page, and new sources strengthen the evidence for that fact rather than creating a second copy of it.
 

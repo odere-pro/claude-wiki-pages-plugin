@@ -4,8 +4,15 @@ type: concept
 aliases: ["Design-Drift Gate", "design-drift gate", "validate-docs Check 5", "drift gate"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design README]]", "[[Design Diagram Template]]", "[[Design: Feature Relations]]"]
-related: ["[[Node Grounding]]", "[[Parity Gate]]", "[[Software 3.0]]", "[[Architecture Decision Record]]"]
+sources:
+  [
+    "[[ADR-0013: Design-Drift Gate]]",
+    "[[Design README]]",
+    "[[Design Diagram Template]]",
+    "[[Design: Feature Relations]]",
+  ]
+related:
+  ["[[Node Grounding]]", "[[Parity Gate]]", "[[Software 3.0]]", "[[Architecture Decision Record]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,6 +28,31 @@ confidence: 1.0
 
 > [!summary]
 > The design-drift gate is Check 5 of `scripts/validate-docs.sh` — the Tier-0 CI gate that scans `docs/design/*.md` and `SOFTWARE-3-0.md` for five categories of drift between the design documents and the actual codebase. It uses only grep/awk/bash (no mermaid parser) and runs in CI Tier 0, making it the fastest correctness signal in the pipeline.
+
+## Key Principles
+
+- The gate uses bash/grep/awk only — no mermaid parser, no Bun — keeping it in Tier 0 (runs in every CI environment, even without Node installed).
+- A mermaid node annotated `[speculative]` is exempted from the grounding check, allowing in-progress design without breaking CI.
+- The five categories of drift checked: mermaid node grounding, dead relative links, hook/script name mismatches, count assertion drift, missing Authority links.
+- The parity gate sub-check enforces that every dual-entry router row has both a human form and an agent form with resolving links.
+- Node grounding is evaluated at CI run time, not at document-write time — a grounded node that is later deleted becomes a drift violation.
+
+## Examples
+
+The gate running in CI Tier 0:
+
+```bash
+bash scripts/validate-docs.sh
+# Check 5 runs on: docs/design/*.md and SOFTWARE-3-0.md
+```
+
+A grounded mermaid node vs a speculative one:
+
+```
+graph LR
+  A[skills/ingest/SKILL.md]          %% grounded: path exists
+  B[skills/future-verb/SKILL.md [speculative]]  %% exempt from grounding check
+```
 
 ## Definition
 

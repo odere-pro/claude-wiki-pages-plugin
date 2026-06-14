@@ -4,7 +4,12 @@ type: concept
 aliases: ["Active Vault", "active vault", "current vault", "current_vault_path"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Operations Guide]]"]
+sources:
+  [
+    "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]",
+    "[[ADR-0016: Simultaneous Multi-Vault Management]]",
+    "[[Operations Guide]]",
+  ]
 related: ["[[Multi-Vault Registry]]", "[[Vault Lifecycle]]", "[[Firewall]]", "[[Vault Resolution]]"]
 contradicts: []
 supersedes: []
@@ -21,6 +26,39 @@ confidence: 1.0
 
 > [!summary]
 > The active vault is the single vault that the plugin's [[Firewall]] and all agent write operations target at any given time. It is identified by the `current_vault_path` field in `.claude/claude-wiki-pages/settings.json`. Exactly one vault is active at a time. All write operations are confined to this vault; cross-vault writes are blocked at the firewall layer.
+
+## Key Principles
+
+- Exactly one vault is active at any time — there is no multi-active-vault mode.
+- The active vault is identified by `current_vault_path` in `.claude/claude-wiki-pages/settings.json`.
+- All write operations are confined to the active vault; the [[Firewall]]'s `cross-vault` rule blocks writes to registered-but-inactive vaults unconditionally.
+- The registry fails closed: if `current_vault_path` does not match any `vaults[].path`, all writes are blocked until the invariant is restored.
+- Switching the active vault is done via `bash scripts/set-vault.sh` — it changes only `current_vault_path` and never moves or merges files.
+
+## Examples
+
+Single-vault settings (most users):
+
+```json
+{
+  "current_vault_path": "/Users/alex/my-project/docs/vault",
+  "vaults": [{ "path": "/Users/alex/my-project/docs/vault", "label": "primary" }]
+}
+```
+
+Multi-vault settings with two registered vaults, only one active:
+
+```json
+{
+  "current_vault_path": "/Users/alex/work-vault",
+  "vaults": [
+    { "path": "/Users/alex/work-vault", "label": "work" },
+    { "path": "/Users/alex/personal-vault", "label": "personal" }
+  ]
+}
+```
+
+In the second example, writes to `/Users/alex/personal-vault` are blocked by the `cross-vault` rule even though personal-vault is registered.
 
 ## Definition
 

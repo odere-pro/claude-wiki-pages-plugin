@@ -5,8 +5,24 @@ entity_type: tool
 aliases: ["Curator Agent", "curator agent", "claude-wiki-pages-curator-agent", "curator"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[ADR-0002: Agent Naming Convention]]", "[[User Guide 04: Review Validate Fix]]", "[[Operations Guide]]", "[[Curator Agent Source]]"]
-related: ["[[Orchestrator Agent]]", "[[Polish Agent]]", "[[Ingest Agent]]", "[[Lint Rules]]", "[[Auto-Heal]]", "[[Git Checkpoint]]", "[[Deterministic Engine]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[ADR-0002: Agent Naming Convention]]",
+    "[[User Guide 04: Review Validate Fix]]",
+    "[[Operations Guide]]",
+    "[[Curator Agent Source]]",
+  ]
+related:
+  [
+    "[[Orchestrator Agent]]",
+    "[[Polish Agent]]",
+    "[[Ingest Agent]]",
+    "[[Lint Rules]]",
+    "[[Auto-Heal]]",
+    "[[Git Checkpoint]]",
+    "[[Deterministic Engine]]",
+  ]
 tags: ["agent", "curator"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -20,6 +36,16 @@ confidence: 1.0
 > [!summary]
 > The `claude-wiki-pages-curator-agent` audits the wiki for structural and provenance drift, then auto-heals mechanical issues without user approval. Judgment fixes — folder restructures, page merges, title-collision renames — apply automatically under the git checkpoint. The engine's deterministic `heal` verb runs first; then the agent's judgment pass. Safety is git: every change is reversible with `git revert`.
 
+## Key Facts
+
+- Type: tool (Layer 3 agent, `user-invocable: true` via `/claude-wiki-pages:claude-wiki-pages-curator-agent`)
+- Agent name: `claude-wiki-pages-curator-agent` (renamed from `llm-wiki-lint-fix` in version 0.2.0, ADR-0002)
+- Dispatched by: [[Orchestrator Agent]] when a previous ingest was not followed by a lint pass, or directly by the user
+- Execution sequence: 4 phases — Engine Heal (deterministic), Diagnose, Auto-Heals, Judgment Fixes, then Snapshot and Report
+- Retry cap: at most 2 lint-fix sub-agent runs per pipeline (initial run + one re-run)
+- Never forges provenance: does not auto-edit `sources:` for orphan pages; never deletes orphan pages; never modifies `raw/`
+- Every change is wrapped in a git checkpoint commit for full reversibility
+
 ## Overview
 
 The `claude-wiki-pages-curator-agent` is Layer 3's audit-and-repair specialist. It is dispatched by the [[Orchestrator Agent]] when a previous ingest was not followed by a lint pass, or when the user invokes it directly for an audit-and-repair run. It was renamed from `llm-wiki-lint-fix` to `claude-wiki-pages-curator-agent` in version 0.2.0 (ADR-0002) — the new name reflects that the agent does more than lint and fix: it curates structural quality.
@@ -27,6 +53,7 @@ The `claude-wiki-pages-curator-agent` is Layer 3's audit-and-repair specialist. 
 ## Input and Dispatch
 
 The orchestrator dispatches the curator when:
+
 - A previous ingest entry in `wiki/log.md` is not followed by a lint entry.
 - The user explicitly requests an audit (`/claude-wiki-pages:claude-wiki-pages-curator-agent`).
 - The [[Maintenance Agent]] triggers a catch-up loop and the curator is one of its steps.
@@ -44,6 +71,7 @@ bash scripts/engine.sh heal --json
 ```
 
 The engine creates a `heal:` checkpoint commit, then loops verify → fix → re-verify until structural errors are cleared:
+
 - Index duplicates
 - Missing folder notes
 - Children drift in folder notes

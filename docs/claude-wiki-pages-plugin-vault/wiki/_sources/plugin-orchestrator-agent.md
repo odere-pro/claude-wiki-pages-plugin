@@ -9,7 +9,12 @@ publisher: "odere-pro/claude-wiki-pages-plugin"
 date_published: 2026-06-13
 date_ingested: 2026-06-13
 tags: ["agent", "orchestrator", "plugin"]
-aliases: ["Orchestrator Agent Source", "plugin-orchestrator-agent", "claude-wiki-pages-orchestrator-agent source"]
+aliases:
+  [
+    "Orchestrator Agent Source",
+    "plugin-orchestrator-agent",
+    "claude-wiki-pages-orchestrator-agent source",
+  ]
 sources: []
 created: 2026-06-13
 updated: 2026-06-13

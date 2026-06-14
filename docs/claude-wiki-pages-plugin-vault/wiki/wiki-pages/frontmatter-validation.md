@@ -1,7 +1,13 @@
 ---
 title: "Frontmatter Validation"
 type: concept
-aliases: ["Frontmatter Validation", "frontmatter validation", "validate-frontmatter.sh", "frontmatter checker"]
+aliases:
+  [
+    "Frontmatter Validation",
+    "frontmatter validation",
+    "validate-frontmatter.sh",
+    "frontmatter checker",
+  ]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[ADR-0014: Single-Source Required Fields]]"]
@@ -22,6 +28,30 @@ confidence: 1.0
 > [!summary]
 > Frontmatter validation is the process of checking that every wiki page's YAML frontmatter contains all [[Required Fields]] for its type and that field values conform to the schema's enum and format constraints. It is implemented in `scripts/validate-frontmatter.sh` using grep/awk only — no Bun required. The script reads the required-fields table from `vault/CLAUDE.md` at run time, making the table the single source of truth.
 
+## Key Principles
+
+- The required-fields table in `vault/CLAUDE.md` is the single machine-readable authority — `validate-frontmatter.sh` reads it at run time rather than hard-coding field lists; editing the table is sufficient to update the validation.
+- The script uses bash/grep/awk only (Tier 0) — no Bun, no external tool — so it runs in any CI environment.
+- The chain fails closed: the PreToolUse hook blocks a write if any required field is missing or holds an illegal enum value.
+- Duplicate-claim detection (ADR-0014) flags exact/whitespace-normalized string matches across two pages — only exact matches, not semantic similarity.
+- Frontmatter validation is one layer in the full verification suite; `verify-ingest.sh` calls it and merges its findings into the same `Finding` result model.
+
+## Examples
+
+A page failing required-field validation (missing `confidence`):
+
+```bash
+bash scripts/validate-frontmatter.sh --target docs/vault wiki/engine/fail-closed.md
+# ERROR: missing-field: confidence [wiki/engine/fail-closed.md:3]
+```
+
+A page failing enum validation (illegal `status` value):
+
+```bash
+# frontmatter has: status: pending
+# ERROR: invalid-value: status must be one of [active, stale, superseded, draft]
+```
+
 ## Definition
 
 Frontmatter validation covers two categories of checks:
@@ -30,6 +60,7 @@ Frontmatter validation covers two categories of checks:
 2. **Enum value conformance** — fields with constrained value sets (`type`, `entity_type`, `status`, `source_type`, `synthesis_type`, etc.) must hold only allowed values from the schema.
 
 `scripts/validate-frontmatter.sh` implements both checks. It:
+
 - Parses the required-fields table from `CLAUDE.md` using grep/awk (Tier 0 — no Bun, no external tool)
 - For each wiki page, reads the `type:` field and checks presence of all required fields for that type
 - Checks that `status:` is one of `active | stale | superseded | draft`

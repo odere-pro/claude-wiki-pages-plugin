@@ -1,7 +1,14 @@
 ---
 title: "Parity Gate"
 type: concept
-aliases: ["Parity Gate", "parity gate", "dual-entry parity", "human-agent parity check", "router table parity"]
+aliases:
+  [
+    "Parity Gate",
+    "parity gate",
+    "dual-entry parity",
+    "human-agent parity check",
+    "router table parity",
+  ]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design: Sequences]]"]
@@ -22,14 +29,37 @@ confidence: 1.0
 > [!summary]
 > The parity gate is a sub-check within the [[Design-Drift Gate]] (ADR-0013) that validates the dual-entry router table in design documents. Every row of the table must have a non-empty human cell and a non-empty agent cell, and both cells must contain resolving links. The parity gate enforces the Software 3.0 posture: every project surface is equally usable by humans and agents.
 
+## Key Principles
+
+- Every dual-entry router row must have a non-empty human cell AND a non-empty agent cell, both containing resolving links — a row missing either cell fails the gate.
+- The parity gate is a sub-check of the [[Design-Drift Gate]] (Check 5); it enforces the [[Software 3.0]] posture that every project surface is equally usable by humans and agents.
+- The parity gate operates on documentation (design-level); [[Shell-TS Parity]] operates on implementation (bash ↔ TypeScript twins) — they are distinct invariants at different layers.
+- Without the parity gate, the dual-entry contract degrades silently: developers add one column and leave the other blank because there is no CI consequence.
+- The gate uses bash/grep/awk (no mermaid parser) so it runs in every CI environment, even without Node.
+
+## Examples
+
+A valid dual-entry row (parity gate passes):
+
+| Surface      | Human                       | Agent                               |
+| ------------ | --------------------------- | ----------------------------------- |
+| Ingest       | `/claude-wiki-pages:wiki`   | `claude-wiki-pages-ingest-agent`    |
+| Query        | `/claude-wiki-pages:query`  | `engine.sh search --json`           |
+
+A failing row (human cell empty — gate rejects):
+
+| Surface  | Human | Agent                            |
+| -------- | ----- | -------------------------------- |
+| Maintain |       | `claude-wiki-pages-maintenance-agent` |
+
 ## Definition
 
 The dual-entry router table appears in design documents and maps each operation surface to both its human-invocable form and its agent-callable equivalent. Example:
 
-| Surface | Human | Agent |
-| --- | --- | --- |
-| Ingest | `/claude-wiki-pages:wiki` | `claude-wiki-pages-ingest-agent` |
-| Query | `/claude-wiki-pages:query` | `engine.sh search --json` |
+| Surface      | Human                       | Agent                               |
+| ------------ | --------------------------- | ----------------------------------- |
+| Ingest       | `/claude-wiki-pages:wiki`   | `claude-wiki-pages-ingest-agent`    |
+| Query        | `/claude-wiki-pages:query`  | `engine.sh search --json`           |
 | Health check | `/claude-wiki-pages:doctor` | `verify-ingest.sh --target <vault>` |
 
 The parity gate checks every row of this table:

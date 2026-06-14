@@ -4,8 +4,22 @@ type: concept
 aliases: ["Hook System", "hook system", "hooks", "lifecycle hooks"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[Design: Component Design]]", "[[Operations Guide]]", "[[Design: Feature Relations]]"]
-related: ["[[Four-Layer Stack]]", "[[Firewall]]", "[[Git Checkpoint]]", "[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[Design: Component Design]]",
+    "[[Operations Guide]]",
+    "[[Design: Feature Relations]]",
+  ]
+related:
+  [
+    "[[Four-Layer Stack]]",
+    "[[Firewall]]",
+    "[[Git Checkpoint]]",
+    "[[Deterministic Engine]]",
+    "[[Ingest Agent]]",
+    "[[Curator Agent]]",
+  ]
 tags: ["concept", "hooks"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,6 +33,34 @@ confidence: 1.0
 > [!summary]
 > The hook system is Layer 4's enforcement mechanism. Hooks are lifecycle handlers wired in `hooks/hooks.json`; they fire at six defined points in the Claude Code session lifecycle. Blocking hooks (exit code 2) reject tool calls before they touch the filesystem. The hook system is the only layer that can enforce invariants a skill or agent cannot self-enforce — it intercepts tool calls from outside the LLM's context.
 
+## Key Principles
+
+- Hooks enforce invariants that skills and agents cannot self-enforce: they intercept tool calls from outside the LLM's context window and cannot be overridden by prompt injection.
+- The PreToolUse chain fires in strict order wired in `hooks/hooks.json`; a blocked write from rule 1 (`firewall.sh`) stops rules 2–5 from producing noise.
+- The chain fails closed: an error in any script blocks the write rather than allowing it through.
+- PostToolUse hooks are advisory — they emit reminders but never block; they run after the write has already landed.
+- The `subagent-commit-gate.sh` backstop is the last safety net: never blocks, always exits 0, commits any uncommitted vault changes the agent left behind.
+
+## Examples
+
+The PreToolUse chain sequence for a write to `wiki/engine/fail-closed.md`:
+
+```
+firewall.sh        → ALLOW  (path is inside active vault)
+validate-frontmatter.sh → ALLOW  (all required fields present)
+check-wikilinks.sh → ALLOW  (all wikilink targets exist)
+protect-raw.sh     → ALLOW  (target is wiki/, not raw/)
+validate-attachments.sh → ALLOW (no image/pdf source_format)
+→ write proceeds
+```
+
+Testing a specific path against the firewall:
+
+```bash
+bash scripts/engine.sh firewall --target docs/vault --path wiki/engine/fail-closed.md
+# Output: { "allowed": true, "matchedRule": "vault" }
+```
+
 ## Definition
 
 Claude Code exposes six lifecycle hook events: `SessionStart`, `UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `SubagentStop`, and `Stop`. The plugin wires scripts to these events in `hooks/hooks.json`. Each hook is a deterministic bash script that receives tool parameters via stdin (as JSON) and reports its verdict via exit code:
@@ -28,6 +70,15 @@ Claude Code exposes six lifecycle hook events: `SessionStart`, `UserPromptSubmit
 - **Any non-zero except 2** — advisory (the call proceeds but a warning is emitted).
 
 This design means the hook system catches failures that skills and agents cannot catch from inside: a broken wikilink that an agent produces but never re-reads, a write to `raw/` that a skill forgets to guard, a completed agent run that left wiki state partially written.
+
+## Related Concepts
+
+- [[Four-Layer Stack]] — the hook system is the enforcement layer of Layer 4
+- [[Firewall]] — the confinement check that runs first in the PreToolUse chain
+- [[Git Checkpoint]] — the `subagent-commit-gate.sh` backstop creates these
+- [[Deterministic Engine]] — engine verbs called by hooks (verify, firewall, backlog)
+- [[Ingest Agent]] — the agent whose output `subagent-ingest-gate.sh` audits
+- [[Curator Agent]] — the agent that runs `engine heal` as part of its execution
 
 ## Hook Events and Scripts
 
@@ -40,6 +91,7 @@ The SessionStart hook is advisory only — it never blocks.
 ### `UserPromptSubmit` — `prompt-guard.sh`
 
 Fires when the user submits a prompt, before any tool call. The script scans the prompt text for phrases that suggest destructive operations or edits to immutable data:
+
 - Phrases suggesting edits to `raw/` content
 - "delete all", "remove all", "wipe" patterns near `wiki/` paths
 - Requests to skip hooks or bypass validation
@@ -86,11 +138,3 @@ Hooks enforce invariants that skills and agents cannot self-enforce because:
 
 ADR-0001 describes this as the "each gate is in the only place the failure can be observed" principle. Layer 4 failures look like hooks not firing — caught by `SessionStart` reminders and the `doctor` health check.
 
-## Related
-
-- [[Four-Layer Stack]] — the hook system is the enforcement layer of Layer 4
-- [[Firewall]] — the confinement check that runs first in the PreToolUse chain
-- [[Git Checkpoint]] — the `subagent-commit-gate.sh` backstop creates these
-- [[Deterministic Engine]] — engine verbs called by hooks (verify, firewall, backlog)
-- [[Ingest Agent]] — the agent whose output `subagent-ingest-gate.sh` audits
-- [[Curator Agent]] — the agent that runs `engine heal` as part of its execution

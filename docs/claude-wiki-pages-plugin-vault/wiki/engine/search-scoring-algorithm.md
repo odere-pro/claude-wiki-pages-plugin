@@ -5,7 +5,15 @@ aliases: ["Search Scoring Algorithm", "search scoring", "scoring channels", "Mat
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[search.ts Source]]", "[[Engine API Skill (SKILL.md)]]", "[[graph.ts Source]]"]
-related: ["[[Tier-2 Deterministic Recall]]", "[[Graph Walk Algorithm]]", "[[Synonym Lexicon]]", "[[Porter Stemmer]]", "[[Wiki-Native Recall]]", "[[Deterministic Engine]]"]
+related:
+  [
+    "[[Tier-2 Deterministic Recall]]",
+    "[[Graph Walk Algorithm]]",
+    "[[Synonym Lexicon]]",
+    "[[Porter Stemmer]]",
+    "[[Wiki-Native Recall]]",
+    "[[Deterministic Engine]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: ["[[Tier-2 Deterministic Recall]]", "[[Graph Walk Algorithm]]"]
@@ -32,22 +40,23 @@ The Search Scoring Algorithm is the transparent, fixed-weight scoring function i
 
 ## Scoring Channels and Weights
 
-| Channel | Weight | Notes |
-| --- | --- | --- |
-| `title-phrase` | 10 | Full query phrase found in title/aliases |
-| `title-term` | 5 | Individual query term in title/aliases |
-| `tag-term` | 3 | Term in frontmatter tags |
-| `body-term` | 1 | Term in body (capped at `BODY_HITS_CAP=5` occurrences) |
-| `synonym-term` (title) | 2 | Synonym of query term in title |
-| `synonym-term` (tag) | 1 | Synonym of query term in tags |
-| `synonym-term` (body) | 1 | Synonym in body (capped) |
-| `stem-term` | 1 | Stemmed form of query term (title/tag/body; set equality only) |
-| `graph-edge` hop-1 | 2 | R2 graph neighbor at 1 hop |
-| `graph-edge` hop-2 | 1 | R2 graph neighbor at 2 hops |
+| Channel                | Weight | Notes                                                          |
+| ---------------------- | ------ | -------------------------------------------------------------- |
+| `title-phrase`         | 10     | Full query phrase found in title/aliases                       |
+| `title-term`           | 5      | Individual query term in title/aliases                         |
+| `tag-term`             | 3      | Term in frontmatter tags                                       |
+| `body-term`            | 1      | Term in body (capped at `BODY_HITS_CAP=5` occurrences)         |
+| `synonym-term` (title) | 2      | Synonym of query term in title                                 |
+| `synonym-term` (tag)   | 1      | Synonym of query term in tags                                  |
+| `synonym-term` (body)  | 1      | Synonym in body (capped)                                       |
+| `stem-term`            | 1      | Stemmed form of query term (title/tag/body; set equality only) |
+| `graph-edge` hop-1     | 2      | R2 graph neighbor at 1 hop                                     |
+| `graph-edge` hop-2     | 1      | R2 graph neighbor at 2 hops                                    |
 
 ## Examples
 
 For query `"graph rag"`:
+
 - A page with title `"Graph RAG"` scores `10 (phrase) + 5 (graph) + 5 (rag) = 20`.
 - A page with tag `"graph"` but no title match scores `3`.
 - A graph neighbor of a seed hit at hop-1 scores `2`.

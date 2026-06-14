@@ -35,7 +35,7 @@ The canonical agent definition file for `claude-wiki-pages-polish-agent`. Declar
 - Polish agent uses model: sonnet and tools: Bash, Read, Write, Edit, Glob, Grep (no Task).
 - Strictly append-only and idempotent: two consecutive runs produce zero diffs.
 - Graph colors: headless fallback writes `.obsidian/graph.json` directly when `obsidian eval` is unavailable.
-- Wiki-only exclusions: `app.json → userIgnoreFilters` must contain raw/, _templates/, _proposed/.
+- Wiki-only exclusions: `app.json → userIgnoreFilters` must contain raw/, \_templates/, \_proposed/.
 - Per-folder MOC: never removes a children: or child_indexes: entry (curator owns removal flow).
 - The agent is not user-invocable directly; invoked by the orchestrator as tail-of-write step.
 - Final report is exactly the POLISH: block with three sub-lines.

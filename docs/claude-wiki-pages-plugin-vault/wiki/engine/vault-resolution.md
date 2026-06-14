@@ -4,8 +4,21 @@ type: concept
 aliases: ["Vault Resolution", "vault resolution", "resolve-vault", "four-tier resolution"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources: ["[[Architecture Documentation]]", "[[Operations Guide]]", "[[Design: Claude Config and Security]]"]
-related: ["[[Firewall]]", "[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Installation]]", "[[Onboarding Wizard]]", "[[Hook System]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[Operations Guide]]",
+    "[[Design: Claude Config and Security]]",
+  ]
+related:
+  [
+    "[[Firewall]]",
+    "[[Multi-Vault Registry]]",
+    "[[Active Vault]]",
+    "[[Installation]]",
+    "[[Onboarding Wizard]]",
+    "[[Hook System]]",
+  ]
 tags: ["concept", "vault"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +31,34 @@ confidence: 1.0
 
 > [!summary]
 > Vault resolution is the 4-tier process by which `scripts/resolve-vault.sh` determines the active vault for every operation. First match wins. The resolver is the most load-bearing function in the plugin — it is called by every Layer 4 script before any action. Resolution is read-only: it identifies the vault but does not change it. The result flows into the [[Firewall]] as the allowed write root.
+
+## Key Principles
+
+- First match wins: tiers are evaluated top-down (env var → settings.json → auto-detect → default) and resolution stops at the first match.
+- The resolver is read-only: it identifies the vault but never modifies it. A switch requires an explicit `scripts/set-vault.sh` call.
+- Every Layer 4 script sources `resolve-vault.sh` before any action — no script hard-codes a vault path.
+- `current_vault_path` in `settings.json` is written only by `set-vault.sh`; no other script writes it directly.
+- Auto-detect depth cap (4 levels) prevents the resolver from scanning the full filesystem on deep repo trees.
+
+## Examples
+
+Pinning the vault for a CI step via env var (Tier 1):
+
+```bash
+CLAUDE_WIKI_PAGES_VAULT=/home/runner/work/my-project/docs/vault bash scripts/lint-structural.sh
+```
+
+Persistent vault switch (updates `current_vault_path` in `settings.json`):
+
+```bash
+bash scripts/set-vault.sh switch /Users/alex/projects/second-vault
+```
+
+One-session override without touching `settings.json`:
+
+```bash
+CLAUDE_WIKI_PAGES_VAULT=/tmp/test-vault bash scripts/verify-ingest.sh
+```
 
 ## Definition
 
@@ -60,21 +101,27 @@ The scan depth cap (4 levels) prevents the resolver from walking the entire file
 ## Switching Vaults
 
 **Persistent switch (across sessions):**
+
 ```bash
 bash scripts/set-vault.sh switch <path>
 ```
+
 This writes only `current_vault_path` in `settings.json`. The `default_vault_path` is never modified by lifecycle commands — it serves as the reset reference.
 
 **One-session override:**
+
 ```bash
 CLAUDE_WIKI_PAGES_VAULT=<path> claude
 ```
+
 Sets the env-var for the duration of the session. `settings.json` is not modified.
 
 **Register a new vault without switching:**
+
 ```bash
 bash scripts/set-vault.sh add <path> [name]
 ```
+
 Adds the vault to the `vaults[]` array in `settings.json` and registers it with the [[Firewall]]'s `cross-vault` rule, without changing which vault is active.
 
 ## Why `resolve_vault()` Is Treated Carefully
@@ -103,7 +150,7 @@ graph TB
     t4 --> use
 ```
 
-## Related
+## Related Concepts
 
 - [[Firewall]] — uses the resolved vault path as the allowed write root
 - [[Multi-Vault Registry]] — Tier 2 registry that `current_vault_path` lives in

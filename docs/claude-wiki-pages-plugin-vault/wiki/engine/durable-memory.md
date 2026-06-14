@@ -1,11 +1,25 @@
 ---
 title: "Durable Memory"
 type: concept
-aliases: ["Durable Memory", "durable memory", "durable-memory carve-out", "agent session memory", "persistent agent memory"]
+aliases:
+  [
+    "Durable Memory",
+    "durable memory",
+    "durable-memory carve-out",
+    "agent session memory",
+    "persistent agent memory",
+  ]
 parent: "[[Wiki Engine]]"
 path: "engine"
 sources: ["[[ADR-0010: Durable-Memory Carve-Out]]", "[[Design: Sequences]]"]
-related: ["[[Ingest Agent]]", "[[Curator Agent]]", "[[Firewall]]", "[[Draft Review Surface]]", "[[Active Vault]]"]
+related:
+  [
+    "[[Ingest Agent]]",
+    "[[Curator Agent]]",
+    "[[Firewall]]",
+    "[[Draft Review Surface]]",
+    "[[Active Vault]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,6 +35,33 @@ confidence: 1.0
 
 > [!summary]
 > Durable memory is the mechanism by which agent sessions write learnings back into the vault for future use. Agent session write-backs land in `raw/agent-sessions/` as new files only (no edits to existing sources) and must carry `source_type: agent-session` frontmatter. The `_proposed/` review gate is the only sanctioned path for durable memory to reach `wiki/`. Session learnings are promoted via lazy ingest on the next `/claude-wiki-pages:wiki` call.
+
+## Key Principles
+
+- Agent sessions are stateless across Claude Code sessions; durable memory provides the cross-session persistence mechanism.
+- Write-backs are new files only — existing `raw/` files are immutable and cannot be edited by a session.
+- The `_proposed/` review gate is the mandatory path: no session learning goes directly to `wiki/` without human review.
+- Ingest is lazy: session files sit in `raw/agent-sessions/` until the next `/claude-wiki-pages:wiki` call, so session end is never blocked by a long ingest operation.
+- `source_type: agent-session` is machine-detectable; the validator blocks any `raw/agent-sessions/` file that omits it.
+
+## Examples
+
+A session write-back file placed in `raw/agent-sessions/` after a query session:
+
+```markdown
+---
+title: "Session learning: firewall cross-vault edge case 2026-06-13"
+source_type: agent-session
+created: 2026-06-13
+updated: 2026-06-13
+status: active
+confidence: 0.7
+---
+
+During the query session, the firewall's cross-vault rule was observed to...
+```
+
+On the next wiki call, this file is processed as a source and produces a draft in `_proposed/wiki/engine/firewall-cross-vault-edge-case.md` awaiting review.
 
 ## Definition
 

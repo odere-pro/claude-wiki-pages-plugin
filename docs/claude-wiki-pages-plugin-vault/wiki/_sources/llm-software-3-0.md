@@ -9,7 +9,8 @@ publisher: "odere-pro/claude-wiki-pages-plugin"
 date_published: 2026-06-13
 date_ingested: 2026-06-13
 tags: ["architecture", "dual-entry-point", "six-surfaces", "dev-time", "agent-on-ramp"]
-aliases: ["SOFTWARE-3-0: Dual Entry Point", "llm-software-3-0", "SOFTWARE-3-0 doc", "dual entry point doc"]
+aliases:
+  ["SOFTWARE-3-0: Dual Entry Point", "llm-software-3-0", "SOFTWARE-3-0 doc", "dual entry point doc"]
 sources: []
 created: 2026-06-13
 updated: 2026-06-13

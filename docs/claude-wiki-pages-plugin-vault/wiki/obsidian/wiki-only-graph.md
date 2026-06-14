@@ -4,8 +4,22 @@ type: concept
 aliases: ["Wiki-Only Graph", "wiki-only graph", "graph exclusions", "Obsidian graph"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources: ["[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[User Guide: Obsidian Experience]]", "[[Glossary]]"]
-related: ["[[Graph Coloring]]", "[[Graph Config Cache]]", "[[Polish Agent]]", "[[Folder Note]]", "[[Obsidian Experience]]"]
+sources:
+  [
+    "[[ADR-0023: Wiki-Only Graph]]",
+    "[[ADR-0022: Folder Notes and Graph Quality]]",
+    "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]",
+    "[[User Guide: Obsidian Experience]]",
+    "[[Glossary]]",
+  ]
+related:
+  [
+    "[[Graph Coloring]]",
+    "[[Graph Config Cache]]",
+    "[[Polish Agent]]",
+    "[[Folder Note]]",
+    "[[Obsidian Experience]]",
+  ]
 tags: ["concept", "graph", "obsidian"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,13 +33,42 @@ confidence: 1.0
 > [!summary]
 > The wiki-only graph is the Obsidian-side contract (ADR-0023): the graph, search, and link autocomplete show only generated `wiki/` pages. `raw/`, `_templates/`, and `_proposed/` are excluded from Obsidian's index via the Excluded files setting in `.obsidian/app.json`. Graph config is regenerable cache — `.obsidian/` is entirely gitignored.
 
+## Key Principles
+
+- Exclusion via `userIgnoreFilters` is stronger than graph-side filtering: excluded paths disappear from graph, search, autocomplete, and the `path:` dropdown — not just the graph.
+- The layer pass (ADR-0022's `path:raw`, `path:wiki`, `path:_templates` groups) was dropped in ADR-0023 because with exclusions active, those groups can never match.
+- `output/` is intentionally not excluded: it is user-owned deliverable space, not plugin plumbing.
+- `.obsidian/` is entirely gitignored; graph config is regenerable cache, not tracked state.
+- The polish agent re-asserts `userIgnoreFilters` idempotently (merge-only: never removes user entries).
+
+## Examples
+
+The excluded files list in `.obsidian/app.json`:
+
+```json
+{
+  "userIgnoreFilters": ["raw/", "_templates/", "_proposed/"]
+}
+```
+
+Rebuilding after a lost `.obsidian/graph.json`:
+
+```bash
+/claude-wiki-pages:obsidian-graph-colors
+```
+
+What a user sees after the wiki-only contract is applied:
+- Graph shows topic clusters color-coded by folder, `_sources` in gray, `_synthesis` in yellow.
+- Search returns only `wiki/` pages — no raw source files, no templates.
+- Link autocomplete suggests only wiki page titles, not filenames in `raw/`.
+
 ## Definition
 
 The wiki-only graph contract ensures that when a user opens the vault in Obsidian, the graph view, search, and link autocomplete surface only the generated knowledge pages in `wiki/` — not the raw sources, scaffolding templates, or proposed drafts. This was introduced by ADR-0023, which superseded the earlier "layer pass" coloring approach from ADR-0022.
 
 ## Why This Decision Was Made (ADR-0023 Context)
 
-The previous approach (ADR-0022 §4) colored `path:raw` green, `path:wiki` blue, and `path:_templates` orange — but this put the *plumbing* on the map. The graph view surfaced `raw/adr`, `raw/assets`, `raw/design`, and `_templates` alongside the knowledge pages. The dogfooding experience confirmed it: the user's first reaction to the live vault's graph was that the plugin had "added artifacts and raw files" to the wiki view.
+The previous approach (ADR-0022 §4) colored `path:raw` green, `path:wiki` blue, and `path:_templates` orange — but this put the _plumbing_ on the map. The graph view surfaced `raw/adr`, `raw/assets`, `raw/design`, and `_templates` alongside the knowledge pages. The dogfooding experience confirmed it: the user's first reaction to the live vault's graph was that the plugin had "added artifacts and raw files" to the wiki view.
 
 A second friction: the plugin treated `.obsidian/` filters and color groups as state to maintain incrementally, when every value in them is derivable from the `wiki/` topic tree. Hand-repair of a clobbered `graph.json` is wasted effort.
 

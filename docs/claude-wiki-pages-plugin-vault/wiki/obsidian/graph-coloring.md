@@ -1,11 +1,31 @@
 ---
 title: "Graph Coloring"
 type: concept
-aliases: ["Graph Coloring", "graph coloring", "color groups", "graph color groups", "Obsidian graph colors"]
+aliases:
+  [
+    "Graph Coloring",
+    "graph coloring",
+    "color groups",
+    "graph color groups",
+    "Obsidian graph colors",
+  ]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources: ["[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[User Guide: Obsidian Experience]]"]
-related: ["[[Wiki-Only Graph]]", "[[Graph Config Cache]]", "[[Polish Agent]]", "[[Folder Note]]", "[[Obsidian Experience]]"]
+sources:
+  [
+    "[[ADR-0022: Folder Notes and Graph Quality]]",
+    "[[ADR-0023: Wiki-Only Graph]]",
+    "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]",
+    "[[User Guide: Obsidian Experience]]",
+  ]
+related:
+  [
+    "[[Wiki-Only Graph]]",
+    "[[Graph Config Cache]]",
+    "[[Polish Agent]]",
+    "[[Folder Note]]",
+    "[[Obsidian Experience]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,6 +41,35 @@ confidence: 1.0
 
 > [!summary]
 > Graph coloring is the Obsidian graph plugin's color-group system applied to the claude-wiki-pages wiki. Each top-level topic folder gets a unique color; two special folders (`_sources` gray, `_synthesis` yellow) get fixed colors. Color groups are regenerable cache: every value derives from the `wiki/` topic tree and is rebuilt by running `/claude-wiki-pages:obsidian-graph-colors` or the polish agent.
+
+## Key Principles
+
+- Color groups are regenerable cache: every value derives deterministically from the `wiki/` topic tree plus the palette table — no manual maintenance required.
+- The canonical color-group order is topics → specials; the layer pass (raw/wiki/templates groups) was dropped in ADR-0023 because `raw/` and `_templates/` are excluded from the Obsidian index.
+- `path:wiki/<topic>` queries give folder notes their topic color automatically — no separate folder-note color group is needed.
+- The polish agent adds groups for new topic folders idempotently; it never removes user-added groups.
+- The headless fallback (direct file write) works in CI environments but is vulnerable to Obsidian clobbering on next save; restart Obsidian to confirm the groups loaded.
+
+## Examples
+
+Color-group entry in `.obsidian/graph.json`:
+
+```json
+{
+  "colorGroups": [
+    { "query": "path:wiki/engine", "color": { "r": 0.3, "g": 0.6, "b": 1.0 } },
+    { "query": "path:wiki/llm",    "color": { "r": 0.9, "g": 0.5, "b": 0.1 } },
+    { "query": "path:wiki/_sources", "color": { "r": 0.6, "g": 0.6, "b": 0.6 } },
+    { "query": "path:wiki/_synthesis", "color": { "r": 0.9, "g": 0.9, "b": 0.1 } }
+  ]
+}
+```
+
+Rebuilding from scratch after `.obsidian/graph.json` is lost:
+
+```bash
+/claude-wiki-pages:obsidian-graph-colors
+```
 
 ## Definition
 

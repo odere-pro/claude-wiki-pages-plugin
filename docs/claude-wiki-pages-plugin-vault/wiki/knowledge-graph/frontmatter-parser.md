@@ -5,7 +5,13 @@ aliases: ["Frontmatter Parser", "frontmatter parser", "splitFrontmatter", "parse
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[Frontmatter Parser (frontmatter.ts)]]"]
-related: ["[[Wikilink Extractor]]", "[[Provenance Checks]]", "[[Schema Version Gate]]", "[[Schema Authority]]"]
+related:
+  [
+    "[[Wikilink Extractor]]",
+    "[[Provenance Checks]]",
+    "[[Schema Version Gate]]",
+    "[[Schema Authority]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -51,13 +57,13 @@ on corrupt inputs.
 
 The five exported functions and their roles:
 
-| Function | Input | Output | Use case |
-|----------|-------|--------|----------|
-| `splitFrontmatter(content)` | Full file string | `SplitDoc` | Separate YAML block from body |
-| `parseFrontmatter(content)` | Full file string | `Record<string, unknown>` | Get all frontmatter fields |
-| `titleOf(content, filePath)` | Content + path | `string` | Page title with stem fallback |
-| `stringList(value)` | Any frontmatter value | `string[]` | Normalize `sources:`, `related:` |
-| `stripWikilink(s)` | `"[[Firewall]]"` | `"Firewall"` | Unwrap wikilink syntax from arrays |
+| Function                     | Input                 | Output                    | Use case                           |
+| ---------------------------- | --------------------- | ------------------------- | ---------------------------------- |
+| `splitFrontmatter(content)`  | Full file string      | `SplitDoc`                | Separate YAML block from body      |
+| `parseFrontmatter(content)`  | Full file string      | `Record<string, unknown>` | Get all frontmatter fields         |
+| `titleOf(content, filePath)` | Content + path        | `string`                  | Page title with stem fallback      |
+| `stringList(value)`          | Any frontmatter value | `string[]`                | Normalize `sources:`, `related:`   |
+| `stripWikilink(s)`           | `"[[Firewall]]"`      | `"Firewall"`              | Unwrap wikilink syntax from arrays |
 
 `stringList` is the coercion bridge: `sources:` may be an array of wikilink strings or a single wikilink string; `stringList` normalizes both to `string[]` before further processing.
 

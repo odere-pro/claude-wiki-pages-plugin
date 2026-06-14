@@ -1,7 +1,8 @@
 ---
 title: "Provenance Checks"
 type: concept
-aliases: ["Provenance Checks", "CHECK 5a", "CHECK 5b", "provenance-completeness", "provenance-consistency"]
+aliases:
+  ["Provenance Checks", "CHECK 5a", "CHECK 5b", "provenance-completeness", "provenance-consistency"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[provenance.ts Source]]", "[[verify.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
@@ -35,6 +36,7 @@ Provenance Checks are two orthogonal integrity checks in `src/core/provenance.ts
 ## Examples
 
 Error finding example:
+
 ```
 severity: "error"
 check: "provenance-completeness"
@@ -42,6 +44,7 @@ message: "no-sources: \"Concept Name\" (concept-name.md) has type \"concept\" bu
 ```
 
 Warning finding example:
+
 ```
 severity: "warn"
 check: "provenance-consistency"

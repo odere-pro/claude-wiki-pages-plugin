@@ -43,4 +43,4 @@ Establishes the `raw/agent-sessions/` fence as the sanctioned path for durable a
 
 Wiki pages that cite this source:
 
-- [[Ingest Agent]] — durable-memory carve-out via _proposed/ gate
+- [[Ingest Agent]] — durable-memory carve-out via \_proposed/ gate

@@ -1,7 +1,15 @@
 ---
 title: "MOC Repair Primitives"
 type: concept
-aliases: ["MOC Repair Primitives", "moc-build", "replaceYamlListField", "syncChildren", "buildIndexStub", "dedupeIndexLinks"]
+aliases:
+  [
+    "MOC Repair Primitives",
+    "moc-build",
+    "replaceYamlListField",
+    "syncChildren",
+    "buildIndexStub",
+    "dedupeIndexLinks",
+  ]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[moc-build.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]

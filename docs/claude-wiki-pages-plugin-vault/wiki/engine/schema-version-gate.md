@@ -1,7 +1,14 @@
 ---
 title: "Schema Version Gate"
 type: concept
-aliases: ["Schema Version Gate", "schema_version check", "CHECK 0", "SUPPORTED_SCHEMA_VERSIONS", "declaredSchemaVersion"]
+aliases:
+  [
+    "Schema Version Gate",
+    "schema_version check",
+    "CHECK 0",
+    "SUPPORTED_SCHEMA_VERSIONS",
+    "declaredSchemaVersion",
+  ]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[schema.ts Source]]", "[[verify.ts Source]]"]
@@ -37,12 +44,14 @@ The Schema Version Gate is CHECK 0 in the vault integrity check pipeline, implem
 Supported (clean): `schema_version: 3` in CLAUDE.md → no finding.
 
 Missing declaration (error):
+
 ```
 severity: "error", check: "schema"
 message: "CLAUDE.md declares no schema_version. Add `schema_version: 3` near the top."
 ```
 
 Unsupported version (error):
+
 ```
 severity: "error", check: "schema"
 message: "schema_version 4 is unsupported (this build supports: 1, 2, 3)."

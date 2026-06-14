@@ -4,8 +4,21 @@ type: concept
 aliases: ["Wiki-Native Recall", "wiki-native recall", "deterministic retrieval", "keyword search"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0007: Wiki-Native Recall]]", "[[ADR-0006: One Search Score Object]]", "[[ADR-0008: One Graph-Traversal Primitive]]", "[[Glossary]]"]
-related: ["[[NO-RAG Principle]]", "[[Deterministic Engine]]", "[[Graph Traversal Primitive]]", "[[Search Score Object]]", "[[Analyst Agent]]"]
+sources:
+  [
+    "[[ADR-0007: Wiki-Native Recall]]",
+    "[[ADR-0006: One Search Score Object]]",
+    "[[ADR-0008: One Graph-Traversal Primitive]]",
+    "[[Glossary]]",
+  ]
+related:
+  [
+    "[[NO-RAG Principle]]",
+    "[[Deterministic Engine]]",
+    "[[Graph Traversal Primitive]]",
+    "[[Search Score Object]]",
+    "[[Analyst Agent]]",
+  ]
 tags: ["concept", "retrieval", "search"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +31,45 @@ confidence: 1.0
 
 > [!summary]
 > Wiki-native recall is the [[NO-RAG Principle]]'s concrete implementation: a deterministic, embedding-free retrieval pipeline that combines keyword matching, a curated synonym lexicon, a Porter-style stemmer, and graph link-walking into a scored, fully explainable result. Every retrieval operation produces a `score === sum(matched[].points)` breakdown so the user can see exactly why each page ranked. Same query + same vault + same lexicon → byte-identical results every run.
+
+## Definition
+
+Wiki-native recall is the concrete positive alternative to RAG: a deterministic, embedding-free retrieval pipeline that combines keyword matching, a curated synonym lexicon, a Porter-style stemmer, and graph link-walking into a scored, fully explainable result.
+
+## Key Principles
+
+- Same query + same vault + same lexicon → byte-identical results every run. No model, no embedding, no variance.
+- The synonym lexicon (`vault/_vocabulary.md`) is the query-side expansion; frontmatter `aliases` are the page-side advertisement — two ends of one handshake, same string-match mechanism.
+- Absent `_vocabulary.md` degrades to exact keyword search, not an error.
+- The weight ladder ensures direct > synonym > stem: expansion only rescues a page from the zero-score cliff; it cannot outrank a real keyword hit.
+- Every retrieval result carries a `score === sum(matched[].points)` invariant so every point is auditable.
+
+## Examples
+
+Synonym lexicon entry in `vault/_vocabulary.md`:
+
+```yaml
+synonyms:
+  - group: ["car", "automobile", "vehicle"]
+  - group: ["firewall", "write confinement", "vault isolation"]
+```
+
+A query for "car" now matches pages titled "Automobile" via the synonym group.
+
+Score breakdown showing exactly why a page ranked:
+
+```json
+{
+  "page": "Firewall",
+  "score": 6.8,
+  "matched": [
+    { "channel": "title-phrase", "term": "firewall",       "points": 5.0 },
+    { "channel": "synonym-term", "term": "vault isolation", "points": 1.8 }
+  ]
+}
+```
+
+Hop-decayed graph walk: "Firewall" (seed) → "Multi-Vault Registry" (hop 1, score × 0.5) → "Active Vault" (hop 2, score × 0.25).
 
 ## Problem Statement (ADR-0007)
 
@@ -32,11 +84,12 @@ Recall had to be solved the wiki-native way: make the wiki's own structure the r
 A human-edited, git-versioned file at the Data layer (a sibling of `wiki/`, like `_templates/` and `_proposed/`). Its frontmatter carries synonym groups — unordered equivalence classes of surface forms (concept → variants). The engine loads it via `src/core/vocabulary.ts`, reusing the existing frontmatter parser.
 
 Key properties:
+
 - **Order-independent:** overlapping groups merge by union-find closure, so two files with the same groups in any order yield the same lexicon.
 - **Absent file = exact-match only:** if `_vocabulary.md` is missing, the engine degrades to exact keyword search rather than erroring.
 - **Governed:** adding a synonym requires editing the checked-in file, not a training run.
 
-The lexicon addresses the cross-page concept synonym case: `_vocabulary.md` is the *query-side* expansion of "car → automobile → vehicle"; frontmatter `aliases` are the *page-side* advertisement of a page's own alternate names. These two ends of one handshake meet at the same string match — no second engine mechanism.
+The lexicon addresses the cross-page concept synonym case: `_vocabulary.md` is the _query-side_ expansion of "car → automobile → vehicle"; frontmatter `aliases` are the _page-side_ advertisement of a page's own alternate names. These two ends of one handshake meet at the same string match — no second engine mechanism.
 
 ### 2. Porter-Style Stemmer (`src/core/stem.ts`)
 
@@ -47,28 +100,30 @@ The stemmer operates on tokenized word sets rather than substrings, keeping it d
 ### 3. Pre-Scoring Query Expansion with Strict Weight Ladder
 
 Before the scoring loop, each query term fans out to three candidates:
+
 1. Itself (exact)
 2. Its lexicon synonyms
 3. Its stem
 
 Matches from expansion score at strictly-lower fixed weights so **direct > synonym > stem** on any field:
 
-| Channel | Weight (title) | Example |
-| --- | --- | --- |
-| `title-phrase` | 5 | Exact title match |
-| `title-term` | 4 | Title contains exact term |
-| `alias-term` | 3 | Alias contains exact term |
-| `tag-term` | 2 | Tag matches term |
-| `body-term` | 1 | Body contains term |
-| `synonym-term` | 2 (title) | Synonym expansion match |
-| `stem-term` | 1 | Stem match |
-| `graph-edge` | variable (hop-decayed) | Reached via wikilink walk |
+| Channel        | Weight (title)         | Example                   |
+| -------------- | ---------------------- | ------------------------- |
+| `title-phrase` | 5                      | Exact title match         |
+| `title-term`   | 4                      | Title contains exact term |
+| `alias-term`   | 3                      | Alias contains exact term |
+| `tag-term`     | 2                      | Tag matches term          |
+| `body-term`    | 1                      | Body contains term        |
+| `synonym-term` | 2 (title)              | Synonym expansion match   |
+| `stem-term`    | 1                      | Stem match                |
+| `graph-edge`   | variable (hop-decayed) | Reached via wikilink walk |
 
 A synonym hit can only rescue a page from the zero cliff; it can never outrank a real keyword hit on the same field. Expanded matches are de-duplicated by highest-precedence origin so a term matched two ways is scored once.
 
 ## Score Object (ADR-0006)
 
 Every search result carries a `SearchHit` with:
+
 ```typescript
 {
   page: string,
@@ -82,6 +137,7 @@ The invariant `score === sum(matched[].points)` is enforced. Every point is acco
 ## Graph Link-Walk (ADR-0008)
 
 The retrieval pipeline extends into the wiki's link graph via `src/core/graph.ts:walk()`. Starting from a set of seed pages found by keyword matching, the walk follows typed wikilinks:
+
 - `sources` — provenance edges (page → source note)
 - `related` — association edges
 - `depends_on` — dependency edges
@@ -100,7 +156,7 @@ One shared `walk()` function handles all graph traversal in the engine. No secon
 - **No multi-word paraphrase.** A query "multi-hop retrieval" does not match "graph traversal" unless a synonym group explicitly connects them. The solution is to extend the lexicon, never to reach for vectors.
 - **Non-English vaults.** The Porter-style stemmer is English-specific. Parameterising by a fixed per-language rule set is the planned extension path (no data files that vary, still a pure algorithm).
 
-## Related
+## Related Concepts
 
 - [[NO-RAG Principle]] — the non-negotiable that mandates this approach
 - [[Deterministic Engine]] — the Bun CLI that implements wiki-native recall

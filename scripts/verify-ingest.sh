@@ -663,6 +663,202 @@ if [ "$PROVENANCE_ERRORS" -eq 0 ] && [ "$DERIVED_WARNS" -eq 0 ]; then
 fi
 
 # ──────────────────────────────────────────────
+# FU1 (ADR-0028): dangling-wikilink WARN check
+#
+# One WARN per (page, distinct-normalised-target) whose [[link]] resolves to
+# no page in wiki/.  Resolution model (identical to the TS twin in
+# src/core/wikilink-check.ts and scripts/graph-quality.sh):
+#
+#   A link [[T]] resolves iff, case-insensitively, the normalised target
+#   (stripped of "|alias", "#heading", "^block") equals:
+#     - the filename stem of some page, OR
+#     - the title: value of some page, OR
+#     - any aliases: entry of some page.
+#
+# BOOKKEEPING pages (index, log, dashboard, manifest, _index, .gitkeep) and
+# folder notes (type: index, stem == dir name) are skipped as subjects.
+# All pages contribute to the resolvable-name set (targets are not filtered).
+#
+# Implementation uses an inline python3 block (same pattern as
+# scripts/graph-quality.sh) so the regex and normalisation are byte-identical
+# across both bash-twin and TS-engine on every vault.
+# ──────────────────────────────────────────────
+header "Dangling wikilinks (FU1)"
+
+if ! command -v python3 >/dev/null 2>&1; then
+  yellow "python3 not found — dangling-wikilink check skipped"
+else
+  DANGLING_WARNS=0
+  # Run the python3 block; capture its output as "COUNT\tFILE\tTARGET" lines.
+  # Each line is one (file, distinct-normalised-target) pair that dangles.
+  DANGLING_OUTPUT=$(
+    VERIFY_WIKI="$WIKI" python3 - <<'PY'
+import os, re
+
+wiki = os.environ["VERIFY_WIKI"]
+
+BOOKKEEPING_STEMS = {"index", "log", "dashboard", "manifest", "_index", ".gitkeep"}
+LINK_RE = re.compile(r"\[\[([^\[\]]+?)\]\]")
+
+def norm(s):
+    return s.strip().lower()
+
+def normalise_target(raw):
+    """Strip |alias, #heading, ^block, then lower+strip."""
+    t = raw
+    pipe = t.find("|")
+    if pipe != -1:
+        t = t[:pipe]
+    hash_ = t.find("#")
+    if hash_ != -1:
+        t = t[:hash_]
+    caret = t.find("^")
+    if caret != -1:
+        t = t[:caret]
+    return t.strip().lower()
+
+def split_frontmatter(text):
+    if not text.startswith("---"):
+        return "", text
+    end = text.find("\n---", 3)
+    if end == -1:
+        return "", text
+    return text[3:end], text[end + 4:]
+
+def parse_title_aliases(text):
+    """Tolerant extraction of title: and aliases: — mirrors graph-quality.sh."""
+    fm, _ = split_frontmatter(text)
+    title = None
+    aliases = []
+    lines = fm.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r"^title:\s*(.+?)\s*$", line)
+        if m:
+            title = m.group(1).strip().strip('"').strip("'")
+        m = re.match(r"^aliases:\s*(.*)$", line)
+        if m:
+            rest = m.group(1).strip()
+            if rest.startswith("["):
+                items = re.findall(r"\"([^\"]*)\"|'([^']*)'", rest)
+                if items:
+                    for a, b in items:
+                        val = a or b
+                        if val:
+                            aliases.append(val)
+                else:
+                    for piece in rest.strip("[]").split(","):
+                        piece = piece.strip().strip('"').strip("'")
+                        if piece:
+                            aliases.append(piece)
+            else:
+                j = i + 1
+                while j < len(lines):
+                    bm = re.match(r"^\s*-\s*(.+?)\s*$", lines[j])
+                    if bm:
+                        aliases.append(bm.group(1).strip().strip('"').strip("'"))
+                        j += 1
+                    else:
+                        break
+                i = j - 1
+        i += 1
+    return title, aliases
+
+def is_folder_note(full_path, stem, parent_name):
+    """Matches _is_folder_note in verify-ingest.sh: stem==parent AND type: index."""
+    if stem != parent_name:
+        return False
+    try:
+        text = open(full_path, encoding="utf-8").read()
+    except Exception:
+        return False
+    return bool(re.search(r"^type:\s*[\"']?index[\"']?\s*$", text, re.MULTILINE))
+
+# ── Pass 1: build the resolvable-name set (ALL pages are potential targets) ──
+resolvable = set()
+for dirpath, _dirs, files in os.walk(wiki):
+    for fn in sorted(files):
+        if not fn.endswith(".md"):
+            continue
+        stem = fn[:-3]
+        resolvable.add(norm(stem))
+        full = os.path.join(dirpath, fn)
+        try:
+            text = open(full, encoding="utf-8").read()
+        except Exception:
+            continue
+        title, aliases = parse_title_aliases(text)
+        if title:
+            resolvable.add(norm(title))
+        for a in aliases:
+            resolvable.add(norm(a))
+
+# ── Pass 2: scan non-bookkeeping pages as subjects ───────────────────────────
+for dirpath, _dirs, files in os.walk(wiki):
+    for fn in sorted(files):
+        if not fn.endswith(".md"):
+            continue
+        stem = fn[:-3]
+        # Skip bookkeeping stems.
+        if stem in BOOKKEEPING_STEMS:
+            continue
+        parent_name = os.path.basename(dirpath)
+        full = os.path.join(dirpath, fn)
+        # Skip folder notes (type: index, stem == parent dir name).
+        if is_folder_note(full, stem, parent_name):
+            continue
+
+        try:
+            text = open(full, encoding="utf-8").read()
+        except Exception:
+            continue
+
+        rel = os.path.relpath(full, wiki)
+        seen_norms = set()
+        for raw in LINK_RE.findall(text):
+            nt = normalise_target(raw)
+            if not nt or nt in seen_norms:
+                continue
+            seen_norms.add(nt)
+            if nt not in resolvable:
+                # Display form: strip alias/anchor for readability.
+                display = raw
+                pipe = display.find("|")
+                if pipe != -1:
+                    display = display[:pipe]
+                hash_ = display.find("#")
+                if hash_ != -1:
+                    display = display[:hash_]
+                caret = display.find("^")
+                if caret != -1:
+                    display = display[:caret]
+                display = display.strip()
+                # Output two lines per finding: FILE then TARGET.
+                # Bash twin reads them in pairs below.
+                print(rel)
+                print(display)
+PY
+  )
+
+  # Emit one WARN per (file, target) pair and count.
+  # Python output: alternating lines — FILE, TARGET, FILE, TARGET, ...
+  # Read them in pairs with a two-read loop.
+  if [ -n "$DANGLING_OUTPUT" ]; then
+    while IFS= read -r dangling_file && IFS= read -r dangling_target; do
+      [ -z "$dangling_file" ] && continue || true
+      yellow "dangling-wikilink: [[${dangling_target}]] in ${dangling_file} has no matching page (stem, title, or alias)"
+      DANGLING_WARNS=$((DANGLING_WARNS + 1))
+      WARNINGS=$((WARNINGS + 1))
+    done <<<"$DANGLING_OUTPUT"
+  fi
+
+  if [ "$DANGLING_WARNS" -eq 0 ]; then
+    green "No dangling wikilinks found"
+  fi
+fi
+
+# ──────────────────────────────────────────────
 # SUMMARY
 # ──────────────────────────────────────────────
 header "Summary"

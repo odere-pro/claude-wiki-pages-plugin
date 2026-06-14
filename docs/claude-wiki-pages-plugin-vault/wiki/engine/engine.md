@@ -1,7 +1,15 @@
 ---
 title: "Wiki Engine"
 type: index
-aliases: ["Wiki Engine", "wiki engine", "engine", "Engine", "deterministic engine", "claude-wiki-pages engine"]
+aliases:
+  [
+    "Wiki Engine",
+    "wiki engine",
+    "engine",
+    "Engine",
+    "deterministic engine",
+    "claude-wiki-pages engine",
+  ]
 parent: "[[Wiki Index]]"
 path: "engine"
 children:

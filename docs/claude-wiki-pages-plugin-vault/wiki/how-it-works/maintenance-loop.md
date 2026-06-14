@@ -1,11 +1,19 @@
 ---
 title: "Maintenance Loop"
 type: concept
-aliases: ["Maintenance Loop", "maintenance loop", "autonomous maintenance", "catch-up loop", "ingest-curator-polish-lint"]
+aliases:
+  [
+    "Maintenance Loop",
+    "maintenance loop",
+    "autonomous maintenance",
+    "catch-up loop",
+    "ingest-curator-polish-lint",
+  ]
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[Automation]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[Heartbeat]]", "[[Backlog]]", "[[Maintenance Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
+related:
+  ["[[Heartbeat]]", "[[Backlog]]", "[[Maintenance Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -22,16 +30,44 @@ confidence: 1.0
 > [!summary]
 > The maintenance loop is the autonomous four-phase catch-up sequence run by the `claude-wiki-pages-maintenance-agent`: ingest → curator → polish → lint. It is bounded by `maintenance.maxPerRun` (maximum sources per run). It is off by default and opt-in via `maintenance.enabled`. The manual equivalent is running the four agents sequentially.
 
+## Key Principles
+
+- The maintenance loop is the four-phase catch-up pipeline: ingest → curator → polish → lint, run in that fixed order.
+- Each phase is bounded and git-checkpointed — no phase accumulates unbounded writes without a checkpoint.
+- `maxPerRun` limits the ingest phase; sources beyond the limit remain in the backlog for the next run.
+- The loop is off by default and requires `maintenance.enabled: true` to activate autonomously.
+- The heartbeat detects when the loop is needed; the loop itself runs only when the orchestrator dispatches the maintenance agent.
+
+## Examples
+
+Manual equivalent of one maintenance loop run (all four phases):
+
+```bash
+/claude-wiki-pages:wiki       # ingest pending sources, then curator auto-heals, then polish
+/claude-wiki-pages:status     # verify with structural lint
+```
+
+Autonomous configuration with a 10-source cap per run:
+
+```json
+{
+  "maintenance": {
+    "enabled": true,
+    "maxPerRun": 10
+  }
+}
+```
+
 ## Definition
 
 The maintenance loop is the autonomous form of the standard wiki update pipeline. When the orchestrator detects a backlog (unprocessed raw sources or overdue lint) and `maintenance.enabled: true`, it dispatches the maintenance agent, which runs the four phases in sequence:
 
-| Phase | Agent / Tool | What it does |
-| --- | --- | --- |
-| 1. Ingest | `claude-wiki-pages-ingest-agent` | Processes pending raw sources; creates/updates wiki pages |
-| 2. Curator | `claude-wiki-pages-curator-agent` | Runs `engine.sh heal`; repairs structural errors; judgment fixes |
-| 3. Polish | `claude-wiki-pages-polish-agent` | Updates graph colors, folder notes, vault MOC |
-| 4. Lint | `verify-ingest.sh` + structural lint | Reports remaining issues |
+| Phase      | Agent / Tool                         | What it does                                                     |
+| ---------- | ------------------------------------ | ---------------------------------------------------------------- |
+| 1. Ingest  | `claude-wiki-pages-ingest-agent`     | Processes pending raw sources; creates/updates wiki pages        |
+| 2. Curator | `claude-wiki-pages-curator-agent`    | Runs `engine.sh heal`; repairs structural errors; judgment fixes |
+| 3. Polish  | `claude-wiki-pages-polish-agent`     | Updates graph colors, folder notes, vault MOC                    |
+| 4. Lint    | `verify-ingest.sh` + structural lint | Reports remaining issues                                         |
 
 Each phase is bounded and checkpointed. The ingest phase processes at most `maintenance.maxPerRun` sources. If more sources are pending, they remain in the backlog for the next maintenance run.
 
@@ -58,8 +94,8 @@ This is identical to the maintenance loop but requires explicit invocation at ea
 // .claude/claude-wiki-pages/settings.json
 {
   "maintenance": {
-    "enabled": false,     // off by default; set true to enable autonomous loop
-    "maxPerRun": 10       // max sources per maintenance run; default 10
+    "enabled": false, // off by default; set true to enable autonomous loop
+    "maxPerRun": 10 // max sources per maintenance run; default 10
   }
 }
 ```

@@ -1,11 +1,24 @@
 ---
 title: "Six Surfaces Dual-Reader Contract"
 type: concept
-aliases: ["Six Surfaces Dual-Reader Contract", "six surfaces dual-reader contract", "six surfaces", "dual-reader contract", "six-surfaces table"]
+aliases:
+  [
+    "Six Surfaces Dual-Reader Contract",
+    "six surfaces dual-reader contract",
+    "six surfaces",
+    "dual-reader contract",
+    "six-surfaces table",
+  ]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[SOFTWARE-3-0: Dual Entry Point]]"]
-related: ["[[Dual Entry Point]]", "[[Plugin Dev-Time vs Runtime]]", "[[Plugin Manifest]]", "[[Analyst Agent]]"]
+related:
+  [
+    "[[Dual Entry Point]]",
+    "[[Plugin Dev-Time vs Runtime]]",
+    "[[Plugin Manifest]]",
+    "[[Analyst Agent]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -25,14 +38,14 @@ The Six Surfaces Dual-Reader Contract is the organizing principle of the `SOFTWA
 
 The contract maps six project surfaces to their on-ramps:
 
-| Surface | Human on-ramp | Agent on-ramp |
-|---|---|---|
-| **Docs** | `docs/getting-started.md`, `docs/operations.md` | `docs/GLOSSARY.md` (canonical terms), `CLAUDE.md` (repo map) |
-| **Tools** | `docs/operations.md` (the verbs), `/claude-wiki-pages:wiki` | `skills/engine-api` (engine subcommands, `--json`, exit codes) |
-| **Design** | `docs/architecture.md` (four-layer stack), `docs/design/` (diagrams) | `docs/design/` (mermaid source) + per-skill/per-agent frontmatter contracts |
-| **System design** | `docs/adr/` (decisions), `docs/teams.md`, `docs/design/06-feature-relations.md` | `schemas/` + `hooks/hooks.json` + `.claude-plugin/plugin.json` |
-| **Context** | `docs/vault-example/CLAUDE.md` (schema, `ontology-profile-v1`) | same schema + `skills/maintain-contract` |
-| **Memory** | `docs/adr/ADR-0010-durable-memory.md`, vault `wiki/log.md` | `scripts/session-memory.sh` (`source_type: agent-session` provenance) |
+| Surface           | Human on-ramp                                                                   | Agent on-ramp                                                               |
+| ----------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Docs**          | `docs/getting-started.md`, `docs/operations.md`                                 | `docs/GLOSSARY.md` (canonical terms), `CLAUDE.md` (repo map)                |
+| **Tools**         | `docs/operations.md` (the verbs), `/claude-wiki-pages:wiki`                     | `skills/engine-api` (engine subcommands, `--json`, exit codes)              |
+| **Design**        | `docs/architecture.md` (four-layer stack), `docs/design/` (diagrams)            | `docs/design/` (mermaid source) + per-skill/per-agent frontmatter contracts |
+| **System design** | `docs/adr/` (decisions), `docs/teams.md`, `docs/design/06-feature-relations.md` | `schemas/` + `hooks/hooks.json` + `.claude-plugin/plugin.json`              |
+| **Context**       | `docs/vault-example/CLAUDE.md` (schema, `ontology-profile-v1`)                  | same schema + `skills/maintain-contract`                                    |
+| **Memory**        | `docs/adr/ADR-0010-durable-memory.md`, vault `wiki/log.md`                      | `scripts/session-memory.sh` (`source_type: agent-session` provenance)       |
 
 ## Key Principles
 

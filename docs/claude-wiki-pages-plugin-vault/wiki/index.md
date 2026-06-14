@@ -18,7 +18,6 @@ created: 2026-06-13
 updated: 2026-06-13
 ---
 
-
 # Wiki Index
 
 Master catalog of every page in this wiki. The wiki covers the `claude-wiki-pages` plugin: its architecture decisions, design patterns, agent and skill contracts, and operational guides.

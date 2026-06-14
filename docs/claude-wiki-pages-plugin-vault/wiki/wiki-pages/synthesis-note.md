@@ -1,10 +1,16 @@
 ---
 title: "Synthesis Note"
 type: concept
-aliases: ["Synthesis Note", "synthesis note", "synthesis notes", "_synthesis", "cross-topic analysis"]
+aliases:
+  ["Synthesis Note", "synthesis note", "synthesis notes", "_synthesis", "cross-topic analysis"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[User Guide 05: Export Outputs]]", "[[User Guide 07: Query the Wiki]]", "[[Analyst Agent Source]]"]
+sources:
+  [
+    "[[User Guide 05: Export Outputs]]",
+    "[[User Guide 07: Query the Wiki]]",
+    "[[Analyst Agent Source]]",
+  ]
 related: ["[[Analyst Agent]]", "[[Challenge Mode]]", "[[Query Rules]]", "[[Grounded Retrieval]]"]
 contradicts: []
 supersedes: []
@@ -22,11 +28,47 @@ confidence: 1.0
 > [!summary]
 > A synthesis note is a higher-order analysis page stored in `wiki/_synthesis/`. It is the wiki's permanent record of a multi-page reasoning result — a cross-topic comparison, theme, contradiction, gap analysis, or timeline — produced by the [[Analyst Agent]] and offered for permanent filing when a query answer reveals novel insight. Synthesis notes are distinct from `vault/output/` deliverables: they are schema-tracked knowledge, not scratch deliverables.
 
+## Key Principles
+
+- Synthesis notes represent the wiki's reasoning tier: where entity/concept pages record what is known about a single thing, synthesis notes record what follows when multiple things are compared, contrasted, or traced.
+- Filing a synthesis note is not automatic — the user must explicitly request it; many query answers are context-specific and do not belong in the permanent knowledge base.
+- Synthesis notes carry lower `confidence` than entity/concept pages (typically `0.7`) because they represent inference, not direct statement from a single source.
+- The `scope:` field lists pages consulted during synthesis; `sources:` lists the raw source notes that grounded those pages.
+- Synthesis notes are distinct from `vault/output/` files: they are schema-tracked, validated, git-tracked permanent knowledge; output files are gitignored scratch deliverables.
+
+## Examples
+
+A well-formed synthesis note frontmatter for a comparison:
+
+```yaml
+---
+title: "Firewall vs. Validate-Frontmatter: Defense-in-Depth Layers"
+type: synthesis
+synthesis_type: comparison
+path: "_synthesis"
+scope: ["[[Firewall]]", "[[Frontmatter Validation]]", "[[Hook System]]"]
+sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0014: Single-Source Required Fields]]"]
+created: 2026-06-14
+updated: 2026-06-14
+status: active
+confidence: 0.7
+---
+```
+
+Filing a synthesis note from a query answer:
+
+```
+/claude-wiki-pages:claude-wiki-pages-analyst-agent compare Firewall and Validate-Frontmatter
+# Agent synthesizes answer → offers to file as synthesis note
+# User: yes, file it → agent writes to wiki/_synthesis/firewall-vs-frontmatter.md
+```
+
 ## Definition
 
 Synthesis notes (`type: synthesis`) live in `wiki/_synthesis/` and represent the wiki's reasoning tier. Where an entity or concept page records what is known about a single thing, a synthesis note records what follows when multiple things are compared, contrasted, or traced through time.
 
 Five synthesis types are defined:
+
 - `comparison` — contrasting two or more entities, decisions, or approaches
 - `theme` — a pattern or recurring principle across multiple sources
 - `contradiction` — a conflict between two or more sourced claims
@@ -42,7 +84,11 @@ type: synthesis
 synthesis_type: comparison | theme | contradiction | gap | timeline
 path: "_synthesis"
 scope: ["[[Firewall]]", "[[Multi-Vault Registry]]", "[[Deterministic Engine]]"]
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]"]
+sources:
+  [
+    "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]",
+    "[[ADR-0016: Simultaneous Multi-Vault Management]]",
+  ]
 tags: []
 created: 2026-04-16
 updated: 2026-04-16
@@ -61,14 +107,14 @@ The key distinction drawn by User Guide 05: **synthesis goes in `wiki/_synthesis
 
 ## Synthesis Notes vs. Outputs
 
-| Property | Synthesis Note | `vault/output/` file |
-| --- | --- | --- |
-| Location | `wiki/_synthesis/` | `vault/output/` |
-| Schema | Full frontmatter required | None — plain markdown |
-| Tracked by index | Yes | No |
-| Validated by lint | Yes | No |
-| Git-tracked | Yes | No (gitignored) |
-| Purpose | Permanent wiki knowledge | Context-specific deliverable |
+| Property          | Synthesis Note            | `vault/output/` file         |
+| ----------------- | ------------------------- | ---------------------------- |
+| Location          | `wiki/_synthesis/`        | `vault/output/`              |
+| Schema            | Full frontmatter required | None — plain markdown        |
+| Tracked by index  | Yes                       | No                           |
+| Validated by lint | Yes                       | No                           |
+| Git-tracked       | Yes                       | No (gitignored)              |
+| Purpose           | Permanent wiki knowledge  | Context-specific deliverable |
 
 ## Related Concepts
 

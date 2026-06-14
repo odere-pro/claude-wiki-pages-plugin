@@ -1,11 +1,26 @@
 ---
 title: "Graph Traversal Primitive"
 type: concept
-aliases: ["Graph Traversal Primitive", "graph traversal primitive", "walk()", "graph walk", "BFS walk", "N-hop BFS"]
+aliases:
+  [
+    "Graph Traversal Primitive",
+    "graph traversal primitive",
+    "walk()",
+    "graph walk",
+    "BFS walk",
+    "N-hop BFS",
+  ]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[ADR-0008: One Graph-Traversal Primitive]]", "[[graph.ts Source]]"]
-related: ["[[Graph Walk Algorithm]]", "[[Wiki-Native Recall]]", "[[Search Scoring Algorithm]]", "[[Tier-2 Deterministic Recall]]", "[[NO-RAG Principle]]"]
+related:
+  [
+    "[[Graph Walk Algorithm]]",
+    "[[Wiki-Native Recall]]",
+    "[[Search Scoring Algorithm]]",
+    "[[Tier-2 Deterministic Recall]]",
+    "[[NO-RAG Principle]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,6 +36,36 @@ confidence: 1.0
 
 > [!summary]
 > The graph traversal primitive is the single function `src/core/graph.ts:walk()` that performs bodyless N-hop BFS over `sources`, `related`, and `depends_on` edges. N is hard-clamped to ≤ 2. Each hop reduces the score of a found page (hop-decay). The primitive is shared by R2 (graph-expanded search), R3 (analyst compile), and C1 (challenge mode). No second graph-walk function exists.
+
+## Key Principles
+
+- One function, one contract: ADR-0008 forbids implementing graph traversal more than once. All graph-expanded search modes share `src/core/graph.ts:walk()`.
+- N ≤ 2 is a hard clamp enforced by the function itself, not by callers. Passing `maxHops: 5` is clamped to 2 internally.
+- The walk is bodyless: it returns scored page references, never page bodies. Callers decide which pages to read after the walk.
+- Hop-decay scoring weights direct associations more heavily than transitive ones: hop-0 seed pages contribute full score; hop-2 pages contribute score × decay².
+- Visit order is alphabetical by page title — deterministic across runs regardless of vault index build order.
+
+## Examples
+
+Conceptual usage (R2 graph-expanded search):
+
+```typescript
+// Step 1: keyword search finds seed pages
+const seeds = await keywordSearch(query, vaultIndex);
+
+// Step 2: graph walk expands to neighbourhood
+const expanded = walk(
+  seeds.map(h => h.page),
+  R2_EDGES,   // sources, related, depends_on
+  2,          // maxHops (clamped to ≤ 2)
+  vaultIndex
+);
+
+// Step 3: merge scored results (seeds + expanded, deduplicated)
+const results = mergeScored(seeds, expanded);
+```
+
+The C1 challenge mode calls `walk()` with the same interface but different seed pages — topic pages plus pages linked via the `contradicts` edge — to find evidence on both sides of a contradiction.
 
 ## Definition
 
@@ -46,6 +91,7 @@ walk(
 **N ≤ 2 hard clamp.** Deeper walks are forbidden. Callers cannot pass `maxHops: 5`. The function enforces the ≤ 2 limit internally. This prevents the walk from becoming a full-graph scan and keeps latency bounded regardless of vault size.
 
 **Hop-decay scoring.** Each hop reduces the score contribution of a found page:
+
 - Hop 0 (seed pages from keyword search): full score
 - Hop 1 (directly linked from a seed): score × decay factor
 - Hop 2 (linked from a hop-1 page): score × decay factor²
@@ -56,12 +102,12 @@ The decay factor is defined in `src/core/graph.ts`. This weights direct associat
 
 ## Usage by Search Modes
 
-| Mode | Uses walk()? | N | Start pages |
-| --- | --- | --- | --- |
-| R1 (basic keyword search) | No | — | — |
-| R2 (graph-expanded search) | Yes | ≤ 2 | R1 top results |
-| R3 (analyst document compile) | Yes | ≤ 2 | Query-relevant pages |
-| C1 (challenge mode) | Yes | ≤ 2 | Topic pages + contradictions |
+| Mode                          | Uses walk()? | N   | Start pages                  |
+| ----------------------------- | ------------ | --- | ---------------------------- |
+| R1 (basic keyword search)     | No           | —   | —                            |
+| R2 (graph-expanded search)    | Yes          | ≤ 2 | R1 top results               |
+| R3 (analyst document compile) | Yes          | ≤ 2 | Query-relevant pages         |
+| C1 (challenge mode)           | Yes          | ≤ 2 | Topic pages + contradictions |
 
 ## Related Concepts
 

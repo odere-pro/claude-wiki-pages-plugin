@@ -5,7 +5,13 @@ aliases: ["Ontology Profile v1", "ontology-profile-v1", "ontology profile", "pre
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[ADR-0004: Ontology Profile v1]]", "[[Design: Ontology]]", "[[Glossary]]"]
-related: ["[[Schema Authority]]", "[[Graph Traversal Primitive]]", "[[Deterministic Engine]]", "[[NO-RAG Principle]]"]
+related:
+  [
+    "[[Schema Authority]]",
+    "[[Graph Traversal Primitive]]",
+    "[[Deterministic Engine]]",
+    "[[NO-RAG Principle]]",
+  ]
 tags: ["concept", "ontology", "schema"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +24,43 @@ confidence: 1.0
 
 > [!summary]
 > The `ontology-profile-v1` is a named section in `vault/CLAUDE.md` — the single source of truth for the vault's formal ontology. It contains exactly two tables: a predicate domain→range table (11 predicates) and an enum list (closed canonical values for every schema field). R2 graph traversal, C1 MOC descent, and I1 classification all read exclusively from this profile. No parallel file exists; no copy is permitted. The engine's `ontology --json` verb projects this profile at read time without duplicating it.
+
+## Definition
+
+The `ontology-profile-v1` is a named section in `vault/CLAUDE.md` that declares the vault's formal ontology: which typed relationship may connect which kind of page, and the closed value sets for every schema field. It is the single source of truth — no parallel file, no copy permitted.
+
+## Key Principles
+
+- The ontology lives in schema + frontmatter + wikilinks — never a triplestore, RDF database, or vector store.
+- The profile section lives inside `CLAUDE.md` (the file the engine and every agent already load) — there is no second file to keep in sync.
+- `entity_type` is the sole vault-extensible axis; all other enums are closed and require a new ADR to extend.
+- The engine's `ontology --json` verb projects the profile at read time without duplicating it; if the tables are malformed, the verb exits non-zero.
+- "Read these two tables and no other source" is the authoritative instruction to agents; any reconstruction from prose is a drift risk.
+
+## Examples
+
+Projecting the ontology at runtime:
+
+```bash
+bash scripts/engine.sh ontology --json --target <vault>
+```
+
+Output structure:
+
+```json
+{
+  "enums": {
+    "type": ["source", "entity", "concept", "topic", "project", "synthesis", "index", "manifest", "log"],
+    "entity_type": ["person", "organization", "product", "tool", "service", "standard", "place", "dataset"]
+  },
+  "predicates": [
+    { "predicate": "sources", "domain": ["entity", "concept", "topic", "project", "synthesis"], "range": ["source"], "cardinality": "1..N" },
+    { "predicate": "related", "domain": ["entity", "concept", "topic", "project"], "range": ["entity", "concept", "topic", "project"], "cardinality": "0..N" }
+  ]
+}
+```
+
+The second entry in `enums.entity_type` (`"dataset"`) was added by the vault owner via `entity_type_extensions: [dataset]` — the legal set is core ∪ extensions.
 
 ## Problem Statement (ADR-0004)
 
@@ -33,19 +76,19 @@ The constraint: the ontology must live in schema + frontmatter + wikilinks — n
 
 Eleven predicates, each with domain (allowed source page class), range (allowed target page class), direction, and cardinality:
 
-| Predicate | Domain | Range | Direction / Cardinality |
-| --- | --- | --- | --- |
-| `parent` | any non-root page | `index` | directed, single |
-| `sources` | entity, concept, topic, project, synthesis | `source` | directed, 1..N (≥1) |
-| `related` | entity, concept, topic, project | entity, concept, topic, project | undirected, 0..N |
-| `contradicts` | concept | concept | undirected, 0..N |
-| `supersedes` | concept, topic, project, synthesis | same class | directed, 0..N |
-| `depends_on` | concept, topic, project | concept, entity | directed, 0..N |
-| `key_pages` | topic | entity, concept | directed, 0..N |
-| `members` | project | entity, concept | directed, 0..N |
-| `scope` | synthesis | entity, concept, topic, project | directed, 1..N |
-| `children` | index | any non-root page | directed, 0..N |
-| `child_indexes` | index | index | directed, 0..N |
+| Predicate       | Domain                                     | Range                           | Direction / Cardinality |
+| --------------- | ------------------------------------------ | ------------------------------- | ----------------------- |
+| `parent`        | any non-root page                          | `index`                         | directed, single        |
+| `sources`       | entity, concept, topic, project, synthesis | `source`                        | directed, 1..N (≥1)     |
+| `related`       | entity, concept, topic, project            | entity, concept, topic, project | undirected, 0..N        |
+| `contradicts`   | concept                                    | concept                         | undirected, 0..N        |
+| `supersedes`    | concept, topic, project, synthesis         | same class                      | directed, 0..N          |
+| `depends_on`    | concept, topic, project                    | concept, entity                 | directed, 0..N          |
+| `key_pages`     | topic                                      | entity, concept                 | directed, 0..N          |
+| `members`       | project                                    | entity, concept                 | directed, 0..N          |
+| `scope`         | synthesis                                  | entity, concept, topic, project | directed, 1..N          |
+| `children`      | index                                      | any non-root page               | directed, 0..N          |
+| `child_indexes` | index                                      | index                           | directed, 0..N          |
 
 The [[Graph Traversal Primitive]]'s `walk()` function reads only the R2_EDGES subset: `sources`, `related`, `depends_on`. The MOC/descent edges (`parent`, `children`, `child_indexes`, `key_pages`) are used by C1. The `contradicts`/`supersedes` edges are available to R3/synthesis.
 
@@ -55,15 +98,15 @@ An edge violating a row's domain/range is a future S1-check lint finding, not a 
 
 All closed value sets for the schema, single-sourced in the profile:
 
-| Enum | Canonical Values | Closed? |
-| --- | --- | --- |
-| `type` | source, entity, concept, topic, project, synthesis, index, manifest, log | Closed core |
-| `entity_type` | person, organization, product, tool, service, standard, place | Closed core + owner extension |
-| `source_type` | article, paper, policy, transcript, book, video, podcast, manual, agent-session | Closed core |
-| `synthesis_type` | comparison, theme, contradiction, gap, timeline | Closed core |
-| `project_status` | planned, active, paused, done, abandoned | Closed core |
-| `source_format` | text, image, pdf | Closed core |
-| `status` | active, stale, superseded, draft | Closed core |
+| Enum             | Canonical Values                                                                | Closed?                       |
+| ---------------- | ------------------------------------------------------------------------------- | ----------------------------- |
+| `type`           | source, entity, concept, topic, project, synthesis, index, manifest, log        | Closed core                   |
+| `entity_type`    | person, organization, product, tool, service, standard, place                   | Closed core + owner extension |
+| `source_type`    | article, paper, policy, transcript, book, video, podcast, manual, agent-session | Closed core                   |
+| `synthesis_type` | comparison, theme, contradiction, gap, timeline                                 | Closed core                   |
+| `project_status` | planned, active, paused, done, abandoned                                        | Closed core                   |
+| `source_format`  | text, image, pdf                                                                | Closed core                   |
+| `status`         | active, stale, superseded, draft                                                | Closed core                   |
 
 `entity_type` is the **sole vault-extensible axis**. A vault owner may add values via `entity_type_extensions:` in their own `CLAUDE.md` — the legal set is then core ∪ extensions at read time. There is no parallel extension file.
 
@@ -82,6 +125,7 @@ The constraint "never a triplestore, RDF database, or vector store" rules out ex
 ### Machine Projection, Not Duplication (ADR-0015)
 
 The engine's `ontology --json` verb (ADR-0015) makes the profile machine-readable without duplicating it. At query time, the verb parses the two markdown tables from `CLAUDE.md` and emits:
+
 - `enums.type` — the closed page-type enum
 - `enums.entity_type` — core ∪ `entity_type_extensions`
 - `predicates[]` — one entry per row
@@ -101,7 +145,7 @@ entity_type_extensions: [dataset, model]
 
 The legal set is computed at read time as core ∪ extensions. No second list, no parallel file. The engine's `ontology --json` output includes the composed set so agents see the full legal vocabulary for that vault.
 
-## Related
+## Related Concepts
 
 - [[Schema Authority]] — `CLAUDE.md` that contains this profile
 - [[Graph Traversal Primitive]] — reads R2_EDGES from this profile

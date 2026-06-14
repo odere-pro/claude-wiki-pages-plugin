@@ -1,11 +1,25 @@
 ---
 title: "Single-Pass Dispatch"
 type: concept
-aliases: ["Single-Pass Dispatch", "single-pass dispatch", "single-pass routing", "dispatch contract", "one specialist rule"]
+aliases:
+  [
+    "Single-Pass Dispatch",
+    "single-pass dispatch",
+    "single-pass routing",
+    "dispatch contract",
+    "one specialist rule",
+  ]
 parent: "[[Plugin]]"
 path: "plugin"
 sources: ["[[Orchestrator Agent Source]]"]
-related: ["[[Orchestrator Agent]]", "[[Agent Contract Table]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Analyst Agent]]"]
+related:
+  [
+    "[[Orchestrator Agent]]",
+    "[[Agent Contract Table]]",
+    "[[Ingest Agent]]",
+    "[[Curator Agent]]",
+    "[[Analyst Agent]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []

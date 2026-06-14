@@ -1,11 +1,26 @@
 ---
 title: "Plugin Dev-Time vs Runtime"
 type: concept
-aliases: ["Plugin Dev-Time vs Runtime", "plugin dev-time vs runtime", "dev-time runtime boundary", "plugin session context boundary", "install boundary"]
+aliases:
+  [
+    "Plugin Dev-Time vs Runtime",
+    "plugin dev-time vs runtime",
+    "dev-time runtime boundary",
+    "plugin session context boundary",
+    "install boundary",
+  ]
 parent: "[[Plugin]]"
 path: "plugin"
 sources: ["[[Plugin CLAUDE.md]]", "[[Plugin README]]", "[[SOFTWARE-3-0: Dual Entry Point]]"]
-related: ["[[Plugin Manifest]]", "[[claude-wiki-pages Plugin]]", "[[Vault Resolution]]", "[[Schema Authority]]", "[[Dual Entry Point]]", "[[Six Surfaces Dual-Reader Contract]]"]
+related:
+  [
+    "[[Plugin Manifest]]",
+    "[[claude-wiki-pages Plugin]]",
+    "[[Vault Resolution]]",
+    "[[Schema Authority]]",
+    "[[Dual Entry Point]]",
+    "[[Six Surfaces Dual-Reader Contract]]",
+  ]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -29,13 +44,13 @@ This dev-time vs runtime split is a deliberate design choice: it keeps the LLM's
 
 **What ships at runtime (session context):**
 
-| Surface | Directory |
-| --- | --- |
-| Skills | `skills/` |
-| Agents | `agents/` |
+| Surface     | Directory          |
+| ----------- | ------------------ |
+| Skills      | `skills/`          |
+| Agents      | `agents/`          |
 | Hook wiring | `hooks/hooks.json` |
-| Scripts | `scripts/` |
-| Rules | `rules/` |
+| Scripts     | `scripts/`         |
+| Rules       | `rules/`           |
 
 **What is dev-only (plugin cache, not session context):**
 

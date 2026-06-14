@@ -5,7 +5,8 @@ aliases: ["Baseline Arm", "baseline arm", "no-scaffolding arm", "generic prompt 
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[ADR-0020: The Scaffolding Ablation]]", "[[Features]]"]
-related: ["[[Plugin Arm]]", "[[Scaffolding Ablation]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]"]
+related:
+  ["[[Plugin Arm]]", "[[Scaffolding Ablation]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -22,6 +23,27 @@ confidence: 1.0
 > [!summary]
 > The baseline arm is the control condition in the [[Scaffolding Ablation]] (ADR-0020). It runs the same model on the same [[Golden Set]] inputs but with only a generic prompt: "extract the knowledge into well-organized notes." No schema, no provenance contract, no anti-fabrication rules. The baseline arm's results demonstrate what a capable LLM produces without plugin scaffolding.
 
+## Key Principles
+
+- The baseline arm uses only a generic prompt with no schema, no provenance contract, and no anti-fabrication rules — the exact opposite of the plugin arm.
+- Transport (delimiter protocols) is kept identical in both arms so scorers can read outputs the same way; only the contract is the experimental variable.
+- The zero-fabrication floor is vacuous in the baseline arm because the baseline never makes sourced claims — a clean floor on the baseline is not evidence against fabrication.
+- `schema_validity` and `claim_source_fidelity` are the meaningful metrics for the baseline ingest arm; `frontmatter_field_accuracy` can score 1.0 vacuously when the baseline emits no frontmatter.
+- The ablation is a report, not a gate — it measures and documents the scaffolding gap without blocking any tier.
+
+## Examples
+
+Baseline arm ingest prompt (the only prompt content, no plugin scaffolding):
+
+> "Extract the knowledge from the following document into well-organized notes."
+
+Typical baseline arm failure modes observed in the measured `qwen3-coder:30b` run:
+
+- Duplicate pages for the same entity (no dedup instruction)
+- Missing `sources:` fields (no provenance contract)
+- Schema-invalid or absent frontmatter (no schema excerpt)
+- Inconsistent entity naming (no type system enforcing canonical titles)
+
 ## Definition
 
 The scaffolding ablation is a controlled experiment that answers: "what does the plugin scaffolding buy, beyond what a capable LLM would produce on its own?" The baseline arm is the control that establishes the unscaffolded baseline.
@@ -31,6 +53,7 @@ The baseline arm prompt is intentionally minimal:
 > "Extract the knowledge from the following document into well-organized notes."
 
 That is the entire prompt. No:
+
 - Schema excerpt from `CLAUDE.md`
 - Provenance contract or `sources:` requirement
 - `source_quotes` verbatim rule

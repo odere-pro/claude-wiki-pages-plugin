@@ -4,8 +4,20 @@ type: concept
 aliases: ["Challenge Mode", "challenge mode", "adversarial query", "challenge framing"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[Analyst Modes Skill (SKILL.md)]]"]
-related: ["[[Analyst Agent]]", "[[Query Rules]]", "[[Synthesis Note]]", "[[Architecture Decision Record]]", "[[NO-RAG Principle]]"]
+sources:
+  [
+    "[[Architecture Documentation]]",
+    "[[User Guide 07: Query the Wiki]]",
+    "[[Analyst Modes Skill (SKILL.md)]]",
+  ]
+related:
+  [
+    "[[Analyst Agent]]",
+    "[[Query Rules]]",
+    "[[Synthesis Note]]",
+    "[[Architecture Decision Record]]",
+    "[[NO-RAG Principle]]",
+  ]
 tags: ["concept", "query", "analyst"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +30,26 @@ confidence: 1.0
 
 > [!summary]
 > Challenge mode is the [[Analyst Agent]]'s adversarial querying mode — one of its five operating modes. Before writing an ADR, proposal, or significant decision, the user poses the decision with a standard challenge framing. The analyst reads the wiki for contradictions, gaps in evidence, past decisions on similar topics, and counter-arguments, then responds with a structured critique grounded in actual wiki content. It is a technique, not a toggle.
+
+## Key Principles
+
+- Challenge mode is an invocation pattern, not a configuration toggle — it is activated by how the user frames their question, not by a flag.
+- The analyst reads wiki content for contradictions, low-confidence claims, gaps, and conflicting sources; it does not invent counter-arguments.
+- Every counter-argument must be grounded in a specific wiki page; the response always ends with the standard `## Sources` section (ADR-0022).
+- The analyst does not block or refuse the decision — it surfaces evidence; the human decides.
+- Challenge mode is read-only plus one optional write: if the challenge reveals a novel contradiction or gap, the analyst offers to file it as a synthesis note.
+
+## Examples
+
+Standard challenge framing before writing ADR-0023 (wiki-only graph):
+
+> "I'm about to add a wiki-only graph configuration that excludes `raw/`, `_templates/`, and `_proposed/`. What does the wiki say about past graph decisions and configuration management?"
+
+The analyst reads the graph-related pages and ADRs, surfaces any contradictions or prior decisions, and responds with a grounded critique that the author can address in the ADR's "alternatives considered" section.
+
+Before adding a new capability tier for local models:
+
+> "I'm about to add a `synthesis` tier for local models. What does the wiki say about capability tier governance and past rejections?"
 
 ## Definition
 
@@ -54,6 +86,7 @@ The schema authority (`vault/CLAUDE.md`) explicitly recommends challenge mode as
 > Before writing an ADR, proposal, or making a decision, query the wiki with a challenge framing.
 
 Specifically useful before:
+
 - Writing a new ADR (has the wiki already decided this?)
 - Adding a new capability tier to the local model gate (what did rejected tiers teach us?)
 - Adding a new page type to the schema (what past decisions closed other page types?)
@@ -70,6 +103,7 @@ The analyst reads [[Local Model Quality Gate]], [[Approved Local Model]], [[Capa
 ## Output
 
 The analyst's challenge response:
+
 1. States the counter-evidence found (specific wiki pages, with wikilink citations).
 2. Identifies gaps (topics related to the decision that have no wiki page).
 3. Notes any contradictions (`contradicts:` relationships found).
@@ -84,7 +118,7 @@ The response always ends with the standard `## Sources` section (ADR-0022) — e
 - It does not invent counter-arguments not grounded in the wiki. If the wiki has no relevant contradicting evidence, it says so.
 - It does not modify any wiki page. It is read-only (plus the optional synthesis note write).
 
-## Related
+## Related Concepts
 
 - [[Analyst Agent]] — the agent with Challenge as one of its five modes
 - [[Query Rules]] — the broader query workflow the analyst follows

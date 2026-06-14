@@ -4,8 +4,20 @@ type: concept
 aliases: ["Installation", "installation", "install", "plugin install"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources: ["[[Installation Guide]]", "[[Getting Started (CLI Quickstart)]]", "[[User Guide 01: Getting Started]]", "[[Features]]"]
-related: ["[[Onboarding Wizard]]", "[[Doctor Command]]", "[[claude-wiki-pages Plugin]]", "[[Git Checkpoint]]"]
+sources:
+  [
+    "[[Installation Guide]]",
+    "[[Getting Started (CLI Quickstart)]]",
+    "[[User Guide 01: Getting Started]]",
+    "[[Features]]",
+  ]
+related:
+  [
+    "[[Onboarding Wizard]]",
+    "[[Doctor Command]]",
+    "[[claude-wiki-pages Plugin]]",
+    "[[Git Checkpoint]]",
+  ]
 tags: ["concept", "install", "reference"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,6 +30,36 @@ confidence: 1.0
 
 > [!summary]
 > Installation of `claude-wiki-pages` loads the plugin as session context in Claude Code — skills, agents, hooks, scripts, and rules. It does not run an installer or modify system software. Three paths exist: remote (marketplace), local (contributors/forks), and update/reinstall. Bun ≥ 1.2 is recommended but not required — without it, engine commands are disabled but bash hooks still enforce the schema.
+
+## Definition
+
+Installation loads the `claude-wiki-pages` plugin as session context in Claude Code — skills, agents, hooks, scripts, and rules. It does not run a system installer or modify global software. The plugin is loaded from a marketplace entry (remote) or a local directory (contributor/fork path). All plugin artifacts remain in the Claude Code context directory and are not added to the user's project.
+
+## Key Principles
+
+- Installation is context-loading, not software installation: the plugin does not modify system software or the user's project files.
+- Bun ≥ 1.2 is recommended but not required: without Bun, bash hooks still enforce the schema and the plugin degrades gracefully.
+- The plugin repo ships a `claude-wiki-pages-local` dev marketplace entry (deliberately different from the published `claude-wiki-pages` name) so local and remote installs never collide.
+- Always run `/claude-wiki-pages:doctor` after install or update to confirm clean state before proceeding to ingest.
+- Uninstall removes only the plugin context; vault files in `raw/` and `wiki/` survive intact.
+
+## Examples
+
+Remote install (marketplace, standard path):
+
+```
+/plugin marketplace add odere-pro/claude-wiki-pages-plugin
+/plugin install claude-wiki-pages
+/claude-wiki-pages:init
+/claude-wiki-pages:doctor
+```
+
+Local contributor install:
+
+```
+/plugin marketplace add /path/to/claude-wiki-pages-plugin
+/plugin install claude-wiki-pages
+```
 
 ## Prerequisites
 
@@ -93,6 +135,7 @@ Always run after install or update:
 Exit `0` and "OK" lines for every check means clean. Any `FAIL[N]` line names the remedy. Exit codes are documented in `docs/operations.md`.
 
 The doctor runs 10+ checks including:
+
 - D05: Vault under git
 - D06: Bun present and version sufficient
 - D09: `engine.sh verify` passes on the vault
@@ -109,6 +152,7 @@ The vault under `vault/` (or wherever `CLAUDE_WIKI_PAGES_VAULT` points) is **not
 ## Degraded Mode (Without Bun)
 
 Without Bun, the plugin degrades gracefully:
+
 - Bash hooks still enforce the schema at every tool call
 - `validate-frontmatter.sh`, `protect-raw.sh`, `check-wikilinks.sh`, `firewall.sh` all work
 - Engine commands (`engine.sh verify`, `heal`, `fix`, `doctor`, `search`) are disabled
