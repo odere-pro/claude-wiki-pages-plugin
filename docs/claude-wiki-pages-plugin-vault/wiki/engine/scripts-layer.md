@@ -20,8 +20,8 @@ supersedes: []
 depends_on: []
 tags: ["engine", "bash", "hooks", "layer4"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 1
+updated: 2026-06-14
+update_count: 2
 status: active
 confidence: 1.0
 ---
@@ -39,8 +39,9 @@ The Scripts Layer is the `scripts/` directory of the plugin — the Layer 4 Orch
 - **Two run modes**:
   - **Hook mode**: reads tool-call JSON from stdin; optionally emits `{"decision":"block","reason":"…"}` on stdout; ALWAYS exits 0 (non-zero exit from a hook is a harness error, not a policy block). The exception is `enforce-dmi.sh`, which exits 2.
   - **CLI mode**: accepts `--target <vault>` / `--file <path>` flags; prints plain output; uses real exit codes (0=clean, 1=issues). Used by tests and manual runs.
-- **One sourceable file**: `resolve-vault.sh` is the ONLY file that can be `source`d. It omits `set -euo pipefail` to avoid mutating the caller's shell options.
-- **Shell↔TS parity gates**: `firewall.sh` ↔ `firewall.ts` (gate-11) and `verify-ingest.sh` ↔ engine `verify` (gate-05) are byte-aligned twins; if they diverge CI fails.
+- **Sourceable helpers**: `resolve-vault.sh` (vault resolution) and `vault-lock.sh` (the advisory write lock) are the two files meant to be `source`d; both omit `set -euo pipefail` to avoid mutating the caller's shell options and fail closed per-function instead.
+- **Write-safety**: scripts that move or sync files (`obsidian-rename.sh`, `sync-source.sh`) confine with physical `realpath` so a symlink or `../` hop cannot escape the vault, and snapshot/commit sequences serialize through the advisory `vault-lock.sh` (see [[Git Checkpoint]]).
+- **Shell↔TS parity gates**: `firewall.sh` ↔ `firewall.ts` (gate-11) and `verify-ingest.sh` ↔ engine `verify` (gate-05) are byte-aligned twins; if they diverge CI fails. (`vault-lock.sh` ↔ `vault-lock.ts` share an invariant but use different mechanisms — flock vs. in-process queue — so they are companions, not byte-pinned twins.)
 - **Coupling by design**: `hooks/hooks.json` + scripts + `tests/scripts/*.bats` are one unit. Change all three together when updating a hook.
 
 ## Hook Wiring Table

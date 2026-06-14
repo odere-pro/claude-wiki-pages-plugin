@@ -149,6 +149,18 @@ run top to bottom and the first block short-circuits the write.
   `heal` and friends. Prefers built `dist/cli.js`, falls back to running
   `src/cli/cli.ts` directly; warns and exits 0 when Bun is absent.
 
+### Concurrency
+
+- [`vault-lock.sh`](./vault-lock.sh) — SOURCEABLE advisory vault mutex defining
+  `vault_lock_acquire <vault>` / `vault_lock_release <vault>`. An `flock` on fd
+  200 over `<vault>/.git/claude-wiki-pages.lock` (timeout `VAULT_LOCK_TIMEOUT_SEC`,
+  default 30 s; on timeout it WARNs and returns 1 so the caller never blocks the
+  write phase). Wrap the `isClean → append/stash → commit` sequences in
+  `snapshot.sh` and friends to serialize this plugin's own writes (correlation #1
+  / H06–H11). It is the cross-process companion to the in-process mutex in
+  [`../src/core/vault-lock.ts`](../src/core/vault-lock.ts) — same invariant,
+  different mechanism, so it is NOT a byte-pinned parity twin.
+
 ### Eval
 
 - [`eval-ingest-extract.sh`](./eval-ingest-extract.sh) — local-model
@@ -174,12 +186,13 @@ run top to bottom and the first block short-circuits the write.
 
 ## Sourceable vs. executable
 
-[`resolve-vault.sh`](./resolve-vault.sh) is the ONE sourceable file: it is
-`source`d by every other script and therefore omits `set -euo pipefail` — doing
-otherwise would mutate the caller's shell options and could abort unrelated
-callers. Its functions fail closed on their own (guarded writes, `2>/dev/null`,
-explicit returns). Every other script in this directory is executable and sets
-strict mode.
+Two files are sourceable rather than executable: [`resolve-vault.sh`](./resolve-vault.sh)
+(sourced by every other script for vault resolution) and
+[`vault-lock.sh`](./vault-lock.sh) (sourced by the snapshot/commit paths for the
+advisory lock). Both omit `set -euo pipefail` — doing otherwise would mutate the
+caller's shell options and could abort unrelated callers — and instead fail
+closed per-function (guarded writes, `2>/dev/null`, explicit returns). Every
+other script in this directory is executable and sets strict mode.
 
 ## Shell↔TS parity contract
 

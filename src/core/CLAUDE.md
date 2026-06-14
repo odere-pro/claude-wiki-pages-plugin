@@ -1,6 +1,6 @@
 # core — the engine primitives
 
-`core/` holds the ~18 single-responsibility primitives the
+`core/` holds the ~21 single-responsibility primitives the
 [commands](../commands/CLAUDE.md) compose. Each one is small, pure where it can
 be, and deterministic: sorted output, no network, no embeddings, no hidden
 state. The canonical output schema lives here, and two modules are byte-for-byte
@@ -28,11 +28,24 @@ is checkable line-for-line.
 - **Builders** — [`moc-build.ts`](./moc-build.ts): the idempotent MOC repairs
   `fix` applies (dedupe index links, sync `children`, build `_index` stubs).
 - **IO** — [`fs.ts`](./fs.ts) (sorted, deterministic listing helpers),
-  [`git.ts`](./git.ts) (checkpoint / heal-commit safety net),
-  [`log.ts`](./log.ts) (append-only `wiki/log.md` writer).
+  [`git.ts`](./git.ts) (checkpoint / heal-commit safety net; every git call is
+  bounded by `GIT_TIMEOUT_MS`, default 30 s, override
+  `CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS`, so a stale `index.lock` can't hang the
+  engine), [`log.ts`](./log.ts) (append-only `wiki/log.md` writer).
+- **Concurrency** — [`vault-lock.ts`](./vault-lock.ts): an in-process, per-vault
+  mutex (`withVaultLock` / `withVaultLockSync`) serializing the
+  isClean→append/stash→commit critical sections in `snapshot`, `propose`,
+  `migrate`, and `heal`. Companion to the cross-process flock in
+  [`../../scripts/vault-lock.sh`](../../scripts/vault-lock.sh) — same invariant,
+  different mechanism (in-process queue vs. flock), so it is NOT a byte-parity
+  twin.
 - **Parsing** — [`frontmatter.ts`](./frontmatter.ts) (split `---` block, parse
   with the `yaml` lib), [`wikilinks.ts`](./wikilinks.ts) (extract `[[Target]]`),
-  [`manifest.ts`](./manifest.ts) (schema-v2 source manifest).
+  [`manifest.ts`](./manifest.ts) (schema-v2 source manifest),
+  [`ontology-profile.ts`](./ontology-profile.ts) (parse the `ontology-profile-v1`
+  predicate/enum tables from the schema — shared by the `ontology` command and
+  the `verify` entity-type check; lives in `core/` so neither command depends on
+  the other).
 - **Search support** — [`vocabulary.ts`](./vocabulary.ts) (the curated
   `_vocabulary.md` synonym lexicon), [`stem.ts`](./stem.ts) (pure Porter 1980
   stemmer), and [`graph.ts`](./graph.ts) again for opt-in neighbourhood

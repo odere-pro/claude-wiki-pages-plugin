@@ -92,3 +92,17 @@ run_script() {
   assert_status 1
   assert_output_contains "not registered"
 }
+
+@test "sync-source: M15 — a '|' in a wired field fails closed (no corrupt record split)" {
+  # Tamper the stored record so a field carries the reserved '|' delimiter.
+  # wired_read must refuse it rather than emit an ambiguous positional record.
+  python3 -c "
+import json
+d = json.load(open('$SETTINGS'))
+d['wired_sources'][0]['path'] = '/tmp/ev|il'
+json.dump(d, open('$SETTINGS', 'w'))
+"
+  run_script sync-source.sh status
+  assert_status 1
+  assert_output_contains "reserved record delimiter"
+}
