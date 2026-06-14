@@ -24,7 +24,7 @@ Full contract in [`operations.md`](./operations.md).
 ## DX
 
 - **One-command pipeline** — `/claude-wiki-pages:wiki` probes vault state and runs the right specialist (init / ingest / curator / analyst). Polish runs as a tail step.
-- **Obsidian-native** — works with Dataview, Templater, Web Clipper, and the graph view out of the box.
+- **Obsidian-native** — works with Dataview, Templater, Web Clipper, and the graph view.
 - **Vault-portable** — switch vaults with `CLAUDE_WIKI_PAGES_VAULT` or `bash scripts/set-vault.sh`. The plugin never assumes a single vault.
 
 ## Test harness

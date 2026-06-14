@@ -6,7 +6,7 @@
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](./CHANGELOG.md)
 [![Claude Code plugin](https://img.shields.io/badge/claude%20code-plugin-8A2BE2.svg)](https://docs.claude.com/en/docs/claude-code/plugins)
 
-A Claude Code plugin that turns an **Obsidian vault** into a maintained, provenance-tracked **knowledge base** following [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). The human curates sources; the plugin maintains the wiki; **hooks enforce the schema at every tool-call boundary**.
+A Claude Code plugin that turns an **Obsidian vault** into a maintained, provenance-tracked **knowledge base** following [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). The human curates sources; the plugin maintains the wiki; hooks enforce the schema at every tool-call boundary.
 
 The system is convention-driven: the schema lives in [`skills/init/template/CLAUDE.md`](./skills/init/template/CLAUDE.md), the canonical terms in [`docs/GLOSSARY.md`](./docs/GLOSSARY.md), the architecture in [`docs/architecture.md`](./docs/architecture.md). Every skill, agent, and hook binds to them.
 
@@ -17,10 +17,10 @@ The system is convention-driven: the schema lives in [`skills/init/template/CLAU
 | Layer        | Surface                                                                                                                                                                                                                                                                                                                                                | Count |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :---: |
 | **Data**     | `skills/init/template/` — immutable `raw/`, LLM-maintained `wiki/`, schema in `vault/CLAUDE.md`                                                                                                                                                                                                                                                          |   1   |
-| **Skills**   | 12 short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`, `search`, `review`, `draft`) + `onboarding` + 5 agent-teaching (`engine-api`, `maintain-contract`, `analyst-modes`, `curator-fixes`, `ingest-pipeline`) + `obsidian-graph-colors` + `obsidian-vault` + 3 third-party `obsidian-*` (MIT, kepano) |  23   |
-| **Agents**   | Orchestrator (entry) + onboarding, ingest, curator, analyst, polish, maintenance — see [docs/operations.md](./docs/operations.md)                                                                                                                                                                                                                      |   7   |
-| **Commands** | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:onboarding`, `/claude-wiki-pages:doctor`                                                                                                                                                                                                                                                                |   3   |
-| **Hooks**    | `SessionStart` + `UserPromptSubmit` + 7 `PreToolUse` + 2 `PostToolUse` + 2 `SubagentStop` + `Stop` + `SessionEnd` (session-memory persistence)                                                                                                                                                                                                         |  15   |
+| **Skills**   | 14 short verbs (`init`, `ingest`, `query`, `lint`, `fix`, `status`, `synthesize`, `index`, `markdown`, `search`, `review`, `draft`, `sync`, `fill-gaps`) + `onboarding` + 5 agent-teaching (`engine-api`, `maintain-contract`, `analyst-modes`, `curator-fixes`, `ingest-pipeline`) + `voice` + `obsidian-graph-colors` + `obsidian-vault` + 3 third-party `obsidian-*` (MIT, kepano) |  26   |
+| **Agents**   | Orchestrator (entry) + onboarding, ingest, curator, analyst, polish, maintenance + extract-worker (ingest fan-out) — see [docs/operations.md](./docs/operations.md)                                                                                                                                                                                                                      |   8   |
+| **Commands** | `/claude-wiki-pages:wiki`, `/claude-wiki-pages:onboarding`, `/claude-wiki-pages:doctor`, `/claude-wiki-pages:fill-gaps`                                                                                                                                                                                                                                                                |   4   |
+| **Hooks**    | `SessionStart` + `UserPromptSubmit` + 7 `PreToolUse` + 2 `PostToolUse` + 3 `SubagentStop` + `Stop` + `SessionEnd` (session-memory persistence)                                                                                                                                                                                                         |  16   |
 | **Rules**    | Path-scoped guidance under `rules/`                                                                                                                                                                                                                                                                                                                    |   4   |
 | **Tests**    | Five tiers — Tier 0 static, Tier 1 Bats unit, Tier 2 smoke, Tier 3 release, Tier 4 adversarial                                                                                                                                                                                                                                                         |   5   |
 
@@ -42,7 +42,7 @@ flowchart TD
       INIT & ING & ANA & CUR
     end
 
-    ING & CUR -->|call| ENG[["Bun engine<br/>index · link-suggest · search · verify · fix"]]
+    ING & CUR -->|call| ENG[["Bun engine (13 verbs)<br/>verify · fix · heal · search · doctor"]]
     ENG -->|checkpoint then auto-heal| HEAL{{"verify → fix → re-verify<br/>(git-checkpointed)"}}
     HEAL -->|clean| VAULT[("Vault<br/>raw/ → wiki/")]
     HEAL -.->|rollback| GIT[(git revert)]
@@ -122,7 +122,7 @@ Full operations reference: [docs/operations.md](./docs/operations.md).
 <details>
 <summary>Offline / local model (Ollama)</summary>
 
-The basic operations — **ingestion** and **querying** — also run with a local model, fully offline, with zero Claude. Both are gated: only a model that passed the per-tier quality gate runs (`qwen3-coder:30b` today), and a query answer is shown only after every citation verifies verbatim against the wiki — otherwise the plugin warns and denies the operation. `doctor` is deterministic and needs no model at all.
+The basic operations — ingestion and querying — also run with a local model, fully offline, with zero Claude. Both are gated: only a model that passed the per-tier quality gate runs (`qwen3-coder:30b` today), and a query answer is shown only after every citation verifies verbatim against the wiki — otherwise the plugin warns and denies the operation. `doctor` is deterministic and needs no model at all.
 
 ```jsonc
 // .claude/claude-wiki-pages.json

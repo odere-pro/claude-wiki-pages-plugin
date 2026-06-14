@@ -12,8 +12,8 @@ close:
 
 1. **Dangling wikilinks are invisible to `verify`.** A `[[Target]]` whose target
    resolves to no page renders as an empty grey node in Obsidian's graph, but
-   the engine's `verify` (CHECK 0–5) reports `0 errors / 0 warnings` for it —
-   there is no dangling-link check. The user sees "empty nodes" the tooling
+   the engine's `verify` (CHECK 0–5) reports `0 errors / 0 warnings` for it.
+   There is no dangling-link check. The user sees "empty nodes" the tooling
    swears are clean.
 2. **Coverage scatters instead of clustering.** A vault ingested from a docs
    tree spreads across legacy folders with no center of mass. The user's quality
@@ -32,8 +32,8 @@ cannot ship a `.mjs` Workflow**: `plugin.json` has no `workflows` key, and
 
 The plugin carries the canonical Workflow script as a **skill asset**
 (`skills/fill-gaps/template/fill-knowledge-gaps.mjs`). The `fill-gaps` skill
-copies it into the user's `.claude/workflows/` on invocation — idempotent, only
-when absent or content-changed, never clobbering a user-modified copy — then runs
+copies it into the user's `.claude/workflows/` on invocation (idempotent, only
+when absent or content-changed, never clobbering a user-modified copy) and runs
 it via the Workflow tool. This is the same materialize-from-`template/` pattern
 the `init` skill already uses for the vault scaffold. The workflow orchestrates
 the **existing** ingest / curator / polish agents; no new agent is introduced.
@@ -58,10 +58,9 @@ network, no embeddings, consistent with ADR-0007.
 
 The workflow asserts `danglingCount == 0`, `verify` clean, `Cn ≥ 0.85`,
 `Ce ≥ 0.85`, and that each hub is substantive (`Ch` is reported, not gated).
-Dangling links are resolved by
-**creating a real, sourced page**, **fixing the link** (alias/fuzzy), or
-**prose-ifying** it — never by an empty stub, and never by inventing a link to
-pass a gate. A failed gate is surfaced with its checkpoint SHA, not papered over.
+Dangling links are resolved by creating a real, sourced page, fixing the link
+(alias/fuzzy), or prose-ifying it, never by an empty stub, and never by
+inventing a link to pass a gate. A failed gate is surfaced with its checkpoint SHA, not papered over.
 
 ## Consequences
 

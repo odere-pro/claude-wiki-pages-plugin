@@ -1,7 +1,7 @@
 # Automation — keeping the vault healthy on its own
 
 The plugin can maintain the vault with little manual prompting. Three layers,
-each **opt-in** and safe (git-checkpointed, budgeted, off by default):
+each opt-in and safe (git-checkpointed, budgeted, off by default):
 
 1. **Backlog detection** — `engine backlog` reports unprocessed raw sources and
    overdue lint, deterministically.
@@ -59,7 +59,7 @@ backlog exists, it prints one line:
 CATCHUP: 3 pending source(s), 9 day(s) since lint — run /claude-wiki-pages:wiki to process the backlog.
 ```
 
-It **never** ingests or mutates the vault — bash can't. It only recommends; the
+It never ingests or mutates the vault; the heartbeat is read-only bash. It only recommends; the
 actual work is the LLM step you trigger with `/claude-wiki-pages:wiki`. A
 cooldown stamp prevents it from repeating the notice every session.
 
@@ -142,8 +142,6 @@ MAINTENANCE: 3 pending; enable scheduled upkeep: set maintenance.unattended=true
 and run bash scripts/maintenance-run.sh on a cron schedule. See docs/automation.md.
 ```
 
-This is advisory only — the heartbeat never runs the maintenance loop itself.
-
 ### Session-only convenience (advanced)
 
 Claude Code supports in-session `schedule`/`CronCreate` with `durable:false`
@@ -162,5 +160,5 @@ is the host-cron recipe above.
 - Uncertain / new pages route to `_proposed/`, never auto-promoted.
 - `maxPerRun` bounds each pass; `cooldownMinutes` bounds notice frequency.
 - The firewall still confines every write to the vault.
-- `maintenance-run.sh` refuses to target `docs/vault-example` (the reference
-  fixture).
+- `maintenance-run.sh` refuses to target `tests/fixtures/reference-vault` (the
+  reference fixture).

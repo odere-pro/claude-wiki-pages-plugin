@@ -21,9 +21,9 @@ graph TB
         goals["Goals<br/>(11 product goals)"]
         cmds["Commands<br/>wiki · onboarding · doctor · fill-gaps"]
         agents["Agents (8)<br/>orchestrator + 7"]
-        skills["Skills (25)<br/>action + teaching"]
+        skills["Skills (26)<br/>action + teaching"]
         hooks["Hooks (7 events)"]
-        scripts["Scripts (~30)"]
+        scripts["Scripts (~50)"]
         rules["Rules<br/>(path-scoped)"]
         engine["Engine (Bun)"]
     end
@@ -62,9 +62,9 @@ configured here** — they show how the plugin *could* extend.
 | **Plugin** | ✅ defined | [`.claude-plugin/plugin.json`](../../.claude-plugin/plugin.json) — the package manifest |
 | **Commands** | ✅ 4 | [`commands/`](../../commands/) — `wiki` (entry), `onboarding`, `doctor`, `fill-gaps` |
 | **Agents** | ✅ 8 | [`agents/`](../../agents/) — orchestrator + onboarding/ingest/extract-worker/curator/analyst/polish/maintenance |
-| **Skills** | ✅ 25 | [`skills/`](../../skills/) — 14 action + 5 teaching + obsidian refs |
+| **Skills** | ✅ 26 | [`skills/`](../../skills/) — 14 action + 5 teaching + `voice` + obsidian refs |
 | **Hooks** | ✅ 7 events | [`hooks/hooks.json`](../../hooks/hooks.json) — Session/Prompt/PreTool/PostTool/SubagentStop/Stop/SessionEnd |
-| **Scripts** | ✅ ~30 | [`scripts/`](../../scripts/) — enforcement + the engine bridge |
+| **Scripts** | ✅ ~50 | [`scripts/`](../../scripts/) — enforcement, lint/verify, eval harness + the engine bridge |
 | **Rules** | ✅ | [`rules/`](../../rules/) — path-scoped constraints |
 | **Teams** | ✅ dev-time | [`docs/teams.md`](../teams.md) — brainstorm + `wiki-dev` (never shipped) |
 | **Goals** | ✅ | The 11 product goals (TEAM-BRIEF §2) drive the teams |

@@ -68,7 +68,8 @@ SEO_EXEMPT=(
 # trees (.obsidian/), and raw documents are never grouped or indexed by the
 # normalization gates — external authors do not follow our glossary, and wiki
 # pages are LLM-maintained artifacts, not repo prose.
-# (docs/vault-example/ stays scanned: it is the authored parity anchor; its
+# (The shipped vault template at skills/init/template/ and the golden fixture at
+# tests/fixtures/reference-vault/ stay scanned as authored repo prose; their
 # raw/ is already exempted per-check.)
 ls_prose() {
   git ls-files -- "$@" 2>/dev/null |

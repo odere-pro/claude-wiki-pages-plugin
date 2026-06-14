@@ -4,7 +4,7 @@ A map. Each section points you at the one guide that actually teaches it.
 
 ## What this is
 
-`claude-wiki-pages` turns an Obsidian vault into a provenance-tracked wiki. You drop sources in `vault/raw/`, run one command, and the plugin maintains `vault/wiki/` — structured, cross-linked, and cited.
+`claude-wiki-pages` turns an Obsidian vault into a provenance-tracked wiki. You drop sources in `vault/raw/`, run one command, and the plugin maintains `vault/wiki/`: structured, cross-linked, and cited.
 
 ## The one command
 
@@ -19,7 +19,7 @@ This is the orchestrator entry. Type it any time. The plugin probes vault state 
 Read in order. Each guide is self-contained.
 
 1. **[Install and verify](./01-getting-started.md).** Get the plugin wired up. Confirm every hook fires.
-2. **[Create your vault](./02-create-new-knowledge-base.md).** Run `/claude-wiki-pages:init` once per project. It scaffolds `vault/` and writes the authoritative schema at `vault/CLAUDE.md`.
+2. **[Create your vault](./02-create-new-knowledge-base.md).** Run `/claude-wiki-pages:init` once per project. It scaffolds `vault/` and writes the schema at `vault/CLAUDE.md`.
 3. **[Add sources and ingest](./03-update-existing.md).** Drop files into `vault/raw/`. Run the pipeline. Read `wiki/log.md` to see what the LLM did.
 4. **[Validate and repair](./04-review-validate-fix.md).** Three levels: `status` (hooks green/red), `lint` (read-only audit), `claude-wiki-pages-curator-agent` (repair). Run the last one weekly.
 5. **[Query the wiki](./07-query-the-wiki.md).** Ask questions. Use the analyst for cross-topic work and challenge mode.

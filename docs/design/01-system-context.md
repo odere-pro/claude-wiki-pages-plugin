@@ -6,8 +6,8 @@
 
 ## L0 — System context
 
-The system has two co-equal first-class users — a **person** (in Obsidian or a terminal) and an
-**agent** (Claude, or a local model). Both reach the same surfaces through the
+The system has two users: a **person** (in Obsidian or a terminal) and an **agent** (Claude, or a
+local model). Both reach the same surfaces through the
 [`SOFTWARE-3-0.md`](../../SOFTWARE-3-0.md) dual entry point.
 
 ```mermaid
@@ -40,22 +40,22 @@ Ollama (optional) only *generates* text; none of them does retrieval (no embeddi
 
 ## L1 — The four-layer stack
 
-Zoom in one step: the system is four layers plus a deterministic engine and a passive vault.
+The system is four layers plus a deterministic engine and a passive vault.
 
 ```mermaid
 graph TB
     subgraph L4["Layer 4 — Orchestration"]
         cmd["commands/<br/>wiki · onboarding · doctor"]
         hooks["hooks/hooks.json<br/>7 events"]
-        scripts["scripts/<br/>~30 bash scripts"]
+        scripts["scripts/<br/>~50 bash scripts"]
         rules["rules/<br/>path-scoped rules"]
     end
     subgraph L3["Layer 3 — Agents"]
-        agents["agents/<br/>7 orchestrated executors"]
+        agents["agents/<br/>8 executors<br/>(orchestrator + 6 + extract-worker)"]
     end
     subgraph L2["Layer 2 — Skills"]
-        actions["12 action skills<br/>ingest · query · search · …"]
-        teaching["5 agent-teaching skills<br/>engine-api · maintain-contract · …"]
+        actions["14 action skills<br/>ingest · query · search · …"]
+        teaching["6 agent-teaching skills<br/>engine-api · maintain-contract · voice · …"]
     end
     subgraph L1["Layer 1 — Data"]
         data[("Vault<br/>schema in vault CLAUDE.md")]

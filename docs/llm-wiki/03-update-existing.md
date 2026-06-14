@@ -70,7 +70,7 @@ The ingest workflow enforces:
 - **Entity distribution model** — one source rewrites many existing pages (DRY). Ingesting a new source that mentions `[[Obsidian]]` appends that source to the existing `obsidian.md` page's `sources:` rather than creating a duplicate.
 - **Topic-tree placement** with max depth 4 and correct `parent:` / `path:` frontmatter.
 - **Wikilink-only `sources:`** — plain strings are a lint error.
-- **Matching aliases** — the page's `title` always appears as the first entry in `aliases:`, or the page becomes a ghost node in the graph.
+- **Matching aliases** — the page's `title` always appears as the first entry in `aliases:`, or the page becomes an empty grey node in Obsidian's graph.
 
 Hand-written pages almost always drift from the schema. The `validate-frontmatter.sh` and `check-wikilinks.sh` hooks will catch many mistakes, but topic-tree structure is easy to break.
 
@@ -87,7 +87,7 @@ The `post-wiki-write.sh` hook will remind you to touch the per-folder MOC (the f
 
 ## DRY rules for new pages
 
-Before creating a new entity or concept page, the ingest workflow greps the wiki for an existing page whose `title` or `aliases` match. If it finds one, it **appends** rather than creating a duplicate. This is deliberate — near-duplicate pages drift.
+Before creating a new entity or concept page, the ingest workflow greps the wiki for an existing page whose `title` or `aliases` match. If it finds one, it **appends** rather than creating a duplicate. Near-duplicate pages drift.
 
 If you are editing by hand, do the same grep:
 

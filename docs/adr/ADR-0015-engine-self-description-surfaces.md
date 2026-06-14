@@ -23,7 +23,7 @@ any longer (the SOFTWARE-3.0 deferred-work plan "The re-baseline (engine is real
 Three drift hazards make this an Architect-owned, ADR-gated decision rather than a routine feature:
 
 1. **The verb surface is already triple-stated by hand in one file.** `src/cli/cli.ts` declares the
-   `IMPLEMENTED` Set (`:23-34`), the `PLANNED` array (`:35`), `ALL` (`:36`), **and** a free-text
+   `IMPLEMENTED` Set (`:23-34`), the `PLANNED` array (`:35`), `ALL` (`:36`), and a free-text
    `usage()` literal that re-types the implemented list a fourth time (`src/cli/cli.ts:123`,
    `"Implemented: verify, fix, …"`). Adding a `capabilities` verb that reads only the Set would leave
    the `usage()` literal as a fourth copy that silently drifts. The fix must *collapse* sources, not add
@@ -45,7 +45,7 @@ Three drift hazards make this an Architect-owned, ADR-gated decision rather than
    second committed file or a generated `schemas/ontology.json`. Any machine-readable `ontology` surface
    must therefore be a **read-time projection** of that one authored document, never a copy of it.
 
-The existing `verify` parser does **not** already read the enum table — `src/core/schema.ts:13` extracts
+The existing `verify` parser does not already read the enum table — `src/core/schema.ts:13` extracts
 only `schema_version`, not the predicate/enum tables — so `ontology --json` needs a new markdown-table
 parser, not a reuse of the verify parser. This was checked, not assumed.
 
@@ -56,7 +56,7 @@ parser, not a reuse of the verify parser. This was checked, not assumed.
 1. **One source of truth for the verb surface (N1).** Replace the hand-maintained `IMPLEMENTED` Set
    (`src/cli/cli.ts:23-34`), the `PLANNED` array (`:35`), and the `usage()` `"Implemented: …"` literal
    (`:123`) with **one in-code `CAPABILITIES` table** from which `IMPLEMENTED`, `PLANNED`, `ALL`,
-   `usage()`, and the new `capabilities` verb all derive. The `:123` literal is **deleted**; `usage()`
+   `usage()`, and the new `capabilities` verb all derive. The `:123` literal is deleted; `usage()`
    renders the verb list from the table. `capabilities --json` serializes the same table. After this,
    adding or retiring a verb is a one-line table edit and every consumer follows — there is no second
    place to update and nothing left to drift.
@@ -69,7 +69,7 @@ parser, not a reuse of the verify parser. This was checked, not assumed.
    justify the new surface — the move would add a layer with no caller.
 
 3. **`capabilities` is the verb-emit step on the one table, not a new branch reading the old Set (N1).**
-   It is a dispatch case that serializes the `CAPABILITIES` table; it does **not** re-read `IMPLEMENTED`
+   It is a dispatch case that serializes the `CAPABILITIES` table; it does not re-read `IMPLEMENTED`
    independently. A branch that read the Set would re-introduce the drift this ADR closes.
 
 ### Part B — N3: capabilities/ontology JSON emits through the existing `emit()`/`exitCode()` path

@@ -173,6 +173,6 @@ healed and indexed:
 - Every approve/reject is a git checkpoint; rollback is `git revert <sha>`.
 - Promotion is the only path from a draft to the wiki. Do not hand-copy draft
   content into `wiki/` — that bypasses the checkpoint and the frontmatter rewrite.
-- Schema authority for this section: `docs/vault-example/CLAUDE.md`
+- Schema authority for this section: `skills/init/template/CLAUDE.md`
   ("Drafts and review (`_proposed/`)"). This skill aligns with it and does not
   override it.

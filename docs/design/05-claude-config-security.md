@@ -24,8 +24,8 @@ the **single config source** for which vault is active — the router links it, 
 
 ## Security — the fail-closed write boundary
 
-Every Write/Edit runs the full `PreToolUse` chain *before* it lands, **in the exact order wired in
-[`hooks/hooks.json`](../../hooks/hooks.json)**: firewall (confinement) first, then the validators,
+Every Write/Edit runs the full `PreToolUse` chain *before* it lands, in the exact order wired in
+[`hooks/hooks.json`](../../hooks/hooks.json): firewall (confinement) first, then the validators,
 with `raw/` immutability enforced inside the same pre-write chain.
 
 ```mermaid
@@ -102,7 +102,7 @@ graph TB
     classDef n fill:#f6f6f6,stroke:#bbb,color:#333;
 ```
 
-> Engineering note: **cross-vault write confinement already exists** —
+> Engineering note: **cross-vault write confinement already exists.**
 > [ADR-0009](../adr/ADR-0009-multi-vault-confinement.md) specifies the deny rule and precedence, and
 > [`tests/gates/gate-11-firewall-parity.sh`](../../tests/gates/gate-11-firewall-parity.sh) pins it.
 > What is *new* (Phase M) is simultaneous **management** of N vaults. Reuse the existing confinement;

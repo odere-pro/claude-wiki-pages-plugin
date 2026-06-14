@@ -8,9 +8,9 @@ This page describes how that happens, what the polish-agent does for you, and wh
 
 `/claude-wiki-pages:wiki` invokes the orchestrator (`claude-wiki-pages-orchestrator-agent`). The orchestrator probes vault state and dispatches one specialist per turn — usually `claude-wiki-pages-ingest-agent` (when `raw/` has new files) or `claude-wiki-pages-curator-agent` (when lint drift is pending).
 
-After either of those returns successfully, the orchestrator fans out to **`claude-wiki-pages-polish-agent`** as the tail of the same turn. You never invoke polish directly; that is intentional. The agent only makes sense as a tail-of-write step, and pulling it into a separate slash command would split a single logical operation into two.
+After either of those returns successfully, the orchestrator fans out to **`claude-wiki-pages-polish-agent`** as the tail of the same turn. You never invoke polish directly — the agent only makes sense as a tail-of-write step, and pulling it into a separate slash command would split a single logical operation into two.
 
-The polish agent is **idempotent**: running it twice in a row against the same vault produces no diffs. That property is what makes it safe to run unconditionally after every successful ingest or curator pass.
+The polish agent is **idempotent**: running it twice in a row against the same vault produces no diffs, so it is safe to run unconditionally after every successful ingest or curator pass.
 
 ## What polish does
 
@@ -18,7 +18,7 @@ Three steps, in order, all append-only:
 
 ### 1. Graph colors
 
-Every top-level topic folder under `wiki/` gets a distinct color group in `.obsidian/graph.json`. When you ingest a paper that creates a new top-level topic, the graph view shows the new topic in a fresh color the moment you switch tabs to Obsidian. No "regenerate the graph" step on your side.
+Every top-level topic folder under `wiki/` gets a distinct color group in `.obsidian/graph.json`. When you ingest a paper that creates a new top-level topic, the graph view shows the new topic in a new color group the moment you switch tabs to Obsidian. No "regenerate the graph" step on your side.
 
 The agent reads the current group list, finds top-level folders with no group yet, appends a group per folder using the next unused palette color, and persists via `obsidian eval`. Folders that already have a color are left untouched.
 

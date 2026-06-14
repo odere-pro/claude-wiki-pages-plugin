@@ -54,10 +54,9 @@ into the existing scaffold step (`scripts/scaffold-vault.sh`) and mirrored by bo
    fatal** (hard dependency), **vault-not-a-repo is advisory/NOTE** (matching D05's warn + `--fix`
    design, so fixtures that don't git-init still pass).
 
-The shim is classed as an **availability shim, not a logic fork**: it changes *who runs git* (the
-shell vs the engine) when bun is missing, never *what git contract* is produced. Behaviourally there
-is one initial-repo state; there are two code paths to reach it only because the primary one depends
-on an optional runtime.
+The shim is an **availability shim, not a logic fork**: it changes *who runs git* (the shell vs the
+engine) when bun is missing, never *what git contract* is produced. There is one initial-repo state;
+there are two code paths to reach it only because the primary one depends on an optional runtime.
 
 ## Alternatives considered
 

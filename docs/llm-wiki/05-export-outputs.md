@@ -57,9 +57,9 @@ pandoc vault/output/my-report.md -o my-report.pdf
 pandoc vault/output/my-report.md -o my-report.docx
 ```
 
-Claude's skill marketplace has `pdf`, `docx`, `pptx`, and `xlsx` skills if you want a conversation-driven export — invoke them as `/pdf`, `/docx`, etc. Inside them, reference the output file by path.
+The Claude Code marketplace has `pdf`, `docx`, `pptx`, and `xlsx` skills for conversation-driven export. Install one, then reference the output file by path.
 
-## DO NOT
+## Avoid
 
 - Put analysis into `vault/output/` that belongs in `vault/wiki/_synthesis/`. Outputs are deliverables; synthesis is reasoning. A deliverable can cite a synthesis — the synthesis stays in the wiki.
 - Let an output live in `vault/raw/`. `raw/` is immutable source material; the `protect-raw.sh` hook will block the write anyway.

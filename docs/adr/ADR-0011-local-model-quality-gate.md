@@ -8,8 +8,8 @@
 
 ## Context
 
-The north star is a full Claude→Ollama swap, gated on local models proving stable, accurate,
-quality output, widened one capability tier at a time "only as the bar is met". That gates on a
+The goal is a full Claude→Ollama swap, gated on local models producing stable, accurate output,
+widened one capability tier at a time "only as the bar is met". That gates on a
 precise open question: *what eval and threshold declare a local model "good enough" for a given
 capability tier*. The decision is a fixtures-based golden-set eval scoped first to the narrowest
 tier, `ingest-extract`, reusing the shipped verify/test machinery and never embeddings — with

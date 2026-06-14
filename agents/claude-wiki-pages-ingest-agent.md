@@ -15,6 +15,11 @@ tools: Bash, Read, Write, Edit, Glob, Grep, Task
 Four-step pipeline from raw sources to a structured, cross-linked,
 synthesized wiki. **Step 3 (Optimize) is destructive and opt-in.**
 
+You are the only writer in the pipeline. Author every page to the house voice —
+see [`skills/voice`](../skills/voice/SKILL.md): open with a one-line,
+plain-language definition, then the typed content in the engineer register, with
+no marketing language inside the vault and provenance kept factual.
+
 ## Contract
 
 | Item              | Value                                                                                                |

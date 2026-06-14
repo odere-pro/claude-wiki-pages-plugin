@@ -40,7 +40,7 @@ Examples:
 - "What preconditions must be true before I can trust a page citing only one source?"
 - "Which topic folder has the highest update count per page, and why?"
 
-The agent can also run in **challenge mode** — pressure-test an idea against the wiki:
+The agent can also run in challenge mode, where it pressure-tests an idea against the wiki:
 
 ```
 /claude-wiki-pages:claude-wiki-pages-analyst-agent challenge mode — I'm about to decide I only need one authoritative source per concept. Push back.
@@ -119,4 +119,4 @@ appended to `wiki/log.md` so the export is recorded.
 
 ## You have arrived
 
-If you have worked through `index.md` day-1/7/30 and skimmed guides 1–7, you now know how to install, seed, extend, validate, deliver, monitor, and interrogate the wiki. The rest is habit: drop sources, run the pipeline, lint every 10 ingests, query daily.
+If you have worked through `index.md` day-1/7/30 and skimmed guides 1–7, the rest is habit: drop sources, run the pipeline, lint every 10 ingests, query daily.

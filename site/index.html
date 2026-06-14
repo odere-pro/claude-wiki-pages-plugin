@@ -476,7 +476,7 @@ flowchart TD
     O --&gt;|raw/ pending| ING[ingest agent]
     O --&gt;|question| ANA[analyst agent]
     O --&gt;|drift| CUR[curator agent]
-    ING &amp; CUR --&gt;|call| ENG[["Bun engine: verify · fix"]]
+    ING &amp; CUR --&gt;|call| ENG[["Bun engine (13 verbs): verify · fix · heal · search"]]
     ENG --&gt;|checkpoint then auto-heal| HEAL{{"verify → fix → re-verify"}}
     HEAL --&gt;|clean| VAULT[("Vault: raw/ → wiki/")]
     HEAL -.-&gt;|rollback| GIT[(git revert)]
@@ -503,18 +503,18 @@ flowchart TD
             </article>
             <article class="card col-3">
               <span class="tag">Layer 2 · Skills</span>
-              <h3>12 short verbs</h3>
-              <p><code>init</code>, <code>ingest</code>, <code>query</code>, <code>lint</code>, <code>fix</code>… thin orchestrators over the engine, plus onboarding and agent-teaching skills.</p>
+              <h3>14 short verbs</h3>
+              <p><code>init</code>, <code>ingest</code>, <code>query</code>, <code>lint</code>, <code>fix</code>, <code>sync</code>, <code>fill-gaps</code>… thin orchestrators over the engine, plus onboarding and agent-teaching skills.</p>
             </article>
             <article class="card col-2">
               <span class="tag">Layer 3 · Agents</span>
-              <h3>7 executors</h3>
-              <p>Orchestrator routes to onboarding, ingest, curator, analyst, polish, maintenance.</p>
+              <h3>8 executors</h3>
+              <p>The orchestrator routes to onboarding, ingest, curator, analyst, polish, and maintenance. Ingest fans out to a read-only extract-worker.</p>
             </article>
             <article class="card col-4" style="grid-column: span 4">
               <span class="tag">Layer 4 · Orchestration</span>
               <h3>Hooks that enforce the contract</h3>
-              <p>SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, SubagentStop — frontmatter, wikilinks, and raw-immutability gated at every write, with path-scoped rules.</p>
+              <p>Seven lifecycle events (SessionStart through SessionEnd) gate frontmatter, wikilinks, and raw-immutability at every write, with path-scoped rules.</p>
             </article>
           </div>
         </section>

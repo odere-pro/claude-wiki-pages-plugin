@@ -20,6 +20,9 @@ The Step 1.4 topic-tree plan + confirmation gate, the Step 3 optimize
 Step 1.4 and Step 3, and when composing the final report. Schema authority
 remains `vault/CLAUDE.md`; the contract, preflight, page-write steps, auto-heal
 delegation, synthesis, model selection, and hard rules live in the agent body.
+Every page the pipeline produces follows the house voice —
+see [`skills/voice`](../voice/SKILL.md): a one-line plain-language definition
+first, then typed content in the engineer register, no marketing inside the vault.
 
 ## Step 1.4 — Plan the topic tree (externalize, then confirm)
 
