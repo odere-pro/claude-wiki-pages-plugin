@@ -4,6 +4,12 @@
  * `Finding` mirrors the ERROR:/WARN: lines emitted by the bash verifiers
  * (scripts/verify-ingest.sh, scripts/check-wikilinks.sh) so the Bun port can
  * be checked against them line-for-line by the parity gate.
+ *
+ * Functional/immutable by design (frozen data + free functions); not an OO
+ * model. The Report + free-function shape (buildReport/renderText/exitCode) is
+ * the engine's chosen functional, immutable convention — adding methods would
+ * fight immutability and the verify-parity contract (next? stays JSON-only,
+ * renderText intentionally ignores it). See src/core/CLAUDE.md "Result model".
  */
 
 /**

@@ -23,6 +23,7 @@ import { resolveVault } from "../../core/vault.ts";
 import { ensureRepo, applyCheckpointMode, commit, push } from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
 import { loadConfig } from "../../data/config/config.ts";
+import { withVaultLockSync } from "../../core/vault-lock.ts";
 
 export const PROPOSED_DIR = "_proposed";
 
@@ -154,20 +155,23 @@ export function propose(opts: ProposeOptions): ProposeReport {
   const checkpointSha = applyCheckpointMode(vault, gitCfg.mode, opId, now);
 
   if (opts.sub === "reject") {
-    rmSync(draftFull, { force: true });
-    appendLog(vault, {
-      verb: "propose",
-      summary: `reject ${relative(vault, draftFull)}`,
-      ...(checkpointSha ? { details: [`checkpoint: ${checkpointSha}`] } : {}),
-      today,
+    // Guard appendLog → commit with the advisory vault lock (H08 / M29).
+    const rejectResult = withVaultLockSync(vault, () => {
+      rmSync(draftFull, { force: true });
+      appendLog(vault, {
+        verb: "propose",
+        summary: `reject ${relative(vault, draftFull)}`,
+        ...(checkpointSha ? { details: [`checkpoint: ${checkpointSha}`] } : {}),
+        today,
+      });
+      return gitOn ? commit(vault, `propose: reject ${relative(vault, draftFull)} ${opId}`) : null;
     });
-    if (gitOn) commit(vault, `propose: reject ${relative(vault, draftFull)} ${opId}`);
     if (pushAuto) push(vault);
     return {
       ...base,
       checkpoint: checkpointSha,
       rejected: [relative(vault, draftFull)],
-      message: `rejected ${relative(vault, draftFull)} (rollback: git revert ${checkpointSha ?? "<checkpoint>"})`,
+      message: `rejected ${relative(vault, draftFull)} (rollback: git revert ${rejectResult ?? checkpointSha ?? "<checkpoint>"})`,
     };
   }
 
@@ -181,24 +185,27 @@ export function propose(opts: ProposeOptions): ProposeReport {
   }
   const targetFull = join(vault, info.target);
   const promoted = promoteFrontmatter(readFileSafe(draftFull) ?? "", today);
-  mkdirSync(dirname(targetFull), { recursive: true });
-  writeFileSync(targetFull, promoted);
-  rmSync(draftFull, { force: true });
-  appendLog(vault, {
-    verb: "propose",
-    summary: `approve ${info.target}`,
-    details: [
-      ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
-      "next: run curator (heal) + polish",
-    ],
-    today,
+  // Guard appendLog → commit with the advisory vault lock (H08 / M29).
+  const approveCommit = withVaultLockSync(vault, () => {
+    mkdirSync(dirname(targetFull), { recursive: true });
+    writeFileSync(targetFull, promoted);
+    rmSync(draftFull, { force: true });
+    appendLog(vault, {
+      verb: "propose",
+      summary: `approve ${info.target}`,
+      details: [
+        ...(checkpointSha ? [`checkpoint: ${checkpointSha}`] : []),
+        "next: run curator (heal) + polish",
+      ],
+      today,
+    });
+    return gitOn ? commit(vault, `propose: approve ${info.target} ${opId}`) : null;
   });
-  const c = gitOn ? commit(vault, `propose: approve ${info.target} ${opId}`) : null;
   if (pushAuto) push(vault);
   return {
     ...base,
     checkpoint: checkpointSha,
     promoted: [info.target],
-    message: `promoted ${info.target}. Next: curator heal + polish. Rollback: git revert ${c ?? checkpointSha ?? "<commit>"}`,
+    message: `promoted ${info.target}. Next: curator heal + polish. Rollback: git revert ${approveCommit ?? checkpointSha ?? "<commit>"}`,
   };
 }

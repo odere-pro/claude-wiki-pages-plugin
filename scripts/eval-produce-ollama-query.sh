@@ -33,6 +33,11 @@ die() {
   exit 2
 }
 
+# M10: source the shared Ollama curl+backoff helper (DRY — previously
+# triplicated across offline-draft.sh, eval-produce-ollama.sh, and this file).
+# shellcheck source=ollama-chat.sh
+source "$QROOT/scripts/ollama-chat.sh"
+
 usage() {
   sed -n '/^# Usage:/,/^set -uo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
 }
@@ -79,39 +84,11 @@ EOF
   done < <(find "$vault/wiki" -type f -name '*.md' | sort)
 }
 
-# Deterministic Ollama chat call with exponential timeout backoff (the
-# eval-produce-ollama.sh pattern). Echoes the model's text content.
+# Deterministic Ollama chat call with exponential timeout backoff.
+# M10: delegates to the shared ollama_chat_call helper (DRY fix).
 query_ollama_chat() { # $1 = model, $2 = system, $3 = user
-  local model="$1" sys="$2" usr="$3" payload response attempt=0 t="$QTIMEOUT" got=0
-  payload=$(mktemp) || die "mktemp failed"
-  response=$(mktemp) || die "mktemp failed"
-  jq -n --arg model "$model" --arg sys "$sys" --arg usr "$usr" --argjson nc "$QNUM_CTX" \
-    '{model:$model, stream:false,
-      options:{temperature:0, seed:42, top_p:1, num_ctx:$nc, num_predict:-1},
-      messages:[{role:"system",content:$sys},{role:"user",content:$usr}]}' \
-    >"$payload" || die "payload build failed"
-  while :; do
-    if curl -sS --fail --connect-timeout 5 --max-time "$t" \
-      -H 'Content-Type: application/json' -d @"$payload" \
-      "$QENDPOINT/api/chat" >"$response"; then
-      got=1
-      break
-    fi
-    attempt=$((attempt + 1))
-    [ "$attempt" -gt "$QRETRIES" ] && break
-    t=$((t * 2))
-    echo "[query-produce] retry ${attempt}/${QRETRIES} (timeout ${t}s — exponential backoff)" >&2
-  done
-  rm -f "$payload"
-  [ "$got" -eq 1 ] || {
-    rm -f "$response"
-    die "Ollama call failed after $attempt attempt(s) (last timeout ${t}s)"
-  }
-  jq -er '.message.content // empty' "$response" || {
-    rm -f "$response"
-    die "empty/missing .message.content in Ollama response"
-  }
-  rm -f "$response"
+  local model="$1" sys="$2" usr="$3"
+  ollama_chat_call "$QENDPOINT" "$model" "$sys" "$usr" "$QNUM_CTX" "$QTIMEOUT" "$QRETRIES" "query:${model}"
 }
 
 # ── main ──────────────────────────────────────────────────────────────────────

@@ -18,6 +18,15 @@
  * loop. Synonym/stem matches score lower than exact matches but flow through the
  * same ranker — no second mechanism, no vectors, no network. Absent lexicon
  * degrades gracefully to exact-match-only behavior.
+ *
+ * SINGLE RANKER (TEAM-BRIEF §6 one-X contract): this file IS the one ranker
+ * and the sole source of the one score object (score + matched{}) per the
+ * shared-infra invariant. Consumers (C1 cut-offs, R2 per-edge contributions)
+ * READ this output — none may re-rank or fork a second scoring path. The
+ * repeated `synonymsOf(lexicon, t)` call pattern is the intentional shape of
+ * this single ranker: every score+= is paired with a matched.push to preserve
+ * the score===sum invariant. Cross-reference src/commands/search/CLAUDE.md
+ * "The matched{} score object".
  */
 
 import { basename, join, relative } from "node:path";
@@ -125,6 +134,8 @@ export interface SearchOptions {
 }
 
 const DEFAULT_LIMIT = 20;
+/** Maximum character length of a snippet line returned to callers. */
+const SNIPPET_MAX_LEN = 160;
 // Transparent, fixed weights so ranking is reproducible (and gate-testable).
 // Exact channels:
 const W_PHRASE_TITLE = 10;
@@ -365,7 +376,7 @@ export function search(opts: SearchOptions): SearchReport {
       file: relative(vault, file),
       type: typeof fm["type"] === "string" ? (fm["type"] as string) : "",
       score,
-      snippet: snippetLine.slice(0, 160),
+      snippet: snippetLine.slice(0, SNIPPET_MAX_LEN),
       matched: sortMatchComponents(components),
     });
   }

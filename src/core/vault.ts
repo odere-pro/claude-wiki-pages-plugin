@@ -1,6 +1,14 @@
 /**
  * Four-tier vault resolution — faithful port of scripts/resolve-vault.sh.
  *
+ * H15 / Architect ruling (document — intentional hub): resolveVault is the SINGLE
+ * sanctioned vault-resolution entry point for all commands. Being imported by 10+ of
+ * 14 command modules is an intentional one-X fan-in, not a coupling smell. The hub
+ * is the parity twin of scripts/resolve-vault.sh (pinned by gate semantics in
+ * src/core/CLAUDE.md "Parity mirrors"). Forking resolution would create a second
+ * source of truth. The interface is stabilised via ResolveOptions; callers may not
+ * by-pass this function and call lower-level helpers directly.
+ *
  * Order (first match wins):
  *   1. CLAUDE_WIKI_PAGES_VAULT env var   (LLM_WIKI_VAULT honoured as a deprecated fallback)
  *   2. .claude/claude-wiki-pages/settings.json  → current_vault_path

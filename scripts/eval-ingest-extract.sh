@@ -50,7 +50,17 @@
 #   scripts/eval-ingest-extract.sh --help
 set -uo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# Use BASH_SOURCE[0] (not $0) so ROOT resolves correctly both when the script
+# is executed directly AND when it is sourced by a Bats test (source '$DRIVER').
+# When $0 is the bare shell invocation ("bash"), dirname gives "." and ROOT
+# lands one level too high; BASH_SOURCE[0] is always the path of this file.
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# H13: source the single canonical normalize_ws implementation (DRY).
+# Both eval-ingest-extract.sh and eval-query.sh previously carried divergent
+# copies; the shared helper is the only definition now.
+# shellcheck source=eval-normalize-ws.sh
+source "${ROOT}/scripts/eval-normalize-ws.sh"
 
 # ── Calibrated thresholds (the PM-ratified bar). Pinned as constants so there is
 # one source of truth and the verdict is a single deterministic pass/fail. ──────
@@ -279,124 +289,66 @@ count_set_diff() {
 }
 
 # ── ADR-0017: verbatim partition of extra claim pairs ──────────────────────────
-# normalize_ws: collapse every whitespace run (incl. newlines from hard-wrapped
-# input files) to a single space, so a single-line quote matches its wrapped
-# original. Pure text transform — exact comparison after normalization, never
+# normalize_ws is sourced from eval-normalize-ws.sh above (H13 DRY fix).
+# The function collapses every whitespace run (incl. newlines from hard-wrapped
+# input files) to a single space — exact comparison after normalization, never
 # similarity (§5 NO-RAG holds).
-normalize_ws() {
-  tr '\n\t' '  ' | sed 's/   */ /g; s/  / /g; s/^ //; s/ $//'
-}
 
-# ── core scoring ───────────────────────────────────────────────────────────────
-# score_candidate <candidate-vault> <gold-vault> <emit: json|text> [input-file]
-# Prints the scorecard to stdout and RETURNS the verdict exit code:
-#   0 = pass, 1 = fail. Internal errors die() with exit 2 (never fail-open).
-#
-# With the optional 4th arg (the case's raw input, ADR-0017): extra claim pairs
-# (candidate-not-in-gold) are PARTITIONED — a pair whose quote is a verbatim
-# (whitespace-normalized) substring of the raw input is OVER-CITATION (reported,
-# not floored); a pair whose quote is NOT in the input is FABRICATED (floor).
-# Without it, the strict legacy definition holds: every extra pair is fabricated.
-score_candidate() {
-  local candidate="$1" gold="$2" emit="$3" input_file="${4:-}"
-  [ -d "$candidate" ] || die "candidate vault not found: $candidate"
-  [ -d "$gold" ] || die "gold vault not found: $gold"
-  if [ -n "$input_file" ] && [ ! -r "$input_file" ]; then
-    die "--input file not readable: $input_file"
-  fi
+# ── M04/M05: per-metric sub-functions ─────────────────────────────────────────
+# score_candidate was a 265-line monolith. Each of the four metrics is now its
+# own function with a clearly-bounded responsibility. score_candidate delegates
+# to them and assembles the scorecard. Callers and self-test are unchanged.
 
-  # ── Metric 1: schema-validity (AS EMITTED, no auto-repair) ───────────────────
-  # Per-page: a page is schema-valid iff it survives the plugin's own checkers.
-  # We score the candidate vault as a whole (verify-ingest is vault-level) and
-  # derive a per-page rate from validate-frontmatter, which reports per file.
-  local fm_total fm_bad schema_validity
-  # validate-frontmatter --target prints one OK:/ERROR: line per wiki file. Its
-  # output is ANSI-colored (e.g. "\033[0;32mOK:    pandoc.md\033[0m"), so strip
-  # escape sequences before counting; match the per-file tag anywhere on the line
-  # rather than anchored at column 0. The trailing "Errors:   N" summary line is
-  # NOT a per-file line and is excluded by requiring whitespace after the tag.
-  local fm_out fm_clean
+# _score_schema <candidate> <out_fm_total> <out_fm_good> <out_schema_validity> <out_schema_unclean>
+# Metric 1: schema-validity scored AS EMITTED (no auto-repair). Populates four
+# named output variables by printing "fm_total=N fm_good=N schema_validity=... schema_unclean=N".
+# Callers eval the output to bind the variables in their own scope.
+# Fails closed (die) if no wiki pages found or if a checker errors internally.
+_score_schema() {
+  local candidate="$1"
+  # validate-frontmatter --target prints one OK:/ERROR: line per wiki file.
+  # ANSI escape sequences are stripped before counting (colored output).
+  local fm_out fm_clean fm_total fm_bad fm_good schema_validity schema_unclean=0
   fm_out=$(bash "$ROOT/scripts/validate-frontmatter.sh" --target "$candidate" 2>/dev/null || true)
   fm_clean=$(printf '%s\n' "$fm_out" | sed $'s/\033\\[[0-9;]*m//g')
-  # Per-file lines name a "<file>.md"; the trailing summary ("OK: All frontmatter
-  # valid" / "Errors:   N") does not, so requiring ".md" on the line counts files
-  # only — never the summary.
+  # Require ".md" on the line to count files only (not the trailing summary line).
   fm_total=$(printf '%s\n' "$fm_clean" | grep -E '(OK:|ERROR:)' | grep -c '\.md' || true)
   fm_bad=$(printf '%s\n' "$fm_clean" | grep -E 'ERROR:' | grep -c '\.md' || true)
-  if [ "$fm_total" -eq 0 ]; then
-    die "schema scoring found no wiki pages under candidate: $candidate"
-  fi
-  # Per-field rate from validate-frontmatter (scored AS EMITTED — no fix/heal).
-  local fm_good schema_unclean=0
+  [ "$fm_total" -eq 0 ] && die "schema scoring found no wiki pages under candidate: $candidate"
   fm_good=$((fm_total - fm_bad))
   schema_validity=$(ratio "$fm_good" "$fm_total")
-  # A vault-level verify-ingest error (e.g. broken index / missing-sources /
-  # dangling provenance) also counts against schema-validity even when every
-  # per-field check passes. If the vault is not schema-clean overall, take the
-  # MINIMUM of the per-field rate and a below-bar ceiling (0.9700 < 0.98 bar) so
-  # such a candidate can never score at/above the bar — and a per-field rate that
-  # is already lower is preserved, never inflated. The schema_unclean flag tells
-  # the verdict the bar is unmet regardless of the per-field count ratio.
+  # A vault-level verify-ingest error also caps the rate below the bar.
   if ! vault_is_schema_clean "$candidate"; then
     schema_validity=$(min_ratio "$schema_validity" "0.9700")
     schema_unclean=1
   fi
+  printf 'fm_total=%s fm_good=%s schema_validity=%s schema_unclean=%s' \
+    "$fm_total" "$fm_good" "$schema_validity" "$schema_unclean"
+}
 
-  # ── Metrics 3 + fabrication floor: claim<->source fidelity ───────────────────
-  # Compare candidate source_quotes pairs to gold pairs (exact structural set
-  # diff). Fabricated = candidate pair NOT in gold. Dropped = gold pair NOT in
-  # candidate. Fidelity = correctly-reproduced gold pairs / gold pairs.
-  local cand_pairs gold_pairs
+# _score_claims <candidate> <gold> <tmp_c> <tmp_g> <input_file>
+# Metric 3 + fabrication floor: claim<->source fidelity.
+# Populates: gold_total fabricated dropped matched fidelity over_citation.
+# tmp_c / tmp_g are caller-provided temp file paths (for cross-metric reuse).
+_score_claims() {
+  local candidate="$1" gold="$2" tmp_c="$3" tmp_g="$4" input_file="${5:-}"
+  local cand_pairs gold_pairs gold_total fabricated dropped matched fidelity over_citation=0
   cand_pairs="$(extract_claim_pairs "$candidate")"
   gold_pairs="$(extract_claim_pairs "$gold")"
-
-  local gold_total fabricated dropped matched fidelity
   gold_total=$(count_lines "$gold_pairs")
-
-  # Empty-gold guard (FATAL). A gold with ZERO sourced claims makes the
-  # fabrication floor and the fidelity rate structurally uncomputable: there is
-  # nothing for a candidate's claims to match, and the den==0 ratio would
-  # otherwise free-pass as 1.0. A structurally-uncomparable gold must be REJECTED
-  # (rc 2), never scored "perfect" — mirroring the fm_total==0 guard above. This
-  # is belt-and-suspenders with the count_set_diff empty-first-file fix: even a
-  # correct diff cannot make a claimless gold a valid bar.
-  if [ "$gold_total" -eq 0 ]; then
-    die "gold has no sourced claims (source_quotes) — cannot score claim<->source fidelity or the fabrication floor against an empty gold: $gold"
-  fi
-
-  # Write each pair set to a temp file (blank lines stripped so an empty set is a
-  # truly empty file). The diff is computed by count_set_diff — an order- and
-  # locale-independent awk set diff. NO comm, NO sort: see count_set_diff for why
-  # comm + a swallowed error could silently zero the fabrication FLOOR on CI.
-  #   fabricated: pairs in candidate but NOT in gold (the FLOOR input).
-  #   dropped:    gold pairs missing from candidate.
-  #   matched:    pairs in both (fidelity numerator).
-  local tmp_c tmp_g
-  tmp_c="$(mktemp "${TMPDIR:-/tmp}/eval-cand.XXXXXX")" || die "mktemp failed"
-  tmp_g="$(mktemp "${TMPDIR:-/tmp}/eval-gold.XXXXXX")" || die "mktemp failed"
-  # shellcheck disable=SC2064  # expand paths now for the cleanup trap.
-  trap "rm -f '$tmp_c' '$tmp_g'" RETURN
+  # Empty-gold guard: a claimless gold makes the floor and fidelity structurally
+  # uncomputable; reject (die/exit 2) rather than scoring "perfect".
+  [ "$gold_total" -eq 0 ] && die "gold has no sourced claims (source_quotes) — cannot score claim<->source fidelity or the fabrication floor against an empty gold: $gold"
   printf '%s\n' "$cand_pairs" | sed '/^$/d' >"$tmp_c"
   printf '%s\n' "$gold_pairs" | sed '/^$/d' >"$tmp_g"
-
-  # Capture each count and FAIL CLOSED (die, exit 2) on any awk error — a scoring
-  # error must NEVER become a silent 0 that lets a fabrication through.
   fabricated=$(count_set_diff only_a "$tmp_c" "$tmp_g") || die "claim-pair set diff (fabricated) failed"
   dropped=$(count_set_diff only_b "$tmp_c" "$tmp_g") || die "claim-pair set diff (dropped) failed"
   matched=$(count_set_diff both "$tmp_c" "$tmp_g") || die "claim-pair set diff (matched) failed"
-  # Defensive: counts must be non-negative integers; anything else is fatal.
   case "${fabricated}${dropped}${matched}" in
     *[!0-9]*) die "claim-pair diff produced a non-integer count (fab=$fabricated drop=$dropped match=$matched)" ;;
   esac
   fidelity=$(ratio "$matched" "$gold_total")
-
-  # ── ADR-0017 partition: over-citation vs fabrication ─────────────────────────
-  # With a raw input, each extra (candidate-not-in-gold) pair is reclassified:
-  # quote verbatim in the input (whitespace-normalized EXACT substring — no
-  # similarity) → over_citation, NOT floored; quote absent from the input →
-  # fabricated (the floor). An empty quote can never be "verbatim" and stays
-  # fabricated. Any partition error die()s — the floor must never fail open.
-  local over_citation=0
+  # ADR-0017 partition: over-citation vs fabrication.
   if [ -n "$input_file" ] && [ "$fabricated" -gt 0 ]; then
     local norm_input extra_lines pair quote norm_quote refab=0
     norm_input=$(normalize_ws <"$input_file") || die "input normalization failed: $input_file"
@@ -415,17 +367,20 @@ score_candidate() {
         refab=$((refab + 1))
       fi
     done <<<"$extra_lines"
-    # The partition must account for every extra pair exactly once.
     [ $((over_citation + refab)) -eq "$fabricated" ] ||
       die "ADR-0017 partition mismatch: $over_citation over-cited + $refab fabricated != $fabricated extra pairs"
     fabricated="$refab"
   fi
+  printf 'gold_total=%s fabricated=%s dropped=%s matched=%s fidelity=%s over_citation=%s' \
+    "$gold_total" "$fabricated" "$dropped" "$matched" "$fidelity" "$over_citation"
+}
 
-  # ── Metric 2: frontmatter-field accuracy ─────────────────────────────────────
-  # Over the pages present in BOTH candidate and gold (by relative path), compare
-  # each scored field's value. accuracy = matching fields / compared fields.
-  local field_total=0 field_ok=0
-  local rel cf gf field cval gval
+# _score_fields <candidate> <gold>
+# Metric 2: frontmatter-field accuracy over pages in BOTH candidate and gold.
+# accuracy = matching fields / compared fields.
+_score_fields() {
+  local candidate="$1" gold="$2"
+  local field_total=0 field_ok=0 rel cf gf field cval gval
   while IFS= read -r rel; do
     [ -z "$rel" ] && continue
     cf="$candidate/wiki/$rel"
@@ -434,43 +389,29 @@ score_candidate() {
     [ -f "$gf" ] || continue
     for field in $SCORED_FIELDS; do
       gval="$(fm_scalar "$gf" "$field")"
-      # Only score fields the gold actually carries (presence is the contract).
       [ -z "$gval" ] && continue
       cval="$(fm_scalar "$cf" "$field")"
       field_total=$((field_total + 1))
-      if [ "$cval" = "$gval" ]; then
-        field_ok=$((field_ok + 1))
-      fi
+      [ "$cval" = "$gval" ] && field_ok=$((field_ok + 1))
     done
   done < <(extract_page_paths "$gold")
   local field_accuracy
   field_accuracy=$(ratio "$field_ok" "$field_total")
+  printf 'field_total=%s field_ok=%s field_accuracy=%s' "$field_total" "$field_ok" "$field_accuracy"
+}
 
-  # ── Metric 4: two-pass dedup correctness ─────────────────────────────────────
-  # Did the candidate produce exactly the gold set of page paths? Spurious
-  # duplicates (extra paths) and missed merges (missing paths) both count.
-  local cand_paths gold_paths dedup_total dedup_ok
+# _score_dedup <candidate> <gold> <tmp_cp> <tmp_gp>
+# Metric 4: two-pass dedup correctness.
+# tmp_cp / tmp_gp are caller-provided temp file paths.
+_score_dedup() {
+  local candidate="$1" gold="$2" tmp_cp="$3" tmp_gp="$4"
+  local cand_paths gold_paths dedup_total dedup_ok present extras
   cand_paths="$(extract_page_paths "$candidate")"
   gold_paths="$(extract_page_paths "$gold")"
-  local tmp_cp tmp_gp
-  tmp_cp="$(mktemp "${TMPDIR:-/tmp}/eval-cp.XXXXXX")" || die "mktemp failed"
-  tmp_gp="$(mktemp "${TMPDIR:-/tmp}/eval-gp.XXXXXX")" || die "mktemp failed"
-  # shellcheck disable=SC2064
-  trap "rm -f '$tmp_c' '$tmp_g' '$tmp_cp' '$tmp_gp'" RETURN
   printf '%s\n' "$cand_paths" | sed '/^$/d' >"$tmp_cp"
   printf '%s\n' "$gold_paths" | sed '/^$/d' >"$tmp_gp"
   dedup_total=$(grep -c . "$tmp_gp" || true)
-  # Empty gold page-set guard (FATAL). A gold with ZERO scoreable pages makes
-  # dedup correctness uncomputable and the den==0 ratio would free-pass; reject
-  # it (rc 2) rather than scoring "perfect". Belt-and-suspenders with the
-  # count_set_diff empty-first-file fix (which keeps the extras penalty correct).
-  if [ "$dedup_total" -eq 0 ]; then
-    die "gold has no scoreable wiki pages — cannot score dedup correctness against an empty gold: $gold"
-  fi
-  # Correct paths = gold paths also present in candidate (no missed merges); we
-  # subtract spurious extras so a candidate that adds duplicates is penalised.
-  # Same order/locale-independent awk set diff — no comm, fatal on error.
-  local present extras
+  [ "$dedup_total" -eq 0 ] && die "gold has no scoreable wiki pages — cannot score dedup correctness against an empty gold: $gold"
   present=$(count_set_diff both "$tmp_cp" "$tmp_gp") || die "page-path set diff (present) failed"
   extras=$(count_set_diff only_a "$tmp_cp" "$tmp_gp") || die "page-path set diff (extras) failed"
   case "${present}${extras}" in
@@ -480,6 +421,67 @@ score_candidate() {
   [ "$dedup_ok" -lt 0 ] && dedup_ok=0
   local dedup_correctness
   dedup_correctness=$(ratio "$dedup_ok" "$dedup_total")
+  printf 'dedup_total=%s dedup_ok=%s dedup_correctness=%s' "$dedup_total" "$dedup_ok" "$dedup_correctness"
+}
+
+# ── core scoring ───────────────────────────────────────────────────────────────
+# score_candidate <candidate-vault> <gold-vault> <emit: json|text> [input-file]
+# Prints the scorecard to stdout and RETURNS the verdict exit code:
+#   0 = pass, 1 = fail. Internal errors die() with exit 2 (never fail-open).
+#
+# M14 (primitive obsession): the 4 positional inputs and per-metric result
+# variables are grouped into clearly-named sections below so the data-flow
+# across metrics is readable at a glance. The four _score_* sub-functions
+# (M04/M05) each own one metric's computation.
+score_candidate() {
+  # ── M14: named inputs (replacing 4 bare positional strings) ──────────────────
+  local sc_candidate="$1" # vault path of the candidate under evaluation
+  local sc_gold="$2"      # vault path of the checked-in gold reference
+  local sc_emit="$3"      # output format: "json" or "text"
+  local sc_input="${4:-}" # optional raw input file (ADR-0017 partition)
+  [ -d "$sc_candidate" ] || die "candidate vault not found: $sc_candidate"
+  [ -d "$sc_gold" ] || die "gold vault not found: $sc_gold"
+  if [ -n "$sc_input" ] && [ ! -r "$sc_input" ]; then
+    die "--input file not readable: $sc_input"
+  fi
+
+  # Temp files shared between claim-diff and dedup; cleaned up on RETURN.
+  local tmp_c tmp_g tmp_cp tmp_gp
+  tmp_c="$(mktemp "${TMPDIR:-/tmp}/eval-cand.XXXXXX")" || die "mktemp failed"
+  tmp_g="$(mktemp "${TMPDIR:-/tmp}/eval-gold.XXXXXX")" || die "mktemp failed"
+  tmp_cp="$(mktemp "${TMPDIR:-/tmp}/eval-cp.XXXXXX")" || die "mktemp failed"
+  tmp_gp="$(mktemp "${TMPDIR:-/tmp}/eval-gp.XXXXXX")" || die "mktemp failed"
+  # shellcheck disable=SC2064
+  trap "rm -f '$tmp_c' '$tmp_g' '$tmp_cp' '$tmp_gp'" RETURN
+
+  # ── M14: named metric results (replacing 8 bare locals) ──────────────────────
+  # Each _score_* helper runs in a subshell (command substitution).  When the
+  # helper calls die() the subshell exits 2, but the outer script would NOT see
+  # that exit code if we inlined eval "$(...)".  The two-step capture pattern
+  # below ensures a non-zero exit from any helper is re-raised in the outer
+  # scope via die(), keeping the fail-closed contract (exit 2, never open).
+  local _score_out
+
+  # Metric 1 — schema-validity
+  local fm_total fm_good schema_validity schema_unclean
+  _score_out=$(_score_schema "$sc_candidate") || die "schema scoring failed (see error above)"
+  eval "$_score_out"
+
+  # Metric 3 + fabrication floor — claim<->source fidelity
+  local gold_total fabricated dropped matched fidelity over_citation
+  _score_out=$(_score_claims "$sc_candidate" "$sc_gold" "$tmp_c" "$tmp_g" "$sc_input") ||
+    die "claim scoring failed (see error above)"
+  eval "$_score_out"
+
+  # Metric 2 — frontmatter-field accuracy
+  local field_total field_ok field_accuracy
+  _score_out=$(_score_fields "$sc_candidate" "$sc_gold") || die "field scoring failed (see error above)"
+  eval "$_score_out"
+
+  # Metric 4 — two-pass dedup correctness
+  local dedup_total dedup_ok dedup_correctness
+  _score_out=$(_score_dedup "$sc_candidate" "$sc_gold" "$tmp_cp" "$tmp_gp") || die "dedup scoring failed (see error above)"
+  eval "$_score_out"
 
   # ── Verdict: ALL thresholds must hold AND the fabrication floor must be 0 ─────
   # Each threshold is checked on the RAW counts via meets_ratio (exact cross-
@@ -513,7 +515,7 @@ score_candidate() {
   [ -z "$reasons" ] && reasons="all thresholds met and zero fabricated sourced claims"
 
   # ── Emit scorecard ───────────────────────────────────────────────────────────
-  if [ "$emit" = "json" ]; then
+  if [ "$sc_emit" = "json" ]; then
     # jq builds well-formed JSON (the same envelope style as the engine verify).
     jq -n \
       --arg verdict "$verdict" \

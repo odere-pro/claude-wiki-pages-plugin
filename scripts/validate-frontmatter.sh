@@ -240,7 +240,9 @@ validate_content() {
   fi
 
   local type
-  type=$(echo "$frontmatter" | grep '^type:' | sed 's/^type: *//' | tr -d '"'"'" | xargs)
+  # M30: avoid xargs for trimming — it word-splits and glob-expands the value.
+  # Use sed to strip leading/trailing whitespace instead.
+  type=$(echo "$frontmatter" | grep '^type:' | sed 's/^type: *//' | tr -d '"'"'" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
 
   # Load required fields from the schema table (ADR-0014: single source of truth).
   local required
@@ -281,7 +283,8 @@ validate_content() {
   # source_format != text requires attachment_path + extracted_at (schema rule).
   if [ "$type" = "source" ]; then
     local fmt
-    fmt=$(echo "$frontmatter" | grep '^source_format:' | sed 's/^source_format: *//' | tr -d '"'"'" | xargs || true)
+    # M30: avoid xargs for trimming — word-splits/glob-expands. Use sed instead.
+    fmt=$(echo "$frontmatter" | grep '^source_format:' | sed 's/^source_format: *//' | tr -d '"'"'" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' || true)
     if [ -n "$fmt" ] && [ "$fmt" != "text" ]; then
       local missing_attach=""
       for field in attachment_path extracted_at; do
@@ -313,10 +316,20 @@ validate_content() {
   # it checks path:/parent: consistency (filesystem-only logic) but does NOT
   # validate entity_type values against the ontology enum. That gap is
   # intentional and documented here so reviewers do not add enum logic here.
+  #
+  # H05 / Architect ruling (document): this gate validates frontmatter STRUCTURE
+  # only — required fields present, path: field consistent with actual filesystem
+  # location. It intentionally does NOT validate body content. Body trust is
+  # governed structurally: raw/ is immutable (protect-raw.sh) and humans curate
+  # raw/ before ingest. A structurally-valid frontmatter with a harmful body
+  # passes this gate by design — the semantic layer is covered by confidence
+  # discipline and human review (SECURITY.md ~line 45: "Prompt injection via
+  # ingested sources"). Validated by tests/adversarial/replay-corpus.sh.
   case "$type" in
     entity | concept | topic | project | synthesis | index)
       local declared_path wiki_relative expected_path
-      declared_path=$(echo "$frontmatter" | grep '^path:' | sed 's/^path: *//' | tr -d '"'"'" | xargs || true)
+      # M30: avoid xargs for trimming — word-splits/glob-expands. Use sed instead.
+      declared_path=$(echo "$frontmatter" | grep '^path:' | sed 's/^path: *//' | tr -d '"'"'" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' || true)
       if [ -n "$declared_path" ]; then
         wiki_relative=$(echo "$file_path" | sed "s|.*/${VAULT_NAME}/wiki/||")
         expected_path=$(dirname "$wiki_relative")

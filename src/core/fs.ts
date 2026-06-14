@@ -1,4 +1,12 @@
-/** Filesystem helpers used by the verifiers. All sorted for deterministic output. */
+/**
+ * Filesystem helpers used by the verifiers. All sorted for deterministic output.
+ *
+ * These are deliberately co-located deterministic listing primitives shared
+ * engine-wide. The broad fan-in (9 commands + 6 core modules) is intentional
+ * cohesion: the determinism non-negotiable (same vault in → same sorted list
+ * out) is enforced here and inherited everywhere. No split is warranted unless
+ * a genuinely orthogonal concern appears (KISS/YAGNI, TEAM-BRIEF §5).
+ */
 
 import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { basename, dirname, join } from "node:path";

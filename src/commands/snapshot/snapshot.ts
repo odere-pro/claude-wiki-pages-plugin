@@ -23,6 +23,7 @@ import {
 } from "../../core/git.ts";
 import { appendLog } from "../../core/log.ts";
 import { loadConfig } from "../../data/config/config.ts";
+import { withVaultLockSync } from "../../core/vault-lock.ts";
 
 export type SnapshotSub = "pre" | "post";
 
@@ -84,36 +85,44 @@ export function snapshot(opts: SnapshotOptions): SnapshotReport {
     // lose the write — coverage is the guarantee.
     ensureRepo(vault);
   }
-  if (isClean(vault)) {
+
+  // H07 TOCTOU fix: wrap the entire isClean→appendLog→commit sequence in an
+  // exclusive per-vault lock so a concurrent snapshot post call cannot observe
+  // a dirty tree, append a log entry, and then commit a partially-written log
+  // while we are mid-sequence. withVaultLockSync serializes all callers within
+  // this process; vault-lock.sh's flock covers bash-fallback cross-process races.
+  return withVaultLockSync(vault, () => {
+    if (isClean(vault)) {
+      return {
+        ...base,
+        sha: null,
+        skipped: true,
+        reason: "clean",
+        message: "snapshot post: nothing to commit (vault clean)",
+      };
+    }
+    const label = opts.label ?? "claude-wiki-pages write phase";
+    // Paper trace: record the pre-state SHA in wiki/log.md BEFORE committing so
+    // the entry lands inside the snapshot commit itself (a commit cannot contain
+    // its own SHA; the pre-state anchor + `git log -- wiki/log.md` recover it).
+    const preState = head(vault);
+    appendLog(vault, {
+      verb: "snapshot",
+      summary: `${label} (${opId})`,
+      details: [
+        ...(preState ? [`pre-state: ${preState}`] : []),
+        "rollback: git revert the snapshot commit below",
+      ],
+      today: opts.isoTime?.slice(0, 10),
+    });
+    const sha = commit(vault, `snapshot: ${label} ${opId}`);
+    if (sha && gitCfg.push === "auto") push(vault);
     return {
       ...base,
-      sha: null,
-      skipped: true,
-      reason: "clean",
-      message: "snapshot post: nothing to commit (vault clean)",
+      sha,
+      skipped: false,
+      reason: null,
+      message: `snapshot post: committed ${sha ?? "?"} (${label}; rollback: git revert ${sha ?? "<sha>"})`,
     };
-  }
-  const label = opts.label ?? "claude-wiki-pages write phase";
-  // Paper trace: record the pre-state SHA in wiki/log.md BEFORE committing so
-  // the entry lands inside the snapshot commit itself (a commit cannot contain
-  // its own SHA; the pre-state anchor + `git log -- wiki/log.md` recover it).
-  const preState = head(vault);
-  appendLog(vault, {
-    verb: "snapshot",
-    summary: `${label} (${opId})`,
-    details: [
-      ...(preState ? [`pre-state: ${preState}`] : []),
-      "rollback: git revert the snapshot commit below",
-    ],
-    today: opts.isoTime?.slice(0, 10),
   });
-  const sha = commit(vault, `snapshot: ${label} ${opId}`);
-  if (sha && gitCfg.push === "auto") push(vault);
-  return {
-    ...base,
-    sha,
-    skipped: false,
-    reason: null,
-    message: `snapshot post: committed ${sha ?? "?"} (${label}; rollback: git revert ${sha ?? "<sha>"})`,
-  };
 }

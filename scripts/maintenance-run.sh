@@ -38,10 +38,25 @@
 
 set -uo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Canonicalize SCRIPT_DIR using realpath when available (preferred), otherwise
+# fall back to cd + pwd -P.  This ensures _repo_root is case-correct on a
+# case-insensitive macOS filesystem even when the script is invoked via a
+# case-aliased path (e.g. /git vs /Git — bash -c subshells do not always
+# canonicalize through pwd -P on macOS).  The vault-example guard below
+# compares _repo_root against _abs_vault; both must use the same canonical
+# representation or the comparison silently fails.
+_script_path="$(dirname "$0")"
+if command -v realpath >/dev/null 2>&1; then
+  SCRIPT_DIR="$(realpath "$_script_path" 2>/dev/null)" || SCRIPT_DIR="$(cd "$_script_path" && pwd -P)"
+else
+  SCRIPT_DIR="$(cd "$_script_path" && pwd -P)"
+fi
+unset _script_path
 
 # shellcheck source=resolve-vault.sh
 source "${SCRIPT_DIR}/resolve-vault.sh"
+# shellcheck source=vault-lock.sh
+source "${SCRIPT_DIR}/vault-lock.sh"
 VAULT=$(resolve_vault)
 
 # ── Flag parsing ─────────────────────────────────────────────────────────────
@@ -158,13 +173,28 @@ fi
 TODAY=$(date -u +%Y-%m-%d 2>/dev/null || echo "0000-00-00")
 ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "?")
 if [ -f "${VAULT}/wiki/log.md" ]; then
-  {
-    printf '\n## [%s] scheduled-upkeep | autonomous maintenance-run started %s\n\n' "${TODAY}" "${ISO}"
-    printf -- '- vault: %s\n' "${VAULT}"
-    printf -- '- pending sources: %s (capped at maxPerRun=%s)\n' "${PENDING}" "${MAX_PER_RUN}"
-    printf -- '- syncWiredOnRun: %s\n' "${SYNC_WIRED:-false}"
-    printf -- '- undo: git -C %s revert <post-snapshot-sha>\n' "${VAULT}"
-  } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
+  # Acquire the advisory vault lock before appending to wiki/log.md to avoid
+  # racing with a concurrent cron run or with the agent's own appendLog call
+  # (H06 — unguarded >> append). The lock is released after the append.
+  if vault_lock_acquire "${VAULT}"; then
+    {
+      printf '\n## [%s] scheduled-upkeep | autonomous maintenance-run started %s\n\n' "${TODAY}" "${ISO}"
+      printf -- '- vault: %s\n' "${VAULT}"
+      printf -- '- pending sources: %s (capped at maxPerRun=%s)\n' "${PENDING}" "${MAX_PER_RUN}"
+      printf -- '- syncWiredOnRun: %s\n' "${SYNC_WIRED:-false}"
+      printf -- '- undo: git -C %s revert <post-snapshot-sha>\n' "${VAULT}"
+    } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
+    vault_lock_release "${VAULT}"
+  else
+    # Lock unavailable — append anyway; the lock is advisory and best-effort.
+    {
+      printf '\n## [%s] scheduled-upkeep | autonomous maintenance-run started %s\n\n' "${TODAY}" "${ISO}"
+      printf -- '- vault: %s\n' "${VAULT}"
+      printf -- '- pending sources: %s (capped at maxPerRun=%s)\n' "${PENDING}" "${MAX_PER_RUN}"
+      printf -- '- syncWiredOnRun: %s\n' "${SYNC_WIRED:-false}"
+      printf -- '- undo: git -C %s revert <post-snapshot-sha>\n' "${VAULT}"
+    } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
+  fi
 fi
 
 # The claude CLI invocation is the real maintenance step. This script is the

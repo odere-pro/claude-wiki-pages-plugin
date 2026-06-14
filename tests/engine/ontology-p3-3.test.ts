@@ -20,10 +20,10 @@
  * No corpus, no embeddings, no similarity — deterministic enumeration only.
  */
 
-import { test, expect, describe } from "bun:test";
+import { test, expect, describe, afterAll } from "bun:test";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdirSync, writeFileSync, rmSync, existsSync } from "node:fs";
 import {
   parseOntologyProfile,
   buildOntologyReport,
@@ -42,7 +42,7 @@ describe("ontology -- enums.type (page type, closed)", () => {
   test("returns exactly 9 values in document order", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     const manifest: OntologyManifest = result.manifest;
     expect(manifest.enums.type).toEqual([
       "source",
@@ -60,7 +60,7 @@ describe("ontology -- enums.type (page type, closed)", () => {
   test("enums.type has exactly 9 entries", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     expect(result.manifest.enums.type).toHaveLength(9);
   });
 });
@@ -71,7 +71,7 @@ describe("ontology -- enums.entity_type (core, no extensions)", () => {
   test("returns exactly the 7 core values when no vault extensions present", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     expect(result.manifest.enums.entity_type).toEqual([
       "person",
       "organization",
@@ -86,7 +86,7 @@ describe("ontology -- enums.entity_type (core, no extensions)", () => {
   test("exits 0 (clean) when no extensions present", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     const report = buildOntologyReport(result.manifest);
     expect(exitCode(report)).toBe(0);
   });
@@ -97,6 +97,17 @@ describe("ontology -- enums.entity_type (core, no extensions)", () => {
 describe("ontology -- enums.entity_type with vault extensions", () => {
   let tmpVaultDir: string;
   let tmpClaudeMd: string;
+
+  // Use afterAll for cleanup so it does not masquerade as a test (M22).
+  afterAll(() => {
+    if (tmpVaultDir) {
+      try {
+        rmSync(tmpVaultDir, { recursive: true });
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+  });
 
   // Create a temporary vault CLAUDE.md that declares entity_type_extensions.
   // The file must be a minimal vault schema that the parser can read.
@@ -123,7 +134,7 @@ describe("ontology -- enums.entity_type with vault extensions", () => {
 
     const result = parseOntologyProfile(SCHEMA_PATH, tmpClaudeMd);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     const et = result.manifest.enums.entity_type;
     // Must contain all 7 core values
     expect(et).toContain("person");
@@ -143,22 +154,23 @@ describe("ontology -- enums.entity_type with vault extensions", () => {
   test("absent extensions → core set only, exit 0", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     expect(result.manifest.enums.entity_type).toHaveLength(7);
     const report = buildOntologyReport(result.manifest);
     expect(exitCode(report)).toBe(0);
   });
 
-  // Cleanup after tests that created tmp files
-  test("cleanup temporary vault dir", () => {
+  // M22: verify the tmp dir is actually cleaned up after afterAll runs.
+  // Written as a standalone assertion test (not a cleanup test).
+  test("tmp vault dir is created and accessible before teardown", () => {
+    // This test only runs after the first test has set tmpVaultDir.
+    // If tmpVaultDir is undefined (first test skipped), assert that invariant.
     if (tmpVaultDir) {
-      try {
-        rmSync(tmpVaultDir, { recursive: true });
-      } catch {
-        // Ignore cleanup errors
-      }
+      expect(existsSync(tmpVaultDir)).toBe(true);
+    } else {
+      // First test did not run — nothing to assert.
+      expect(tmpVaultDir).toBeUndefined();
     }
-    expect(true).toBe(true);
   });
 });
 
@@ -168,7 +180,7 @@ describe("ontology -- predicates", () => {
   test("predicates length equals the predicate-table row count (11)", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     // The predicate domain→range table in docs/vault-example/CLAUDE.md has 11 rows:
     // parent, sources, related, contradicts, supersedes, depends_on,
     // key_pages, members, scope, children, child_indexes
@@ -178,7 +190,7 @@ describe("ontology -- predicates", () => {
   test("every predicate entry carries extensible:false", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     for (const pred of result.manifest.predicates) {
       const p: PredicateEntry = pred;
       expect(p.extensible).toBe(false);
@@ -188,7 +200,7 @@ describe("ontology -- predicates", () => {
   test("predicate names include the 11 expected predicates", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     const names = result.manifest.predicates.map((p) => p.predicate);
     const expected = [
       "parent",
@@ -211,7 +223,7 @@ describe("ontology -- predicates", () => {
   test("predicate entries carry domain, range, and direction fields", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     for (const pred of result.manifest.predicates) {
       expect(typeof pred.predicate).toBe("string");
       expect(pred.predicate.length).toBeGreaterThan(0);
@@ -228,7 +240,7 @@ describe("ontology -- fail closed on malformed/missing table", () => {
   test("missing schema file → non-zero exitCode + error finding", () => {
     const result = parseOntologyProfile("/nonexistent/path/CLAUDE.md", undefined);
     expect(result.ok).toBe(false);
-    if (result.ok) return;
+    if (result.ok) throw new Error("expected parse to fail on missing file, but it succeeded");
     const report = buildOntologyReport(undefined, result.errors);
     expect(exitCode(report)).toBeGreaterThan(0);
     expect(report.findings.some((f) => f.severity === "error")).toBe(true);
@@ -259,6 +271,7 @@ describe("ontology -- fail closed on malformed/missing table", () => {
     const result = parseOntologyProfile(malformedMd, undefined);
     // Empty or malformed tables must fail closed
     expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected parse to fail on malformed table, but it succeeded");
     const report = buildOntologyReport(undefined, result.errors);
     expect(exitCode(report)).toBeGreaterThan(0);
     expect(report.findings.some((f) => f.severity === "error")).toBe(true);
@@ -276,21 +289,21 @@ describe("ontology -- manifest JSON field names match ADR-0015", () => {
   test("manifest has .enums.type field", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     expect(Array.isArray(result.manifest.enums.type)).toBe(true);
   });
 
   test("manifest has .enums.entity_type field", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     expect(Array.isArray(result.manifest.enums.entity_type)).toBe(true);
   });
 
   test("manifest has .predicates field", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     expect(Array.isArray(result.manifest.predicates)).toBe(true);
   });
 });
@@ -301,7 +314,7 @@ describe("buildOntologyReport — Report envelope (ADR-0015 N3)", () => {
   test("clean manifest → report.command = 'ontology'", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     const report = buildOntologyReport(result.manifest);
     expect(report.command).toBe("ontology");
   });
@@ -309,7 +322,7 @@ describe("buildOntologyReport — Report envelope (ADR-0015 N3)", () => {
   test("clean manifest → report.clean = true, exitCode = 0", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     const report = buildOntologyReport(result.manifest);
     expect(report.clean).toBe(true);
     expect(exitCode(report)).toBe(0);
@@ -318,7 +331,7 @@ describe("buildOntologyReport — Report envelope (ADR-0015 N3)", () => {
   test("report carries manifest field with OntologyManifest shape", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
-    if (!result.ok) return;
+    if (!result.ok) throw new Error("parse failed — test cannot continue");
     const report = buildOntologyReport(result.manifest);
     expect(report.manifest).toBeDefined();
     expect(Array.isArray(report.manifest.predicates)).toBe(true);

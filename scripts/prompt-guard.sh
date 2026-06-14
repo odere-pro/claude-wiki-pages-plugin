@@ -1,7 +1,19 @@
 #!/bin/bash
 # UserPromptSubmit: warn about common mistakes in user prompts
 # Vault resolved via CLAUDE_WIKI_PAGES_VAULT, auto-detection, or default (docs/vault)
-# Non-blocking — outputs warnings but never blocks the prompt
+# Non-blocking — outputs warnings but never blocks the prompt.
+#
+# Advisory scope: this script is intentionally advisory-only (non-blocking).
+# It does NOT attempt semantic injection detection on prompt body text or on
+# ingested raw/ body content — the defense against prompt injection via sources
+# is structural: protect-raw.sh immutability + validate-frontmatter.sh schema,
+# tested by replay-corpus.sh. See SECURITY.md "Prompt injection via ingested
+# sources" for the documented posture.
+#
+# ReDoS note: the two grep -qiE alternations below are intentionally simple
+# (no nested quantifiers) and run once over a bounded user prompt in a
+# non-blocking hook, so catastrophic backtracking is not exploitable here.
+# Accepted risk. See SECURITY.md "Known limitations" if a regex audit is needed.
 set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
@@ -27,7 +39,13 @@ if echo "$PROMPT" | grep -qiE '(delete|remove|drop)\b.*(wiki page|wiki note|from
 fi
 
 if [ -n "$WARNINGS" ]; then
-  printf "$WARNINGS"
+  # H02: use '%b' format to prevent LLM-influenced content from being
+  # interpreted as a printf format string (command-injection / format-string).
+  # '%b' renders \n as a newline (preserving the intended line breaks) but does
+  # NOT treat %-specifiers in $WARNINGS as format directives — safe against
+  # format-string injection while keeping the same visual output as the old
+  # `printf "$WARNINGS"` call.
+  printf '%b' "$WARNINGS"
 fi
 
 exit 0

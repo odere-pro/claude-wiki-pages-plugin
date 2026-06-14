@@ -99,9 +99,16 @@ function readWiredSources(cwd: string): readonly WiredSourceRecord[] | null {
 function gitChangedFiles(repo: string, lastCommit: string): readonly string[] {
   try {
     const args = lastCommit === "" ? ["ls-files"] : ["diff", "--name-only", `${lastCommit}..HEAD`];
+    // M29: carry the same GIT_TIMEOUT_MS backstop used by git.ts so a held
+    // index.lock or slow repo never blocks heartbeat.sh / SessionStart.
+    const gitTimeoutMs: number = (() => {
+      const v = Number(process.env["CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS"] ?? "");
+      return Number.isFinite(v) && v > 0 ? v : 30_000;
+    })();
     const out = execFileSync("git", ["-C", repo, ...args], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
+      timeout: gitTimeoutMs,
     });
     return out.split("\n").filter((l) => l.length > 0);
   } catch {

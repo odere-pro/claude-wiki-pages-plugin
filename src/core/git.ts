@@ -5,6 +5,14 @@
  * Before changing anything, the engine stashes uncommitted user work and writes
  * a checkpoint commit, so every heal is reversible with `git revert` or a branch
  * checkout. These helpers wrap the few porcelain commands that loop needs.
+ *
+ * Concurrency note (H08 / M29): every read-then-write sequence (isClean →
+ * stash/add → commit; isClean → appendLog → commit) that spans multiple git
+ * calls is vulnerable to TOCTOU races when two callers operate on the same
+ * vault concurrently. `withVaultLockSync` in `vault-lock.ts` guards these
+ * sequences at the call-site level (snapshot.ts, heal.ts, migrate.ts,
+ * propose.ts). All `execFileSync` calls carry a `GIT_TIMEOUT_MS` timeout to
+ * prevent held index.lock hangs from blocking the process indefinitely (M29).
  */
 
 import { execFileSync } from "node:child_process";
@@ -14,12 +22,26 @@ export interface GitResult {
   readonly stdout: string;
 }
 
+/**
+ * Timeout for every git subprocess call (M29 / H08). Git operations that
+ * hold the index.lock (e.g. `git add`, `git stash`) can hang indefinitely
+ * when a lock file is left behind by a crashed process. Capping every call
+ * prevents the engine from blocking the Claude session. 30 s is generous for
+ * a local repository; large repos with slow I/O can increase via the env var
+ * CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS.
+ */
+const GIT_TIMEOUT_MS: number = (() => {
+  const v = Number(process.env["CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS"] ?? "");
+  return Number.isFinite(v) && v > 0 ? v : 30_000;
+})();
+
 function git(cwd: string, args: readonly string[]): GitResult {
   try {
     const stdout = execFileSync("git", args, {
       cwd,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
+      timeout: GIT_TIMEOUT_MS,
     });
     return { ok: true, stdout: stdout.trim() };
   } catch (error: unknown) {

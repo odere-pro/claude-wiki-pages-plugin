@@ -166,9 +166,50 @@ When `effective > 1` and route is `claude`:
    - Do NOT abort the run. Apply all validated envelopes.
    - The single post-ingest snapshot covers exactly the applied subset.
 
-4. Proceed to Step 1.3 using the collected envelopes instead of reading
+4. **Write barrier (H10 — happens-before contract).** After `Task.all()`
+   returns (all workers have responded), you MUST confirm that every
+   worker's envelope has been collected into an in-memory list BEFORE
+   calling any Write tool. The sequence is strictly:
+   `fan-out → await all → validate envelopes → write pages`.
+   Do NOT begin Step 1.3 Write calls while any Task is still outstanding.
+   This enforces the happens-before relationship between the last worker
+   response and the first writer Write that the ADR-0026 parallel-extract
+   design requires.
+
+5. Proceed to Step 1.3 using the collected envelopes instead of reading
    sources inline. The writer (this agent, Step 1.5) is the ONLY entity
    that writes pages; the extract workers read only.
+
+#### Fan-out cap enforcement at dispatch (M25)
+
+The effective parallelism is capped at dispatch time, not only in config:
+
+```
+effective = min(
+  config.maintenance.maxParallelExtract ?? 1,
+  8,                          # hard upper bound — enforced at dispatch
+  len(pending_sources)        # never more workers than sources
+)
+```
+
+Even if `maxParallelExtract` is misconfigured above 8 (stale config or
+env override), the dispatch loop MUST cap at 8 by construction. Do not
+spawn more than `effective` Tasks regardless of what the config field says.
+
+#### Single-session guard (H11)
+
+Two snapshot.sh post calls race if two ingest sessions overlap on the same
+vault. The advisory vault lock (`scripts/vault-lock.sh` / `vault-lock.ts`)
+serializes the snapshot/commit/log-append sequence within a process. At the
+agent level, the coordination mechanism is:
+
+- **Do not start a second ingest session on the same vault while one is
+  running.** The `snapshot pre` checkpoint (Preflight step 6) takes an
+  advisory lock; a second session that cannot acquire the lock within
+  30 s should abort with a clear message:
+  `"[ingest] vault is locked by another snapshot operation — retry later."`
+- If the advisory lock is unavailable (flock not present on the platform),
+  proceed and emit a warning in the final report.
 
 #### Extract-worker safety invariant
 

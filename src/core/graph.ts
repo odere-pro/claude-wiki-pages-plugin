@@ -81,8 +81,8 @@ export interface GraphWalkOptions {
   /** Predicates to traverse. Defaults to R2_EDGES. */
   readonly edges?: readonly GraphEdge[];
   /**
-   * Maximum hop depth. Clamped: `Math.max(1, Math.min(2, maxHops ?? 2))`.
-   * The hard ceiling is 2; passing 99 is identical to passing 2.
+   * Maximum hop depth. Clamped to [MIN_HOPS, MAX_HOPS_CEILING] (currently 1–2).
+   * The hard ceiling is MAX_HOPS_CEILING; passing 99 is identical to passing 2.
    */
   readonly maxHops?: number;
 }
@@ -92,6 +92,14 @@ export interface GraphWalkResult {
 }
 
 // ── Weights ───────────────────────────────────────────────────────────────────
+
+/**
+ * Hard ceiling on BFS hop depth. Clamped to [MIN_HOPS, MAX_HOPS_CEILING].
+ * Phase 3 may raise this after review; do not increase speculatively (YAGNI).
+ */
+const MAX_HOPS_CEILING = 2;
+/** Minimum allowed hop depth (a walk of zero hops is vacuous). */
+const MIN_HOPS = 1;
 
 /**
  * Hop-decayed graph scores (the WEAKEST signal, strictly below synonym/exact).
@@ -204,7 +212,7 @@ function resolveWikilink(target: string, titleIndex: Map<string, string>): strin
 export function walk(opts: GraphWalkOptions): GraphWalkResult {
   const vault = opts.vault.replace(/\/+$/, "");
   const edges: readonly GraphEdge[] = opts.edges ?? R2_EDGES;
-  const maxHops = Math.max(1, Math.min(2, opts.maxHops ?? 2));
+  const maxHops = Math.max(MIN_HOPS, Math.min(MAX_HOPS_CEILING, opts.maxHops ?? MAX_HOPS_CEILING));
 
   // Build the title/alias/path index once.
   const titleIndex = buildTitleIndex(vault);

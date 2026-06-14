@@ -203,7 +203,17 @@ teardown() {
   # Use a relative path inside the repo to simulate the docs/vault-example case.
   local rel_vault="docs/vault-example"
   local abs_vault
-  abs_vault="$(cd "$REPO_ROOT/$rel_vault" 2>/dev/null && pwd -P)" || true
+  # Use realpath when available (preferred) to get the case-canonical path on
+  # case-insensitive macOS filesystems.  Bash -c subshells do not always
+  # canonicalize through pwd -P when entered via a case-aliased path (e.g.
+  # /git vs /Git), so realpath is required to match the script's output (which
+  # normalizes via realpath in resolve_vault).
+  if command -v realpath >/dev/null 2>&1; then
+    abs_vault="$(realpath "$REPO_ROOT/$rel_vault" 2>/dev/null)" || \
+      abs_vault="$(cd "$REPO_ROOT/$rel_vault" 2>/dev/null && pwd -P)" || true
+  else
+    abs_vault="$(cd "$REPO_ROOT/$rel_vault" 2>/dev/null && pwd -P)" || true
+  fi
 
   # Skip if the reference vault does not exist (not a blocker on minimal CI).
   [ -d "$REPO_ROOT/$rel_vault" ] || skip "docs/vault-example not present in this checkout"

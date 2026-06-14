@@ -22,7 +22,7 @@
  * Deterministic enumeration only — no corpus, no embeddings, no similarity.
  */
 
-import { test, expect, describe, beforeAll, afterAll } from "bun:test";
+import { test, expect, describe, beforeEach, afterEach } from "bun:test";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { mkdirSync, writeFileSync, rmSync } from "node:fs";
@@ -98,14 +98,20 @@ function vaultClaudeMdWithForbiddenExtensions(key: string, values: string[]): st
 }
 
 // ── Temporary vault setup ────────────────────────────────────────────────────
+//
+// Per-test isolation (L05, M23): each test creates its own tmp tree in
+// beforeEach and tears it down in afterEach. This removes order-dependence on
+// module-level shared state and makes every assertion in the test body
+// deterministically meaningful — not structurally guaranteed by a prior
+// beforeAll having run (M23).
 
 let tmpDir: string;
 let tmpVaultClaudeMd: string;
 let tmpEntityFile: string;
 let tmpWiki: string;
 
-beforeAll(() => {
-  tmpDir = join(tmpdir(), `p3-4-entity-type-test-${Date.now()}`);
+beforeEach(() => {
+  tmpDir = join(tmpdir(), `p3-4-entity-type-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(tmpDir, { recursive: true });
   tmpWiki = join(tmpDir, "wiki");
   mkdirSync(join(tmpWiki, "_sources"), { recursive: true });
@@ -113,7 +119,7 @@ beforeAll(() => {
   tmpEntityFile = join(tmpWiki, "test-entity.md");
 });
 
-afterAll(() => {
+afterEach(() => {
   try {
     rmSync(tmpDir, { recursive: true });
   } catch {

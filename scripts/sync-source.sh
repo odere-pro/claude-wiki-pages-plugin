@@ -186,7 +186,26 @@ while IFS='|' read -r NAME SRC_PATH REC_VAULT LAST_COMMIT; do
         continue
       }
     fi
+    # M31: confine the resolved destination to DEST_ROOT using physical-path
+    # comparison before writing. A git-derived rel path that contains ".." or
+    # symlink components (possible with adversarial wired-source repos) could
+    # otherwise escape the raw/wired/<name>/ subtree.
     mkdir -p "$dest_dir" 2>/dev/null || true
+    _abs_dest=$(cd "$dest_dir" 2>/dev/null && printf '%s/%s' "$(pwd -P)" "$base") || {
+      echo "[claude-wiki-pages] WARN: could not resolve dest dir \"$dest_dir\" — skipped" >&2
+      continue
+    }
+    _abs_dest_root=$(cd "$DEST_ROOT" 2>/dev/null && pwd -P) || {
+      echo "[claude-wiki-pages] WARN: could not resolve DEST_ROOT \"$DEST_ROOT\" — skipped" >&2
+      continue
+    }
+    case "$_abs_dest" in
+      "${_abs_dest_root}/"*) : ;; # confined — allow
+      *)
+        echo "[claude-wiki-pages] WARN: dest \"$_abs_dest\" escapes DEST_ROOT — skipped" >&2
+        continue
+        ;;
+    esac
     if cp "$src" "$dest" 2>/dev/null; then
       PULLED=$((PULLED + 1))
       echo "  + ${dest#"${VAULT}"/}"
