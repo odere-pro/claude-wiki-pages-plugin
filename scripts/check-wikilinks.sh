@@ -166,7 +166,7 @@ if [ "$TOOL" = "Edit" ]; then
   if [ -n "$NEW" ]; then
     local_frag=$(echo "$NEW" | grep -oE '\[.+\]\([^)]+\.md\)' | head -1 || true)
     if [ -n "$local_frag" ]; then
-      escaped_frag=$(printf '%s' "$local_frag" | sed 's/"/\\"/g')
+      escaped_frag=$(_json_escape "$local_frag")
       echo "{\"decision\":\"block\",\"reason\":\"Edit introduces [text](file.md) links (e.g. ${escaped_frag}). Use [[Page Title]] wikilinks for Obsidian compatibility.\"}"
       exit 0
     fi
@@ -179,7 +179,7 @@ CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
 
 err=$(check_content "$CONTENT")
 if [ -n "$err" ]; then
-  escaped=$(printf '%s' "$err" | sed 's/"/\\"/g')
+  escaped=$(_json_escape "$err")
   echo "{\"decision\":\"block\",\"reason\":\"${escaped}\"}"
 fi
 exit 0
