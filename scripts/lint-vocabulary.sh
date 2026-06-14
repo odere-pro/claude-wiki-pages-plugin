@@ -90,32 +90,41 @@ trap "rm -f '$LEXICON_TMP'" EXIT
 
 _SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-if ! bun -e "
-import { parseFrontmatter } from '${_SCRIPT_DIR}/../src/core/frontmatter.ts';
-import { loadLexicon } from '${_SCRIPT_DIR}/../src/core/vocabulary.ts';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+# ── Security: no untrusted values interpolated into the JS source string ────
+# VAULT and _SCRIPT_DIR are passed as argv positional arguments (process.argv[1]
+# and process.argv[2]) so that a crafted CLAUDE_WIKI_PAGES_VAULT value cannot
+# inject arbitrary Bun/JS code. The JS string is fully static.
+# shellcheck disable=SC2016
+if ! bun -e '
+// Values passed via argv — never interpolated into this source string.
+// process.argv[1] = vault path, process.argv[2] = script directory
+const vault     = process.argv[1];
+const scriptDir = process.argv[2];
 
-const vault = '${VAULT}';
-const vocabPath = join(vault, '_vocabulary.md');
+const { parseFrontmatter } = await import(scriptDir + "/../src/core/frontmatter.ts");
+const { loadLexicon }      = await import(scriptDir + "/../src/core/vocabulary.ts");
+const { readFileSync }     = await import("node:fs");
+const { join }             = await import("node:path");
+
+const vocabPath = join(vault, "_vocabulary.md");
 
 // Read raw YAML to get the original canonical names.
 let rawContent;
-try { rawContent = readFileSync(vocabPath, 'utf8'); } catch { process.exit(0); }
+try { rawContent = readFileSync(vocabPath, "utf8"); } catch { process.exit(0); }
 const fm = parseFrontmatter(rawContent);
-const rawGroups = Array.isArray(fm['groups']) ? fm['groups'] : [];
+const rawGroups = Array.isArray(fm["groups"]) ? fm["groups"] : [];
 
 // Build a map from normalised-form -> yaml-canonical (lowercased+trimmed).
-// This lets us look up any form's YAML canonical even after union-find merging.
+// This lets us look up any form'\''s YAML canonical even after union-find merging.
 const formToYamlCanon = new Map();
 for (const g of rawGroups) {
-  if (typeof g !== 'object' || g === null) continue;
-  const canon = typeof g.canonical === 'string' ? g.canonical.toLowerCase().trim() : '';
+  if (typeof g !== "object" || g === null) continue;
+  const canon = typeof g.canonical === "string" ? g.canonical.toLowerCase().trim() : "";
   if (!canon) continue;
   formToYamlCanon.set(canon, canon);
   const variants = Array.isArray(g.variants) ? g.variants : [];
   for (const v of variants) {
-    if (typeof v === 'string' && v.trim()) formToYamlCanon.set(v.toLowerCase().trim(), canon);
+    if (typeof v === "string" && v.trim()) formToYamlCanon.set(v.toLowerCase().trim(), canon);
   }
 }
 
@@ -128,44 +137,44 @@ const seen = new Set();
 const output = [];
 for (const [form, peers] of lex.expand.entries()) {
   const component = [form, ...peers].sort();
-  const key = component.join('|');
+  const key = component.join("|");
   if (seen.has(key)) continue;
   seen.add(key);
 
   // Find the yaml-canonical for this component.
-  let yamlCanon = '';
+  let yamlCanon = "";
   for (const f of component) {
     const c = formToYamlCanon.get(f);
     if (c && formToYamlCanon.get(c) === c) { yamlCanon = c; break; }
   }
   if (!yamlCanon) yamlCanon = component[0];
 
-  output.push(yamlCanon + '\t' + component.join(','));
+  output.push(yamlCanon + "\t" + component.join(","));
 }
 
-// Single-form groups (forms that appear in rawGroups but have no synonyms in the
-// expand map — i.e. they were registered but all their forms are the same form).
+// Single-form groups (forms that appear in rawGroups but have no synonyms in
+// the expand map — registered but all their forms are the same form).
 for (const g of rawGroups) {
-  if (typeof g !== 'object' || g === null) continue;
-  const canon = typeof g.canonical === 'string' ? g.canonical.toLowerCase().trim() : '';
+  if (typeof g !== "object" || g === null) continue;
+  const canon = typeof g.canonical === "string" ? g.canonical.toLowerCase().trim() : "";
   if (!canon) continue;
   if (!lex.expand.has(canon)) {
     // Canonical not in expand map (zero synonyms for this canonical).
     const variants = Array.isArray(g.variants) ? g.variants : [];
-    const allForms = [canon, ...variants.filter(v => typeof v === 'string').map(v => v.toLowerCase().trim()).filter(v => v)];
-    const key2 = [...new Set(allForms)].sort().join('|');
+    const allForms = [canon, ...variants.filter(v => typeof v === "string").map(v => v.toLowerCase().trim()).filter(v => v)];
+    const key2 = [...new Set(allForms)].sort().join("|");
     if (!seen.has(key2)) {
       seen.add(key2);
-      output.push(canon + '\t' + [...new Set(allForms)].sort().join(','));
+      output.push(canon + "\t" + [...new Set(allForms)].sort().join(","));
     }
   }
 }
 
 output.sort((a, b) => a.localeCompare(b));
 for (const line of output) {
-  process.stdout.write(line + '\n');
+  process.stdout.write(line + "\n");
 }
-" 2>/dev/null >"$LEXICON_TMP"; then
+' -- "$VAULT" "$_SCRIPT_DIR" 2>/dev/null >"$LEXICON_TMP"; then
   printf '\033[0;31mERROR: Failed to load _vocabulary.md (bun unavailable or parse error)\033[0m\n' >&2
   exit 2
 fi

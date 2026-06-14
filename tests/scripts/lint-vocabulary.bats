@@ -233,3 +233,30 @@ EOF
   assert_eq "$first_status" "$second_status"
   assert_eq "$first_output" "$second_output"
 }
+
+# ---------------------------------------------------------------------------
+# Case 6: Injection resistance — vault path passed via argv, not JS interpolation.
+# A vault path containing shell-special characters must NOT break the script
+# or leak code into the Bun JS string. The vault is copied into a subdir whose
+# name contains a single-quote, backslash, and dollar sign to exercise the
+# argv-passing boundary.
+# ---------------------------------------------------------------------------
+
+@test "lint-vocabulary: vault path with shell-special chars does not break or inject" {
+  # Create a subdirectory with shell-special chars in its name.
+  # (The path is passed via argv, so no quoting in the JS string is needed.)
+  local special_vault
+  special_vault="$BATS_TEST_TMPDIR/vault-special'\$test"
+  cp -r "$FIXTURE_VAULT" "$special_vault"
+
+  # Absent _vocabulary.md -> exit 0 + INFO line (no injection, no crash).
+  rm -f "$special_vault/_vocabulary.md"
+
+  run bash "$SCRIPTS_DIR/lint-vocabulary.sh" --target "$special_vault"
+
+  assert_success
+  assert_output_contains "INFO"
+  # Must not produce any JS error output indicating code execution.
+  refute_output_contains "SyntaxError"
+  refute_output_contains "process.exit"
+}
