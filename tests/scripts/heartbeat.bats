@@ -81,22 +81,39 @@ enable_maintenance() {
   command -v bun >/dev/null 2>&1 || skip "SYNC notice is engine-only (needs bun)"
   enable_maintenance
 
+  # Build a fully isolated scratch repo so we do not inherit global git config
+  # (gpgsign, tag.gpgsign, hooks) from the developer's or CI environment.
+  # Uses a separate tmpdir so it is independent of $PROJ and $VAULT.
+  local SCRATCH
+  SCRATCH="$(mktemp -d "${BATS_TEST_TMPDIR}/hb-sync-repo.XXXXXX")"
+
   # The project is a git repo wired as a docs source; one doc changed since
   # the recorded sync point.
-  printf '# readme\n' >"$PROJ/README.md"
-  git -C "$PROJ" init -q
-  git -C "$PROJ" -c user.name=t -c user.email=t@t -c commit.gpgsign=false add -A
-  git -C "$PROJ" -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qm init --no-verify
-  synced=$(git -C "$PROJ" rev-parse HEAD)
-  printf 'more docs\n' >>"$PROJ/README.md"
-  git -C "$PROJ" -c user.name=t -c user.email=t@t -c commit.gpgsign=false commit -qam change --no-verify
+  printf '# readme\n' >"$SCRATCH/README.md"
+  (
+    cd "$SCRATCH" || exit 1
+    git init -q
+    git config user.email "test@example.com"
+    git config user.name "Test"
+    git config commit.gpgsign false
+    git config tag.gpgsign false
+    git config core.hooksPath /dev/null
+    git add -A
+    git commit -q -m "init"
+  )
+  synced=$(git -C "$SCRATCH" rev-parse HEAD)
+  printf 'more docs\n' >>"$SCRATCH/README.md"
+  (
+    cd "$SCRATCH" || exit 1
+    git commit -qam "change"
+  )
 
   cat >"$PROJ/.claude/claude-wiki-pages/settings.json" <<EOF
 {
   "default_vault_path": "vault",
   "current_vault_path": "vault",
   "wired_sources": [{
-    "name": "proj", "path": "$PROJ", "vault": "$VAULT",
+    "name": "proj", "path": "$SCRATCH", "vault": "$VAULT",
     "include": ["README*", "*.md"], "exclude": [".git/**"],
     "lastSyncedCommit": "$synced", "lastSyncedAt": "2026-06-11T00:00:00Z"
   }]
@@ -107,4 +124,5 @@ EOF
   assert_success
   assert_output_contains 'SYNC: wired source "proj" has 1 changed doc(s)'
   assert_output_contains "/claude-wiki-pages:sync"
+  rm -rf "$SCRATCH"
 }

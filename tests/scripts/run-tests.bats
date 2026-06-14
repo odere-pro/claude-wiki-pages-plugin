@@ -150,11 +150,12 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   local tmpdir
   tmpdir="$(mktemp -d "${BATS_TEST_TMPDIR}/gate12-stale.XXXXXX")"
   mkdir -p "$tmpdir/src" "$tmpdir/dist"
-  # Create dist/cli.js first (older)
+  # Use explicit past/future timestamps to avoid sub-second filesystem races.
+  # dist/cli.js at a fixed past time; src/cli.ts one second later.
   printf '// built\n' >"$tmpdir/dist/cli.js"
-  # Wait a moment and create a newer src file
-  sleep 0.05
+  touch -t 202001010000 "$tmpdir/dist/cli.js"
   printf 'export const x = 1;\n' >"$tmpdir/src/cli.ts"
+  touch -t 202001010001 "$tmpdir/src/cli.ts"
   mkdir -p "$tmpdir/tests/gates"
   cp "$GATE12" "$tmpdir/tests/gates/gate-12-stale-dist.sh"
 
@@ -169,11 +170,11 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   local tmpdir
   tmpdir="$(mktemp -d "${BATS_TEST_TMPDIR}/gate12-fresh.XXXXXX")"
   mkdir -p "$tmpdir/src" "$tmpdir/dist"
-  # Create the src file first (older)
+  # src/cli.ts at a fixed past time; dist/cli.js one second later.
   printf 'export const x = 1;\n' >"$tmpdir/src/cli.ts"
-  # Wait a moment and create a newer dist/cli.js
-  sleep 0.05
+  touch -t 202001010000 "$tmpdir/src/cli.ts"
   printf '// built\n' >"$tmpdir/dist/cli.js"
+  touch -t 202001010001 "$tmpdir/dist/cli.js"
   mkdir -p "$tmpdir/tests/gates"
   cp "$GATE12" "$tmpdir/tests/gates/gate-12-stale-dist.sh"
 

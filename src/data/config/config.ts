@@ -258,13 +258,9 @@ export const APPROVED_LOCAL_MODELS_BY_TIER: Readonly<
   query: ["qwen3-coder:30b"],
 };
 
-/**
- * Back-compat alias: the `ingest-extract` row, the only unlocked tier today.
- * Retained so existing imports keep resolving; the per-tier map above is the
- * source of truth.
- */
-export const APPROVED_LOCAL_MODELS: readonly string[] =
-  APPROVED_LOCAL_MODELS_BY_TIER["ingest-extract"];
+// B09: APPROVED_LOCAL_MODELS back-compat alias removed — no importers outside
+// this file's own test (which now uses APPROVED_LOCAL_MODELS_BY_TIER directly).
+// APPROVED_LOCAL_MODELS_BY_TIER["ingest-extract"] is the source of truth.
 
 /**
  * Fail-closed approval check for the per-tier local-model allow-list. Returns a

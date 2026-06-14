@@ -107,8 +107,11 @@ function physicalPath(filePath: string): string {
   }
   // Iteratively dereference leaf symlinks (dangling allowed), peeling any newly
   // non-existent tail each round.
+  // B04 parity: mirrors the named _SYMLINK_LOOP_MAX=40 constant in firewall.sh.
+  // Linux MAXSYMLINKS is 40; we use the same ceiling in both twins.
+  const SYMLINK_LOOP_MAX = 40;
   let guard = 0;
-  while (guard < 40 && isSymlink(target)) {
+  while (guard < SYMLINK_LOOP_MAX && isSymlink(target)) {
     const link = readlinkSync(target);
     target = isAbsolute(link) ? link : resolve(dirname(target), link);
     guard++;

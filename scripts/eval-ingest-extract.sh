@@ -181,9 +181,11 @@ extract_page_paths() {
   done < <(find "$wiki" -name '*.md' -type f | LC_ALL=C sort) | LC_ALL=C sort
 }
 
-# Extract a scalar frontmatter field value from a single file (first match,
-# quotes stripped). Empty when absent. Mirrors the verifier's _fm_field idiom.
-fm_scalar() {
+# C10: consolidated scalar frontmatter field extractor, named _fm_field to
+# match the identical helper in verify-ingest.sh (DRY — the former _fm_field
+# was a near-duplicate). Extracts the first occurrence of <field>: from the
+# YAML frontmatter of <file>, strips quotes, returns empty when absent.
+_fm_field() {
   local file="$1" field="$2" line
   line=$(sed -n '/^---$/,/^---$/p' "$file" | grep -m1 -E "^${field}:[[:space:]]" || true)
   [ -z "$line" ] && return 0
@@ -388,9 +390,9 @@ _score_fields() {
     [ -f "$cf" ] || continue
     [ -f "$gf" ] || continue
     for field in $SCORED_FIELDS; do
-      gval="$(fm_scalar "$gf" "$field")"
+      gval="$(_fm_field "$gf" "$field")"
       [ -z "$gval" ] && continue
-      cval="$(fm_scalar "$cf" "$field")"
+      cval="$(_fm_field "$cf" "$field")"
       field_total=$((field_total + 1))
       [ "$cval" = "$gval" ] && field_ok=$((field_ok + 1))
     done

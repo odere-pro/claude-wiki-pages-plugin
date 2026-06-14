@@ -374,7 +374,11 @@ _setup_eval_artifact_repo() {
     "$REPO_ROOT/scripts/eval-normalize-ws.sh" \
     "$REPO_ROOT/scripts/verify-ingest.sh" \
     "$REPO_ROOT/scripts/validate-frontmatter.sh" \
-    "$REPO_ROOT/scripts/resolve-vault.sh" "$EVAL_REPO/scripts/"
+    "$REPO_ROOT/scripts/resolve-vault.sh" \
+    "$REPO_ROOT/scripts/lib-validate-gate.sh" \
+    "$REPO_ROOT/scripts/lib-vault-registry.sh" \
+    "$REPO_ROOT/scripts/lib-wired-source.sh" \
+    "$REPO_ROOT/scripts/lib-page-type.sh" "$EVAL_REPO/scripts/"
   cp -R "$REPO_ROOT/src/core" "$EVAL_REPO/src/"
   # validate-frontmatter.sh falls back to the bundled runtime schema template
   # (skills/init/template/CLAUDE.md) for its required-fields table when a target

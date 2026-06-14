@@ -91,27 +91,23 @@ if [ "$SUB" = "pre" ]; then
   # Acquire the advisory vault lock to prevent concurrent bash-fallback pre
   # invocations from racing over the index (H09 — unguarded git ops in the
   # fallback path). All git operations are inside the lock's critical section.
-  if vault_lock_acquire "$VAULT"; then
-    ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "?")
-    if [ "$MODE" = "branch" ] || [ "$MODE" = "both" ]; then
-      "${GIT[@]}" branch "cwp/checkpoint/${OP}" >/dev/null 2>&1 || true
-    fi
-    # Explicit scoped pathspec (M33): -- <vault-dir> instead of -A alone to
-    # prevent pathspec confusion when the vault inherits a parent-project repo.
-    "${GIT[@]}" add -- . >/dev/null 2>&1 || true
-    "${GIT[@]}" commit --no-verify --allow-empty -m "checkpoint: claude-wiki-pages pre-heal ${ISO} ${OP}" -- . >/dev/null 2>&1 || true
-    SHA=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "?")
-    vault_lock_release "$VAULT"
-  else
-    # Could not acquire lock; proceed anyway (advisory lock, best-effort).
-    ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "?")
-    if [ "$MODE" = "branch" ] || [ "$MODE" = "both" ]; then
-      "${GIT[@]}" branch "cwp/checkpoint/${OP}" >/dev/null 2>&1 || true
-    fi
-    "${GIT[@]}" add -- . >/dev/null 2>&1 || true
-    "${GIT[@]}" commit --no-verify --allow-empty -m "checkpoint: claude-wiki-pages pre-heal ${ISO} ${OP}" -- . >/dev/null 2>&1 || true
-    SHA=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "?")
+  # C01: fail-closed on timeout — skip the git ops rather than run them
+  # outside the lock (race condition fix; was "proceed anyway").
+  if ! vault_lock_acquire "$VAULT"; then
+    echo "snapshot pre: WARN: could not acquire vault lock — skipping checkpoint to avoid race (C01)" >&2
+    echo "snapshot pre: skipped (lock timeout)"
+    exit 0
   fi
+  ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "?")
+  if [ "$MODE" = "branch" ] || [ "$MODE" = "both" ]; then
+    "${GIT[@]}" branch "cwp/checkpoint/${OP}" >/dev/null 2>&1 || true
+  fi
+  # Explicit scoped pathspec (M33): -- <vault-dir> instead of -A alone to
+  # prevent pathspec confusion when the vault inherits a parent-project repo.
+  "${GIT[@]}" add -- . >/dev/null 2>&1 || true
+  "${GIT[@]}" commit --no-verify --allow-empty -m "checkpoint: claude-wiki-pages pre-heal ${ISO} ${OP}" -- . >/dev/null 2>&1 || true
+  SHA=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "?")
+  vault_lock_release "$VAULT"
   echo "snapshot pre: checkpoint ${SHA} (rollback: git revert ${SHA})"
 else
   if [ -z "$(git -C "$VAULT" status --porcelain -- . 2>/dev/null | head -1)" ]; then
@@ -120,45 +116,35 @@ else
   fi
   # Acquire the advisory vault lock to guard the isClean→appendLog→commit
   # sequence against concurrent post invocations (H09 / H07 pattern).
-  if vault_lock_acquire "$VAULT"; then
-    # Re-check cleanliness inside the lock to close the TOCTOU window.
-    if [ -z "$(git -C "$VAULT" status --porcelain -- . 2>/dev/null | head -1)" ]; then
-      vault_lock_release "$VAULT"
-      echo "snapshot post: nothing to commit (vault clean)"
-      exit 0
-    fi
-    # Paper trace: record the pre-state SHA in wiki/log.md BEFORE committing so
-    # the entry lands inside the snapshot commit (a commit cannot contain its
-    # own SHA). Mirrors the engine's snapshot post behavior.
-    if [ -f "${VAULT}/wiki/log.md" ]; then
-      PRE=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "")
-      DAY=$(date -u +%Y-%m-%d 2>/dev/null || echo "0000-00-00")
-      {
-        printf '\n## [%s] snapshot | %s (%s)\n\n' "${DAY}" "${LABEL}" "${OP}"
-        [ -n "${PRE}" ] && printf -- '- pre-state: %s\n' "${PRE}"
-        printf -- '- rollback: git revert the snapshot commit below\n'
-      } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
-    fi
-    # Explicit scoped pathspec (M33): -- . instead of -A alone.
-    "${GIT[@]}" add -- . >/dev/null 2>&1 || true
-    "${GIT[@]}" commit --no-verify -m "snapshot: ${LABEL} ${OP}" -- . >/dev/null 2>&1 || true
-    SHA=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "?")
-    vault_lock_release "$VAULT"
-  else
-    # Could not acquire lock; proceed anyway (advisory lock, best-effort).
-    if [ -f "${VAULT}/wiki/log.md" ]; then
-      PRE=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "")
-      DAY=$(date -u +%Y-%m-%d 2>/dev/null || echo "0000-00-00")
-      {
-        printf '\n## [%s] snapshot | %s (%s)\n\n' "${DAY}" "${LABEL}" "${OP}"
-        [ -n "${PRE}" ] && printf -- '- pre-state: %s\n' "${PRE}"
-        printf -- '- rollback: git revert the snapshot commit below\n'
-      } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
-    fi
-    "${GIT[@]}" add -- . >/dev/null 2>&1 || true
-    "${GIT[@]}" commit --no-verify -m "snapshot: ${LABEL} ${OP}" -- . >/dev/null 2>&1 || true
-    SHA=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "?")
+  # C01: fail-closed on timeout — skip the git ops to avoid racing.
+  if ! vault_lock_acquire "$VAULT"; then
+    echo "snapshot post: WARN: could not acquire vault lock — skipping commit to avoid race (C01)" >&2
+    echo "snapshot post: skipped (lock timeout)"
+    exit 0
   fi
+  # Re-check cleanliness inside the lock to close the TOCTOU window.
+  if [ -z "$(git -C "$VAULT" status --porcelain -- . 2>/dev/null | head -1)" ]; then
+    vault_lock_release "$VAULT"
+    echo "snapshot post: nothing to commit (vault clean)"
+    exit 0
+  fi
+  # Paper trace: record the pre-state SHA in wiki/log.md BEFORE committing so
+  # the entry lands inside the snapshot commit (a commit cannot contain its
+  # own SHA). Mirrors the engine's snapshot post behavior.
+  if [ -f "${VAULT}/wiki/log.md" ]; then
+    PRE=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "")
+    DAY=$(date -u +%Y-%m-%d 2>/dev/null || echo "0000-00-00")
+    {
+      printf '\n## [%s] snapshot | %s (%s)\n\n' "${DAY}" "${LABEL}" "${OP}"
+      [ -n "${PRE}" ] && printf -- '- pre-state: %s\n' "${PRE}"
+      printf -- '- rollback: git revert the snapshot commit below\n'
+    } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
+  fi
+  # Explicit scoped pathspec (M33): -- . instead of -A alone.
+  "${GIT[@]}" add -- . >/dev/null 2>&1 || true
+  "${GIT[@]}" commit --no-verify -m "snapshot: ${LABEL} ${OP}" -- . >/dev/null 2>&1 || true
+  SHA=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "?")
+  vault_lock_release "$VAULT"
   echo "snapshot post: committed ${SHA} (${LABEL}; rollback: git revert ${SHA})"
 fi
 

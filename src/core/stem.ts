@@ -1,6 +1,14 @@
 /**
  * Porter stemmer (1980) — pure, deterministic, zero-dependency TypeScript.
  *
+ * A02 / Architect ruling (document — intentional): hand-rolled, NOT an npm
+ * stemmer dependency, by design. NO-embeddings/wiki-native recall (Brief §5,
+ * ADR-0007) requires deterministic stemming in `core/`, which may depend only
+ * on Node built-ins + `yaml` (src/core/CLAUDE.md "Dependency direction"). A
+ * library would add a runtime dep and a non-pinned determinism source for no
+ * gain over the ~270-line standard algorithm below. Reuse-the-wheel does not
+ * apply when the zero-dependency boundary is the requirement.
+ *
  * Rules follow the original Porter 1980 paper exactly. This is a standard
  * suffix-stripping algorithm: no data files, no network, no ML model.
  *

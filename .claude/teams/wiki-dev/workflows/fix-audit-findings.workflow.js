@@ -13,12 +13,20 @@ export const meta = {
 
 // ---- args ----
 // { glossaryPath, registryPath, teamBriefPath, baseBranch, branch }
-const A = args || {}
+// Tolerate args arriving as a JSON string (the harness sometimes passes it that way).
+let A = args || {}
+if (typeof A === 'string') {
+  try {
+    A = JSON.parse(A)
+  } catch {
+    A = {}
+  }
+}
 const GLOSSARY = A.glossaryPath || '.claude/teams/wiki-dev/oop-glossary/glossary.json'
-const REGISTRY = A.registryPath || '.claude/teams/wiki-dev/audit-findings.json'
+const REGISTRY = A.registryPath || '.claude/teams/wiki-dev/audit-findings-residual.json'
 const BRIEF = A.teamBriefPath || '.claude/teams/wiki-dev/TEAM-BRIEF.md'
-const BASE = A.baseBranch || 'feat/parallel-extract-scheduled-upkeep'
-const BRANCH = A.branch || 'fix/audit-findings'
+const BASE = A.baseBranch || 'main'
+const BRANCH = A.branch || 'fix/audit-residual-2026-06-14'
 
 const AGENT_BY_LANE = {
   A: 'wiki-dev-eng-retrieval',
@@ -235,6 +243,7 @@ async function runVerify(label) {
         [
           `You are wiki-dev-qa-functional. Run the full wiki-dev merge gate on the current working tree (do NOT commit).`,
           `Read ${BRIEF}. Run: \`bash tests/run-tests.sh tier0\` then \`bash tests/run-tests.sh tier1\`, plus \`bash scripts/validate-docs.sh\`.`,
+          `CRITICAL — distinguish REGRESSIONS from PRE-EXISTING failures. A failure counts against allGreen ONLY if our changes caused it. Known pre-existing, environment-only failures that ALSO fail on a clean checkout of ${BASE} must NOT count: the macOS case-insensitive-filesystem /git-vs-/Git path mismatches (e.g. tests/scripts/maintenance-run.bats and tests/scripts/session-start.bats). To be sure, \`git stash\` the working tree, re-run the suspect test on clean ${BASE}, and if it still fails it is pre-existing — \`git stash pop\` and list it under notes, NOT failures. Set allGreen=true iff every regression and every defect in a newly-added test file is resolved.`,
           `Report allGreen, the gates you ran, and every failure with its file + gate + detail. Coverage must stay >=80% on changed code.`,
         ].join('\n'),
         { agentType: 'wiki-dev-qa-functional', schema: QA_SCHEMA, phase: 'Verify', label: `qa-functional:${label}` },
@@ -244,6 +253,7 @@ async function runVerify(label) {
         [
           `You are wiki-dev-qa-adversarial. Verify the security + concurrency fixes empirically and re-check the non-negotiables (no embeddings on the retrieval path = gate-13, raw immutability, fail-closed write confinement). Do NOT commit.`,
           `Read ${BRIEF}. Focus: (1) no untrusted value reaches a shell/awk/bun -e/printf-format sink; (2) snapshot/commit/log-append go through one advisory lock and every git execFileSync has a timeout; (3) path-traversal is realpath-confined. Run tier2 smoke if a \`claude\` CLI is present (\`bash tests/run-tests.sh tier2\`), else note it self-skipped.`,
+          `CRITICAL — count a failure against allGreen ONLY if our changes caused it. Pre-existing environment-only failures that also fail on a clean checkout of ${BASE} (e.g. the macOS /git-vs-/Git case-insensitive-filesystem mismatches in maintenance-run.bats / session-start.bats) go under notes, NOT failures. A defect in a newly-added test file IS our regression and DOES count.`,
           `Report allGreen, gates/checks run, and any residual exploit path as a failure with file + detail.`,
         ].join('\n'),
         { agentType: 'wiki-dev-qa-adversarial', schema: QA_SCHEMA, phase: 'Verify', label: `qa-adversarial:${label}` },
@@ -327,7 +337,7 @@ log(`Fix complete: ${totalFixed} fixed, ${totalDoc} documented, ${totalFail} fai
 phase('Verify')
 let qa = (await runVerify('r0')).filter(Boolean)
 let round = 0
-const MAX_ROUNDS = 2
+const MAX_ROUNDS = 5
 function allGreen(qaArr) {
   return qaArr.length > 0 && qaArr.every((q) => q && q.allGreen)
 }

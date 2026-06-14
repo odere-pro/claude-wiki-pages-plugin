@@ -43,21 +43,30 @@ const _queues = new Map<string, Array<() => void>>();
  * prevents the logical TOCTOU pattern where two synchronous call stacks
  * (within the same process, e.g. from two awaited calls) interleave via
  * async boundaries between their check and act steps.
+ *
+ * Re-entrancy (C02): if the same vault is already locked in the current
+ * synchronous call stack, this is a programming error (a caller invoking
+ * withVaultLockSync inside another withVaultLockSync for the same vault).
+ * Rather than silently returning a no-op release (which was the original
+ * latent bug — the outer lock would never be drained), we throw explicitly
+ * so the bug surfaces immediately during development. In the single-threaded
+ * sync Bun engine this can only happen via accidental nested calls; the
+ * throw converts a silent failure into a loud one.
  */
 export function acquireVaultLockSync(vault: string): () => void {
-  // For synchronous callers there is no concurrent execution in a single
-  // event-loop tick, so the lock is always immediately available when called
-  // synchronously. Record it for defensive correctness and future async use.
   const current = _locks.get(vault) ?? false;
   if (!current) {
     _locks.set(vault, true);
     return () => _releaseVaultLock(vault);
   }
-  // Already locked in this synchronous call stack — should not happen in
-  // single-threaded sync code, but be defensive rather than deadlock.
-  return () => {
-    /* no-op: did not acquire */
-  };
+  // Re-entrant acquisition in synchronous code is a caller bug.  Throw so
+  // the violation is visible immediately rather than silently returning a
+  // no-op that leaves the queue perpetually drained.
+  throw new Error(
+    `vault-lock: re-entrant acquisition for vault "${vault}". ` +
+      "Nested withVaultLockSync calls on the same vault are not supported. " +
+      "Restructure the caller to hold one lock across the whole critical section.",
+  );
 }
 
 function _releaseVaultLock(vault: string): void {
