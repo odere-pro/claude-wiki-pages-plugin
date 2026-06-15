@@ -108,10 +108,41 @@ function extractRawWikilinkTargets(content: string): string[] {
   // Match the full [[inner text]] (including any alias/anchor) up to the closing `]]`.
   const re = /\[\[([^[\]]+?)\]\]/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(content)) !== null) {
+  while ((m = re.exec(stripCode(content))) !== null) {
     if (m[1] !== undefined && m[1].trim() !== "") out.push(m[1]);
   }
   return out;
+}
+
+/**
+ * Drop fenced code blocks (``` / ~~~) and inline code spans (`…`) before
+ * scanning for `[[wikilinks]]`. Obsidian does not render a link inside code,
+ * so a `[[Target]]` written as a documentation example is not a dangling link.
+ *
+ * Twin of `strip_code` in scripts/verify-ingest.sh and scripts/graph-quality.sh
+ * (pinned by gate-05) — line-based so all three implementations agree.
+ */
+function stripCode(text: string): string {
+  const out: string[] = [];
+  let inFence = false;
+  let marker = "";
+  for (const line of text.split("\n")) {
+    const s = line.replace(/^\s+/, "");
+    if (!inFence && (s.startsWith("```") || s.startsWith("~~~"))) {
+      inFence = true;
+      marker = s.slice(0, 3);
+      continue;
+    }
+    if (inFence) {
+      if (s.startsWith(marker)) {
+        inFence = false;
+        marker = "";
+      }
+      continue;
+    }
+    out.push(line.replace(/`[^`]*`/g, ""));
+  }
+  return out.join("\n");
 }
 
 // ── Main check ────────────────────────────────────────────────────────────────

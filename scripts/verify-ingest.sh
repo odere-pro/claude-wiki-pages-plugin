@@ -39,64 +39,78 @@ _fm_title() {
 }
 
 # M11: single shared YAML list extractor for sources:, children:, and any
-# other inline-or-multi-line list field. Reads YAML text from stdin, extracts
-# the named field's list entries (one per output line, quotes/brackets stripped,
-# wikilink markers stripped).
-# Usage: _extract_yaml_list <field-name>  (reads frontmatter from stdin)
+# other list field. Reads YAML text from stdin, extracts the named field's
+# list entries (one per output line, quotes/brackets stripped). Handles all
+# three YAML list shapes the ingest pipeline emits, so the bash twin agrees
+# with the engine's `yaml`-library parse (pinned by gate-05):
+#   1. inline flow:        sources: ["[[A]]", "[[B]]"]
+#   2. multi-line flow:    sources:\n  [\n    "[[A]]",\n    "[[B]]",\n  ]
+#   3. block (dash) list:  sources:\n  - "[[A]]"\n  - "[[B]]"
+# A flow array is accumulated by bracket balance — wikilink "[[A]]" markers are
+# self-balancing (+2/-2 net 0), so only the array's own [ … ] opens/closes it,
+# which is why the earlier "first ] wins" logic mis-stopped on multi-line flow.
+# Usage: _extract_yaml_list <field> [keep]  — pass a non-empty 2nd arg to keep
+# the [[ ]] wikilink markers (the wikilink-format check needs them).
 _extract_yaml_list() {
   local field="$1"
-  awk -v field="$field" '
+  local keep="${2:-}"
+  awk -v field="$field" -v keep="$keep" '
+    function bracket_balance(s,   i, c, depth) {
+      depth = 0
+      for (i = 1; i <= length(s); i++) {
+        c = substr(s, i, 1)
+        if (c == "[") depth++
+        else if (c == "]") depth--
+      }
+      return depth
+    }
+    function emit(s) {
+      gsub(/^[[:space:]"\047]+|[[:space:]"\047]+$/, "", s)   # trim spaces + quotes
+      if (keep == "") { sub(/^\[\[/, "", s); sub(/\]\]$/, "", s) }
+      if (s != "") print s
+    }
+    function parse_flow(buf,   n, items, i) {
+      gsub(/\n/, " ", buf)          # collapse to a single logical line
+      sub(/^[^[]*\[/, "", buf)      # drop up to and including the opening [
+      sub(/\][^]]*$/, "", buf)      # drop the closing ] and any trailing text
+      n = split(buf, items, ",")
+      for (i = 1; i <= n; i++) emit(items[i])
+    }
     $0 ~ ("^" field ":") {
-      if ($0 ~ /\[/) {
-        line = $0
-        # Strip everything up to and including the opening [
-        sub(/.*\[/, "", line)
-        # Strip trailing ] and beyond
-        sub(/\].*/, "", line)
-        n = split(line, items, ",")
-        for (i = 1; i <= n; i++) {
-          gsub(/^[ "\x27]+|[ "\x27]+$/, "", items[i])
-          gsub(/^\[\[|\]\]$/, "", items[i])
-          if (items[i] != "") print items[i]
+      val = $0
+      sub(/^[^:]*:[[:space:]]*/, "", val)   # strip "field:" and leading space
+      if (val ~ /\[/) {                      # flow array opens on the field line
+        buf = val
+        while (bracket_balance(buf) > 0) { if ((getline nxt) <= 0) break; buf = buf "\n" nxt }
+        parse_flow(buf)
+        next
+      }
+      if (val == "") {                       # value is on the following line(s)
+        if ((getline nxt) <= 0) next
+        if (nxt ~ /^[[:space:]]*\[/) {        # multi-line flow array
+          buf = nxt
+          while (bracket_balance(buf) > 0) { if ((getline n2) <= 0) break; buf = buf "\n" n2 }
+          parse_flow(buf)
+          next
+        }
+        while (nxt ~ /^[[:space:]]*-/) {      # block (dash) list
+          line = nxt
+          sub(/^[[:space:]]*-[[:space:]]*/, "", line)
+          emit(line)
+          if ((getline nxt) <= 0) break
         }
         next
       }
-      # Multi-line array: read subsequent "  - " lines
-      while ((getline line) > 0) {
-        if (line !~ /^[[:space:]]*-/) break
-        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
-        gsub(/"?[[:space:]]*$/, "", line)
-        gsub(/^\[\[|\]\]$/, "", line)
-        if (line != "") print line
-      }
+      emit(val)                              # bare scalar value
     }
   '
 }
 
 # Variant: extract sources: entries WITHOUT stripping wikilink [[ ]] so the
-# wikilink-format check (CHECK 2) can test the brackets.
+# wikilink-format check (CHECK 2) can test the brackets. DRY: same parser,
+# keep-wikilinks mode.
 _extract_sources_raw() {
-  awk '
-    /^sources:/ {
-      if ($0 ~ /\[/) {
-        line = $0
-        sub(/^sources:[[:space:]]*\[/, "", line)
-        sub(/\][[:space:]]*$/, "", line)
-        n = split(line, items, ",")
-        for (i = 1; i <= n; i++) {
-          gsub(/^[[:space:]"'\'']+|[[:space:]"'\'']+$/, "", items[i])
-          if (items[i] != "") print items[i]
-        }
-        next
-      }
-      while ((getline line) > 0) {
-        if (line !~ /^[[:space:]]*-/) break
-        gsub(/^[[:space:]]*-[[:space:]]*"?/, "", line)
-        gsub(/"?[[:space:]]*$/, "", line)
-        if (line != "") print line
-      }
-    }
-  '
+  _extract_yaml_list "sources" keep
 }
 
 # Folder note (schema v3): filename stem equals its parent directory name AND
@@ -649,6 +663,29 @@ wiki = os.environ["VERIFY_WIKI"]
 BOOKKEEPING_STEMS = {"index", "log", "dashboard", "manifest", "_index", ".gitkeep"}
 LINK_RE = re.compile(r"\[\[([^\[\]]+?)\]\]")
 
+def strip_code(text):
+    # Drop fenced code blocks (``` / ~~~) and inline code spans (`…`) before
+    # scanning for [[wikilinks]] — Obsidian does not render links inside code,
+    # so a `[[Target]]` written as a documentation example is not a real link.
+    # Twin of strip_code in scripts/graph-quality.sh and stripCode in
+    # src/core/wikilink-check.ts (pinned by gate-05).
+    out = []
+    in_fence = False
+    marker = ""
+    for line in text.splitlines():
+        s = line.lstrip()
+        if not in_fence and (s.startswith("```") or s.startswith("~~~")):
+            in_fence = True
+            marker = s[:3]
+            continue
+        if in_fence:
+            if s.startswith(marker):
+                in_fence = False
+                marker = ""
+            continue
+        out.append(re.sub(r"`[^`]*`", "", line))
+    return "\n".join(out)
+
 def norm(s):
     return s.strip().lower()
 
@@ -765,7 +802,7 @@ for dirpath, _dirs, files in os.walk(wiki):
 
         rel = os.path.relpath(full, wiki)
         seen_norms = set()
-        for raw in LINK_RE.findall(text):
+        for raw in LINK_RE.findall(strip_code(text)):
             nt = normalise_target(raw)
             if not nt or nt in seen_norms:
                 continue

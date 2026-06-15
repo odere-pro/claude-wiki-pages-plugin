@@ -355,3 +355,44 @@ MD
   # The alias link must not appear in dangling output.
   refute_output_contains "dangling-wikilink: [[sample-entity]]"
 }
+
+@test "verify-ingest I3: multi-line flow sources array is parsed — no false no-sources" {
+  local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # Rewrite the inline sources to the multi-line flow array shape the ingest
+  # pipeline actually emits. The old grep/awk parser could not read this and
+  # falsely flagged the page as having no sources.
+  python3 - "$page" <<'PY'
+import sys
+p = sys.argv[1]
+t = open(p).read()
+t = t.replace('sources: ["[[Sample]]"]', 'sources:\n  [\n    "[[Sample]]",\n  ]')
+open(p, "w").write(t)
+PY
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  refute_output_contains 'no-sources: "Sample Entity"'
+}
+
+@test "verify-ingest FU1: wikilink inside an inline code span is not flagged dangling" {
+  local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  # A `[[Target]]` written as a documentation example inside backticks is not a
+  # real Obsidian link, so it must not be reported as dangling.
+  printf '\nDocumentation example: write `[[Ghost In Code]]` to link a page.\n' >>"$page"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  refute_output_contains "Ghost In Code"
+}
+
+@test "verify-ingest FU1: wikilink inside a fenced code block is not flagged dangling" {
+  local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
+  printf '\n```\n[[Ghost In Fence]]\n```\n' >>"$page"
+
+  run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
+
+  assert_success
+  refute_output_contains "Ghost In Fence"
+}

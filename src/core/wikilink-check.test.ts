@@ -229,4 +229,30 @@ describe("checkDanglingWikilinks", () => {
     }
     sb.cleanup();
   });
+
+  test("a [[link]] inside an inline code span is not flagged dangling", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Real Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/real-page.md":
+        "---\ntitle: Real Page\n---\nWrite `[[Ghost In Code]]` to link a page.\n",
+    });
+    const findings = checkDanglingWikilinks(join(sb.vault, "wiki"));
+    expect(findings.some((f) => f.message.includes("Ghost In Code"))).toBe(false);
+    sb.cleanup();
+  });
+
+  test("a [[link]] inside a fenced code block is not flagged dangling", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Real Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/real-page.md":
+        "---\ntitle: Real Page\n---\nExample:\n```\n[[Ghost In Fence]]\n```\n",
+    });
+    const findings = checkDanglingWikilinks(join(sb.vault, "wiki"));
+    expect(findings.some((f) => f.message.includes("Ghost In Fence"))).toBe(false);
+    sb.cleanup();
+  });
 });
