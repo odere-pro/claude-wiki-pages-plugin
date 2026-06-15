@@ -29,6 +29,28 @@ Agents chain skills and tools across a multi-step flow. `claude-wiki-pages-orche
 
 Slash commands and hooks turn the architecture into a contract. `commands/wiki.md` is the user-facing top-level verb (`/claude-wiki-pages:wiki`); it delegates to the orchestrator agent. `commands/doctor.md` wraps `scripts/doctor.sh` for environment health (`/claude-wiki-pages:doctor`). `commands/fill-gaps.md` invokes the `fill-gaps` skill to complete the vault into a gap-free, topic-clustered wiki (`/claude-wiki-pages:fill-gaps`). `PreToolUse` hooks block frontmatter violations, non-wikilink cross-references, and edits to `raw/`. `PostToolUse` hooks remind the LLM to update the folder note and `index.md` after writes. `SubagentStop` hooks run `verify-ingest.sh` after the ingest pipeline and surface unresolved lint errors. Rules in `rules/` give the LLM path-scoped guidance ("files under `raw/` are immutable", "the wiki uses `[[wikilinks]]`, not markdown links").
 
+`scripts/scope-guard.sh` is a `PreToolUse` advisory hook on `Read|Grep|Glob` calls. It emits a stderr notice when an agent reads outside its declared context contract (the `## Context contract` table in a skill's `SKILL.md`). It never blocks — enforcement is the firewall's job — but it makes out-of-contract reads visible for interpretability.
+
+## Obsidian graph: topic islands
+
+The vault's wiki pages form a topic-island graph in Obsidian's graph view. Each top-level topic folder (`engine/`, `plugin/`, `wiki-pages/`, `llm/`, `obsidian/`, `knowledge-graph/`, `how-it-works/`) is one island; wikilinks between visible topic pages must stay within the same top-level folder. Cross-topic references are written as plain prose, not wikilinks. This is the **topic-local linking** rule (ADR-0033).
+
+The connective scaffolding — `wiki/_sources/`, `wiki/_synthesis/`, `wiki/index.md`, and `wiki/log.md` — is excluded from `.obsidian/graph.json`'s search filter so the islands render cleanly. Provenance (`sources:` citations) is fully preserved in the data; the exclusion is a view choice, not a data deletion. The filter is regenerable: the `obsidian-graph-colors` skill rebuilds it deterministically from the vault's topic tree.
+
+The graph's **root entry point** is `wiki/plugin/claude-wiki-pages-plugin.md`. That entity page links the seven topic folder notes so the graph reads as a central root with seven island lobes rather than an unconnected scatter.
+
+`scripts/graph-quality.sh` measures graph health. `scripts/disentangle-links.sh` is the remediation pass: it demotes cross-topic body wikilinks to plain text and prunes cross-topic entries from association frontmatter fields (`related`, `depends_on`, `key_pages`, etc.) without ever touching `parent`/`sources`/`children` or creating dangling links.
+
+## Deterministic engine verbs
+
+The Bun CLI (`src/cli/cli.ts`, invoked via `scripts/engine.sh`) exposes deterministic verbs that scripts and agents call without spawning an LLM. In addition to the core verbs listed in `src/commands/CLAUDE.md`, two verbs were added with ADR-0033 and the ICM/OKF work:
+
+| Verb | Purpose |
+| --- | --- |
+| `engine context --skill <name>` | Resolves the L0–L4 layered context set (vault schema, MOC hierarchy, topic pages, source summaries, raw sources) for a named maintenance skill, narrowed by its `## Context contract` table. Reports file lists and a token estimate. Read-only. |
+| `engine okf export` | Renders `wiki/` as a portable Google Open Knowledge Format (OKF) bundle under `vault/output/okf/`: frontmatter stripped, wikilinks rewritten as relative markdown links, plus a flat machine `index.md` catalog. |
+| `engine okf import <bundle>` | Snapshots an external OKF bundle into `vault/raw/okf/<name>/` for normal ingest. Dry-run by default; `--write` applies the copy. Never overwrites existing raw files. |
+
 ## Why four layers
 
 Each layer fails differently:
@@ -69,3 +91,7 @@ claude-wiki-pages/
 11. `SubagentStop` hook runs `verify-ingest.sh` — the human sees any drift immediately.
 
 Four layers, each visible in the flow.
+
+## Research foundations and prior art
+
+For the academic and prior-art grounding behind specific design decisions — Karpathy's LLM Wiki pattern, the NO-RAG stance (ADR-0007), ICM context layering, OKF interop, provenance lineage, the Porter stemmer, and other references — see [`docs/research-foundations.md`](./research-foundations.md).
