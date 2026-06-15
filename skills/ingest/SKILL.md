@@ -51,7 +51,7 @@ Writes are confined to these paths:
 
 | Path                          | Write intent                                                             |
 | ----------------------------- | ------------------------------------------------------------------------ |
-| `vault/wiki/_sources/<slug>.md` | One new summary per never-before-seen source.                            |
+| `vault/wiki/_sources/<slug>.md` | One new summary per never-before-seen source. Body is Metadata, Summary, Key Claims (prose) — NO outbound `[[wikilink]]` sections; provenance is page → source via each page's `sources:`. |
 | `vault/wiki/<topic>/*.md`     | New or updated typed pages (`entity` or `concept`).                      |
 | `vault/wiki/<topic>/<topic>.md` (folder note; legacy `_index.md` if present) | Backfill `children:` and `child_indexes:` (quoted `"[[wikilink]]"` entries) for every folder this skill touches. |
 | `vault/wiki/index.md`         | Append new top-level pages to the vault MOC.                             |
@@ -143,12 +143,16 @@ Concretely, when emitting any link:
 
 1. **Target the destination's file basename, with the Title-Case page title as
    piped display:** `[[entity-name|Entity Name]]`. Never emit a bare
-   `[[Entity Name]]`.
-2. **Path-qualify when the basename is not unique across the WHOLE vault**
-   (including `raw/` originals). A `wiki/_sources/adr-0001-x.md` summary and its
-   `raw/docs/adr/ADR-0001-x.md` original share a basename, so a bare-basename
-   link silently routes to the wrong file. Use the wiki-relative path (no
-   extension): `[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]`.
+   `[[Entity Name]]`. Default to this bare-basename form.
+2. **Path-qualify ONLY on a genuine vault-wide collision — the basename occurs
+   in 2+ files anywhere in the vault** (including `raw/` originals). A
+   `wiki/_sources/adr-0001-x.md` summary and its `raw/docs/adr/ADR-0001-x.md`
+   original share a basename, so a bare-basename link silently routes to the
+   wrong file. Then use the target's **actual** wiki-relative path (no
+   extension), verified to exist:
+   `[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]`.
+   Never guess the folder — over-qualifying a unique basename with a wrong
+   folder produces a dangling link.
 3. `parent` targets the containing folder note's basename:
    `parent: "[[<folder>|<Folder Title>]]"`.
 4. `sources` entries target each source summary's basename (path-qualify if it
@@ -175,7 +179,11 @@ version:
 2. Identify unprocessed sources (compare `vault/raw/` against
    `vault/wiki/log.md`).
 3. For each source:
-   a. Write the summary to `wiki/_sources/`.
+   a. Write the summary to `wiki/_sources/` — Metadata, Summary, Key Claims
+      (prose), with NO outbound `[[wikilink]]` sections. Provenance is
+      one-directional, page → source: the source is reached through the
+      `sources:` citation on each page it informs (steps e below), so it
+      clusters with its topic instead of bridging every topic it touches.
    b. Extract entities and concepts. For each extracted item, apply the
       **Classification checklist** above before writing the page.
    c. For each extracted item, run the **two-pass existence check** (see

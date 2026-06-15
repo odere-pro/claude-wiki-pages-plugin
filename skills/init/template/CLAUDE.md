@@ -129,6 +129,8 @@ confidence: 1.0
 
 `source_format` defaults to `text`. Audio / video formats are deferred — extend the enum when those paths are implemented. `pdf` is supported (I4): when `source_format` is `pdf` or `image`, both `attachment_path` and `extracted_at` are required, and `attachment_path` must point to a real file under `vault/raw/assets/`.
 
+A source summary carries **no outbound `[[wikilinks]]`** — its body is Metadata, Summary, and Key Claims (prose). Provenance is one-directional: **page → source**. Every wiki page a source informs lists it in that page's `sources:` frontmatter, so the source is reached by the pages that cite it. Out-linking from a source (e.g. `## Entities Mentioned` / `## Concepts Mentioned` lists) would fan across every topic the source touches and collapse the graph's topic islands into a hairball, so it is not done. To note coverage, use a single plain-text line (no `[[ ]]`), e.g. `Covers: Specialist Pattern, Orchestrator`.
+
 ### Entity notes (type: `entity`, placed in topic folders)
 
 Entities are concrete things: people, organizations, products, tools, services, standards, places.
@@ -402,7 +404,7 @@ All closed value sets for the schema, single-sourced here. I1's classifier and R
 
 When processing a new source from `raw/`:
 
-1. Create a source summary in `wiki/_sources/` with correct frontmatter.
+1. Create a source summary in `wiki/_sources/` with correct frontmatter and a prose body (Metadata, Summary, Key Claims). The summary carries **no outbound `[[wikilinks]]`** — provenance is page → source, so the source is reached through the `sources:` citation on each page it informs (steps 7–8), not by out-linking from the source.
 2. Extract entities and concepts from the source.
 3. Determine which topic folder each entity/concept belongs to. Create the folder and its folder note (`wiki/<topic>/<topic>.md`) if it does not exist.
 4. Search the wiki for existing pages on each entity/concept.
@@ -470,7 +472,7 @@ These rules keep pages scannable in Obsidian and in plain-markdown viewers. They
 
 - Use `[[wikilinks]]` for all internal links. Never use raw file paths in prose.
 - **Every cross-page link MUST target the destination's file basename** (the kebab-case filename stem, no extension), with the Title-Case page title as piped display text: `[[entity-name|Entity Name]]`. The bare `[[Entity Name]]` form is wrong — it relies on alias resolution Obsidian does not perform.
-- **Path-qualify when the basename is not unique across the WHOLE vault** (including `raw/` originals). A `wiki/_sources/adr-0001-x.md` summary and its `raw/docs/adr/ADR-0001-x.md` original share a basename, so a bare-basename link silently routes to the wrong file. Target the wiki-relative path (no extension) instead: `[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]`.
+- **Default to the bare basename. Path-qualify ONLY on a genuine vault-wide collision — the basename occurs in 2+ files anywhere in the vault** (including `raw/` originals). A `wiki/_sources/adr-0001-x.md` summary and its `raw/docs/adr/ADR-0001-x.md` original share a basename, so a bare-basename link silently routes to the wrong file. Then target the page's **actual** wiki-relative path (no extension), verified to exist: `[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]`. Never guess the folder — over-qualifying a unique basename with the wrong folder creates a dangling link.
 - This applies to **both** body text and frontmatter link fields (`parent`, `sources`, `related`, `children`, `child_indexes`, `key_pages`, `members`, `scope`, `depends_on`, etc.). Every link field uses the piped basename (or path-qualified) form.
 - Link to the most specific page.
 - Every wiki page must link back to at least one source.

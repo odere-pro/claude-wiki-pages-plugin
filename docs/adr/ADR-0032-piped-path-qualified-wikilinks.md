@@ -56,6 +56,13 @@ Three idempotent, dry-run-by-default Bun scripts migrate the existing corpus and
 
 All operate on `wiki/` (and `_sources/`), never `raw/`, and resolve through the same `link-resolver.ts` so the migration and the gate agree on what "resolves" means.
 
+## Refinements (from re-ingest probe)
+
+A bounded re-ingest test on the migrated corpus surfaced two authoring gaps that re-introduce graph noise. Both are now closed in the authoring surface (schema, ingest skill, ingest agent):
+
+- **Source summaries carry no outbound wikilinks — provenance is page → source.** The `## Entities Mentioned` / `## Concepts Mentioned` / `## Grounded Pages` out-link sections on source summaries were a workaround for the alias-resolution bug: under bare-alias citations a source had no inbound links, so it was made to link out. Now that citations are piped basename links that DO resolve, every source is reached by the pages that cite it (their `sources:` frontmatter, page→source). The source out-links are redundant and harmful — they fan across every topic a source touches and collapse the topic islands into a hairball. A source summary's body is now Metadata, Summary, Key Claims (prose) only; coverage may be recorded as a single plain-text `Covers:` line (no `[[ ]]`). The ingest steps still guarantee each source earns ≥1 inbound citation so it is never an orphan.
+- **Path-qualify only on a genuine vault-wide basename collision, with the verified path.** The probe over-qualified unique basenames and guessed a wrong folder (`[[how-it-works/ingest-pipeline]]` for a page living in `wiki-pages/`), producing a dangling link. The convention is tightened: default to the bare `[[basename|Display]]`; path-qualify to `[[topic/basename|Display]]` ONLY when that basename occurs in 2+ files anywhere in the vault. When qualifying, never guess the folder — use the target's actual wiki-relative path and verify the page exists there.
+
 ## Alternatives considered
 
 - **Keep authoring bare `[[Title Case]]` and force the title into `aliases`.** Rejected — it is exactly the broken assumption that produced 103 orphans. Obsidian does not resolve a written link by alias, so no amount of alias bookkeeping makes a bare title link form a graph edge.
