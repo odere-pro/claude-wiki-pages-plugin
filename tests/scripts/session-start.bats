@@ -136,6 +136,45 @@ teardown() {
   assert_output_contains "/claude-wiki-pages:wiki"
 }
 
+@test "session-start: NEXT reports no pending when all raw sources predate the last sync" {
+  local vault_dir="$BATS_TEST_TMPDIR/next-synced"
+  mkdir -p "$vault_dir/raw" "$vault_dir/wiki"
+  printf 'already ingested\n' >"$vault_dir/raw/old.md"
+  printf '%s\n' '---' 'title: log' '---' >"$vault_dir/wiki/log.md"
+  # Deterministic mtimes (no sleep): raw source older than the log = synced.
+  touch -t 202601010000 "$vault_dir/raw/old.md"
+  touch -t 202606150000 "$vault_dir/wiki/log.md"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  # An already-ingested source must NOT be counted as pending.
+  refute_output_contains "pending source"
+}
+
+@test "session-start: NEXT reports pending when a raw source is newer than the last sync" {
+  local vault_dir="$BATS_TEST_TMPDIR/next-newraw"
+  mkdir -p "$vault_dir/raw" "$vault_dir/wiki"
+  printf '%s\n' '---' 'title: log' '---' >"$vault_dir/wiki/log.md"
+  printf 'newly dropped\n' >"$vault_dir/raw/new.md"
+  # Deterministic mtimes (no sleep): raw source newer than the log = pending.
+  touch -t 202601010000 "$vault_dir/wiki/log.md"
+  touch -t 202606150000 "$vault_dir/raw/new.md"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  assert_output_contains "pending source"
+}
+
 @test "session-start: NEXT line does not depend on settings.json being present" {
   local vault_dir="$BATS_TEST_TMPDIR/next-nosettings-vault"
   local absent_settings="$BATS_TEST_TMPDIR/no-such-dir/settings.json"

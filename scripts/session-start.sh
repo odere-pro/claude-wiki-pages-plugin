@@ -36,10 +36,21 @@ else
   if [ -f "${VAULT}/wiki/index.md" ]; then
     echo "INDEX: Vault table of contents is at ${VAULT}/wiki/index.md — read it to orient before any query or ingest."
   fi
-  # U3: Config-independent NEXT line — derived from raw/ count; no settings.json needed.
+  # U3: Config-independent NEXT line. "Pending" = raw sources ADDED or CHANGED
+  # since the last logged operation. wiki/log.md is appended on every ingest /
+  # lint / snapshot, so its mtime marks the last sync; a raw file newer than it
+  # is genuinely unprocessed. Counting *all* raw files (the previous behavior)
+  # overstated this wildly — every already-ingested source looked "pending"
+  # (e.g. 90 raw sources, all ingested, reported as 90 pending).
   _raw_pending=0
   if [ -d "${VAULT}/raw" ]; then
-    _raw_pending=$(find "${VAULT}/raw" -type f -not -path '*/assets/*' -not -name '.*' 2>/dev/null | wc -l | tr -d ' ')
+    _log="${VAULT}/wiki/log.md"
+    if [ -f "${_log}" ]; then
+      _raw_pending=$(find "${VAULT}/raw" -type f -not -path '*/assets/*' -not -name '.*' -newer "${_log}" 2>/dev/null | wc -l | tr -d ' ')
+    else
+      # No log yet (fresh vault) — every raw source is genuinely pending.
+      _raw_pending=$(find "${VAULT}/raw" -type f -not -path '*/assets/*' -not -name '.*' 2>/dev/null | wc -l | tr -d ' ')
+    fi
   fi
   if [ "${_raw_pending}" -gt 0 ]; then
     echo "NEXT: run /claude-wiki-pages:wiki to process ${_raw_pending} pending source(s) in raw/."
