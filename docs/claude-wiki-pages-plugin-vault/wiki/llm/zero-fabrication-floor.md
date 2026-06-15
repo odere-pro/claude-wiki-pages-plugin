@@ -4,8 +4,8 @@ type: concept
 aliases: ["Zero-Fabrication Floor", "zero-fabrication floor", "fabrication floor", "zero fabrication", "anti-fabrication"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[Local Models]]"]
-related: ["[[Local Model Quality Gate]]", "[[Golden Set]]", "[[Approved Local Model]]", "[[Capability Tier]]", "[[Verbatim Partition]]"]
+sources: ["[[_sources/adr-0011-local-model-quality-gate|ADR-0011: Local-Model Quality Gate]]", "[[adr-0017-fabrication-floor|ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[_sources/local-models|Local Models]]"]
+related: ["[[local-model-quality-gate|Local Model Quality Gate]]", "[[golden-set|Golden Set]]", "[[approved-local-model|Approved Local Model]]", "[[capability-tier|Capability Tier]]", "[[verbatim-partition|Verbatim Partition]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -20,7 +20,7 @@ confidence: 1.0
 # Zero-Fabrication Floor
 
 > [!summary]
-> The zero-fabrication floor is a hard, non-calibratable requirement of the [[Local Model Quality Gate]]: a single invented sourced claim disqualifies a model from any capability tier, regardless of all other scores. Fabrication is defined precisely by ADR-0017's verbatim partition — a `source_quotes` entry whose quote is NOT a verbatim substring of the raw input. Over-citation (quoting something real but not in the gold set) is explicitly not fabrication.
+> The zero-fabrication floor is a hard, non-calibratable requirement of the [[local-model-quality-gate|Local Model Quality Gate]]: a single invented sourced claim disqualifies a model from any capability tier, regardless of all other scores. Fabrication is defined precisely by ADR-0017's verbatim partition — a `source_quotes` entry whose quote is NOT a verbatim substring of the raw input. Over-citation (quoting something real but not in the gold set) is explicitly not fabrication.
 
 ## Key Principles
 
@@ -70,7 +70,7 @@ The verbatim test is exact string containment after whitespace normalization —
 
 ## The Provenance Trap
 
-The [[Golden Set]] includes a deliberate provenance trap: a fixture whose correct answer requires acknowledging that a certain claim cannot be sourced from the input. A fabricating model, faced with missing evidence, invents a claim rather than abstaining. The trap is the most direct test of the zero-fabrication floor because it forces the floor to fire (or not) on a specific case, rather than relying on it never being triggered.
+The [[golden-set|Golden Set]] includes a deliberate provenance trap: a fixture whose correct answer requires acknowledging that a certain claim cannot be sourced from the input. A fabricating model, faced with missing evidence, invents a claim rather than abstaining. The trap is the most direct test of the zero-fabrication floor because it forces the floor to fire (or not) on a specific case, rather than relying on it never being triggered.
 
 `gpt-oss:20b` is the only model in the test cohort to have tripped the provenance trap. All other rejected models failed on structural metrics (dedup, schema-validity), not on fabrication.
 
@@ -80,8 +80,8 @@ The evaluation driver checks the zero-fabrication floor after computing the four
 
 ## Related Concepts
 
-- [[Local Model Quality Gate]] — the overall evaluation methodology that enforces the floor
-- [[Golden Set]] — the fixtures corpus, including the provenance trap
-- [[Approved Local Model]] — the allow-list that records models that have passed the floor
-- [[Capability Tier]] — the tier for which the floor is evaluated
-- [[Verbatim Partition]] — the ADR-0017 refinement that distinguishes fabrication from over-citation
+- [[local-model-quality-gate|Local Model Quality Gate]] — the overall evaluation methodology that enforces the floor
+- [[golden-set|Golden Set]] — the fixtures corpus, including the provenance trap
+- [[approved-local-model|Approved Local Model]] — the allow-list that records models that have passed the floor
+- [[capability-tier|Capability Tier]] — the tier for which the floor is evaluated
+- [[verbatim-partition|Verbatim Partition]] — the ADR-0017 refinement that distinguishes fabrication from over-citation

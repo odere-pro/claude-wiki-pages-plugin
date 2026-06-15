@@ -3,10 +3,10 @@ title: "Deterministic Engine"
 type: entity
 entity_type: tool
 aliases: ["Deterministic Engine", "deterministic engine", "Bun CLI"]
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0015: Engine Self-Description Surfaces]]", "[[ADR-0005: Git Required Per-Vault Init]]", "[[cli.ts Source]]", "[[engine.sh Source]]", "[[Engine API Skill (SKILL.md)]]", "[[verify.ts Source]]", "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
-related: ["[[Four-Layer Stack]]", "[[Wiki-Native Recall]]", "[[Graph Traversal Primitive]]", "[[Firewall]]", "[[Auto-Heal]]", "[[Lint Rules]]", "[[Local Model Quality Gate]]", "[[Engine Verb Surface]]", "[[Engine CLI Router]]", "[[Scripts Layer]]", "[[engine.sh]]", "[[cli.ts]]", "[[Dangling Wikilink]]", "[[Shell-TS Parity]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]", "[[adr-0015-engine-self-description|ADR-0015: Engine Self-Description Surfaces]]", "[[adr-0005-git-required|ADR-0005: Git Required Per-Vault Init]]", "[[cli-ts-source|cli.ts Source]]", "[[engine-sh-source|engine.sh Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]", "[[verify-ts-source|verify.ts Source]]", "[[_sources/adr-0028-dangling-wikilink-verify-check|ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
+related: ["[[four-layer-stack|Four-Layer Stack]]", "[[wiki-native-recall|Wiki-Native Recall]]", "[[graph-traversal-primitive|Graph Traversal Primitive]]", "[[Firewall]]", "[[Auto-Heal]]", "[[lint-rules|Lint Rules]]", "[[local-model-quality-gate|Local Model Quality Gate]]", "[[engine-verb-surface|Engine Verb Surface]]", "[[engine-cli-router|Engine CLI Router]]", "[[scripts-layer|Scripts Layer]]", "[[engine-sh|engine.sh]]", "[[cli-ts|cli.ts]]", "[[dangling-wikilink|Dangling Wikilink]]", "[[shell-ts-parity|Shell-TS Parity]]"]
 tags: ["tool", "engine"]
 created: 2026-06-13
 updated: 2026-06-15
@@ -88,7 +88,7 @@ If the table is malformed or missing, the verb emits an error finding and exits 
 
 ## Git Integration
 
-The engine's `snapshot` verb creates git checkpoint commits that the [[Curator Agent]] and [[Ingest Agent]] use to bracket their write phases:
+The engine's `snapshot` verb creates git checkpoint commits that the [[curator-agent|Curator Agent]] and [[ingest-agent|Ingest Agent]] use to bracket their write phases:
 
 ```bash
 bash scripts/engine.sh snapshot pre --target <vault>
@@ -104,13 +104,13 @@ When Bun is unavailable (`which bun` returns nothing), `engine.sh` emits a warni
 
 ## graph.ts — the Shared Walk Function
 
-The engine's retrieval operations share one graph-traversal primitive in `src/core/graph.ts:walk()`. This function follows typed wikilinks (`sources`, `related`, `depends_on`) from a seed page to a N-hop neighbourhood (N≤2), with hop-decayed scoring. All consumers of graph traversal call this one function — there is no second traversal implementation. See [[Graph Traversal Primitive]] for the full contract.
+The engine's retrieval operations share one graph-traversal primitive in `src/core/graph.ts:walk()`. This function follows typed wikilinks (`sources`, `related`, `depends_on`) from a seed page to a N-hop neighbourhood (N≤2), with hop-decayed scoring. All consumers of graph traversal call this one function — there is no second traversal implementation. See [[graph-traversal-primitive|Graph Traversal Primitive]] for the full contract.
 
 ## Related
 
-- [[Four-Layer Stack]] — the engine is Layer 4's primary deterministic tool
-- [[Wiki-Native Recall]] — the deterministic retrieval methodology the engine implements
-- [[Graph Traversal Primitive]] — `src/core/graph.ts:walk()` used by search and the analyst
-- [[Git Checkpoint]] — the `snapshot` verb creates these
+- [[four-layer-stack|Four-Layer Stack]] — the engine is Layer 4's primary deterministic tool
+- [[wiki-native-recall|Wiki-Native Recall]] — the deterministic retrieval methodology the engine implements
+- [[graph-traversal-primitive|Graph Traversal Primitive]] — `src/core/graph.ts:walk()` used by search and the analyst
+- [[git-checkpoint|Git Checkpoint]] — the `snapshot` verb creates these
 - [[Firewall]] — the `firewall` engine verb evaluates path confinement
-- [[Local Model Quality Gate]] — the allow-list enforced fail-closed by `config validate`
+- [[local-model-quality-gate|Local Model Quality Gate]] — the allow-list enforced fail-closed by `config validate`

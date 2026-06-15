@@ -2,10 +2,10 @@
 title: "Porter Stemmer"
 type: concept
 aliases: ["Porter Stemmer", "Porter 1980 stemmer", "stem()", "stemTokens()", "stemmer"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[stem.ts Source]]", "[[search.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[Tier-2 Deterministic Recall]]", "[[Search Scoring Algorithm]]", "[[Synonym Lexicon]]", "[[Wiki-Native Recall]]"]
+sources: ["[[stem-ts-source|stem.ts Source]]", "[[search-ts-source|search.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
+related: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[synonym-lexicon|Synonym Lexicon]]", "[[wiki-native-recall|Wiki-Native Recall]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -23,7 +23,7 @@ confidence: 1.0
 
 The Porter Stemmer is a pure, deterministic, zero-dependency TypeScript implementation of the Porter 1980 suffix-stripping algorithm, located in `src/core/stem.ts`. It reduces inflected English words to a common stem form, enabling the stem channel of the search scoring algorithm to match morphological variants (e.g. "healing" and "heal" share the stem "heal").
 
-The stemmer is part of the [[Tier-2 Deterministic Recall]] layer. It is one of two expansion mechanisms layered on top of exact-keyword matching; the other is the [[Synonym Lexicon]]. Both are zero-network and zero-ML: the stemmer uses a pure algorithm, the lexicon uses a curated file. No embeddings, no model calls.
+The stemmer is part of the [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] layer. It is one of two expansion mechanisms layered on top of exact-keyword matching; the other is the [[synonym-lexicon|Synonym Lexicon]]. Both are zero-network and zero-ML: the stemmer uses a pure algorithm, the lexicon uses a curated file. No embeddings, no model calls.
 
 ## Key Principles
 
@@ -69,7 +69,7 @@ In the scoring loop (`search.ts`), the stem channel:
 
 ## Related Concepts
 
-- [[Tier-2 Deterministic Recall]] — the search layer that uses stemTokens() for the stem channel
-- [[Search Scoring Algorithm]] — the broader scoring framework the stem channel feeds into
-- [[Synonym Lexicon]] — the complementary expansion mechanism (curated synonyms vs algorithmic stems)
-- [[Wiki-Native Recall]] — the no-RAG retrieval design that the Porter Stemmer serves
+- [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] — the search layer that uses stemTokens() for the stem channel
+- [[search-scoring-algorithm|Search Scoring Algorithm]] — the broader scoring framework the stem channel feeds into
+- [[synonym-lexicon|Synonym Lexicon]] — the complementary expansion mechanism (curated synonyms vs algorithmic stems)
+- [[wiki-native-recall|Wiki-Native Recall]] — the no-RAG retrieval design that the Porter Stemmer serves

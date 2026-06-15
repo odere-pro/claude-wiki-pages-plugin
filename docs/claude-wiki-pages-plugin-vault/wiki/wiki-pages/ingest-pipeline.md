@@ -2,10 +2,10 @@
 title: "Ingest Pipeline"
 type: concept
 aliases: ["Ingest Pipeline", "ingest pipeline", "ingest workflow", "13-step ingest"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Architecture Documentation]]", "[[User Guide 02: Create a New Vault]]", "[[User Guide 03: Update Existing Vault]]", "[[ADR-0001: Four-Layer Orchestrator]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Ingest Agent]]", "[[Entity Distribution Model]]", "[[Git Checkpoint]]", "[[Folder Note]]", "[[Auto-Heal]]", "[[Schema Authority]]", "[[Maintain Contract]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[llm-wiki-02-create-new-vault|User Guide 02: Create a New Vault]]", "[[llm-wiki-03-update-existing|User Guide 03: Update Existing Vault]]", "[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]", "[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[ingest-agent|Ingest Agent]]", "[[entity-distribution-model|Entity Distribution Model]]", "[[git-checkpoint|Git Checkpoint]]", "[[folder-note|Folder Note]]", "[[Auto-Heal]]", "[[schema-authority|Schema Authority]]", "[[maintain-contract|Maintain Contract]]"]
 tags: ["concept", "ingest", "workflow"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -17,11 +17,11 @@ confidence: 1.0
 # Ingest Pipeline
 
 > [!summary]
-> The ingest pipeline is the 13-step process that transforms raw source files from `vault/raw/` into structured, provenance-tracked wiki pages in `vault/wiki/`. It is governed by the ingest rules in `vault/CLAUDE.md`. The core principle is the [[Entity Distribution Model]]: one source rewrites many existing pages rather than creating one summary. Every touched page receives an updated `sources`, incremented `update_count`, refreshed `updated` date, and recalibrated `confidence`. The pipeline is git-checkpointed at both ends and verified by the `subagent-ingest-gate.sh` hook on completion.
+> The ingest pipeline is the 13-step process that transforms raw source files from `vault/raw/` into structured, provenance-tracked wiki pages in `vault/wiki/`. It is governed by the ingest rules in `vault/CLAUDE.md`. The core principle is the [[entity-distribution-model|Entity Distribution Model]]: one source rewrites many existing pages rather than creating one summary. Every touched page receives an updated `sources`, incremented `update_count`, refreshed `updated` date, and recalibrated `confidence`. The pipeline is git-checkpointed at both ends and verified by the `subagent-ingest-gate.sh` hook on completion.
 
 ## Definition
 
-The ingest pipeline is the 13-step process that transforms raw source files from `vault/raw/` into structured, provenance-tracked wiki pages in `vault/wiki/`. It is governed by the ingest rules in `vault/CLAUDE.md`. The core principle is the [[Entity Distribution Model]]: one source rewrites many existing pages rather than creating one summary.
+The ingest pipeline is the 13-step process that transforms raw source files from `vault/raw/` into structured, provenance-tracked wiki pages in `vault/wiki/`. It is governed by the ingest rules in `vault/CLAUDE.md`. The core principle is the [[entity-distribution-model|Entity Distribution Model]]: one source rewrites many existing pages rather than creating one summary.
 
 ## Key Principles
 
@@ -71,14 +71,14 @@ Source pages do not belong to a topic folder — they live under `wiki/_sources/
 
 Read the source and identify all entities (concrete things: people, organizations, products, tools, services, standards, places) and concepts (abstract ideas: frameworks, theories, patterns, principles). This is the LLM's primary classification step.
 
-I1 classification uses the `entity_type` enum and `type` enum from [[Ontology Profile v1]]. Entities get `type: entity` with an appropriate `entity_type`. Concepts get `type: concept`.
+I1 classification uses the `entity_type` enum and `type` enum from [[ontology-profile-v1|Ontology Profile v1]]. Entities get `type: entity` with an appropriate `entity_type`. Concepts get `type: concept`.
 
 ### Step 3 — Assign to Topic Folders
 
 For each extracted item, determine which topic folder it belongs to. If the topic folder does not exist:
 
 - Create `wiki/<topic>/` directory.
-- Create `wiki/<topic>/<topic>.md` — the [[Folder Note]] — with `type: index`, correct `aliases`, `parent`, `path`, `children: []`, `child_indexes: []`.
+- Create `wiki/<topic>/<topic>.md` — the [[folder-note|Folder Note]] — with `type: index`, correct `aliases`, `parent`, `path`, `children: []`, `child_indexes: []`.
 
 If the topic folder already exists, proceed without creating a new folder note.
 
@@ -94,7 +94,7 @@ A match means the page already tracks this entity/concept. A miss means it is ge
 
 ### Step 5 — Update Existing Pages (Entity Distribution Model)
 
-**For existing pages:** update rather than create. The [[Entity Distribution Model]] is the DRY rule: one source rewrites many existing pages. Merge the new information into the existing page — add new facts, update sections, expand examples — while preserving the page's structure and all previously established facts.
+**For existing pages:** update rather than create. The [[entity-distribution-model|Entity Distribution Model]] is the DRY rule: one source rewrites many existing pages. Merge the new information into the existing page — add new facts, update sections, expand examples — while preserving the page's structure and all previously established facts.
 
 Do not create a duplicate page for an entity or concept that already has a page. The ingest pipeline has one canonical place for each entity: the existing page.
 
@@ -104,7 +104,7 @@ Do not create a duplicate page for an entity or concept that already has a page.
 
 Set:
 
-- `parent:` — a wikilink to the topic folder note (e.g. `"[[Wiki Engine]]"`).
+- `parent:` — a wikilink to the topic folder note (e.g. `"[[engine|Wiki Engine]]"`).
 - `path: "<topic>"` — relative path from `wiki/`.
 - `created:` today's date.
 
@@ -134,7 +134,7 @@ See the confidence calibration rules in `vault/CLAUDE.md` (§ Readability): 1.0 
 
 For every topic folder that received a new page (step 6): add the new page to the folder note's `children` list as a quoted wikilink entry. For every new sub-folder created: add its folder note to the parent folder note's `child_indexes` list as a quoted wikilink entry.
 
-All values must be quoted wikilink syntax. The [[Polish Agent]] reconciles any drift after the pipeline completes.
+All values must be quoted wikilink syntax. The [[polish-agent|Polish Agent]] reconciles any drift after the pipeline completes.
 
 ### Step 12 — Update `wiki/index.md`
 
@@ -146,7 +146,7 @@ Add entries for any new pages to `wiki/index.md` (the vault MOC). If a new topic
 ## [YYYY-MM-DD] ingest | Source Title
 ```
 
-This log entry is what the [[Orchestrator Agent]] checks to determine whether a raw source has been processed. The log entry's presence is the idempotency key — re-running ingest on an already-processed source is detected by comparing `raw/` filenames to log entries.
+This log entry is what the [[orchestrator-agent|Orchestrator Agent]] checks to determine whether a raw source has been processed. The log entry's presence is the idempotency key — re-running ingest on an already-processed source is detected by comparing `raw/` filenames to log entries.
 
 ## Error Conditions
 
@@ -172,9 +172,9 @@ After a successful ingest:
 
 ## Related Concepts
 
-- [[Ingest Agent]] — the agent that executes this pipeline
-- [[Entity Distribution Model]] — the DRY update-not-duplicate rule (step 5)
-- [[Git Checkpoint]] — snapshot pre/post wraps the pipeline
-- [[Folder Note]] — created for every new topic folder (step 3) and updated at step 11
-- [[Schema Authority]] — `CLAUDE.md` that governs every step
+- [[ingest-agent|Ingest Agent]] — the agent that executes this pipeline
+- [[entity-distribution-model|Entity Distribution Model]] — the DRY update-not-duplicate rule (step 5)
+- [[git-checkpoint|Git Checkpoint]] — snapshot pre/post wraps the pipeline
+- [[folder-note|Folder Note]] — created for every new topic folder (step 3) and updated at step 11
+- [[schema-authority|Schema Authority]] — `CLAUDE.md` that governs every step
 - [[Auto-Heal]] — the curator's follow-on pass that fixes any structural issues the pipeline left

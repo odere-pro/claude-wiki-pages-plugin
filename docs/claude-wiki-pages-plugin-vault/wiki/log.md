@@ -27,7 +27,7 @@ New synthesis: Plugin Architecture Synthesis
 
 ## [2026-06-13] synthesize | Plugin Architecture Synthesis
 
-Created [[Plugin Architecture Synthesis]] from 40 wiki pages across 50 sources.
+Created [[plugin-architecture-synthesis|Plugin Architecture Synthesis]] from 40 wiki pages across 50 sources.
 Topics scoped: Four-Layer Stack, Deterministic Engine, NO-RAG Principle, Firewall, Git Checkpoint, Ontology Profile v1, Scaffolding Ablation, Local Model Quality Gate.
 Synthesis type: theme. Key themes: determinism, provenance, fail-closed safety.
 
@@ -42,7 +42,7 @@ Found 14 errors (9 plain-string sources, 5 index listing mismatches) and 13 orph
 
 - Fixed plain-string sources in `curator-agent.md`, `auto-heal.md`, `lint-rules.md` (comma in source title split YAML array)
 - Fixed folder note `children` lists: removed non-existent pages, added correct cross-references
-- Created missing `[[Onboarding Wizard]]` concept page in `guides/`
+- Created missing `[[onboarding-wizard|Onboarding Wizard]]` concept page in `guides/`
 - Updated 14 wiki pages to use full source note titles (ending orphan source WARNs for 10 ADRs + 3 other sources)
 - Result: 0 errors, 60 warnings (all expected "page not in index" for source notes and individual pages)
 - Snapshot: 29d663b
@@ -70,7 +70,7 @@ Actions taken:
 
 - Fixed index.md to reference all 60 missing pages (50 source summaries + 10 content pages) as wikilinks
 - Enriched 10 priority content pages from 30-50 lines to 73-124 lines of substantive content
-- Enriched [[Four-Layer Stack]] with full layer descriptions and data flow
+- Enriched [[four-layer-stack|Four-Layer Stack]] with full layer descriptions and data flow
 - Added Grounded Pages backlink sections to all 50 source summaries (402 total backlink entries)
 - Added cross-folder related: links to 8 content pages
 - Final state: 0 errors, 0 warnings, all 41 content pages have inbound links
@@ -172,7 +172,7 @@ New entities: obsidian-vault Skill
 
 New concepts: Obsidian CLI Vault Scoping, Defense-in-Depth Scoping
 
-Updated existing pages: (none — all related pages are cross-referenced via `related:` only; no body or sources merges were needed as the existing [[Firewall]], [[Vault Resolution]], [[Hook System]] pages already cover the referenced constructs)
+Updated existing pages: (none — all related pages are cross-referenced via `related:` only; no body or sources merges were needed as the existing [[Firewall]], [[vault-resolution|Vault Resolution]], [[hook-system|Hook System]] pages already cover the referenced constructs)
 
 ## [2026-06-13] snapshot | ingest obsidian-vault SKILL.md (snap-20260613215524)
 
@@ -223,13 +223,13 @@ Authored 7 topic hub pages (type: topic, from `_templates/topic.md` skeleton) to
 
 Hubs created/updated:
 
-- [[claude-wiki-pages Plugin]] (wiki/plugin/plugin.md) — 5 cluster pages linked
-- [[Wiki Pages]] (wiki/wiki-pages/wiki-pages.md) — 3 cluster pages linked
+- [[plugin|claude-wiki-pages Plugin]] (wiki/plugin/plugin.md) — 5 cluster pages linked
+- [[wiki-pages|Wiki Pages]] (wiki/wiki-pages/wiki-pages.md) — 3 cluster pages linked
 - [[LLM]] (wiki/llm/llm.md) — 6 cluster pages linked
 - [[Obsidian]] (wiki/obsidian/obsidian.md) — 3 cluster pages linked
-- [[Wiki Engine]] (wiki/engine/engine.md) — 15 cluster pages linked
-- [[Knowledge Graph]] (wiki/knowledge-graph/knowledge-graph.md) — 3 cluster pages linked
-- [[How It Works]] (wiki/how-it-works/how-it-works.md) — 4 cluster pages linked
+- [[engine|Wiki Engine]] (wiki/engine/engine.md) — 15 cluster pages linked
+- [[knowledge-graph|Knowledge Graph]] (wiki/knowledge-graph/knowledge-graph.md) — 3 cluster pages linked
+- [[how-it-works|How It Works]] (wiki/how-it-works/how-it-works.md) — 4 cluster pages linked
 
 Updated wiki/index.md Hub Pages section to list all 7 hubs.
 
@@ -283,16 +283,16 @@ Identified 7 content pages under 50 lines (entity/concept pages; folder notes ex
 
 Pages enriched:
 
-- [[engine.sh]] (42→77 lines) — added degraded-mode capability table, hot-path callers, 16-verb list
-- [[cli.ts]] (39→99 lines) — added full verb table, CLI flags table, integration context, test harness note
-- [[Plugin Manifest]] (41→75 lines) — added schema-version compatibility table, hook entry point contract, "what is not in the manifest" section
-- [[Wired Source]] (44→80 lines) — added registration mechanics table, settings.json fields, full lifecycle steps
-- [[obsidian-vault Skill]] (45→76 lines) — added graph color primary use case, headless fallback warning, "why both a skill and a hook" explanation
-- [[Porter Stemmer]] (46→88 lines) — added 5-step algorithm table, integration code path, scoring weight context
-- [[Tier-2 Deterministic Recall]] (47→99 lines) — added scoring weight table, three-channel architecture diagram, graph traversal complement section
-- [[sync-source.sh]] (36→72 lines) — added snapshot filename pattern, checksum dedup detail, relationship-to-pipeline diagram, idempotent pull contract
+- [[engine-sh|engine.sh]] (42→77 lines) — added degraded-mode capability table, hot-path callers, 16-verb list
+- [[cli-ts|cli.ts]] (39→99 lines) — added full verb table, CLI flags table, integration context, test harness note
+- [[plugin-manifest|Plugin Manifest]] (41→75 lines) — added schema-version compatibility table, hook entry point contract, "what is not in the manifest" section
+- [[wired-source|Wired Source]] (44→80 lines) — added registration mechanics table, settings.json fields, full lifecycle steps
+- [[obsidian/obsidian-vault-skill|obsidian-vault Skill]] (45→76 lines) — added graph color primary use case, headless fallback warning, "why both a skill and a hook" explanation
+- [[porter-stemmer|Porter Stemmer]] (46→88 lines) — added 5-step algorithm table, integration code path, scoring weight context
+- [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] (47→99 lines) — added scoring weight table, three-channel architecture diagram, graph traversal complement section
+- [[sync-source-sh|sync-source.sh]] (36→72 lines) — added snapshot filename pattern, checksum dedup detail, relationship-to-pipeline diagram, idempotent pull contract
 
-Sources used: [[Engine Scripts Layer (CLAUDE.md)]], [[Engine API Skill (SKILL.md)]], [[Sync Skill (SKILL.md)]], [[Obsidian Vault Skill (SKILL.md)]], [[cli.ts Source]], [[engine.sh Source]]. No new pages created; no new dangling links introduced.
+Sources used: [[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]], [[engine-api-skill|Engine API Skill (SKILL.md)]], [[_sources/sync-skill|Sync Skill (SKILL.md)]], [[_sources/obsidian-vault-skill|Obsidian Vault Skill (SKILL.md)]], [[cli-ts-source|cli.ts Source]], [[engine-sh-source|engine.sh Source]]. No new pages created; no new dangling links introduced.
 
 ## [2026-06-13] snapshot | fill-gaps: enrich thin pages (snap-20260613231528)
 
@@ -306,7 +306,7 @@ Sources used: [[Engine Scripts Layer (CLAUDE.md)]], [[Engine API Skill (SKILL.md
 
 ## [2026-06-13] curator | Health check and auto-repair
 
-Found 1 error, 2 warnings, 2 info. Engine repaired 0 (vault already clean). Auto-applied 1 (active-vault.md sources field: replaced concept wikilink `[[Vault Resolution]]` with correct source `[[Operations Guide]]`). Judgment fixes applied 3: title collision resolved (`[[claude-wiki-pages (Plugin)]]` entity renamed to disambiguate from `plugin/plugin.md` index; folder note and index.md updated); `.obsidian/graph.json` and `.obsidian/app.json` created with 11 topic color groups and wiki-only exclusions. Surfaced for review: 6 flat-folder sprawl folders (>12 children: \_sources 85, architecture 22, engine 19, decisions 20, reference 15, guides 14 — structural, not broken); 109 high-confidence single-source pages (editorial call). Rollback: git revert ac2105a.
+Found 1 error, 2 warnings, 2 info. Engine repaired 0 (vault already clean). Auto-applied 1 (active-vault.md sources field: replaced concept wikilink `[[vault-resolution|Vault Resolution]]` with correct source `[[_sources/operations|Operations Guide]]`). Judgment fixes applied 3: title collision resolved (`[[claude-wiki-pages-plugin|claude-wiki-pages (Plugin)]]` entity renamed to disambiguate from `plugin/plugin.md` index; folder note and index.md updated); `.obsidian/graph.json` and `.obsidian/app.json` created with 11 topic color groups and wiki-only exclusions. Surfaced for review: 6 flat-folder sprawl folders (>12 children: \_sources 85, architecture 22, engine 19, decisions 20, reference 15, guides 14 — structural, not broken); 109 high-confidence single-source pages (editorial call). Rollback: git revert ac2105a.
 
 ## [2026-06-13] snapshot | curator: final heal complete — title collision + sources fix + graph colors (snap-20260613232455)
 
@@ -320,7 +320,7 @@ Found 1 error, 2 warnings, 2 info. Engine repaired 0 (vault already clean). Auto
 
 ## [2026-06-13] curator | Re-parent legacy folders into 7 core topic clusters
 
-Moved 67 pages out of 4 legacy folders (architecture/22, decisions/20, guides/13, reference/14; minus 4 folder notes = 67 content pages) into the 7 core topic clusters: plugin (17 moved), engine (9 moved), wiki-pages (13 moved), llm (9 moved), obsidian (4 moved), knowledge-graph (3 moved), how-it-works (12 moved). Updated parent:/path: frontmatter on all 67 pages. Removed 4 legacy folder notes and dropped architecture/decisions/guides/reference from wiki/index.md child_indexes. Expanded all 7 cluster folder notes with the new children. Fixed 3 stale-source warnings: `[[Glossary Terms]]` moved from sources to related in banned-strings.md; `[[Schema Authority]]` moved from sources to related in required-fields.md; `[[Analyst Agent]]` entity link replaced with `[[Analyst Agent Source]]` in synthesis-note.md. Fixed 4 dangling links in moved pages. Engine verify: 0 errors, 0 warnings. danglingCount (wiki pages): 0. Rollback: git revert 9acbb71 (pre-snapshot) or git revert 2c9376a (this commit).
+Moved 67 pages out of 4 legacy folders (architecture/22, decisions/20, guides/13, reference/14; minus 4 folder notes = 67 content pages) into the 7 core topic clusters: plugin (17 moved), engine (9 moved), wiki-pages (13 moved), llm (9 moved), obsidian (4 moved), knowledge-graph (3 moved), how-it-works (12 moved). Updated parent:/path: frontmatter on all 67 pages. Removed 4 legacy folder notes and dropped architecture/decisions/guides/reference from wiki/index.md child_indexes. Expanded all 7 cluster folder notes with the new children. Fixed 3 stale-source warnings: `[[glossary-terms|Glossary Terms]]` moved from sources to related in banned-strings.md; `[[schema-authority|Schema Authority]]` moved from sources to related in required-fields.md; `[[analyst-agent|Analyst Agent]]` entity link replaced with `[[plugin-analyst-agent|Analyst Agent Source]]` in synthesis-note.md. Fixed 4 dangling links in moved pages. Engine verify: 0 errors, 0 warnings. danglingCount (wiki pages): 0. Rollback: git revert 9acbb71 (pre-snapshot) or git revert 2c9376a (this commit).
 ## [2026-06-13] snapshot | FU1: verify dangling-wikilink check (snap-20260614013621)
 
 - pre-state: 103cac1
@@ -339,11 +339,11 @@ Processed 5 new ADRs from `docs/adr/` (not previously in `raw/`):
 - ADR-0028: Dangling-Wikilink WARN Check in Verify (WARN-tier parity gate)
 - ADR-0029: Drop docs/vault-example (schema authority → skills/init/template)
 
-New sources: [[ADR-0024: Host-Project Intake]], [[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]], [[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]], [[ADR-0028: Dangling-Wikilink WARN Check in Verify]], [[ADR-0029|ADR-0029: Drop docs/vault-example]]
+New sources: [[_sources/adr-0024-host-project-intake|ADR-0024: Host-Project Intake]], [[_sources/adr-0026-parallel-extract-and-scheduled-upkeep|ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]], [[_sources/adr-0027-fill-gaps-and-graph-quality|ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]], [[_sources/adr-0028-dangling-wikilink-verify-check|ADR-0028: Dangling-Wikilink WARN Check in Verify]], [[_sources/adr-0029-drop-vault-example|ADR-0029: Drop docs/vault-example]]
 
-New concept pages (6): [[Host-Project Intake]], [[Parallel Extract]], [[Scheduled Upkeep]], [[Fill-Gaps Skill]], [[Graph Quality]], [[Dangling Wikilink]], [[Node Concentration]]
+New concept pages (6): [[host-project-intake|Host-Project Intake]], [[parallel-extract|Parallel Extract]], [[scheduled-upkeep|Scheduled Upkeep]], [[fill-gaps-skill|Fill-Gaps Skill]], [[graph-quality|Graph Quality]], [[dangling-wikilink|Dangling Wikilink]], [[node-concentration|Node Concentration]]
 
-Updated existing pages (7): [[Ingest Agent]] (sources+, update_count 6→7), [[Maintenance Loop]] (sources+, update_count 2→3), [[Schema Authority]] (sources+, update_count 6→7), [[Deterministic Engine]] (sources+, update_count 6→7), [[Golden Set]] (sources+, update_count 3→4), [[Shell-TS Parity]] (sources+, update_count 2→3), [[Wired Source]] (sources+, update_count 2→3)
+Updated existing pages (7): [[ingest-agent|Ingest Agent]] (sources+, update_count 6→7), [[maintenance-loop|Maintenance Loop]] (sources+, update_count 2→3), [[schema-authority|Schema Authority]] (sources+, update_count 6→7), [[deterministic-engine|Deterministic Engine]] (sources+, update_count 6→7), [[golden-set|Golden Set]] (sources+, update_count 3→4), [[shell-ts-parity|Shell-TS Parity]] (sources+, update_count 2→3), [[wired-source|Wired Source]] (sources+, update_count 2→3)
 
 Updated structural files: `wiki/how-it-works/how-it-works.md` (children+6), `wiki/plugin/plugin.md` (children+1), `wiki/index.md` (new pages + 5 new ADR source summaries)
 

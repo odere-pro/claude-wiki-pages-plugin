@@ -2,10 +2,10 @@
 title: "Ontology Profile v1"
 type: concept
 aliases: ["Ontology Profile v1", "ontology-profile-v1", "ontology profile"]
-parent: "[[Knowledge Graph]]"
+parent: "[[knowledge-graph|Knowledge Graph]]"
 path: "knowledge-graph"
-sources: ["[[ADR-0004: Ontology Profile v1]]", "[[Design: Ontology]]", "[[Glossary]]"]
-related: ["[[Schema Authority]]", "[[Graph Traversal Primitive]]", "[[Deterministic Engine]]", "[[NO-RAG Principle]]"]
+sources: ["[[_sources/adr-0004-ontology-profile-v1|ADR-0004: Ontology Profile v1]]", "[[design-07-ontology|Design: Ontology]]", "[[_sources/glossary|Glossary]]"]
+related: ["[[schema-authority|Schema Authority]]", "[[graph-traversal-primitive|Graph Traversal Primitive]]", "[[deterministic-engine|Deterministic Engine]]", "[[no-rag-principle|NO-RAG Principle]]"]
 tags: ["concept", "ontology", "schema"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -84,7 +84,7 @@ Eleven predicates, each with domain (allowed source page class), range (allowed 
 | `children`      | index                                      | any non-root page               | directed, 0..N          |
 | `child_indexes` | index                                      | index                           | directed, 0..N          |
 
-The [[Graph Traversal Primitive]]'s `walk()` function reads only the R2_EDGES subset: `sources`, `related`, `depends_on`. The MOC/descent edges (`parent`, `children`, `child_indexes`, `key_pages`) are used by C1. The `contradicts`/`supersedes` edges are available to R3/synthesis.
+The [[graph-traversal-primitive|Graph Traversal Primitive]]'s `walk()` function reads only the R2_EDGES subset: `sources`, `related`, `depends_on`. The MOC/descent edges (`parent`, `children`, `child_indexes`, `key_pages`) are used by C1. The `contradicts`/`supersedes` edges are available to R3/synthesis.
 
 An edge violating a row's domain/range is a future S1-check lint finding, not a traversal the engine follows.
 
@@ -141,7 +141,7 @@ The legal set is computed at read time as core ∪ extensions. No second list, n
 
 ## Related Concepts
 
-- [[Schema Authority]] — `CLAUDE.md` that contains this profile
-- [[Graph Traversal Primitive]] — reads R2_EDGES from this profile
-- [[Deterministic Engine]] — `ontology --json` projects this profile at read time
-- [[NO-RAG Principle]] — the `ontology --json` projection is deterministic parse, never embedding
+- [[schema-authority|Schema Authority]] — `CLAUDE.md` that contains this profile
+- [[graph-traversal-primitive|Graph Traversal Primitive]] — reads R2_EDGES from this profile
+- [[deterministic-engine|Deterministic Engine]] — `ontology --json` projects this profile at read time
+- [[no-rag-principle|NO-RAG Principle]] — the `ontology --json` projection is deterministic parse, never embedding

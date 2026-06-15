@@ -20,98 +20,27 @@ updated: 2026-06-15
 
 # Wiki Index
 
-Master catalog of every page in this wiki. The wiki covers the `claude-wiki-pages` plugin: its architecture decisions, design patterns, agent and skill contracts, and operational guides.
+Root map of content for the `claude-wiki-pages` plugin wiki: its architecture
+decisions, design patterns, agent and skill contracts, and operational guides.
+Each topic cluster below is a folder note that lists and links every page in its
+branch — descend through the hierarchy rather than from a flat catalog here, so
+the graph forms one island per topic.
 
 ## Topic Clusters
 
-- [[plugin]] — the plugin itself, agents, four-layer stack, hooks, orchestration, slash commands, marketplace/manifest, git-checkpoint, parallel-extract (23 pages)
-- [[engine]] — Bun engine, verify/heal/fix/search/snapshot/route/migrate, search score, graph traversal, stemming, vocabulary, firewall, determinism, dangling-wikilink check (27 pages)
-- [[wiki-pages]] — page schema, page types, templates, frontmatter, provenance, sources, ingest pipeline, folder notes, lint rules, query rules (17 pages)
-- [[llm]] — local models, Ollama, offline policy, NO-RAG / wiki-native recall, fabrication floor, drafting, Software 3.0, local-model quality gate (15 pages)
-- [[obsidian]] — graph view, graph colors, wiki-only graph, obsidian experience, wikilinks, .obsidian config, folder-notes-and-graph-quality (7 pages)
-- [[knowledge-graph]] — ontology profile, predicate domain/range, how the graph is formed, the Knowledge Graph concept (6 pages)
-- [[how-it-works]] — end-to-end flow, onboarding, getting-started, maintenance loop, sync, status/dashboard, scaffolding ablation, lifecycle, host-project intake, fill-gaps, graph quality (22 pages)
+- [[plugin|claude-wiki-pages Plugin]] — the plugin itself, agents, four-layer stack, hooks, orchestration, slash commands, marketplace/manifest, git-checkpoint, parallel-extract (23 pages)
+- [[engine|Wiki Engine]] — Bun engine, verify/heal/fix/search/snapshot/route/migrate, search score, graph traversal, stemming, vocabulary, firewall, determinism, dangling-wikilink check (27 pages)
+- [[wiki-pages|Wiki Pages]] — page schema, page types, templates, frontmatter, provenance, sources, ingest pipeline, folder notes, lint rules, query rules (17 pages)
+- [[llm|LLM]] — local models, Ollama, offline policy, NO-RAG / wiki-native recall, fabrication floor, drafting, Software 3.0, local-model quality gate (15 pages)
+- [[obsidian|Obsidian]] — graph view, graph colors, wiki-only graph, obsidian experience, wikilinks, .obsidian config, folder-notes-and-graph-quality (7 pages)
+- [[knowledge-graph|Knowledge Graph]] — ontology profile, predicate domain/range, how the graph is formed, the Knowledge Graph concept (6 pages)
+- [[how-it-works|How It Works]] — end-to-end flow, onboarding, getting-started, maintenance loop, sync, status/dashboard, scaffolding ablation, lifecycle, host-project intake, fill-gaps, graph quality (22 pages)
 
-## Hub Pages
+## Cross-Topic Synthesis
 
-These topic hub pages are the graph concentration points — each orients a major cluster and links every page in that cluster.
+- [[plugin-architecture-synthesis|Plugin Architecture Synthesis]] — three interlocking themes (determinism, provenance, fail-closed safety), key findings, gaps, recommendations
 
-- [[claude-wiki-pages Plugin]] — hub for `wiki/plugin/`: manifest, agent contracts, tool restrictions, dispatch, install boundary, agents, hooks, git-checkpoint
-- [[Wiki Engine]] — hub for `wiki/engine/`: shell bridge, CLI router, search/recall algorithms, integrity primitives, workflow verbs, firewall, vault-resolution
-- [[Wiki Pages]] — hub for `wiki/wiki-pages/`: maintain contract, grounded retrieval, multi-vault rules, ingest pipeline, lint rules, query rules, schema
-- [[LLM]] — hub for `wiki/llm/`: analyst modes, write gates, dual-reader contract, local models, offline policy, fabrication floor
-- [[Obsidian]] — hub for `wiki/obsidian/`: vault skill, CLI scoping, defense-in-depth, graph colors, wiki-only graph, obsidian experience
-- [[Knowledge Graph]] — hub for `wiki/knowledge-graph/`: frontmatter parser, wikilink extractor, config schema, ontology profile, predicates
-- [[How It Works]] — hub for `wiki/how-it-works/`: sync skill, wired source, sync workflow, onboarding, maintenance loop, lifecycle
-
-## Special Collections
-
-- [[Plugin Architecture Synthesis]] — three interlocking themes (determinism, provenance, fail-closed safety), 6 key findings, gaps, recommendations
-
-## Plugin Pages
-
-[[claude-wiki-pages (Plugin)]] · [[Four-Layer Stack]] · [[Hook System]] · [[Orchestrator Agent]] · [[Ingest Agent]] · [[Curator Agent]] · [[Analyst Agent]] · [[Polish Agent]] · [[Maintenance Agent]] · [[Git Checkpoint]] · [[Brainstorming Team]] · [[Engineering Team]] · [[Design Diagrams]] · [[Design-Drift Gate]] · [[Parity Gate]] · [[Plugin Arm]] · [[Multi-Vault Registry]] · [[Plugin Manifest]] · [[Agent Contract Table]] · [[Agent Tool Restriction]] · [[Single-Pass Dispatch]] · [[Plugin Dev-Time vs Runtime]] · [[Parallel Extract]]
-
-## Engine Pages
-
-[[engine.sh]] · [[cli.ts]] · [[Engine CLI Router]] · [[Engine Verb Surface]] · [[Search Scoring Algorithm]] · [[Tier-2 Deterministic Recall]] · [[Graph Walk Algorithm]] · [[Porter Stemmer]] · [[Synonym Lexicon]] · [[Provenance Checks]] · [[MOC Repair Primitives]] · [[Schema Version Gate]] · [[Draft Review Surface]] · [[Degraded-Mode Routing]] · [[Scripts Layer]] · [[Engine — Index]] · [[Graph Traversal Primitive]] · [[Shell-TS Parity]] · [[Active Vault]] · [[Deterministic Engine]] · [[Durable Memory]] · [[Fail-Closed]] · [[Firewall]] · [[Vault Resolution]] · [[Golden Set]] · [[Search Score Object]] · [[Auto-Heal]]
-
-## Wiki Pages Pages
-
-[[Maintain Contract]] · [[Grounded Retrieval]] · [[Multi-Vault Operating Rules]] · [[Synthesis Note]] · [[Review Gate]] · [[Ingest Pipeline]] · [[Entity Distribution Model]] · [[Lint Rules]] · [[Query Rules]] · [[Folder Note]] · [[Portable Markdown]] · [[Sources Section]] · [[Banned Strings]] · [[Frontmatter Validation]] · [[Glossary Terms]] · [[Required Fields]] · [[Schema Authority]]
-
-## LLM Pages
-
-[[Analyst Dashboard Mode]] · [[Analyst Document Compile Mode]] · [[Analyst Extract Mode]] · [[Dashboard Write Gate]] · [[Six Surfaces Dual-Reader Contract]] · [[Dual Entry Point]] · [[Local Model Quality Gate]] · [[NO-RAG Principle]] · [[Software 3.0]] · [[Verbatim Partition]] · [[Wiki-Native Recall]] · [[Zero-Fabrication Floor]] · [[Approved Local Model]] · [[Capability Tier]] · [[Offline Policy]]
-
-## Obsidian Pages
-
-[[obsidian-vault Skill]] · [[Obsidian CLI Vault Scoping]] · [[Defense-in-Depth Scoping]] · [[Graph Config Cache]] · [[Wiki-Only Graph]] · [[Graph Coloring]] · [[Obsidian Experience]]
-
-## Knowledge Graph Pages
-
-[[Frontmatter Parser]] · [[Wikilink Extractor]] · [[Config Schema]] · [[Node Grounding]] · [[Ontology Profile v1]] · [[Predicate Domain-Range Table]]
-
-## How It Works Pages
-
-[[Sync Skill]] · [[Wired Source]] · [[Sync Workflow]] · [[sync-source.sh]] · [[Vault Lifecycle]] · [[Architecture Decision Record]] · [[Baseline Arm]] · [[Scaffolding Ablation]] · [[Challenge Mode]] · [[Onboarding Wizard]] · [[Time-to-First-Value]] · [[Backlog]] · [[Doctor Command]] · [[Heartbeat]] · [[Installation]] · [[Maintenance Loop]] · [[Host-Project Intake]] · [[Scheduled Upkeep]] · [[Fill-Gaps Skill]] · [[Graph Quality]] · [[Dangling Wikilink]] · [[Node Concentration]]
-
-## Source Summaries
-
-One summary per ingested raw source. See individual source pages for full context.
-
-### ADR Source Summaries
-
-[[ADR-0001: Four-Layer Orchestrator]] · [[ADR-0002: Agent Naming Convention]] · [[ADR-0003: Polish Agent and Obsidian-Side Experience]] · [[ADR-0004: Ontology Profile v1]] · [[ADR-0005: Git Required Per-Vault Init]] · [[ADR-0006: One Search Score Object]] · [[ADR-0007: Wiki-Native Recall]] · [[ADR-0008: One Graph-Traversal Primitive]] · [[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]] · [[ADR-0010: Durable-Memory Carve-Out]] · [[ADR-0011: Local-Model Quality Gate]] · [[ADR-0012: Vault Merge Conflict Resolution]] · [[ADR-0013: Design-Drift Gate]] · [[ADR-0014: Single-Source Required Fields]] · [[ADR-0015: Engine Self-Description Surfaces]] · [[ADR-0016: Simultaneous Multi-Vault Management]] · [[ADR-0017: Fabrication Floor — Verbatim Partition]] · [[ADR-0018: Offline Policy and Degraded-Mode Routing]] · [[ADR-0019: Query Tier and Answer Verification]] · [[ADR-0020: The Scaffolding Ablation]] · [[ADR-0022: Folder Notes and Graph Quality]] · [[ADR-0023: Wiki-Only Graph]] · [[ADR-0024: Host-Project Intake]] · [[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]] · [[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]] · [[ADR-0028: Dangling-Wikilink WARN Check in Verify]] · [[ADR-0029|ADR-0029: Drop docs/vault-example]] · [[ADR Index]]
-
-### Design Doc Source Summaries
-
-[[Architecture Documentation]] · [[Automation]] · [[Design: System Context]] · [[Design: Component Design]] · [[Design: Sequences]] · [[Design: Teams and Agents]] · [[Design: Claude Config and Security]] · [[Design: Feature Relations]] · [[Design: Ontology]] · [[Design README]] · [[Design Diagram Template]]
-
-### Reference Doc Source Summaries
-
-[[Features]] · [[Getting Started (CLI Quickstart)]] · [[Glossary]] · [[Installation Guide]] · [[Local Models]] · [[Operations Guide]] · [[Agent Teams]]
-
-### Engine Source Summaries
-
-[[Engine Scripts Layer (CLAUDE.md)]] · [[Engine API Skill (SKILL.md)]] · [[engine.sh Source]] · [[cli.ts Source]] · [[firewall.ts Source]] · [[verify.ts Source]] · [[route.ts Source]] · [[schema.ts Source]] · [[search.ts Source]] · [[graph.ts Source]] · [[snapshot.ts Source]] · [[provenance.ts Source]] · [[moc-build.ts Source]] · [[stem.ts Source]] · [[vocabulary.ts Source]] · [[propose.ts Source]]
-
-### User Guide Source Summaries
-
-[[User Guide 01: Getting Started]] · [[User Guide 02: Create a New Vault]] · [[User Guide 03: Update Existing Vault]] · [[User Guide 04: Review Validate Fix]] · [[User Guide 05: Export Outputs]] · [[User Guide 06: Check the Dashboard]] · [[User Guide 07: Query the Wiki]] · [[User Guide: Index]] · [[User Guide: Obsidian Experience]]
-
-### Plugin Source Summaries
-
-[[Plugin README]] · [[Plugin CLAUDE.md]] · [[Plugin Manifest (plugin.json)]] · [[Orchestrator Agent Source]] · [[Ingest Agent Source]] · [[Curator Agent Source]] · [[Analyst Agent Source]] · [[Onboarding Agent Source]] · [[Maintenance Agent Source]] · [[Polish Agent Source]]
-
-### Skills Source Summaries
-
-[[Wiki Pages Skill (maintain-contract SKILL.md)]] · [[Analyst Modes Skill (SKILL.md)]] · [[Obsidian Vault Skill (SKILL.md)]] · [[Sync Skill (SKILL.md)]]
-
-### LLM Source Summaries
-
-[[SOFTWARE-3-0: Dual Entry Point]]
-
-### Knowledge Graph Source Summaries
-
-[[Knowledge Graph Schema (CLAUDE.md)]] · [[Config Schema (config.schema.json)]] · [[Frontmatter Parser (frontmatter.ts)]] · [[Wikilink Extractor (wikilinks.ts)]]
+> [!note] Source summaries
+> Provenance lives in `wiki/_sources/` — one summary per ingested raw source. Each
+> source is reachable from the pages that cite it (their `sources:` field), not from
+> this index, so the graph stays clustered by topic rather than collapsing into a hub.

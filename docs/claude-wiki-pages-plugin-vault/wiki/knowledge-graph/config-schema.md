@@ -2,10 +2,10 @@
 title: "Config Schema"
 type: concept
 aliases: ["Config Schema", "config schema", "config.schema.json", "plugin config schema"]
-parent: "[[Knowledge Graph]]"
+parent: "[[knowledge-graph|Knowledge Graph]]"
 path: "knowledge-graph"
-sources: ["[[Config Schema (config.schema.json)]]"]
-related: ["[[Auto-Heal]]", "[[Git Checkpoint]]", "[[Firewall]]", "[[Offline Policy]]", "[[Local Model Quality Gate]]", "[[Degraded-Mode Routing]]"]
+sources: ["[[config-schema-json|Config Schema (config.schema.json)]]"]
+related: ["[[Auto-Heal]]", "[[git-checkpoint|Git Checkpoint]]", "[[Firewall]]", "[[offline-policy|Offline Policy]]", "[[local-model-quality-gate|Local Model Quality Gate]]", "[[degraded-mode-routing|Degraded-Mode Routing]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -89,8 +89,8 @@ The `maintenance` group with its bounded defaults:
 ## Related Concepts
 
 - [[Auto-Heal]] — the `autoHeal` group configures its enabled state, aggressiveness, and iteration cap
-- [[Git Checkpoint]] — the `gitCheckpoint` group configures its mode and push policy
+- [[git-checkpoint|Git Checkpoint]] — the `gitCheckpoint` group configures its mode and push policy
 - [[Firewall]] — the `firewall` group configures its enforcement mode, allowPaths, and denyPaths
-- [[Offline Policy]] — the `localModel.offlinePolicy` field controls fallback behavior
-- [[Local Model Quality Gate]] — the `localModel.model` field must pass the ADR-0011 allow-list gate
-- [[Degraded-Mode Routing]] — `localModel.tier` determines which tiers are available when degraded
+- [[offline-policy|Offline Policy]] — the `localModel.offlinePolicy` field controls fallback behavior
+- [[local-model-quality-gate|Local Model Quality Gate]] — the `localModel.model` field must pass the ADR-0011 allow-list gate
+- [[degraded-mode-routing|Degraded-Mode Routing]] — `localModel.tier` determines which tiers are available when degraded

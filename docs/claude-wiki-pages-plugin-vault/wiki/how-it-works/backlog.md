@@ -2,10 +2,10 @@
 title: "Backlog"
 type: concept
 aliases: ["Backlog", "backlog", "pending sources", "catch-up", "engine backlog"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Automation]]", "[[Glossary]]", "[[User Guide 06: Check the Dashboard]]", "[[Operations Guide]]"]
-related: ["[[Maintenance Agent]]", "[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
+sources: ["[[_sources/automation|Automation]]", "[[_sources/glossary|Glossary]]", "[[llm-wiki-06-check-dashboard|User Guide 06: Check the Dashboard]]", "[[_sources/operations|Operations Guide]]"]
+related: ["[[maintenance-agent|Maintenance Agent]]", "[[deterministic-engine|Deterministic Engine]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]"]
 tags: ["concept", "automation", "maintenance"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -17,7 +17,7 @@ confidence: 1.0
 # Backlog
 
 > [!summary]
-> The backlog is the set of outstanding maintenance work: raw sources in `vault/raw/` with no `_sources/` summary (pending ingest) plus overdue lint (last lint older than `lintEveryDays` config). Detected in O(1) by `engine backlog` using the source manifest. The SessionStart heartbeat surfaces a one-line recommendation when the backlog is non-empty. The [[Maintenance Agent]] clears the backlog when `maintenance.enabled: true` is set.
+> The backlog is the set of outstanding maintenance work: raw sources in `vault/raw/` with no `_sources/` summary (pending ingest) plus overdue lint (last lint older than `lintEveryDays` config). Detected in O(1) by `engine backlog` using the source manifest. The SessionStart heartbeat surfaces a one-line recommendation when the backlog is non-empty. The [[maintenance-agent|Maintenance Agent]] clears the backlog when `maintenance.enabled: true` is set.
 
 ## Key Principles
 
@@ -99,15 +99,15 @@ If `maintenance.enabled: false` (the default), the heartbeat is silent even when
 /claude-wiki-pages:wiki
 ```
 
-The [[Orchestrator Agent]] finds the pending sources and runs the [[Ingest Agent]], then the [[Curator Agent]], then the [[Polish Agent]]. After ingest, the orchestrator's next probe sees the updated log and routes appropriately.
+The [[orchestrator-agent|Orchestrator Agent]] finds the pending sources and runs the [[ingest-agent|Ingest Agent]], then the [[curator-agent|Curator Agent]], then the [[polish-agent|Polish Agent]]. After ingest, the orchestrator's next probe sees the updated log and routes appropriately.
 
 ### Autonomous (when `maintenance.enabled: true`)
 
-With the maintenance flag set, `/claude-wiki-pages:wiki` routes to the [[Maintenance Agent]] when a backlog exists. The maintenance agent runs the full catch-up loop:
+With the maintenance flag set, `/claude-wiki-pages:wiki` routes to the [[maintenance-agent|Maintenance Agent]] when a backlog exists. The maintenance agent runs the full catch-up loop:
 
-1. [[Ingest Agent]] — up to `maxPerRun` pending sources.
-2. [[Curator Agent]] — audit-and-repair.
-3. [[Polish Agent]] — graph/index sync.
+1. [[ingest-agent|Ingest Agent]] — up to `maxPerRun` pending sources.
+2. [[curator-agent|Curator Agent]] — audit-and-repair.
+3. [[polish-agent|Polish Agent]] — graph/index sync.
 4. Lint — final verify.
 
 Each step is git-checkpointed. If `maxPerRun` is reached before all pending sources are processed, the remaining count is reported as remaining backlog.
@@ -147,7 +147,7 @@ In `.claude/claude-wiki-pages.json` or `~/.config/claude-wiki-pages/config.json`
 
 ## Related Concepts
 
-- [[Maintenance Agent]] — the autonomous agent that clears the backlog
-- [[Deterministic Engine]] — `engine backlog` command detects it in O(1)
-- [[Ingest Agent]] — processes the pending sources component of the backlog
-- [[Curator Agent]] — addresses the overdue-lint component
+- [[maintenance-agent|Maintenance Agent]] — the autonomous agent that clears the backlog
+- [[deterministic-engine|Deterministic Engine]] — `engine backlog` command detects it in O(1)
+- [[ingest-agent|Ingest Agent]] — processes the pending sources component of the backlog
+- [[curator-agent|Curator Agent]] — addresses the overdue-lint component

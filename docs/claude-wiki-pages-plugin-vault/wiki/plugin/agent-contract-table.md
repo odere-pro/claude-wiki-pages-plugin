@@ -4,8 +4,8 @@ type: concept
 aliases: ["Agent Contract Table", "agent contract table", "contract table", "agent contract"]
 parent: "[[Plugin]]"
 path: "plugin"
-sources: ["[[Orchestrator Agent Source]]", "[[Ingest Agent Source]]", "[[Curator Agent Source]]", "[[Analyst Agent Source]]", "[[Onboarding Agent Source]]", "[[Maintenance Agent Source]]", "[[Polish Agent Source]]"]
-related: ["[[Agent Tool Restriction]]", "[[Single-Pass Dispatch]]", "[[Orchestrator Agent]]", "[[Ingest Agent]]"]
+sources: ["[[plugin-orchestrator-agent|Orchestrator Agent Source]]", "[[plugin-ingest-agent|Ingest Agent Source]]", "[[plugin-curator-agent|Curator Agent Source]]", "[[plugin-analyst-agent|Analyst Agent Source]]", "[[plugin-onboarding-agent|Onboarding Agent Source]]", "[[plugin-maintenance-agent|Maintenance Agent Source]]", "[[plugin-polish-agent|Polish Agent Source]]"]
+related: ["[[agent-tool-restriction|Agent Tool Restriction]]", "[[single-pass-dispatch|Single-Pass Dispatch]]", "[[orchestrator-agent|Orchestrator Agent]]", "[[ingest-agent|Ingest Agent]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -56,7 +56,7 @@ The halting condition prevents runaway recursion: the orchestrator fans out exac
 
 ## Related Concepts
 
-- [[Agent Tool Restriction]] — the companion pattern: each agent declares a `tools:` field in YAML front-matter
-- [[Single-Pass Dispatch]] — the orchestrator-specific halting condition
-- [[Orchestrator Agent]] — primary consumer of the dispatch contract
-- [[Ingest Agent]] — most complex contract (plan gate, destructive gate, retry cap)
+- [[agent-tool-restriction|Agent Tool Restriction]] — the companion pattern: each agent declares a `tools:` field in YAML front-matter
+- [[single-pass-dispatch|Single-Pass Dispatch]] — the orchestrator-specific halting condition
+- [[orchestrator-agent|Orchestrator Agent]] — primary consumer of the dispatch contract
+- [[ingest-agent|Ingest Agent]] — most complex contract (plan gate, destructive gate, retry cap)

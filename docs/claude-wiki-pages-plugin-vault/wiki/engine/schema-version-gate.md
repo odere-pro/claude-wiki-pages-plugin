@@ -2,10 +2,10 @@
 title: "Schema Version Gate"
 type: concept
 aliases: ["Schema Version Gate", "schema_version check", "CHECK 0", "SUPPORTED_SCHEMA_VERSIONS", "declaredSchemaVersion"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[schema.ts Source]]", "[[verify.ts Source]]"]
-related: ["[[Provenance Checks]]", "[[Deterministic Engine]]", "[[Lint Rules]]"]
+sources: ["[[schema-ts-source|schema.ts Source]]", "[[verify-ts-source|verify.ts Source]]"]
+related: ["[[provenance-checks|Provenance Checks]]", "[[deterministic-engine|Deterministic Engine]]", "[[lint-rules|Lint Rules]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -52,6 +52,6 @@ message: "schema_version 4 is unsupported (this build supports: 1, 2, 3)."
 
 ## Related Concepts
 
-- [[Provenance Checks]] — the other verify checks (CHECK 5a/5b) in the same pipeline
-- [[Deterministic Engine]] — the `verify` and `heal` verbs that run this check
-- [[Lint Rules]] — the broader set of checks the curator enforces
+- [[provenance-checks|Provenance Checks]] — the other verify checks (CHECK 5a/5b) in the same pipeline
+- [[deterministic-engine|Deterministic Engine]] — the `verify` and `heal` verbs that run this check
+- [[lint-rules|Lint Rules]] — the broader set of checks the curator enforces

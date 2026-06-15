@@ -4,8 +4,8 @@ type: concept
 aliases: ["Wiki-Only Graph", "wiki-only graph", "graph exclusions", "Obsidian graph"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources: ["[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[User Guide: Obsidian Experience]]", "[[Glossary]]"]
-related: ["[[Graph Coloring]]", "[[Graph Config Cache]]", "[[Polish Agent]]", "[[Folder Note]]", "[[Obsidian Experience]]"]
+sources: ["[[_sources/adr-0023-wiki-only-graph|ADR-0023: Wiki-Only Graph]]", "[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[adr-0003-polish-agent|ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[llm-wiki-obsidian-experience|User Guide: Obsidian Experience]]", "[[_sources/glossary|Glossary]]"]
+related: ["[[graph-coloring|Graph Coloring]]", "[[graph-config-cache|Graph Config Cache]]", "[[polish-agent|Polish Agent]]", "[[folder-note|Folder Note]]", "[[obsidian/obsidian-experience|Obsidian Experience]]"]
 tags: ["concept", "graph", "obsidian"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -95,8 +95,8 @@ ADR-0022's third color tier (`path:raw` green, `path:wiki` blue, `path:_template
 
 ## Related Concepts
 
-- [[Graph Coloring]] — the color group management the polish agent owns
-- [[Graph Config Cache]] — why `.obsidian/` is gitignored regenerable cache
-- [[Polish Agent]] — asserts the wiki-only contract idempotently after every write
-- [[Folder Note]] — the pages whose `path:wiki/<topic>` query drives color groups
-- [[Obsidian Experience]] — user guide for the Obsidian-side experience
+- [[graph-coloring|Graph Coloring]] — the color group management the polish agent owns
+- [[graph-config-cache|Graph Config Cache]] — why `.obsidian/` is gitignored regenerable cache
+- [[polish-agent|Polish Agent]] — asserts the wiki-only contract idempotently after every write
+- [[folder-note|Folder Note]] — the pages whose `path:wiki/<topic>` query drives color groups
+- [[obsidian/obsidian-experience|Obsidian Experience]] — user guide for the Obsidian-side experience

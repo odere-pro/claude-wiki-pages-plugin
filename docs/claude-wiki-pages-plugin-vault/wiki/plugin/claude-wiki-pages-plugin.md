@@ -3,10 +3,10 @@ title: "claude-wiki-pages (Plugin)"
 type: entity
 entity_type: product
 aliases: ["claude-wiki-pages (Plugin)", "claude-wiki-pages", "the plugin"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[Installation Guide]]", "[[Features]]", "[[Getting Started (CLI Quickstart)]]", "[[Plugin README]]", "[[Plugin Manifest (plugin.json)]]"]
-related: ["[[Orchestrator Agent]]", "[[Deterministic Engine]]", "[[Four-Layer Stack]]", "[[Hook System]]", "[[Installation]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]", "[[_sources/install|Installation Guide]]", "[[_sources/features|Features]]", "[[_sources/getting-started|Getting Started (CLI Quickstart)]]", "[[plugin-readme|Plugin README]]", "[[plugin-json|Plugin Manifest (plugin.json)]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[deterministic-engine|Deterministic Engine]]", "[[four-layer-stack|Four-Layer Stack]]", "[[hook-system|Hook System]]", "[[Installation]]"]
 tags: ["plugin", "product"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -65,7 +65,7 @@ Most LLM-wiki implementations are one layer: a prompt and a folder convention. `
 
 ## What the Scaffolding Buys (Measured)
 
-The [[Scaffolding Ablation]] (ADR-0020) runs the same model through two prompt arms — the plugin's full prompts vs a generic "extract the knowledge into well-organized notes" prompt. Key measured results (`qwen3-coder:30b`):
+The [[scaffolding-ablation|Scaffolding Ablation]] (ADR-0020) runs the same model through two prompt arms — the plugin's full prompts vs a generic "extract the knowledge into well-organized notes" prompt. Key measured results (`qwen3-coder:30b`):
 
 | Capability               | With plugin | Without plugin                    |
 | ------------------------ | ----------- | --------------------------------- |
@@ -76,9 +76,9 @@ The [[Scaffolding Ablation]] (ADR-0020) runs the same model through two prompt a
 
 ## Related
 
-- [[Four-Layer Stack]] — the architectural model this plugin implements
-- [[Orchestrator Agent]] — sole user-facing entry agent; dispatches all work
-- [[Deterministic Engine]] — validates the vault with no embeddings or inference
-- [[Schema Authority]] — `vault/CLAUDE.md` wins every frontmatter conflict
-- [[Hook System]] — how the plugin enforces its contracts at every tool call
+- [[four-layer-stack|Four-Layer Stack]] — the architectural model this plugin implements
+- [[orchestrator-agent|Orchestrator Agent]] — sole user-facing entry agent; dispatches all work
+- [[deterministic-engine|Deterministic Engine]] — validates the vault with no embeddings or inference
+- [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` wins every frontmatter conflict
+- [[hook-system|Hook System]] — how the plugin enforces its contracts at every tool call
 - [[Installation]] — how to install and verify the plugin

@@ -4,8 +4,8 @@ type: concept
 aliases: ["Approved Local Model", "approved local model", "qwen3-coder:30b", "APPROVED_LOCAL_MODELS"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Local Models]]"]
-related: ["[[Local Model Quality Gate]]", "[[Capability Tier]]", "[[Offline Policy]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]", "[[Scaffolding Ablation]]"]
+sources: ["[[_sources/adr-0011-local-model-quality-gate|ADR-0011: Local-Model Quality Gate]]", "[[adr-0017-fabrication-floor|ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[adr-0019-query-tier|ADR-0019: Query Tier and Answer Verification]]", "[[_sources/local-models|Local Models]]"]
+related: ["[[local-model-quality-gate|Local Model Quality Gate]]", "[[capability-tier|Capability Tier]]", "[[offline-policy|Offline Policy]]", "[[golden-set|Golden Set]]", "[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[scaffolding-ablation|Scaffolding Ablation]]"]
 tags: ["concept", "local-model"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -17,7 +17,7 @@ confidence: 1.0
 # Approved Local Model
 
 > [!summary]
-> An approved local model is a local model (Ollama or LM Studio) that has passed the [[Local Model Quality Gate]] with committed, reproducible evidence and is on the `APPROVED_LOCAL_MODELS_BY_TIER` allow-list in `src/data/config/config.ts`. The engine enforces this list fail-closed: an unapproved model is blocked with a teaching message, never run silently. Claude Code stays primary by default. Currently approved: `qwen3-coder:30b` for both `ingest-extract` and `query` tiers.
+> An approved local model is a local model (Ollama or LM Studio) that has passed the [[local-model-quality-gate|Local Model Quality Gate]] with committed, reproducible evidence and is on the `APPROVED_LOCAL_MODELS_BY_TIER` allow-list in `src/data/config/config.ts`. The engine enforces this list fail-closed: an unapproved model is blocked with a teaching message, never run silently. Claude Code stays primary by default. Currently approved: `qwen3-coder:30b` for both `ingest-extract` and `query` tiers.
 
 ## Key Principles
 
@@ -109,7 +109,7 @@ A vendor benchmark or screenshot is not acceptable evidence. The artifact must b
 
 ## Claude Stays Primary
 
-Even with approved local models, Claude Code is the default for every tier. Local model use requires explicit opt-in via `localModel.enabled: true` in config and an `offlinePolicy` other than `off` (the default). See [[Offline Policy]] for the routing decision logic.
+Even with approved local models, Claude Code is the default for every tier. Local model use requires explicit opt-in via `localModel.enabled: true` in config and an `offlinePolicy` other than `off` (the default). See [[offline-policy|Offline Policy]] for the routing decision logic.
 
 For the `ingest-extract` tier, approved local model output goes to `_proposed/` for human review before reaching `wiki/`. The model does not write to `wiki/` directly — it drafts, and the human promotes via the review gate.
 
@@ -117,8 +117,8 @@ For the `query` tier, every local model answer is checked by runtime answer veri
 
 ## Related Concepts
 
-- [[Local Model Quality Gate]] — the evaluation methodology
-- [[Capability Tier]] — the tier a model is approved for (independent per tier)
-- [[Offline Policy]] — governs when local models stand in for Claude
-- [[Golden Set]] — the eval fixtures used to score the model
-- [[Zero-Fabrication Floor]] — the hard floor a model must clear (no sourced fabrications)
+- [[local-model-quality-gate|Local Model Quality Gate]] — the evaluation methodology
+- [[capability-tier|Capability Tier]] — the tier a model is approved for (independent per tier)
+- [[offline-policy|Offline Policy]] — governs when local models stand in for Claude
+- [[golden-set|Golden Set]] — the eval fixtures used to score the model
+- [[zero-fabrication-floor|Zero-Fabrication Floor]] — the hard floor a model must clear (no sourced fabrications)

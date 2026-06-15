@@ -2,10 +2,10 @@
 title: "Doctor Command"
 type: concept
 aliases: ["Doctor Command", "doctor command", "/claude-wiki-pages:doctor", "doctor", "health check command"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Installation Guide]]", "[[User Guide 01: Getting Started]]", "[[Getting Started (CLI Quickstart)]]"]
-related: ["[[Installation]]", "[[Onboarding Wizard]]", "[[claude-wiki-pages Plugin]]", "[[Time-to-First-Value]]"]
+sources: ["[[_sources/install|Installation Guide]]", "[[llm-wiki-01-getting-started|User Guide 01: Getting Started]]", "[[_sources/getting-started|Getting Started (CLI Quickstart)]]"]
+related: ["[[Installation]]", "[[onboarding-wizard|Onboarding Wizard]]", "[[plugin|claude-wiki-pages Plugin]]", "[[Time-to-First-Value]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -92,11 +92,11 @@ Two named checks were added to cover specific failure modes:
 
 ## Relationship to Onboarding
 
-The [[Onboarding Wizard]] (`/claude-wiki-pages:init`) scaffolds the vault and then recommends running doctor as the verification step. Getting Started (User Guide 01) describes the pattern: install → init → doctor → confirm green → proceed to ingest. Doctor is the "trust but verify" step after onboarding.
+The [[onboarding-wizard|Onboarding Wizard]] (`/claude-wiki-pages:init`) scaffolds the vault and then recommends running doctor as the verification step. Getting Started (User Guide 01) describes the pattern: install → init → doctor → confirm green → proceed to ingest. Doctor is the "trust but verify" step after onboarding.
 
 ## Related Concepts
 
 - [[Installation]] — the three installation paths (marketplace, local, update) that doctor validates
-- [[Onboarding Wizard]] — the wizard that scaffolds the vault; doctor is the recommended follow-up
-- [[claude-wiki-pages Plugin]] — the plugin whose installation state doctor checks
+- [[onboarding-wizard|Onboarding Wizard]] — the wizard that scaffolds the vault; doctor is the recommended follow-up
+- [[plugin|claude-wiki-pages Plugin]] — the plugin whose installation state doctor checks
 - [[Time-to-First-Value]] — the condensed path from install to first cited answer; doctor is the verification gate

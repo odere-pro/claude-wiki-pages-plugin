@@ -2,13 +2,13 @@
 title: "Scheduled Upkeep"
 type: concept
 aliases: ["Scheduled Upkeep", "scheduled upkeep", "autonomous upkeep", "host-owned maintenance", "maintenance-run.sh", "unattended maintenance"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
-related: ["[[Maintenance Loop]]", "[[Maintenance Agent]]", "[[Heartbeat]]", "[[Backlog]]", "[[Draft Review Surface]]", "[[Git Checkpoint]]", "[[Wired Source]]"]
+sources: ["[[_sources/adr-0026-parallel-extract-and-scheduled-upkeep|ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
+related: ["[[maintenance-loop|Maintenance Loop]]", "[[maintenance-agent|Maintenance Agent]]", "[[Heartbeat]]", "[[Backlog]]", "[[draft-review-surface|Draft Review Surface]]", "[[git-checkpoint|Git Checkpoint]]", "[[wired-source|Wired Source]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Maintenance Loop]]", "[[Git Checkpoint]]"]
+depends_on: ["[[maintenance-loop|Maintenance Loop]]", "[[git-checkpoint|Git Checkpoint]]"]
 tags: ["concept", "automation", "scheduled", "maintenance", "upkeep"]
 created: 2026-06-15
 updated: 2026-06-15
@@ -65,8 +65,8 @@ After any unattended run, a human can answer "what changed and can I undo it?" f
 
 ## Related Concepts
 
-- [[Maintenance Loop]] — the ingest→curator→polish→lint loop this scheduling invokes
-- [[Maintenance Agent]] — the specialist that runs the bounded catch-up loop
-- [[Draft Review Surface]] — where uncertain unattended output is staged
-- [[Git Checkpoint]] — every unattended run is fully checkpointed and revertible
+- [[maintenance-loop|Maintenance Loop]] — the ingest→curator→polish→lint loop this scheduling invokes
+- [[maintenance-agent|Maintenance Agent]] — the specialist that runs the bounded catch-up loop
+- [[draft-review-surface|Draft Review Surface]] — where uncertain unattended output is staged
+- [[git-checkpoint|Git Checkpoint]] — every unattended run is fully checkpointed and revertible
 - [[Heartbeat]] — the in-session probe that recommends maintenance (but never invokes it headlessly)

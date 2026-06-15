@@ -3,10 +3,10 @@ title: "Ingest Agent"
 type: entity
 entity_type: tool
 aliases: ["Ingest Agent", "ingest agent", "claude-wiki-pages-ingest-agent", "pipeline"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[ADR-0002: Agent Naming Convention]]", "[[ADR-0010: Durable-Memory Carve-Out]]", "[[User Guide 03: Update Existing Vault]]", "[[Operations Guide]]", "[[Ingest Agent Source]]", "[[ADR-0024: Host-Project Intake]]", "[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
-related: ["[[Orchestrator Agent]]", "[[Curator Agent]]", "[[Polish Agent]]", "[[Ingest Pipeline]]", "[[Git Checkpoint]]", "[[Entity Distribution Model]]", "[[Agent Tool Restriction]]", "[[Host-Project Intake]]", "[[Parallel Extract]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/adr-0002-agent-naming-convention|ADR-0002: Agent Naming Convention]]", "[[adr-0010-durable-memory|ADR-0010: Durable-Memory Carve-Out]]", "[[llm-wiki-03-update-existing|User Guide 03: Update Existing Vault]]", "[[_sources/operations|Operations Guide]]", "[[plugin-ingest-agent|Ingest Agent Source]]", "[[_sources/adr-0024-host-project-intake|ADR-0024: Host-Project Intake]]", "[[_sources/adr-0026-parallel-extract-and-scheduled-upkeep|ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[curator-agent|Curator Agent]]", "[[polish-agent|Polish Agent]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[git-checkpoint|Git Checkpoint]]", "[[entity-distribution-model|Entity Distribution Model]]", "[[agent-tool-restriction|Agent Tool Restriction]]", "[[host-project-intake|Host-Project Intake]]", "[[parallel-extract|Parallel Extract]]"]
 tags: ["agent", "ingest"]
 created: 2026-06-13
 updated: 2026-06-15
@@ -18,21 +18,21 @@ confidence: 1.0
 # Ingest Agent
 
 > [!summary]
-> The `claude-wiki-pages-ingest-agent` is Layer 3's ingest specialist. It processes raw source files from `vault/raw/` into provenance-tracked wiki pages, following the 13-step ingest rules in `vault/CLAUDE.md`. The write phase is bounded by git snapshot checkpoints. After the agent returns, the `subagent-ingest-gate.sh` hook automatically runs `verify-ingest.sh` to ensure no half-written state was left. The [[Polish Agent]] runs as a tail step after ingest completes.
+> The `claude-wiki-pages-ingest-agent` is Layer 3's ingest specialist. It processes raw source files from `vault/raw/` into provenance-tracked wiki pages, following the 13-step ingest rules in `vault/CLAUDE.md`. The write phase is bounded by git snapshot checkpoints. After the agent returns, the `subagent-ingest-gate.sh` hook automatically runs `verify-ingest.sh` to ensure no half-written state was left. The [[polish-agent|Polish Agent]] runs as a tail step after ingest completes.
 
 ## Key Facts
 
 - Type: tool (Layer 3 agent, `user-invocable: true` via `/claude-wiki-pages:claude-wiki-pages-ingest-agent`)
 - Agent name: `claude-wiki-pages-ingest-agent` (renamed from `llm-wiki-ingest-pipeline` in version 0.2.0, ADR-0002)
-- Dispatched by: [[Orchestrator Agent]] when files exist in `vault/raw/` that have no entry in `wiki/log.md`
+- Dispatched by: [[orchestrator-agent|Orchestrator Agent]] when files exist in `vault/raw/` that have no entry in `wiki/log.md`
 - Follows: the 13-step ingest rules in `vault/CLAUDE.md` — the skill provides workflow structure; `CLAUDE.md` provides the schema
 - Write phase bounded by git snapshot checkpoints (pre-snapshot before writes, post-snapshot after)
 - Gate: `subagent-ingest-gate.sh` hook fires automatically on return and runs `verify-ingest.sh`; ERROR findings are surfaced to the orchestrator
-- DRY rule enforced: updates existing pages rather than creating duplicates ([[Entity Distribution Model]])
+- DRY rule enforced: updates existing pages rather than creating duplicates ([[entity-distribution-model|Entity Distribution Model]])
 
 ## Overview
 
-The `claude-wiki-pages-ingest-agent` (renamed from `llm-wiki-ingest-pipeline` in version 0.2.0, ADR-0002) is dispatched by the [[Orchestrator Agent]] when files exist in `vault/raw/` that have no corresponding entry in `wiki/log.md`. The agent follows the ingest rules in `vault/CLAUDE.md` exactly — not the simpler defaults in the `ingest` skill. The skill provides workflow structure; `CLAUDE.md` provides the schema.
+The `claude-wiki-pages-ingest-agent` (renamed from `llm-wiki-ingest-pipeline` in version 0.2.0, ADR-0002) is dispatched by the [[orchestrator-agent|Orchestrator Agent]] when files exist in `vault/raw/` that have no corresponding entry in `wiki/log.md`. The agent follows the ingest rules in `vault/CLAUDE.md` exactly — not the simpler defaults in the `ingest` skill. The skill provides workflow structure; `CLAUDE.md` provides the schema.
 
 ## Dispatch Condition
 
@@ -70,7 +70,7 @@ The agent extracts entities and concepts from the source. For each extracted ite
 
 - Determines the topic folder it belongs to. Creates `wiki/<topic>/<topic>.md` (the folder note) if the folder does not exist.
 - Searches the wiki for an existing page on this entity/concept.
-- **Updates existing pages rather than creating duplicates** (the [[Entity Distribution Model]]). This is the DRY rule: one source rewrites many existing pages rather than spawning one summary.
+- **Updates existing pages rather than creating duplicates** (the [[entity-distribution-model|Entity Distribution Model]]). This is the DRY rule: one source rewrites many existing pages rather than spawning one summary.
 - For new pages: places them in the topic folder, sets `parent` and `path` from the folder note's location, and authors the page from the template in `_templates/<type>.md` (both frontmatter and body section skeleton).
 
 ### 4. Provenance Updates (Steps 7–10)
@@ -98,11 +98,11 @@ Creates a `snapshot: post-ingest` commit. All wiki changes are now in a named, r
 
 ## SubagentStop Gate
 
-When the ingest agent returns, the `subagent-ingest-gate.sh` hook fires automatically (wired in `hooks/hooks.json`). It runs `verify-ingest.sh` against the vault. If any ERROR-level findings are present (dangling links, missing required frontmatter, folder note drift), the hook exits non-zero and surfaces the problems to the orchestrator session. The orchestrator can then dispatch the [[Curator Agent]] to repair the issues.
+When the ingest agent returns, the `subagent-ingest-gate.sh` hook fires automatically (wired in `hooks/hooks.json`). It runs `verify-ingest.sh` against the vault. If any ERROR-level findings are present (dangling links, missing required frontmatter, folder note drift), the hook exits non-zero and surfaces the problems to the orchestrator session. The orchestrator can then dispatch the [[curator-agent|Curator Agent]] to repair the issues.
 
 ## Polish Tail Step
 
-After a successful ingest, the [[Orchestrator Agent]] fans out the [[Polish Agent]] to:
+After a successful ingest, the [[orchestrator-agent|Orchestrator Agent]] fans out the [[polish-agent|Polish Agent]] to:
 
 1. Apply graph colors for any new top-level topic folders.
 2. Regenerate `wiki/index.md` from per-folder folder notes with current page counts.
@@ -112,11 +112,11 @@ The polish agent runs in parallel with the final-report compose step, so ingest 
 
 ## Recursive Enumeration Fix (ADR-0024)
 
-Previously, the ingest agent enumerated `raw/` with a top-level glob (`raw/*.md`), which missed sources wired into nested subdirectories (`raw/wired/<name>/`). The agent now reads pending sources from `engine.sh backlog --json` (`.pendingRaw[]`) — already recursive, `assets/`-excluded, and log/manifest-deduped. The bash fallback is `find` (recursive), never a top-level glob. This makes the [[Host-Project Intake]] flow work end-to-end.
+Previously, the ingest agent enumerated `raw/` with a top-level glob (`raw/*.md`), which missed sources wired into nested subdirectories (`raw/wired/<name>/`). The agent now reads pending sources from `engine.sh backlog --json` (`.pendingRaw[]`) — already recursive, `assets/`-excluded, and log/manifest-deduped. The bash fallback is `find` (recursive), never a top-level glob. This makes the [[host-project-intake|Host-Project Intake]] flow work end-to-end.
 
 ## Parallel Extract (ADR-0026)
 
-When `maintenance.maxParallelExtract > 1`, the ingest agent fans out read-only extract workers (`claude-wiki-pages-extract-worker-agent`, `tools: Read, Glob, Grep` only). Workers return a typed EXTRACT envelope; a **single sequential writer** owns all dedup, page creation, and `wiki/log.md` append. Output is byte-identical at `maxParallelExtract=1` (the default). See [[Parallel Extract]] for the full contract.
+When `maintenance.maxParallelExtract > 1`, the ingest agent fans out read-only extract workers (`claude-wiki-pages-extract-worker-agent`, `tools: Read, Glob, Grep` only). Workers return a typed EXTRACT envelope; a **single sequential writer** owns all dedup, page creation, and `wiki/log.md` append. Output is byte-identical at `maxParallelExtract=1` (the default). See [[parallel-extract|Parallel Extract]] for the full contract.
 
 ## Durable-Memory Carve-Out (ADR-0010)
 
@@ -132,9 +132,9 @@ When `maintenance.maxParallelExtract > 1`, the ingest agent fans out read-only e
 
 ## Related
 
-- [[Orchestrator Agent]] — dispatches to this agent when pending sources exist
-- [[Curator Agent]] — runs after ingest (or is dispatched for lint-fix separately)
-- [[Polish Agent]] — runs as tail step after ingest completes
-- [[Ingest Pipeline]] — the conceptual 13-step workflow this agent implements
-- [[Entity Distribution Model]] — the DRY update-not-duplicate rule
-- [[Git Checkpoint]] — snapshot pre/post wraps the write phase
+- [[orchestrator-agent|Orchestrator Agent]] — dispatches to this agent when pending sources exist
+- [[curator-agent|Curator Agent]] — runs after ingest (or is dispatched for lint-fix separately)
+- [[polish-agent|Polish Agent]] — runs as tail step after ingest completes
+- [[ingest-pipeline|Ingest Pipeline]] — the conceptual 13-step workflow this agent implements
+- [[entity-distribution-model|Entity Distribution Model]] — the DRY update-not-duplicate rule
+- [[git-checkpoint|Git Checkpoint]] — snapshot pre/post wraps the write phase

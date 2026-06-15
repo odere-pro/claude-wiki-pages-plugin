@@ -4,8 +4,8 @@ type: concept
 aliases: ["Plugin Dev-Time vs Runtime", "plugin dev-time vs runtime", "dev-time runtime boundary", "plugin session context boundary", "install boundary"]
 parent: "[[Plugin]]"
 path: "plugin"
-sources: ["[[Plugin CLAUDE.md]]", "[[Plugin README]]", "[[SOFTWARE-3-0: Dual Entry Point]]"]
-related: ["[[Plugin Manifest]]", "[[claude-wiki-pages Plugin]]", "[[Vault Resolution]]", "[[Schema Authority]]", "[[Dual Entry Point]]", "[[Six Surfaces Dual-Reader Contract]]"]
+sources: ["[[plugin-claude-md|Plugin CLAUDE.md]]", "[[plugin-readme|Plugin README]]", "[[llm-software-3-0|SOFTWARE-3-0: Dual Entry Point]]"]
+related: ["[[plugin-manifest|Plugin Manifest]]", "[[plugin|claude-wiki-pages Plugin]]", "[[vault-resolution|Vault Resolution]]", "[[schema-authority|Schema Authority]]", "[[dual-entry-point|Dual Entry Point]]", "[[six-surfaces-dual-reader|Six Surfaces Dual-Reader Contract]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -55,6 +55,6 @@ If a contributor adds a new skill at `skills/new-skill/SKILL.md`, it is immediat
 
 ## Related Concepts
 
-- [[Plugin Manifest]] — the `plugin.json` that Claude Code reads to register the plugin
-- [[Schema Authority]] — the CLAUDE.md file that wins all frontmatter conflicts in a vault
-- [[Vault Resolution]] — how the plugin finds the active vault at runtime
+- [[plugin-manifest|Plugin Manifest]] — the `plugin.json` that Claude Code reads to register the plugin
+- [[schema-authority|Schema Authority]] — the CLAUDE.md file that wins all frontmatter conflicts in a vault
+- [[vault-resolution|Vault Resolution]] — how the plugin finds the active vault at runtime

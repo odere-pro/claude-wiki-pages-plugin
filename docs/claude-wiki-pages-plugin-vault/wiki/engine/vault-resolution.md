@@ -2,10 +2,10 @@
 title: "Vault Resolution"
 type: concept
 aliases: ["Vault Resolution", "vault resolution", "resolve-vault", "four-tier resolution"]
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[Architecture Documentation]]", "[[Operations Guide]]", "[[Design: Claude Config and Security]]"]
-related: ["[[Firewall]]", "[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Installation]]", "[[Onboarding Wizard]]", "[[Hook System]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/operations|Operations Guide]]", "[[design-05-claude-config-security|Design: Claude Config and Security]]"]
+related: ["[[Firewall]]", "[[multi-vault-registry|Multi-Vault Registry]]", "[[active-vault|Active Vault]]", "[[Installation]]", "[[onboarding-wizard|Onboarding Wizard]]", "[[hook-system|Hook System]]"]
 tags: ["concept", "vault"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -140,7 +140,7 @@ graph TB
 ## Related Concepts
 
 - [[Firewall]] — uses the resolved vault path as the allowed write root
-- [[Multi-Vault Registry]] — Tier 2 registry that `current_vault_path` lives in
-- [[Active Vault]] — `current_vault_path` designates this single entity
-- [[Hook System]] — every hook script sources `resolve-vault.sh` at the start
-- [[Onboarding Wizard]] — creates the initial vault and `settings.json` on first run
+- [[multi-vault-registry|Multi-Vault Registry]] — Tier 2 registry that `current_vault_path` lives in
+- [[active-vault|Active Vault]] — `current_vault_path` designates this single entity
+- [[hook-system|Hook System]] — every hook script sources `resolve-vault.sh` at the start
+- [[onboarding-wizard|Onboarding Wizard]] — creates the initial vault and `settings.json` on first run

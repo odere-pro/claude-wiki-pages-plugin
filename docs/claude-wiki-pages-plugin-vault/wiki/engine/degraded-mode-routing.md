@@ -2,10 +2,10 @@
 title: "Degraded-Mode Routing"
 type: concept
 aliases: ["Degraded-Mode Routing", "route verb", "decideRoute", "offline routing", "RouteDecision"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[route.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[Engine Verb Surface]]", "[[Deterministic Engine]]", "[[Offline Policy]]"]
+sources: ["[[route-ts-source|route.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
+related: ["[[engine-verb-surface|Engine Verb Surface]]", "[[deterministic-engine|Deterministic Engine]]", "[[offline-policy|Offline Policy]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -57,6 +57,6 @@ bash scripts/engine.sh route --claude unreachable --json
 
 ## Related Concepts
 
-- [[Offline Policy]] — the configuration that drives the offlinePolicy input to this decision
-- [[Engine Verb Surface]] — the full set of engine verbs `route` is part of
-- [[Deterministic Engine]] — the engine providing this routing verb
+- [[offline-policy|Offline Policy]] — the configuration that drives the offlinePolicy input to this decision
+- [[engine-verb-surface|Engine Verb Surface]] — the full set of engine verbs `route` is part of
+- [[deterministic-engine|Deterministic Engine]] — the engine providing this routing verb

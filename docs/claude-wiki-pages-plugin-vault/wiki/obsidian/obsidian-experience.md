@@ -4,8 +4,8 @@ type: concept
 aliases: ["Obsidian Experience", "obsidian experience", "graph view"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources: ["[[User Guide: Obsidian Experience]]", "[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]"]
-related: ["[[Polish Agent]]", "[[Wiki-Only Graph]]", "[[Folder Note]]", "[[Vault Resolution]]"]
+sources: ["[[llm-wiki-obsidian-experience|User Guide: Obsidian Experience]]", "[[_sources/adr-0023-wiki-only-graph|ADR-0023: Wiki-Only Graph]]", "[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[adr-0003-polish-agent|ADR-0003: Polish Agent and Obsidian-Side Experience]]"]
+related: ["[[polish-agent|Polish Agent]]", "[[wiki-only-graph|Wiki-Only Graph]]", "[[folder-note|Folder Note]]", "[[vault-resolution|Vault Resolution]]"]
 tags: ["concept", "obsidian", "guide"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -17,11 +17,11 @@ confidence: 1.0
 # Obsidian Experience
 
 > [!summary]
-> The Obsidian experience refers to the graph view, search results, and link autocomplete behavior that the [[Polish Agent]] maintains after every ingest or curator pass. The wiki-only graph (ADR-0023) shows only `wiki/` pages — `raw/`, `_templates/`, and `_proposed/` are excluded via `userIgnoreFilters`. Topic branches are color-coded. The graph state is regenerable cache: if `.obsidian/graph.json` is lost, re-run the graph-colors skill to rebuild it deterministically.
+> The Obsidian experience refers to the graph view, search results, and link autocomplete behavior that the [[polish-agent|Polish Agent]] maintains after every ingest or curator pass. The wiki-only graph (ADR-0023) shows only `wiki/` pages — `raw/`, `_templates/`, and `_proposed/` are excluded via `userIgnoreFilters`. Topic branches are color-coded. The graph state is regenerable cache: if `.obsidian/graph.json` is lost, re-run the graph-colors skill to rebuild it deterministically.
 
 ## Definition
 
-The Obsidian experience is the graph view, search, and link autocomplete behavior that the [[Polish Agent]] maintains after every ingest or curator pass. It encompasses the wiki-only graph contract, topic color groups, and vault MOC regeneration.
+The Obsidian experience is the graph view, search, and link autocomplete behavior that the [[polish-agent|Polish Agent]] maintains after every ingest or curator pass. It encompasses the wiki-only graph contract, topic color groups, and vault MOC regeneration.
 
 ## Key Principles
 
@@ -45,7 +45,7 @@ Troubleshooting the Obsidian experience:
 
 ## Overview
 
-When the user opens the vault in Obsidian, they see the graph view, search, and link autocomplete. These features interact with the vault through Obsidian's index — which files it scans, how it resolves wikilinks, and what colors it assigns in the graph. The plugin maintains this Obsidian-side state automatically through the [[Polish Agent]], which runs after every ingest or curator pass.
+When the user opens the vault in Obsidian, they see the graph view, search, and link autocomplete. These features interact with the vault through Obsidian's index — which files it scans, how it resolves wikilinks, and what colors it assigns in the graph. The plugin maintains this Obsidian-side state automatically through the [[polish-agent|Polish Agent]], which runs after every ingest or curator pass.
 
 The core design principle (ADR-0023): the graph shows **only generated wiki pages**. Raw source files, templates, and staged drafts do not appear.
 
@@ -86,7 +86,7 @@ The skill rebuilds the full `colorGroups` array from the current topic tree.
 
 ## Polish Agent Responsibilities
 
-The [[Polish Agent]] owns three Obsidian-side steps that run after every write:
+The [[polish-agent|Polish Agent]] owns three Obsidian-side steps that run after every write:
 
 1. **Graph color application** — adds color groups for any new top-level topic folders. Existing groups are skipped (idempotent).
 2. **`wiki/index.md` regeneration** — rebuilds the vault MOC with current page counts from per-folder folder notes.
@@ -125,13 +125,13 @@ Every query answer must end with a `## Sources` section — numbered, research-p
 ```markdown
 ## Sources
 
-1. [[Analyst Agent]] — raw/docs/architecture.md
-2. [[Query Rules]] — raw/docs/llm-wiki/07-query-the-wiki.md
+1. [[analyst-agent|Analyst Agent]] — raw/docs/architecture.md
+2. [[query-rules|Query Rules]] — raw/docs/llm-wiki/07-query-the-wiki.md
 ```
 
 ## Related Concepts
 
-- [[Polish Agent]] — owns all three Obsidian-side steps
-- [[Wiki-Only Graph]] — the exclusion contract for the graph view
-- [[Folder Note]] — drives the `path:wiki/<topic>` color group queries
-- [[Vault Resolution]] — determines which vault Obsidian should open
+- [[polish-agent|Polish Agent]] — owns all three Obsidian-side steps
+- [[wiki-only-graph|Wiki-Only Graph]] — the exclusion contract for the graph view
+- [[folder-note|Folder Note]] — drives the `path:wiki/<topic>` color group queries
+- [[vault-resolution|Vault Resolution]] — determines which vault Obsidian should open

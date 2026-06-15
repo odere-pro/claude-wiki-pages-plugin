@@ -2,10 +2,10 @@
 title: "Vault Lifecycle"
 type: concept
 aliases: ["Vault Lifecycle", "vault lifecycle", "vault lifecycle commands", "vault init add switch remove merge"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0012: Vault Merge Conflict Resolution]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]"]
-related: ["[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Firewall]]", "[[Vault Resolution]]"]
+sources: ["[[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[adr-0012-vault-merge|ADR-0012: Vault Merge Conflict Resolution]]", "[[adr-0016-multi-vault-registry|ADR-0016: Simultaneous Multi-Vault Management]]"]
+related: ["[[multi-vault-registry|Multi-Vault Registry]]", "[[active-vault|Active Vault]]", "[[Firewall]]", "[[vault-resolution|Vault Resolution]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -100,7 +100,7 @@ The registry enforces:
 
 ## Related Concepts
 
-- [[Multi-Vault Registry]] — the settings.json structure that stores the registered vault list
-- [[Active Vault]] — the single vault that write operations target at any given time
+- [[multi-vault-registry|Multi-Vault Registry]] — the settings.json structure that stores the registered vault list
+- [[active-vault|Active Vault]] — the single vault that write operations target at any given time
 - [[Firewall]] — the enforcement mechanism that confines writes to the active vault
-- [[Vault Resolution]] — the 4-tier resolver that determines the active vault from environment, settings, auto-detect, and default
+- [[vault-resolution|Vault Resolution]] — the 4-tier resolver that determines the active vault from environment, settings, auto-detect, and default

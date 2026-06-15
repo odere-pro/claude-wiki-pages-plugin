@@ -2,13 +2,13 @@
 title: "Parallel Extract"
 type: concept
 aliases: ["Parallel Extract", "parallel extract", "map-only parallel extract", "bounded parallel extract", "maxParallelExtract"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
-related: ["[[Ingest Agent]]", "[[Ingest Pipeline]]", "[[Orchestrator Agent]]", "[[Deterministic Engine]]", "[[Draft Review Surface]]", "[[Git Checkpoint]]"]
+sources: ["[[_sources/adr-0026-parallel-extract-and-scheduled-upkeep|ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
+related: ["[[ingest-agent|Ingest Agent]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[orchestrator-agent|Orchestrator Agent]]", "[[deterministic-engine|Deterministic Engine]]", "[[draft-review-surface|Draft Review Surface]]", "[[git-checkpoint|Git Checkpoint]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Ingest Pipeline]]", "[[Ingest Agent]]"]
+depends_on: ["[[ingest-pipeline|Ingest Pipeline]]", "[[ingest-agent|Ingest Agent]]"]
 tags: ["concept", "parallel", "extract", "performance", "ingest"]
 created: 2026-06-15
 updated: 2026-06-15
@@ -70,7 +70,7 @@ The `route` degrade single-home emits `parallelExtract:{requested,effective,reas
 
 ## Related Concepts
 
-- [[Ingest Pipeline]] — the 13-step pipeline that parallel extract accelerates
-- [[Ingest Agent]] — the specialist that orchestrates workers
-- [[Deterministic Engine]] — determinism property that parallel extract must preserve
-- [[Scheduled Upkeep]] — uses parallel extract when `maxParallelExtract>1`
+- [[ingest-pipeline|Ingest Pipeline]] — the 13-step pipeline that parallel extract accelerates
+- [[ingest-agent|Ingest Agent]] — the specialist that orchestrates workers
+- [[deterministic-engine|Deterministic Engine]] — determinism property that parallel extract must preserve
+- [[scheduled-upkeep|Scheduled Upkeep]] — uses parallel extract when `maxParallelExtract>1`

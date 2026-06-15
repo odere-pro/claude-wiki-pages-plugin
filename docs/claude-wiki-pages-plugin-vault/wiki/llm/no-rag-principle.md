@@ -4,8 +4,8 @@ type: concept
 aliases: ["NO-RAG Principle", "NO-RAG", "no embeddings", "no-rag"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0007: Wiki-Native Recall]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Architecture Documentation]]", "[[Glossary]]"]
-related: ["[[Wiki-Native Recall]]", "[[Deterministic Engine]]", "[[Query Rules]]", "[[Search Score Object]]", "[[Ingest Pipeline]]", "[[Approved Local Model]]", "[[Local Model Quality Gate]]"]
+sources: ["[[_sources/adr-0007-wiki-native-recall|ADR-0007: Wiki-Native Recall]]", "[[adr-0019-query-tier|ADR-0019: Query Tier and Answer Verification]]", "[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]"]
+related: ["[[wiki-native-recall|Wiki-Native Recall]]", "[[deterministic-engine|Deterministic Engine]]", "[[query-rules|Query Rules]]", "[[search-score-object|Search Score Object]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[approved-local-model|Approved Local Model]]", "[[local-model-quality-gate|Local Model Quality Gate]]"]
 contradicts: []
 tags: ["concept", "retrieval", "non-negotiable"]
 created: 2026-06-13
@@ -70,11 +70,11 @@ The reasons are structural, not aesthetic:
 1. **External service dependency.** Embeddings require an embedding model (local or hosted). A hosted model introduces a network dependency that breaks offline use. A local embedding model needs to be shipped, versioned, and updated separately from the plugin.
 2. **Silent drift.** Two embedding runs on the same text with different model versions can produce different vectors — affecting retrieval results with no visible change in the source data. Deterministic keyword search produces identical results given identical inputs, forever.
 3. **Auditability.** When a page appears in a search result, the user can see exactly why: `title-phrase: 5 points, synonym-term: 2 points`. When a page appears because its embedding is "close" to the query, the reason is a latent vector that no human can read.
-4. **Test-layer purity.** The [[Local Model Quality Gate]] (ADR-0011) scores model output by exact structural comparison. Allowing embedding-based scoring in the test layer would smuggle the forbidden mechanism into CI — scoring "correctness" by semantic similarity rather than field-by-field exact match.
+4. **Test-layer purity.** The [[local-model-quality-gate|Local Model Quality Gate]] (ADR-0011) scores model output by exact structural comparison. Allowing embedding-based scoring in the test layer would smuggle the forbidden mechanism into CI — scoring "correctness" by semantic similarity rather than field-by-field exact match.
 
 ## The Positive Alternative: Wiki-Native Recall
 
-The NO-RAG principle is paired with a concrete positive alternative: [[Wiki-Native Recall]]. Rather than embedding-based retrieval, the plugin uses:
+The NO-RAG principle is paired with a concrete positive alternative: [[wiki-native-recall|Wiki-Native Recall]]. Rather than embedding-based retrieval, the plugin uses:
 
 - **Curated synonym lexicon** (`vault/_vocabulary.md`): a human-edited, git-versioned file of term→alias mappings. Querying any member of a synonym group expands to the whole group.
 - **Porter-style stemmer** (`src/core/stem.ts`): a pure, deterministic suffix-rewrite algorithm that maps "running"/"ran"/"runs" to a common root. Applied symmetrically to query terms and page tokens.
@@ -110,8 +110,8 @@ ADR-0011 explicitly addresses this: the golden-set eval scores candidate output 
 
 ## Related Concepts
 
-- [[Wiki-Native Recall]] — the positive, deterministic retrieval alternative
-- [[Deterministic Engine]] — the Bun CLI that implements NO-RAG in code
-- [[Query Rules]] — the structured query workflow for agents
-- [[Search Score Object]] — the `SearchHit.matched[]` breakdown showing exactly why a page ranked
-- [[Local Model Quality Gate]] — the gate that enforces NO-RAG in the eval layer too
+- [[wiki-native-recall|Wiki-Native Recall]] — the positive, deterministic retrieval alternative
+- [[deterministic-engine|Deterministic Engine]] — the Bun CLI that implements NO-RAG in code
+- [[query-rules|Query Rules]] — the structured query workflow for agents
+- [[search-score-object|Search Score Object]] — the `SearchHit.matched[]` breakdown showing exactly why a page ranked
+- [[local-model-quality-gate|Local Model Quality Gate]] — the gate that enforces NO-RAG in the eval layer too

@@ -2,10 +2,10 @@
 title: "Search Score Object"
 type: concept
 aliases: ["Search Score Object", "search score object", "SearchHit", "matched[] breakdown", "score invariant"]
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[ADR-0006: One Search Score Object]]", "[[search.ts Source]]"]
-related: ["[[Wiki-Native Recall]]", "[[Search Scoring Algorithm]]", "[[Tier-2 Deterministic Recall]]", "[[NO-RAG Principle]]"]
+sources: ["[[_sources/adr-0006-search-score-object|ADR-0006: One Search Score Object]]", "[[search-ts-source|search.ts Source]]"]
+related: ["[[wiki-native-recall|Wiki-Native Recall]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[no-rag-principle|NO-RAG Principle]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -27,7 +27,7 @@ confidence: 1.0
 - One score object for all modes: ADR-0006 forbids separate scoring formats across R1, R2, and analyst modes.
 - The score invariant is compile-time-checked: `score === sum(matched[].points)` cannot be violated silently.
 - Every scoring point has an attributed cause in `matched[]`; there are no hidden multipliers or post-hoc adjustments.
-- The `graph-edge` channel is special — populated by the [[Graph Traversal Primitive]], not by direct keyword matching.
+- The `graph-edge` channel is special — populated by the [[graph-traversal-primitive|Graph Traversal Primitive]], not by direct keyword matching.
 - The uniform format means the analyst's page-selection explanation is always the same mechanism: read `matched[]`.
 
 ## Examples
@@ -92,7 +92,7 @@ interface MatchComponent {
 | `stem-term`    | Porter-stemmed terms match any field                               |
 | `graph-edge`   | The page was found via a graph-walk hop from a higher-scoring page |
 
-The `graph-edge` channel is special: it is populated by the [[Graph Traversal Primitive]], not by direct keyword matching. Pages found via graph-walk receive hop-decayed scores through this channel.
+The `graph-edge` channel is special: it is populated by the [[graph-traversal-primitive|Graph Traversal Primitive]], not by direct keyword matching. Pages found via graph-walk receive hop-decayed scores through this channel.
 
 ## Shared Across All Modes
 
@@ -106,7 +106,7 @@ This uniformity means the analyst's "why did you select this page?" explanation 
 
 ## Related Concepts
 
-- [[Wiki-Native Recall]] — the overall retrieval philosophy; the score object is how recall evidence is recorded
-- [[Search Scoring Algorithm]] — the weights and computation rules that populate `matched[]`
-- [[Tier-2 Deterministic Recall]] — synonym and stem expansion that generates `synonym-term` and `stem-term` hits
-- [[NO-RAG Principle]] — the invariant that all scoring is deterministic keyword matching, never embeddings
+- [[wiki-native-recall|Wiki-Native Recall]] — the overall retrieval philosophy; the score object is how recall evidence is recorded
+- [[search-scoring-algorithm|Search Scoring Algorithm]] — the weights and computation rules that populate `matched[]`
+- [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] — synonym and stem expansion that generates `synonym-term` and `stem-term` hits
+- [[no-rag-principle|NO-RAG Principle]] — the invariant that all scoring is deterministic keyword matching, never embeddings

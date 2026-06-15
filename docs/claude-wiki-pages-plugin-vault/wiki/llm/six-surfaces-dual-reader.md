@@ -4,8 +4,8 @@ type: concept
 aliases: ["Six Surfaces Dual-Reader Contract", "six surfaces dual-reader contract", "six surfaces", "dual-reader contract", "six-surfaces table"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[SOFTWARE-3-0: Dual Entry Point]]"]
-related: ["[[Dual Entry Point]]", "[[Plugin Dev-Time vs Runtime]]", "[[Plugin Manifest]]", "[[Analyst Agent]]"]
+sources: ["[[llm-software-3-0|SOFTWARE-3-0: Dual Entry Point]]"]
+related: ["[[dual-entry-point|Dual Entry Point]]", "[[plugin-dev-time-vs-runtime|Plugin Dev-Time vs Runtime]]", "[[plugin-manifest|Plugin Manifest]]", "[[analyst-agent|Analyst Agent]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -50,7 +50,7 @@ A new contributor adding a surface (e.g., a Monitoring surface for CI dashboards
 
 ## Related Concepts
 
-- [[Dual Entry Point]] — the `SOFTWARE-3-0.md` pattern that implements this contract
-- [[Plugin Dev-Time vs Runtime]] — the dev-time vs runtime boundary that determines what each reader sees
-- [[Plugin Manifest]] — the `plugin.json` that registers the plugin's runtime surfaces with Claude Code
-- [[Analyst Agent]] — the agent whose on-ramp in the Tools surface is `skills/engine-api`
+- [[dual-entry-point|Dual Entry Point]] — the `SOFTWARE-3-0.md` pattern that implements this contract
+- [[plugin-dev-time-vs-runtime|Plugin Dev-Time vs Runtime]] — the dev-time vs runtime boundary that determines what each reader sees
+- [[plugin-manifest|Plugin Manifest]] — the `plugin.json` that registers the plugin's runtime surfaces with Claude Code
+- [[analyst-agent|Analyst Agent]] — the agent whose on-ramp in the Tools surface is `skills/engine-api`

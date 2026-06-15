@@ -4,8 +4,8 @@ type: concept
 aliases: ["Dual Entry Point", "dual entry point", "SOFTWARE-3-0 pattern", "front door pattern", "dual reader"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[SOFTWARE-3-0: Dual Entry Point]]"]
-related: ["[[Six Surfaces Dual-Reader Contract]]", "[[Plugin Dev-Time vs Runtime]]", "[[Draft Review Surface]]", "[[Ingest Pipeline]]"]
+sources: ["[[llm-software-3-0|SOFTWARE-3-0: Dual Entry Point]]"]
+related: ["[[six-surfaces-dual-reader|Six Surfaces Dual-Reader Contract]]", "[[plugin-dev-time-vs-runtime|Plugin Dev-Time vs Runtime]]", "[[draft-review-surface|Draft Review Surface]]", "[[ingest-pipeline|Ingest Pipeline]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -27,7 +27,7 @@ The pattern is dev-time only. `SOFTWARE-3-0.md` describes the plugin repository 
 
 ## Key Principles
 
-**A file, not a portal.** The dual entry point is a plain markdown file, not a web page or an interactive menu. Its value is that it is equally readable by a human scrolling through it and by an agent loading it as context. The six-surfaces table (see [[Six Surfaces Dual-Reader Contract]]) is the file's core structure.
+**A file, not a portal.** The dual entry point is a plain markdown file, not a web page or an interactive menu. Its value is that it is equally readable by a human scrolling through it and by an agent loading it as context. The six-surfaces table (see [[six-surfaces-dual-reader|Six Surfaces Dual-Reader Contract]]) is the file's core structure.
 
 **Secure and traceable by construction.** The file documents three construction principles that make the plugin's writes safe and auditable:
 
@@ -37,7 +37,7 @@ The pattern is dev-time only. `SOFTWARE-3-0.md` describes the plugin repository 
 
 **Authoring flow.** A person and an agent author the same way: typed template → `skills/draft` writes to `_proposed/` → `skills/review` gates promotion into `wiki/`. Nothing reaches the wiki unreviewed. The ontology a page must conform to is the `ontology-profile-v1` contract in `docs/vault-example/CLAUDE.md` — read it, do not fork it.
 
-**Dev-time vs runtime boundary.** The dual entry point is accessible at dev-time (contributor view). At runtime, a user's session on-ramp is the resolved vault's `CLAUDE.md`, not `SOFTWARE-3-0.md`. This boundary is maintained by the [[Plugin Dev-Time vs Runtime]] concept: the plugin ships only skills, agents, hooks, scripts, and rules into session context — not docs, tests, or changelogs.
+**Dev-time vs runtime boundary.** The dual entry point is accessible at dev-time (contributor view). At runtime, a user's session on-ramp is the resolved vault's `CLAUDE.md`, not `SOFTWARE-3-0.md`. This boundary is maintained by the [[plugin-dev-time-vs-runtime|Plugin Dev-Time vs Runtime]] concept: the plugin ships only skills, agents, hooks, scripts, and rules into session context — not docs, tests, or changelogs.
 
 ## Examples
 
@@ -45,7 +45,7 @@ When an agent starts a session to work on the plugin repository, it loads `SOFTW
 
 ## Related Concepts
 
-- [[Six Surfaces Dual-Reader Contract]] — the six-row table that is the dual entry point's core structure
-- [[Plugin Dev-Time vs Runtime]] — the boundary that determines what this file covers vs. what the runtime vault's CLAUDE.md covers
-- [[Draft Review Surface]] — the engine gate that implements the \_proposed/ → wiki/ authoring path mentioned in this file
-- [[Ingest Pipeline]] — the agent workflow that runs when new raw sources are added to the vault
+- [[six-surfaces-dual-reader|Six Surfaces Dual-Reader Contract]] — the six-row table that is the dual entry point's core structure
+- [[plugin-dev-time-vs-runtime|Plugin Dev-Time vs Runtime]] — the boundary that determines what this file covers vs. what the runtime vault's CLAUDE.md covers
+- [[draft-review-surface|Draft Review Surface]] — the engine gate that implements the \_proposed/ → wiki/ authoring path mentioned in this file
+- [[ingest-pipeline|Ingest Pipeline]] — the agent workflow that runs when new raw sources are added to the vault

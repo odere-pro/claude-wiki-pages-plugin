@@ -2,10 +2,10 @@
 title: "Baseline Arm"
 type: concept
 aliases: ["Baseline Arm", "baseline arm", "no-scaffolding arm", "generic prompt arm"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[ADR-0020: The Scaffolding Ablation]]", "[[Features]]"]
-related: ["[[Plugin Arm]]", "[[Scaffolding Ablation]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]"]
+sources: ["[[adr-0020-scaffolding-ablation|ADR-0020: The Scaffolding Ablation]]", "[[_sources/features|Features]]"]
+related: ["[[plugin-arm|Plugin Arm]]", "[[scaffolding-ablation|Scaffolding Ablation]]", "[[golden-set|Golden Set]]", "[[zero-fabrication-floor|Zero-Fabrication Floor]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -20,7 +20,7 @@ confidence: 1.0
 # Baseline Arm
 
 > [!summary]
-> The baseline arm is the control condition in the [[Scaffolding Ablation]] (ADR-0020). It runs the same model on the same [[Golden Set]] inputs but with only a generic prompt: "extract the knowledge into well-organized notes." No schema, no provenance contract, no anti-fabrication rules. The baseline arm's results demonstrate what a capable LLM produces without plugin scaffolding.
+> The baseline arm is the control condition in the [[scaffolding-ablation|Scaffolding Ablation]] (ADR-0020). It runs the same model on the same [[golden-set|Golden Set]] inputs but with only a generic prompt: "extract the knowledge into well-organized notes." No schema, no provenance contract, no anti-fabrication rules. The baseline arm's results demonstrate what a capable LLM produces without plugin scaffolding.
 
 ## Key Principles
 
@@ -74,7 +74,7 @@ The baseline arm's zero-fabrication floor is vacuous: because nothing is sourced
 
 Tools: `eval-produce-baseline.sh` (runs the baseline arm against the golden set) and `eval-ablation-report.sh` (compares baseline and plugin arm results). The report is stored in `tests/eval/runs/ablation/` with a `golden_set_sha` for reproducibility.
 
-The ablation is a **report, not a gate.** Unlike the [[Local Model Quality Gate]] (which blocks unapproved models), the ablation does not block anything. It is evidence for the plugin's value proposition, not a CI enforcement mechanism.
+The ablation is a **report, not a gate.** Unlike the [[local-model-quality-gate|Local Model Quality Gate]] (which blocks unapproved models), the ablation does not block anything. It is evidence for the plugin's value proposition, not a CI enforcement mechanism.
 
 ## Why the Baseline Matters
 
@@ -89,7 +89,7 @@ The baseline arm's typical failure modes, observed in the measured run:
 
 ## Related Concepts
 
-- [[Plugin Arm]] — the treatment condition (full scaffolding) in the ablation
-- [[Scaffolding Ablation]] — the overall experiment design
-- [[Golden Set]] — the shared input fixtures both arms run against
-- [[Zero-Fabrication Floor]] — the floor that is enforced in the plugin arm and vacuous in the baseline
+- [[plugin-arm|Plugin Arm]] — the treatment condition (full scaffolding) in the ablation
+- [[scaffolding-ablation|Scaffolding Ablation]] — the overall experiment design
+- [[golden-set|Golden Set]] — the shared input fixtures both arms run against
+- [[zero-fabrication-floor|Zero-Fabrication Floor]] — the floor that is enforced in the plugin arm and vacuous in the baseline

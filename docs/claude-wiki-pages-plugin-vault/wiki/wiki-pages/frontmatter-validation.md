@@ -2,10 +2,10 @@
 title: "Frontmatter Validation"
 type: concept
 aliases: ["Frontmatter Validation", "frontmatter validation", "validate-frontmatter.sh", "frontmatter checker"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[ADR-0014: Single-Source Required Fields]]"]
-related: ["[[Required Fields]]", "[[Schema Authority]]", "[[Lint Rules]]", "[[Design-Drift Gate]]"]
+sources: ["[[adr-0014-single-source-required-fields|ADR-0014: Single-Source Required Fields]]"]
+related: ["[[required-fields|Required Fields]]", "[[schema-authority|Schema Authority]]", "[[lint-rules|Lint Rules]]", "[[design-drift-gate|Design-Drift Gate]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -20,7 +20,7 @@ confidence: 1.0
 # Frontmatter Validation
 
 > [!summary]
-> Frontmatter validation is the process of checking that every wiki page's YAML frontmatter contains all [[Required Fields]] for its type and that field values conform to the schema's enum and format constraints. It is implemented in `scripts/validate-frontmatter.sh` using grep/awk only — no Bun required. The script reads the required-fields table from `vault/CLAUDE.md` at run time, making the table the single source of truth.
+> Frontmatter validation is the process of checking that every wiki page's YAML frontmatter contains all [[required-fields|Required Fields]] for its type and that field values conform to the schema's enum and format constraints. It is implemented in `scripts/validate-frontmatter.sh` using grep/awk only — no Bun required. The script reads the required-fields table from `vault/CLAUDE.md` at run time, making the table the single source of truth.
 
 ## Key Principles
 
@@ -80,7 +80,7 @@ ADR-0014 also added duplicate-claim detection: if the same claim appears in two 
 
 ## Related Concepts
 
-- [[Required Fields]] — the per-type field requirements that frontmatter validation enforces
-- [[Schema Authority]] — `vault/CLAUDE.md` as the single source of truth for the required-fields table
-- [[Lint Rules]] — the broader set of checks; frontmatter validation is the structural subset
-- [[Design-Drift Gate]] — a sibling check in `validate-docs.sh` that catches design document drift
+- [[required-fields|Required Fields]] — the per-type field requirements that frontmatter validation enforces
+- [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` as the single source of truth for the required-fields table
+- [[lint-rules|Lint Rules]] — the broader set of checks; frontmatter validation is the structural subset
+- [[design-drift-gate|Design-Drift Gate]] — a sibling check in `validate-docs.sh` that catches design document drift

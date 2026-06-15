@@ -3,10 +3,10 @@ title: "Engineering Team"
 type: entity
 entity_type: organization
 aliases: ["Engineering Team", "engineering team", "wiki-dev", "wiki-dev team"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Design: Teams and Agents]]", "[[Agent Teams]]"]
-related: ["[[Brainstorming Team]]", "[[Four-Layer Stack]]", "[[Architecture Decision Record]]"]
+sources: ["[[design-04-teams-and-agents|Design: Teams and Agents]]", "[[_sources/teams|Agent Teams]]"]
+related: ["[[brainstorming-team|Brainstorming Team]]", "[[four-layer-stack|Four-Layer Stack]]", "[[architecture-decision-record|Architecture Decision Record]]"]
 tags: ["entity", "organization", "dev-team"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -19,7 +19,7 @@ confidence: 1.0
 
 ## Overview
 
-The engineering team (`wiki-dev`) is a dev-only Claude Code agent team stored in `.claude/teams/wiki-dev/`. It consists of 9 roles across 4 specialization lanes and implements the proposals ratified from the [[Brainstorming Team]]. Like the brainstorming team, it is a development tool for driving the plugin's own design — not a runtime plugin component.
+The engineering team (`wiki-dev`) is a dev-only Claude Code agent team stored in `.claude/teams/wiki-dev/`. It consists of 9 roles across 4 specialization lanes and implements the proposals ratified from the [[brainstorming-team|Brainstorming Team]]. Like the brainstorming team, it is a development tool for driving the plugin's own design — not a runtime plugin component.
 
 ## Key Facts
 
@@ -40,7 +40,7 @@ The engineering team (`wiki-dev`) is a dev-only Claude Code agent team stored in
 
 **Output:** Shipped ADRs and gate-green changes. Unlike the brainstorming team (which produces transient proposals), the engineering team's output is committed, tested, and merged.
 
-**Handoff from brainstorming team:** The [[Brainstorming Team]] produces phased roadmap proposals. The Architect on the engineering team ratifies proposals as ADRs. Engineers implement under the ratified ADR. QA-functional tests correctness; QA-adversarial tests security, adversarial inputs, and edge cases. PM accepts the deliverable. Delivery Lead integrates.
+**Handoff from brainstorming team:** The [[brainstorming-team|Brainstorming Team]] produces phased roadmap proposals. The Architect on the engineering team ratifies proposals as ADRs. Engineers implement under the ratified ADR. QA-functional tests correctness; QA-adversarial tests security, adversarial inputs, and edge cases. PM accepts the deliverable. Delivery Lead integrates.
 
 ## Relationship to Runtime Agents
 
@@ -48,6 +48,6 @@ The engineering team is the team that builds and maintains the plugin's 7 runtim
 
 ## Related
 
-- [[Brainstorming Team]] — the ideation team whose proposals the engineering team implements
-- [[Four-Layer Stack]] — the architecture the engineering team maintains
-- [[Architecture Decision Record]] — the ADR format that governs the engineering team's design decisions
+- [[brainstorming-team|Brainstorming Team]] — the ideation team whose proposals the engineering team implements
+- [[four-layer-stack|Four-Layer Stack]] — the architecture the engineering team maintains
+- [[architecture-decision-record|Architecture Decision Record]] — the ADR format that governs the engineering team's design decisions

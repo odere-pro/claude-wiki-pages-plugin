@@ -3,10 +3,10 @@ title: "cli.ts"
 type: entity
 entity_type: tool
 aliases: ["cli.ts", "CLI entry point", "TypeScript CLI router", "src/cli/cli.ts"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[cli.ts Source]]", "[[Engine API Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[engine.sh]]", "[[Deterministic Engine]]", "[[Engine CLI Router]]", "[[Engine Verb Surface]]", "[[Shell-TS Parity]]", "[[Degraded-Mode Routing]]"]
+sources: ["[[cli-ts-source|cli.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]", "[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]"]
+related: ["[[engine-sh|engine.sh]]", "[[deterministic-engine|Deterministic Engine]]", "[[engine-cli-router|Engine CLI Router]]", "[[engine-verb-surface|Engine Verb Surface]]", "[[shell-ts-parity|Shell-TS Parity]]", "[[degraded-mode-routing|Degraded-Mode Routing]]"]
 tags: ["tool", "typescript", "engine"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -76,9 +76,9 @@ confidence: 1.0
 
 ## Related
 
-- [[engine.sh]] — the bash bridge that invokes this entry point
-- [[Engine CLI Router]] — the dispatch pattern inside this file
-- [[Engine Verb Surface]] — the CAPABILITIES table as a concept
-- [[Deterministic Engine]] — design-level view of the engine
-- [[Shell-TS Parity]] — the parity contract between bash gates and this module
-- [[Degraded-Mode Routing]] — what happens when cli.ts cannot be invoked
+- [[engine-sh|engine.sh]] — the bash bridge that invokes this entry point
+- [[engine-cli-router|Engine CLI Router]] — the dispatch pattern inside this file
+- [[engine-verb-surface|Engine Verb Surface]] — the CAPABILITIES table as a concept
+- [[deterministic-engine|Deterministic Engine]] — design-level view of the engine
+- [[shell-ts-parity|Shell-TS Parity]] — the parity contract between bash gates and this module
+- [[degraded-mode-routing|Degraded-Mode Routing]] — what happens when cli.ts cannot be invoked

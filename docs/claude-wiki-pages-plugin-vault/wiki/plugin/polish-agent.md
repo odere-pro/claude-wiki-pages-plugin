@@ -3,10 +3,10 @@ title: "Polish Agent"
 type: entity
 entity_type: tool
 aliases: ["Polish Agent", "polish agent", "claude-wiki-pages-polish-agent", "polish"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0023: Wiki-Only Graph]]", "[[User Guide: Obsidian Experience]]", "[[Polish Agent Source]]"]
-related: ["[[Orchestrator Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Folder Note]]", "[[Wiki-Only Graph]]", "[[Obsidian Experience]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[adr-0003-polish-agent|ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[_sources/adr-0023-wiki-only-graph|ADR-0023: Wiki-Only Graph]]", "[[llm-wiki-obsidian-experience|User Guide: Obsidian Experience]]", "[[plugin-polish-agent|Polish Agent Source]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[folder-note|Folder Note]]", "[[wiki-only-graph|Wiki-Only Graph]]", "[[obsidian/obsidian-experience|Obsidian Experience]]"]
 tags: ["agent", "polish"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,11 +18,11 @@ confidence: 1.0
 # Polish Agent
 
 > [!summary]
-> The `claude-wiki-pages-polish-agent` is the tail-of-write step that keeps the Obsidian-side experience consistent after every ingest or curator pass. It owns three idempotent steps: graph color application, `wiki/index.md` regeneration, and folder note reconciliation. It is not user-invocable directly — the [[Orchestrator Agent]] fans it out after ingest or curator success. It was introduced in ADR-0003 to centralise the Obsidian-side invariants, which were previously distributed across the ingest agent, the curator, and the standalone `llm-wiki-index` skill.
+> The `claude-wiki-pages-polish-agent` is the tail-of-write step that keeps the Obsidian-side experience consistent after every ingest or curator pass. It owns three idempotent steps: graph color application, `wiki/index.md` regeneration, and folder note reconciliation. It is not user-invocable directly — the [[orchestrator-agent|Orchestrator Agent]] fans it out after ingest or curator success. It was introduced in ADR-0003 to centralise the Obsidian-side invariants, which were previously distributed across the ingest agent, the curator, and the standalone `llm-wiki-index` skill.
 
 ## Key Facts
 
-- Type: tool (Layer 3 agent, `user-invocable: false` — has no standalone meaning; fanned out by the [[Orchestrator Agent]] after every ingest or curator pass)
+- Type: tool (Layer 3 agent, `user-invocable: false` — has no standalone meaning; fanned out by the [[orchestrator-agent|Orchestrator Agent]] after every ingest or curator pass)
 - Agent name: `claude-wiki-pages-polish-agent` (introduced in version 0.2.0, ADR-0003)
 - Three idempotent steps: (1) graph color application, (2) `wiki/index.md` regeneration, (3) folder note reconciliation
 - Headless fallback: writes `.obsidian/graph.json` directly when `obsidian eval` is unavailable; requires Obsidian restart to avoid clobber race
@@ -73,7 +73,7 @@ This replaces the ingest agent's previous append-only `wiki/index.md` step, whic
 
 ### Step 3 — Folder Note Reconciliation
 
-Walks every folder under `wiki/`. For each folder, compares the actual `.md` siblings to the folder note's `children` list. Any page present on disk but absent from `children` is appended. This is **append-only** — the agent never removes entries from `children`, even if a page file is missing (removals require editorial judgment, which is the [[Curator Agent]]'s domain).
+Walks every folder under `wiki/`. For each folder, compares the actual `.md` siblings to the folder note's `children` list. Any page present on disk but absent from `children` is appended. This is **append-only** — the agent never removes entries from `children`, even if a page file is missing (removals require editorial judgment, which is the [[curator-agent|Curator Agent]]'s domain).
 
 The reconciliation also checks `child_indexes`: any subfolder that has a folder note but is not listed in the parent's `child_indexes` gets added.
 
@@ -92,17 +92,17 @@ The polish agent was added as a fourth specialist in 0.2.0, growing `agents/` fr
 | Phase        | Specialist        |
 | ------------ | ----------------- |
 | Init         | Onboarding wizard |
-| Ingest       | [[Ingest Agent]]  |
-| Repair       | [[Curator Agent]] |
+| Ingest       | [[ingest-agent|Ingest Agent]]  |
+| Repair       | [[curator-agent|Curator Agent]] |
 | Presentation | Polish Agent      |
 
 The polish agent's three steps are collectively "presentation" — they do not change wiki content, they sync how Obsidian renders it.
 
 ## Related
 
-- [[Orchestrator Agent]] — fans out the polish agent as a tail step
-- [[Ingest Agent]] — triggers a polish run on every successful ingest
-- [[Curator Agent]] — triggers a polish run after every audit-and-repair pass
-- [[Folder Note]] — the per-folder index files the agent reconciles
-- [[Wiki-Only Graph]] — the graph contract the polish agent enforces via `userIgnoreFilters`
-- [[Obsidian Experience]] — the user-facing outcome the polish agent maintains
+- [[orchestrator-agent|Orchestrator Agent]] — fans out the polish agent as a tail step
+- [[ingest-agent|Ingest Agent]] — triggers a polish run on every successful ingest
+- [[curator-agent|Curator Agent]] — triggers a polish run after every audit-and-repair pass
+- [[folder-note|Folder Note]] — the per-folder index files the agent reconciles
+- [[wiki-only-graph|Wiki-Only Graph]] — the graph contract the polish agent enforces via `userIgnoreFilters`
+- [[obsidian/obsidian-experience|Obsidian Experience]] — the user-facing outcome the polish agent maintains

@@ -2,13 +2,13 @@
 title: "Provenance Checks"
 type: concept
 aliases: ["Provenance Checks", "CHECK 5a", "CHECK 5b", "provenance-completeness", "provenance-consistency"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[provenance.ts Source]]", "[[verify.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[Schema Version Gate]]", "[[Deterministic Engine]]", "[[Lint Rules]]"]
+sources: ["[[provenance-ts-source|provenance.ts Source]]", "[[verify-ts-source|verify.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
+related: ["[[schema-version-gate|Schema Version Gate]]", "[[deterministic-engine|Deterministic Engine]]", "[[lint-rules|Lint Rules]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Schema Version Gate]]"]
+depends_on: ["[[schema-version-gate|Schema Version Gate]]"]
 tags: ["engine", "verify", "provenance", "integrity"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -52,6 +52,6 @@ message: "derived-high-confidence: \"Synthesis\" (synthesis.md) has derived: tru
 
 ## Related Concepts
 
-- [[Schema Version Gate]] — another check within the same verify pipeline
-- [[Deterministic Engine]] — the engine command (`verify`) that runs these checks
-- [[Lint Rules]] — the broader set of lint principles the curator enforces
+- [[schema-version-gate|Schema Version Gate]] — another check within the same verify pipeline
+- [[deterministic-engine|Deterministic Engine]] — the engine command (`verify`) that runs these checks
+- [[lint-rules|Lint Rules]] — the broader set of lint principles the curator enforces

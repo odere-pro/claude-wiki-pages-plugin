@@ -2,10 +2,10 @@
 title: "Synonym Lexicon"
 type: concept
 aliases: ["Synonym Lexicon", "_vocabulary.md", "synonym lexicon", "loadLexicon", "synonymsOf"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[vocabulary.ts Source]]", "[[search.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[Tier-2 Deterministic Recall]]", "[[Search Scoring Algorithm]]", "[[Porter Stemmer]]", "[[Wiki-Native Recall]]"]
+sources: ["[[vocabulary-ts-source|vocabulary.ts Source]]", "[[search-ts-source|search.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
+related: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[porter-stemmer|Porter Stemmer]]", "[[wiki-native-recall|Wiki-Native Recall]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -51,6 +51,6 @@ After union-find: `{heal, fix, repair, patch}` are one connected component.
 
 ## Related Concepts
 
-- [[Tier-2 Deterministic Recall]] — the search layer that calls loadLexicon() and synonymsOf()
-- [[Search Scoring Algorithm]] — the synonym-term channel scores lower than exact matches
-- [[Porter Stemmer]] — the complementary algorithmic expansion (vs human-curated synonyms)
+- [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] — the search layer that calls loadLexicon() and synonymsOf()
+- [[search-scoring-algorithm|Search Scoring Algorithm]] — the synonym-term channel scores lower than exact matches
+- [[porter-stemmer|Porter Stemmer]] — the complementary algorithmic expansion (vs human-curated synonyms)

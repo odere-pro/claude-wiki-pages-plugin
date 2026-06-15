@@ -2,10 +2,10 @@
 title: "Sources Section"
 type: concept
 aliases: ["Sources Section", "sources section", "## Sources", "sources grounding", "answer sources"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[ADR-0022: Folder Notes and Graph Quality]]", "[[User Guide 07: Query the Wiki]]"]
-related: ["[[Query Rules]]", "[[Grounded Retrieval]]", "[[Analyst Agent]]", "[[Synthesis Note]]", "[[Challenge Mode]]"]
+sources: ["[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[llm-wiki-07-query-the-wiki|User Guide 07: Query the Wiki]]"]
+related: ["[[query-rules|Query Rules]]", "[[grounded-retrieval|Grounded Retrieval]]", "[[analyst-agent|Analyst Agent]]", "[[synthesis-note|Synthesis Note]]", "[[challenge-mode|Challenge Mode]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -38,8 +38,8 @@ A well-formed Sources Section:
 ## Sources
 
 1. [[Firewall]] — raw/docs/adr/ADR-0009-multi-vault-confinement.md
-2. [[Multi-Vault Registry]] — raw/docs/operations.md
-3. [[Vault Resolution]] — raw/docs/design/05-claude-config-security.md
+2. [[multi-vault-registry|Multi-Vault Registry]] — raw/docs/operations.md
+3. [[vault-resolution|Vault Resolution]] — raw/docs/design/05-claude-config-security.md
 ```
 
 A gap-acknowledgement Sources Section (no pages consulted):
@@ -53,7 +53,7 @@ Consider adding source material to vault/raw/ and running /claude-wiki-pages:wik
 
 ## Definition
 
-ADR-0022 established the Sources Section grounding contract: every answer produced by the [[Analyst Agent]] or the `/claude-wiki-pages:query` skill must end with a numbered `## Sources` section that cites the wiki pages consulted. This is modeled on research-paper citation practice, adapted for wiki-native wikilinks.
+ADR-0022 established the Sources Section grounding contract: every answer produced by the [[analyst-agent|Analyst Agent]] or the `/claude-wiki-pages:query` skill must end with a numbered `## Sources` section that cites the wiki pages consulted. This is modeled on research-paper citation practice, adapted for wiki-native wikilinks.
 
 Format:
 
@@ -61,8 +61,8 @@ Format:
 ## Sources
 
 1. [[Firewall]] — one-sentence note on why this page was consulted
-2. [[Multi-Vault Registry]] — what it contributed to the answer
-3. [[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]] — the raw source it grounds
+2. [[multi-vault-registry|Multi-Vault Registry]] — what it contributed to the answer
+3. [[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]] — the raw source it grounds
 ```
 
 The section must:
@@ -88,12 +88,12 @@ User Guide 07 states: "Every answer ends with a `## Sources` section (research-p
 
 ## Novel Answer Filing
 
-When a query answer reveals a cross-cutting insight not yet captured in the wiki, the analyst offers to file it as a [[Synthesis Note]]. The Sources Section of the original answer becomes the `scope:` and `sources:` fields of the synthesis note: the same pages that grounded the answer are listed in the synthesis note as the evidence base.
+When a query answer reveals a cross-cutting insight not yet captured in the wiki, the analyst offers to file it as a [[synthesis-note|Synthesis Note]]. The Sources Section of the original answer becomes the `scope:` and `sources:` fields of the synthesis note: the same pages that grounded the answer are listed in the synthesis note as the evidence base.
 
 ## Related Concepts
 
-- [[Query Rules]] — the full query workflow; the Sources Section is the terminal step
-- [[Grounded Retrieval]] — the retrieval discipline that ensures the Sources Section lists pages actually consulted
-- [[Analyst Agent]] — the agent that produces Sources Sections as part of every answer
-- [[Synthesis Note]] — a permanent wiki page that extends the Sources Section grounding to a stored analysis
-- [[Challenge Mode]] — a query mode that explicitly surfaces contradictions; the Sources Section includes pages on both sides of a contradiction
+- [[query-rules|Query Rules]] — the full query workflow; the Sources Section is the terminal step
+- [[grounded-retrieval|Grounded Retrieval]] — the retrieval discipline that ensures the Sources Section lists pages actually consulted
+- [[analyst-agent|Analyst Agent]] — the agent that produces Sources Sections as part of every answer
+- [[synthesis-note|Synthesis Note]] — a permanent wiki page that extends the Sources Section grounding to a stored analysis
+- [[challenge-mode|Challenge Mode]] — a query mode that explicitly surfaces contradictions; the Sources Section includes pages on both sides of a contradiction

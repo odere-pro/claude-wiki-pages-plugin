@@ -3,10 +3,10 @@ title: "Brainstorming Team"
 type: entity
 entity_type: organization
 aliases: ["Brainstorming Team", "brainstorming team", "wiki-brainstorm", "ideation team"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Design: Teams and Agents]]", "[[Agent Teams]]"]
-related: ["[[Engineering Team]]", "[[Four-Layer Stack]]", "[[Orchestrator Agent]]"]
+sources: ["[[design-04-teams-and-agents|Design: Teams and Agents]]", "[[_sources/teams|Agent Teams]]"]
+related: ["[[engineering-team|Engineering Team]]", "[[four-layer-stack|Four-Layer Stack]]", "[[orchestrator-agent|Orchestrator Agent]]"]
 tags: ["entity", "organization", "dev-team"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -37,7 +37,7 @@ The brainstorming team is a dev-only Claude Code agent team (not a runtime plugi
 - Grill-Me Interrogator — stress-tests proposals with adversarial questions
 - Skeptic — challenges assumptions and resists premature convergence
 
-**Three-round protocol:** Divergence (free ideation) → Cross-critique (each persona challenges others) → Convergence (synthesize into a proposal). The protocol prevents premature consensus and ensures adversarial review before a proposal reaches the [[Engineering Team]].
+**Three-round protocol:** Divergence (free ideation) → Cross-critique (each persona challenges others) → Convergence (synthesize into a proposal). The protocol prevents premature consensus and ensures adversarial review before a proposal reaches the [[engineering-team|Engineering Team]].
 
 **Output:** Phased roadmap proposals. These are transient — they inform the engineering team's work but are not themselves shipped artifacts. The engineering team converts accepted proposals into ADRs and implementations.
 
@@ -47,6 +47,6 @@ The brainstorming team is a dev-only Claude Code agent team (not a runtime plugi
 
 ## Related
 
-- [[Engineering Team]] — receives the brainstorming team's proposals and implements them
-- [[Four-Layer Stack]] — the architecture both teams reason about
-- [[Orchestrator Agent]] — one of the 7 runtime agents that the brainstorming team designs for
+- [[engineering-team|Engineering Team]] — receives the brainstorming team's proposals and implements them
+- [[four-layer-stack|Four-Layer Stack]] — the architecture both teams reason about
+- [[orchestrator-agent|Orchestrator Agent]] — one of the 7 runtime agents that the brainstorming team designs for

@@ -2,10 +2,10 @@
 title: "Active Vault"
 type: concept
 aliases: ["Active Vault", "active vault", "current vault", "current_vault_path"]
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Operations Guide]]"]
-related: ["[[Multi-Vault Registry]]", "[[Vault Lifecycle]]", "[[Firewall]]", "[[Vault Resolution]]"]
+sources: ["[[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[adr-0016-multi-vault-registry|ADR-0016: Simultaneous Multi-Vault Management]]", "[[_sources/operations|Operations Guide]]"]
+related: ["[[multi-vault-registry|Multi-Vault Registry]]", "[[vault-lifecycle|Vault Lifecycle]]", "[[Firewall]]", "[[vault-resolution|Vault Resolution]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -102,7 +102,7 @@ A read-time audit roll-up surfaces any violation at session start so the user kn
 
 ## Related Concepts
 
-- [[Multi-Vault Registry]] — the settings.json structure and lifecycle commands
-- [[Vault Lifecycle]] — init, add, switch, remove, merge lifecycle operations
+- [[multi-vault-registry|Multi-Vault Registry]] — the settings.json structure and lifecycle commands
+- [[vault-lifecycle|Vault Lifecycle]] — init, add, switch, remove, merge lifecycle operations
 - [[Firewall]] — the enforcement mechanism for cross-vault deny and allowPaths
-- [[Vault Resolution]] — the 4-tier resolver that determines the active vault from environment, settings, auto-detect, and default
+- [[vault-resolution|Vault Resolution]] — the 4-tier resolver that determines the active vault from environment, settings, auto-detect, and default

@@ -2,10 +2,10 @@
 title: "Multi-Vault Registry"
 type: concept
 aliases: ["Multi-Vault Registry", "multi-vault registry", "vault registry", "settings.json"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0012: Vault Merge Conflict Resolution]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Operations Guide]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Vault Resolution]]", "[[Firewall]]", "[[Active Vault]]", "[[Hook System]]", "[[Multi-Vault Operating Rules]]"]
+sources: ["[[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[adr-0012-vault-merge|ADR-0012: Vault Merge Conflict Resolution]]", "[[adr-0016-multi-vault-registry|ADR-0016: Simultaneous Multi-Vault Management]]", "[[_sources/operations|Operations Guide]]", "[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[vault-resolution|Vault Resolution]]", "[[Firewall]]", "[[active-vault|Active Vault]]", "[[hook-system|Hook System]]", "[[multi-vault-operating-rules|Multi-Vault Operating Rules]]"]
 tags: ["concept", "vault", "registry"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -139,7 +139,7 @@ No external agent or LLM should read `settings.json` directly. Use `scripts/set-
 
 ## Related Concepts
 
-- [[Vault Resolution]] — reads `current_vault_path` from this registry; Tier 2 in the 4-tier order
+- [[vault-resolution|Vault Resolution]] — reads `current_vault_path` from this registry; Tier 2 in the 4-tier order
 - [[Firewall]] — uses `otherVaults` derived from this registry for `cross-vault` deny
-- [[Active Vault]] — `current_vault_path` designates the one writable vault
-- [[Hook System]] — the `firewall.sh` PreToolUse hook reads the registry on every write
+- [[active-vault|Active Vault]] — `current_vault_path` designates the one writable vault
+- [[hook-system|Hook System]] — the `firewall.sh` PreToolUse hook reads the registry on every write

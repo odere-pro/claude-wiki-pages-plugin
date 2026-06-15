@@ -2,13 +2,13 @@
 title: "Engine CLI Router"
 type: concept
 aliases: ["Engine CLI Router", "CLI router", "cli router", "command dispatcher"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[cli.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[Engine Verb Surface]]", "[[cli.ts]]", "[[engine.sh]]", "[[Deterministic Engine]]"]
+sources: ["[[cli-ts-source|cli.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
+related: ["[[engine-verb-surface|Engine Verb Surface]]", "[[cli-ts|cli.ts]]", "[[engine-sh|engine.sh]]", "[[deterministic-engine|Deterministic Engine]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Engine Verb Surface]]"]
+depends_on: ["[[engine-verb-surface|Engine Verb Surface]]"]
 tags: ["engine", "cli", "routing"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -57,7 +57,7 @@ if (command === "config") {
 
 ## Related Concepts
 
-- [[Engine Verb Surface]] — the CAPABILITIES table the router derives from
-- [[cli.ts]] — the concrete file containing the router
-- [[engine.sh]] — the bash bridge that invokes the router
-- [[Deterministic Engine]] — the engine whose surface this router exposes
+- [[engine-verb-surface|Engine Verb Surface]] — the CAPABILITIES table the router derives from
+- [[cli-ts|cli.ts]] — the concrete file containing the router
+- [[engine-sh|engine.sh]] — the bash bridge that invokes the router
+- [[deterministic-engine|Deterministic Engine]] — the engine whose surface this router exposes

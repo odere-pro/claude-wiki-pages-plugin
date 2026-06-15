@@ -2,10 +2,10 @@
 title: "Required Fields"
 type: concept
 aliases: ["Required Fields", "required fields", "required frontmatter", "per-type required fields", "frontmatter requirements"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[ADR-0014: Single-Source Required Fields]]"]
-related: ["[[Schema Authority]]", "[[Frontmatter Validation]]", "[[Lint Rules]]", "[[Glossary Terms]]"]
+sources: ["[[adr-0014-single-source-required-fields|ADR-0014: Single-Source Required Fields]]"]
+related: ["[[schema-authority|Schema Authority]]", "[[frontmatter-validation|Frontmatter Validation]]", "[[lint-rules|Lint Rules]]", "[[glossary-terms|Glossary Terms]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -45,9 +45,9 @@ The minimum required set for a `concept` page:
 ```yaml
 type: concept
 title: "Fail Closed"
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[Architecture Documentation]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]"]
 created: 2026-06-14
 updated: 2026-06-14
 status: active
@@ -102,7 +102,7 @@ Pages with missing required fields produce `missing-field` findings in `verify-i
 
 ## Related Concepts
 
-- [[Schema Authority]] — `vault/CLAUDE.md` as the single source of truth for required fields and all other schema rules
-- [[Frontmatter Validation]] — the validation script (`validate-frontmatter.sh`) that checks required fields
-- [[Lint Rules]] — the broader set of lint checks; required-field checking is one of the structural checks
-- [[Glossary Terms]] — where terminology used in the required-fields table is defined
+- [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` as the single source of truth for required fields and all other schema rules
+- [[frontmatter-validation|Frontmatter Validation]] — the validation script (`validate-frontmatter.sh`) that checks required fields
+- [[lint-rules|Lint Rules]] — the broader set of lint checks; required-field checking is one of the structural checks
+- [[glossary-terms|Glossary Terms]] — where terminology used in the required-fields table is defined

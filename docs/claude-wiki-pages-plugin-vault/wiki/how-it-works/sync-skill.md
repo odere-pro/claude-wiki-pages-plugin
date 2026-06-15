@@ -2,13 +2,13 @@
 title: "Sync Skill"
 type: concept
 aliases: ["Sync Skill", "sync skill", "sync", "/claude-wiki-pages:sync"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Sync Skill (SKILL.md)]]"]
-related: ["[[Wired Source]]", "[[Sync Workflow]]", "[[sync-source.sh]]", "[[Ingest Pipeline]]", "[[Git Checkpoint]]", "[[Ingest Agent]]"]
+sources: ["[[_sources/sync-skill|Sync Skill (SKILL.md)]]"]
+related: ["[[wired-source|Wired Source]]", "[[sync-workflow|Sync Workflow]]", "[[sync-source-sh|sync-source.sh]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[git-checkpoint|Git Checkpoint]]", "[[ingest-agent|Ingest Agent]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Wired Source]]", "[[Git Checkpoint]]"]
+depends_on: ["[[wired-source|Wired Source]]", "[[git-checkpoint|Git Checkpoint]]"]
 tags: ["concept", "sync", "skill"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -21,7 +21,7 @@ confidence: 1.0
 
 ## Definition
 
-The Sync skill (`skills/sync/SKILL.md`) is the operational procedure for bringing the wiki up to date with a wired source repository. It detects upstream documentation changes in the registered wired source, copies new docs into `vault/raw/` as immutable versioned snapshots, marks previously ingested source notes as superseded, and hands off to the normal [[Ingest Pipeline]] for re-ingesting the changed content. The skill is triggered by user phrases such as "sync the wiki" or "pull project changes", the `SYNC:` heartbeat notice, or the `/claude-wiki-pages:sync` slash command.
+The Sync skill (`skills/sync/SKILL.md`) is the operational procedure for bringing the wiki up to date with a wired source repository. It detects upstream documentation changes in the registered wired source, copies new docs into `vault/raw/` as immutable versioned snapshots, marks previously ingested source notes as superseded, and hands off to the normal [[ingest-pipeline|Ingest Pipeline]] for re-ingesting the changed content. The skill is triggered by user phrases such as "sync the wiki" or "pull project changes", the `SYNC:` heartbeat notice, or the `/claude-wiki-pages:sync` slash command.
 
 ## Key Principles
 
@@ -44,8 +44,8 @@ A typical sync sequence when the wired source repo has two changed docs:
 
 ## Related Concepts
 
-- [[Wired Source]] — the registered git work tree that the sync skill targets
-- [[Sync Workflow]] — step-by-step breakdown of all eight sync steps
-- [[sync-source.sh]] — the Bash script that handles detection and file copying
-- [[Ingest Pipeline]] — the follow-on pipeline that updates wiki pages after sync
-- [[Git Checkpoint]] — the snapshot pre/post mechanism that makes sync reversible
+- [[wired-source|Wired Source]] — the registered git work tree that the sync skill targets
+- [[sync-workflow|Sync Workflow]] — step-by-step breakdown of all eight sync steps
+- [[sync-source-sh|sync-source.sh]] — the Bash script that handles detection and file copying
+- [[ingest-pipeline|Ingest Pipeline]] — the follow-on pipeline that updates wiki pages after sync
+- [[git-checkpoint|Git Checkpoint]] — the snapshot pre/post mechanism that makes sync reversible

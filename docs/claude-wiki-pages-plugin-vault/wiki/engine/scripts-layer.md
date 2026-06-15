@@ -2,10 +2,10 @@
 title: "Scripts Layer"
 type: concept
 aliases: ["Scripts Layer", "Layer 4 shell", "scripts directory", "hook scripts", "shell orchestration"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[Engine Scripts Layer (CLAUDE.md)]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[engine.sh]]", "[[Hook System]]", "[[Firewall]]", "[[Vault Resolution]]", "[[Deterministic Engine]]", "[[Git Checkpoint]]"]
+sources: ["[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
+related: ["[[engine-sh|engine.sh]]", "[[hook-system|Hook System]]", "[[Firewall]]", "[[vault-resolution|Vault Resolution]]", "[[deterministic-engine|Deterministic Engine]]", "[[git-checkpoint|Git Checkpoint]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -31,7 +31,7 @@ The Scripts Layer is the `scripts/` directory of the plugin — the Layer 4 Orch
   - **Hook mode**: reads tool-call JSON from stdin; optionally emits `{"decision":"block","reason":"…"}` on stdout; ALWAYS exits 0 (non-zero exit from a hook is a harness error, not a policy block). The exception is `enforce-dmi.sh`, which exits 2.
   - **CLI mode**: accepts `--target <vault>` / `--file <path>` flags; prints plain output; uses real exit codes (0=clean, 1=issues). Used by tests and manual runs.
 - **Sourceable helpers**: `resolve-vault.sh` (vault resolution) and `vault-lock.sh` (the advisory write lock) are the two files meant to be `source`d; both omit `set -euo pipefail` to avoid mutating the caller's shell options and fail closed per-function instead.
-- **Write-safety**: scripts that move or sync files (`obsidian-rename.sh`, `sync-source.sh`) confine with physical `realpath` so a symlink or `../` hop cannot escape the vault, and snapshot/commit sequences serialize through the advisory `vault-lock.sh` (see [[Git Checkpoint]]).
+- **Write-safety**: scripts that move or sync files (`obsidian-rename.sh`, `sync-source.sh`) confine with physical `realpath` so a symlink or `../` hop cannot escape the vault, and snapshot/commit sequences serialize through the advisory `vault-lock.sh` (see [[git-checkpoint|Git Checkpoint]]).
 - **Shell↔TS parity gates**: `firewall.sh` ↔ `firewall.ts` (gate-11) and `verify-ingest.sh` ↔ engine `verify` (gate-05) are byte-aligned twins; if they diverge CI fails. (`vault-lock.sh` ↔ `vault-lock.ts` share an invariant but use different mechanisms — flock vs. in-process queue — so they are companions, not byte-pinned twins.)
 - **Coupling by design**: `hooks/hooks.json` + scripts + `tests/scripts/*.bats` are one unit. Change all three together when updating a hook.
 
@@ -70,8 +70,8 @@ bash scripts/firewall.sh --target docs/vault --file wiki/engine/test.md
 
 ## Related Concepts
 
-- [[engine.sh]] — the bridge from this layer to the Bun engine
-- [[Hook System]] — the broader hook event system the scripts plug into
+- [[engine-sh|engine.sh]] — the bridge from this layer to the Bun engine
+- [[hook-system|Hook System]] — the broader hook event system the scripts plug into
 - [[Firewall]] — the write-confinement gate implemented as a script in this layer
-- [[Vault Resolution]] — the four-tier resolver sourced by every script here
-- [[Deterministic Engine]] — the Bun tier that the scripts bridge to for structural work
+- [[vault-resolution|Vault Resolution]] — the four-tier resolver sourced by every script here
+- [[deterministic-engine|Deterministic Engine]] — the Bun tier that the scripts bridge to for structural work

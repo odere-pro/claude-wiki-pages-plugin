@@ -2,10 +2,10 @@
 title: "Banned Strings"
 type: concept
 aliases: ["Banned Strings", "banned strings", "retired terminology", "banned terms", "validate-docs banned"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Glossary]]"]
-related: ["[[Glossary Terms]]", "[[Schema Authority]]", "[[Design-Drift Gate]]"]
+sources: ["[[_sources/glossary|Glossary]]"]
+related: ["[[glossary-terms|Glossary Terms]]", "[[schema-authority|Schema Authority]]", "[[design-drift-gate|Design-Drift Gate]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -20,7 +20,7 @@ confidence: 1.0
 # Banned Strings
 
 > [!summary]
-> Banned strings are retired terminology that `scripts/validate-docs.sh` enforces as forbidden in all project docs, skills, and user-visible strings. The ban list is part of the [[Glossary Terms]] and is checked in CI Tier 0. Violations cause `validate-docs.sh` to exit non-zero with `path:line:column` diagnostics.
+> Banned strings are retired terminology that `scripts/validate-docs.sh` enforces as forbidden in all project docs, skills, and user-visible strings. The ban list is part of the [[glossary-terms|Glossary Terms]] and is checked in CI Tier 0. Violations cause `validate-docs.sh` to exit non-zero with `path:line:column` diagnostics.
 
 ## Key Principles
 
@@ -77,6 +77,6 @@ The Glossary is semver: additions are minor bumps (new terms added), renames or 
 
 ## Related Concepts
 
-- [[Glossary Terms]] — the full glossary including the banned strings list and the two registers (Technical, Discoverability)
-- [[Schema Authority]] — `vault/CLAUDE.md` as the schema authority; the glossary is authoritative for terminology while CLAUDE.md is authoritative for frontmatter
-- [[Design-Drift Gate]] — Check 5 of `validate-docs.sh`; the glossary gate (Check 1) is a sibling check in the same script
+- [[glossary-terms|Glossary Terms]] — the full glossary including the banned strings list and the two registers (Technical, Discoverability)
+- [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` as the schema authority; the glossary is authoritative for terminology while CLAUDE.md is authoritative for frontmatter
+- [[design-drift-gate|Design-Drift Gate]] — Check 5 of `validate-docs.sh`; the glossary gate (Check 1) is a sibling check in the same script

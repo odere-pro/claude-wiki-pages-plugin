@@ -4,8 +4,8 @@ type: concept
 aliases: ["Analyst Extract Mode", "analyst extract mode", "Extract Mode", "Mode 4 Extract", "structured data extraction"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related: ["[[Analyst Agent]]", "[[Analyst Dashboard Mode]]", "[[Analyst Document Compile Mode]]", "[[Query Rules]]"]
+sources: ["[[llm-analyst-modes-skill|Analyst Modes Skill (SKILL.md)]]", "[[plugin-analyst-agent|Analyst Agent Source]]"]
+related: ["[[analyst-agent|Analyst Agent]]", "[[analyst-dashboard-mode|Analyst Dashboard Mode]]", "[[analyst-document-compile-mode|Analyst Document Compile Mode]]", "[[query-rules|Query Rules]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,7 +21,7 @@ confidence: 1.0
 
 ## Definition
 
-Analyst Extract Mode is Mode 4 of the five [[Analyst Agent]] operating modes. It extracts structured data from wiki pages into tables, lists, or machine-readable formats. The mode is designed for use cases where the user needs a portable structured view of frontmatter fields, relationships, claims, dates, or custom patterns — without requiring the Obsidian Dataview plugin. Unlike Mode 2 (Dashboard), which focuses on health metrics, Extract Mode is target-driven: the user declares exactly what data to pull and from which scope.
+Analyst Extract Mode is Mode 4 of the five [[analyst-agent|Analyst Agent]] operating modes. It extracts structured data from wiki pages into tables, lists, or machine-readable formats. The mode is designed for use cases where the user needs a portable structured view of frontmatter fields, relationships, claims, dates, or custom patterns — without requiring the Obsidian Dataview plugin. Unlike Mode 2 (Dashboard), which focuses on health metrics, Extract Mode is target-driven: the user declares exactly what data to pull and from which scope.
 
 ## Key Principles
 
@@ -63,7 +63,7 @@ The analyst scans `wiki/architecture/` via Glob, reads frontmatter for each page
 
 ## Related Concepts
 
-- [[Analyst Agent]] — the agent that implements all five modes including Extract
-- [[Analyst Dashboard Mode]] — Mode 2; related in scope (reads many pages) but focuses on health metrics rather than raw data extraction
-- [[Analyst Document Compile Mode]] — Mode 3; similar scoped read but produces narrative prose rather than structured data
-- [[Query Rules]] — Mode 1; the full query workflow the analyst follows for question answering
+- [[analyst-agent|Analyst Agent]] — the agent that implements all five modes including Extract
+- [[analyst-dashboard-mode|Analyst Dashboard Mode]] — Mode 2; related in scope (reads many pages) but focuses on health metrics rather than raw data extraction
+- [[analyst-document-compile-mode|Analyst Document Compile Mode]] — Mode 3; similar scoped read but produces narrative prose rather than structured data
+- [[query-rules|Query Rules]] — Mode 1; the full query workflow the analyst follows for question answering

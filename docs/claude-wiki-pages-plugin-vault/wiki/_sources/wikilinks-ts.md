@@ -55,17 +55,3 @@ logic mirrors the bash `sed '/^```/,/^```/d'` idiom.
   idiomatic approach.
 - The guard message is a human-readable string instructing conversion to wikilinks
   for Obsidian compatibility.
-
-## Concepts Covered
-
-- [[Wikilink Extractor]]
-- [[Frontmatter Parser]]
-- [[Provenance Checks]]
-- [[MOC Repair Primitives]]
-- [[Dangling Wikilink]]
-
-## Grounded Pages
-
-Wiki pages that cite this source:
-
-- [[Wikilink Extractor]] — the concept page this source directly backs (three exported functions, markdown-link guard)

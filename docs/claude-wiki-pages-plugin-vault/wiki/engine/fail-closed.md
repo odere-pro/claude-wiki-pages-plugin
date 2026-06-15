@@ -2,10 +2,10 @@
 title: "Fail-Closed"
 type: concept
 aliases: ["Fail-Closed", "fail-closed", "fail closed", "fail-safe", "deny by default"]
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Design: Claude Config and Security]]"]
-related: ["[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Firewall]]", "[[Local Model Quality Gate]]"]
+sources: ["[[adr-0016-multi-vault-registry|ADR-0016: Simultaneous Multi-Vault Management]]", "[[design-05-claude-config-security|Design: Claude Config and Security]]"]
+related: ["[[multi-vault-registry|Multi-Vault Registry]]", "[[active-vault|Active Vault]]", "[[Firewall]]", "[[local-model-quality-gate|Local Model Quality Gate]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -52,7 +52,7 @@ See docs/local-models.md for the evaluation procedure.
 A fail-closed system refuses to act when it cannot confirm safety. In the plugin, this means:
 
 - **Unknown state → block.** If the registry is malformed, all writes are blocked until the registry is repaired.
-- **Unapproved model → block.** A [[Capability Tier]] with no approved local model is BLOCKED with a teaching message; it is never run with an unapproved model as a silent fallback.
+- **Unapproved model → block.** A [[capability-tier|Capability Tier]] with no approved local model is BLOCKED with a teaching message; it is never run with an unapproved model as a silent fallback.
 - **Cross-vault write → block.** A write that targets a registered-but-inactive vault is blocked at the firewall layer before `allowPaths` is evaluated.
 - **CI gate failure → block.** The design-drift gate and glossary gate fail the CI run rather than emitting a warning and continuing.
 
@@ -87,7 +87,7 @@ The plugin's value proposition is provenance discipline: every claim traces to a
 
 ## Related Concepts
 
-- [[Multi-Vault Registry]] — the registry component where fail-closed is most visibly applied
-- [[Active Vault]] — the vault that is protected by fail-closed cross-vault deny
+- [[multi-vault-registry|Multi-Vault Registry]] — the registry component where fail-closed is most visibly applied
+- [[active-vault|Active Vault]] — the vault that is protected by fail-closed cross-vault deny
 - [[Firewall]] — the enforcement mechanism that applies fail-closed write confinement
-- [[Local Model Quality Gate]] — the gate whose BLOCKED/allow-list enforcement is fail-closed
+- [[local-model-quality-gate|Local Model Quality Gate]] — the gate whose BLOCKED/allow-list enforcement is fail-closed
