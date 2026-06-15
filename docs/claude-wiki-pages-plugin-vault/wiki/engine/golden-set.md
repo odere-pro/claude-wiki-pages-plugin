@@ -4,7 +4,7 @@ type: concept
 aliases: ["Golden Set", "golden set", "golden-set", "eval fixtures", "golden_set_sha"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0020: The Scaffolding Ablation]]", "[[Local Models]]", "[[ADR-0029: Drop docs/vault-example]]"]
+sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0020: The Scaffolding Ablation]]", "[[Local Models]]", "[[ADR-0029|ADR-0029: Drop docs/vault-example]]"]
 related: ["[[Local Model Quality Gate]]", "[[Zero-Fabrication Floor]]", "[[Approved Local Model]]", "[[Capability Tier]]", "[[Scaffolding Ablation]]", "[[Schema Authority]]", "[[Parity Gate]]"]
 contradicts: []
 supersedes: []

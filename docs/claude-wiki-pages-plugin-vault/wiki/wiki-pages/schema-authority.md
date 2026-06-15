@@ -4,7 +4,7 @@ type: concept
 aliases: ["Schema Authority", "schema authority", "vault schema", "CLAUDE.md"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0014: Single-Source Required Fields]]", "[[User Guide 02: Create a New Vault]]", "[[Knowledge Graph Schema (CLAUDE.md)]]", "[[ADR-0029: Drop docs/vault-example]]"]
+sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0014: Single-Source Required Fields]]", "[[User Guide 02: Create a New Vault]]", "[[Knowledge Graph Schema (CLAUDE.md)]]", "[[ADR-0029|ADR-0029: Drop docs/vault-example]]"]
 related: ["[[Ontology Profile v1]]", "[[Ingest Pipeline]]", "[[Lint Rules]]", "[[Hook System]]", "[[Folder Note]]", "[[Golden Set]]", "[[Parity Gate]]"]
 tags: ["concept", "schema", "authority"]
 created: 2026-06-13
