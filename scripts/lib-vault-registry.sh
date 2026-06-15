@@ -30,7 +30,7 @@
 # Backfill: any operation that reads the registry adds current_vault_path to
 # vaults[] if the key is missing, keeping old settings files migration-safe.
 
-# Internal: read the vaults array from settings.json using python3.
+# Internal: read the vaults array from settings.json via the Bun settings helper.
 # Prints lines of "path|name" pairs; prints nothing if no vaults key.
 #
 # Fail-closed contract (ADR-0016 N4/N5):
@@ -41,65 +41,16 @@
 #     a valid legacy/fresh single-vault project (tier-4 default-fallback intact).
 _vaults_read() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
-  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" <<'PYEOF'
-import json, sys
-
-settings_file = sys.argv[1]
-try:
-    data = json.load(open(settings_file))
-except Exception as exc:
-    sys.stderr.write(
-        "[claude-wiki-pages] WARN: registry malformed (cannot parse %s: %s)"
-        " — all writes blocked until repaired\n" % (settings_file, exc)
-    )
-    sys.exit(1)
-
-# No vaults key — valid legacy project; tier-4 fallback applies.
-if "vaults" not in data:
-    sys.exit(0)
-
-vaults = data.get("vaults", [])
-current = data.get("current_vault_path", "")
-
-# Check invariant: current_vault_path must be a member of vaults[].path.
-if current and not any(v.get("path", "") == current for v in vaults):
-    sys.stderr.write(
-        "[claude-wiki-pages] WARN: registry inconsistent"
-        " (current_vault_path '%s' is not in vaults[])"
-        " — all writes blocked until repaired\n" % current
-    )
-    sys.exit(1)
-
-for v in vaults:
-    path_val = v.get("path", "")
-    name_val = v.get("name", "")
-    if not isinstance(path_val, str) or not isinstance(name_val, str):
-        sys.stderr.write(
-            "[claude-wiki-pages] WARN: registry malformed"
-            " (non-string name or path in vaults[]: path=%r name=%r)"
-            " — all writes blocked until repaired\n" % (path_val, name_val)
-        )
-        sys.exit(1)
-    print(path_val + "|" + name_val)
-PYEOF
+  _cwp_settings_tool vaults-read "$CLAUDE_WIKI_PAGES_SETTINGS"
 }
 
 # Internal: rewrite the full settings.json with a new vaults array.
-# $1 = python3 list literal of {"path":…,"name":…} dicts as a JSON string
+# $1 = a JSON-string array of {"path":…,"name":…} objects
 # Preserves default_vault_path and current_vault_path exactly as-is.
 _vaults_write() {
   local new_vaults_json="$1"
   local tmp="${CLAUDE_WIKI_PAGES_SETTINGS}.tmp"
-  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" "$new_vaults_json" >"$tmp" 2>/dev/null <<'PYEOF'
-import json, sys
-try:
-    data = json.load(open(sys.argv[1]))
-except Exception:
-    data = {}
-data["vaults"] = json.loads(sys.argv[2])
-print(json.dumps(data, indent=2))
-PYEOF
-  if [ $? -ne 0 ] || [ ! -s "$tmp" ]; then
+  if ! _cwp_settings_tool vaults-write "$CLAUDE_WIKI_PAGES_SETTINGS" "$new_vaults_json" >"$tmp" 2>/dev/null || [ ! -s "$tmp" ]; then
     printf '[claude-wiki-pages] WARN: cannot update vaults registry\n' >&2
     rm -f "$tmp" 2>/dev/null
     return 1
@@ -111,11 +62,7 @@ PYEOF
 # Migration-safe: old settings files without vaults are valid.
 _vaults_backfill() {
   init_vault_settings
-  if ! python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null <<'PYEOF'; then
-import json, sys
-data = json.load(open(sys.argv[1]))
-sys.exit(0 if "vaults" in data else 1)
-PYEOF
+  if ! _cwp_settings_tool has-key "$CLAUDE_WIKI_PAGES_SETTINGS" vaults 2>/dev/null; then
     # vaults key absent — backfill from current_vault_path
     local cur
     cur=$(_settings_get_field "$CLAUDE_WIKI_PAGES_SETTINGS" "current_vault_path")
@@ -143,25 +90,11 @@ vault_add() {
 
   # Build updated array
   local current_json
-  current_json=$(
-    python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null <<'PYEOF'
-import json, sys
-data = json.load(open(sys.argv[1]))
-print(json.dumps(data.get("vaults", [])))
-PYEOF
-  )
+  current_json=$(_cwp_settings_tool vaults-get "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null)
   local new_entry
   new_entry=$(printf '{"path":"%s","name":"%s"}' "$new_path" "$new_name")
   local updated_json
-  updated_json=$(
-    python3 - "$current_json" "$new_entry" 2>/dev/null <<'PYEOF'
-import json, sys
-lst = json.loads(sys.argv[1])
-entry = json.loads(sys.argv[2])
-lst.append(entry)
-print(json.dumps(lst))
-PYEOF
-  )
+  updated_json=$(_cwp_settings_tool array-append "$current_json" "$new_entry" 2>/dev/null)
   _vaults_write "$updated_json"
 }
 
@@ -202,23 +135,9 @@ vault_remove() {
 
   # Build filtered array (exclude resolved_path)
   local current_json
-  current_json=$(
-    python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null <<'PYEOF'
-import json, sys
-data = json.load(open(sys.argv[1]))
-print(json.dumps(data.get("vaults", [])))
-PYEOF
-  )
+  current_json=$(_cwp_settings_tool vaults-get "$CLAUDE_WIKI_PAGES_SETTINGS" 2>/dev/null)
   local filtered_json
-  filtered_json=$(
-    python3 - "$current_json" "$resolved_path" 2>/dev/null <<'PYEOF'
-import json, sys
-lst = json.loads(sys.argv[1])
-path = sys.argv[2]
-lst = [v for v in lst if v.get("path") != path]
-print(json.dumps(lst))
-PYEOF
-  )
+  filtered_json=$(_cwp_settings_tool array-filter-path "$current_json" "$resolved_path" 2>/dev/null)
   _vaults_write "$filtered_json"
 }
 

@@ -46,17 +46,17 @@ run_wire() {
 @test "wire-source: record carries docs-only globs and the vault exclude" {
   run_wire add --name proj --path . --vault docs/vault
   assert_success
-  run python3 -c "import json; w=json.load(open('$SETTINGS'))['wired_sources'][0]; print(w['name'], 'docs/vault/**' in w['exclude'], 'README*' in w['include'], bool(w['lastSyncedCommit']))"
+  run bun -e "const w=JSON.parse(require('fs').readFileSync('$SETTINGS','utf8')).wired_sources[0]; const b=(x)=>x?'True':'False'; console.log([w.name, b(w.exclude.includes('docs/vault/**')), b(w.include.includes('README*')), b(Boolean(w.lastSyncedCommit))].join(' '))"
   assert_output_contains "proj True True True"
 }
 
 @test "wire-source: re-add is idempotent and preserves lastSyncedCommit" {
   run_wire add --name proj --path . --vault docs/vault
   assert_success
-  before=$(python3 -c "import json; print(json.load(open('$SETTINGS'))['wired_sources'][0]['lastSyncedCommit'])")
+  before=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('$SETTINGS','utf8')).wired_sources[0].lastSyncedCommit)")
   run_wire add --name proj --path . --vault docs/vault
   assert_success
-  run python3 -c "import json; d=json.load(open('$SETTINGS')); print(len(d['wired_sources']), d['wired_sources'][0]['lastSyncedCommit'])"
+  run bun -e "const d=JSON.parse(require('fs').readFileSync('$SETTINGS','utf8')); console.log(d.wired_sources.length, d.wired_sources[0].lastSyncedCommit)"
   assert_output_contains "1 $before"
 }
 

@@ -18,13 +18,10 @@ set -euo pipefail
 
 # Read tool input from stdin (Claude passes it as JSON).
 INPUT=$(cat)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Extract tool_name from the JSON payload.
-TOOL_NAME=$(printf '%s' "$INPUT" | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-print(d.get('tool_name', ''))
-" 2>/dev/null || true)
+TOOL_NAME=$(printf '%s' "$INPUT" | bun "$SCRIPT_DIR/json-tool.ts" field tool_name 2>/dev/null || true)
 
 # Only act on Read, Grep, Glob calls — no-op otherwise.
 case "$TOOL_NAME" in
@@ -36,18 +33,12 @@ esac
 # Read: tool_input.file_path
 # Grep: tool_input.path
 # Glob: tool_input.pattern (may not be a vault path — best-effort)
-FILE_PATH=$(printf '%s' "$INPUT" | python3 -c "
-import sys, json
-d = json.load(sys.stdin)
-ti = d.get('tool_input', {})
-print(ti.get('file_path') or ti.get('path') or ti.get('pattern') or '')
-" 2>/dev/null || true)
+FILE_PATH=$(printf '%s' "$INPUT" | bun "$SCRIPT_DIR/json-tool.ts" field tool_input.file_path tool_input.path tool_input.pattern 2>/dev/null || true)
 
 [ -z "$FILE_PATH" ] && exit 0
 
 # Resolve the active vault path using the sourced helper.
 # Source resolve-vault.sh (non-strict: it must not mutate our shell options).
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=resolve-vault.sh
 source "${SCRIPT_DIR}/resolve-vault.sh" 2>/dev/null || true
 VAULT=$(resolve_vault 2>/dev/null || echo "")
@@ -55,9 +46,9 @@ VAULT=$(resolve_vault 2>/dev/null || echo "")
 [ -z "$VAULT" ] && exit 0
 
 # Normalise both paths: expand to absolute where possible.
-# Use python3 for consistent path normalisation.
-NORM_FILE=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$FILE_PATH" 2>/dev/null || printf '%s' "$FILE_PATH")
-NORM_VAULT=$(python3 -c "import os, sys; print(os.path.realpath(sys.argv[1]))" "$VAULT" 2>/dev/null || printf '%s' "$VAULT")
+# Use the Bun helper for consistent, symlink-resolving path normalisation.
+NORM_FILE=$(bun "$SCRIPT_DIR/json-tool.ts" realpath "$FILE_PATH" 2>/dev/null || printf '%s' "$FILE_PATH")
+NORM_VAULT=$(bun "$SCRIPT_DIR/json-tool.ts" realpath "$VAULT" 2>/dev/null || printf '%s' "$VAULT")
 
 # Warn when the path is under the vault but outside well-known read boundaries
 # (vault/ root is acceptable for CLAUDE.md / _vocabulary.md / wiki/**).

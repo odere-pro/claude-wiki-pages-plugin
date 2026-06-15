@@ -361,13 +361,12 @@ MD
   # Rewrite the inline sources to the multi-line flow array shape the ingest
   # pipeline actually emits. The old grep/awk parser could not read this and
   # falsely flagged the page as having no sources.
-  python3 - "$page" <<'PY'
-import sys
-p = sys.argv[1]
-t = open(p).read()
-t = t.replace('sources: ["[[Sample]]"]', 'sources:\n  [\n    "[[Sample]]",\n  ]')
-open(p, "w").write(t)
-PY
+  bun -e "
+const fs = require('fs');
+const p = process.argv[1];
+const t = fs.readFileSync(p, 'utf8').replaceAll('sources: [\"[[Sample]]\"]', 'sources:\n  [\n    \"[[Sample]]\",\n  ]');
+fs.writeFileSync(p, t);
+" "$page"
 
   run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 

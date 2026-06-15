@@ -27,7 +27,7 @@ setup() {
 # Verifies a JSON string is valid (exits non-zero if not).
 assert_valid_json() {
   local json="$1"
-  printf '%s' "$json" | python3 -m json.tool >/dev/null 2>&1 || {
+  printf '%s' "$json" | bun -e "JSON.parse(await Bun.stdin.text())" >/dev/null 2>&1 || {
     printf 'assert_valid_json: not valid JSON:\n%s\n' "$json" >&2
     return 1
   }
@@ -39,22 +39,23 @@ assert_findings_keys_conformant() {
   local json="$1"
   # Extract each finding as a JSON line and check its keys.
   local bad
-  bad=$(printf '%s' "$json" | python3 -c "
-import json, sys
-
-data = json.load(sys.stdin)
-findings = data.get('findings', [])
-allowed = {'severity', 'check', 'message', 'file'}
-bad_findings = []
-for i, f in enumerate(findings):
-    extra = set(f.keys()) - allowed
-    missing_required = {'severity', 'check', 'message'} - set(f.keys())
-    if extra or missing_required:
-        bad_findings.append({'index': i, 'keys': list(f.keys()), 'extra': list(extra), 'missing': list(missing_required)})
-if bad_findings:
-    print(json.dumps(bad_findings))
-    sys.exit(1)
-sys.exit(0)
+  bad=$(printf '%s' "$json" | bun -e "
+const data = JSON.parse(await Bun.stdin.text());
+const findings = data.findings || [];
+const allowed = ['severity', 'check', 'message', 'file'];
+const required = ['severity', 'check', 'message'];
+const badFindings = [];
+findings.forEach((f, i) => {
+  const keys = Object.keys(f);
+  const extra = keys.filter((k) => !allowed.includes(k));
+  const missing = required.filter((k) => !keys.includes(k));
+  if (extra.length || missing.length) badFindings.push({ index: i, keys, extra, missing });
+});
+if (badFindings.length) {
+  console.log(JSON.stringify(badFindings));
+  process.exit(1);
+}
+process.exit(0);
 " 2>&1)
   if [ $? -ne 0 ]; then
     printf 'assert_findings_keys_conformant: non-conformant findings:\n%s\n' "$bad" >&2
@@ -66,18 +67,13 @@ sys.exit(0)
 # Asserts that the top-level envelope has the required keys: findings (array).
 assert_envelope_has_findings() {
   local json="$1"
-  python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-if 'findings' not in data:
-    print('missing \"findings\" key in envelope')
-    sys.exit(1)
-if not isinstance(data['findings'], list):
-    print('\"findings\" is not an array')
-    sys.exit(1)
-sys.exit(0)
+  bun -e "
+const data = JSON.parse(await Bun.stdin.text());
+if (!('findings' in data)) { console.log('missing \"findings\" key in envelope'); process.exit(1); }
+if (!Array.isArray(data.findings)) { console.log('\"findings\" is not an array'); process.exit(1); }
+process.exit(0);
 " <<<"$json" || {
-    printf 'assert_envelope_has_findings: %s\n' "$(python3 -c "import json,sys; data=json.load(sys.stdin); print('findings key missing or not array')" <<<"$json" 2>&1)" >&2
+    printf 'assert_envelope_has_findings: %s\n' "findings key missing or not array" >&2
     printf 'full json:\n%s\n' "$json" >&2
     return 1
   }
@@ -97,7 +93,7 @@ sys.exit(0)
   run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --target "$MINIMAL_VAULT" --json
   assert_success
   local count
-  count=$(printf '%s' "$output" | python3 -c "import json,sys; print(len(json.load(sys.stdin)['findings']))")
+  count=$(printf '%s' "$output" | bun -e "console.log(JSON.parse(await Bun.stdin.text()).findings.length)")
   assert_eq "$count" "0"
 }
 
@@ -136,7 +132,7 @@ MD
   assert_findings_keys_conformant "$output"
   # Must have at least one finding
   local count
-  count=$(printf '%s' "$output" | python3 -c "import json,sys; print(len(json.load(sys.stdin)['findings']))")
+  count=$(printf '%s' "$output" | bun -e "console.log(JSON.parse(await Bun.stdin.text()).findings.length)")
   [ "$count" -ge 1 ] || {
     printf 'expected >= 1 finding, got %s\n' "$count" >&2
     return 1
@@ -171,16 +167,14 @@ MD
   run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --target "$dirty_vault" --json
   assert_status 1
   assert_valid_json "$output"
-  python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-allowed_sev = {'error', 'warn', 'info'}
-for f in data['findings']:
-    sev = f.get('severity', '')
-    if sev not in allowed_sev:
-        print('invalid severity: ' + sev)
-        sys.exit(1)
-sys.exit(0)
+  bun -e "
+const data = JSON.parse(await Bun.stdin.text());
+const allowed = ['error', 'warn', 'info'];
+for (const f of data.findings) {
+  const sev = f.severity ?? '';
+  if (!allowed.includes(sev)) { console.log('invalid severity: ' + sev); process.exit(1); }
+}
+process.exit(0);
 " <<<"$output"
 }
 
@@ -247,7 +241,7 @@ MD
     --json
   assert_success
   local count
-  count=$(printf '%s' "$output" | python3 -c "import json,sys; print(len(json.load(sys.stdin)['findings']))")
+  count=$(printf '%s' "$output" | bun -e "console.log(JSON.parse(await Bun.stdin.text()).findings.length)")
   assert_eq "$count" "0"
 }
 
@@ -263,7 +257,7 @@ MD
   assert_envelope_has_findings "$output"
   assert_findings_keys_conformant "$output"
   local count
-  count=$(printf '%s' "$output" | python3 -c "import json,sys; print(len(json.load(sys.stdin)['findings']))")
+  count=$(printf '%s' "$output" | bun -e "console.log(JSON.parse(await Bun.stdin.text()).findings.length)")
   [ "$count" -ge 1 ] || {
     printf 'expected >= 1 finding, got %s\n' "$count" >&2
     return 1
@@ -309,7 +303,7 @@ MD
   run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --target "$MINIMAL_VAULT" --json
   assert_success
   local count
-  count=$(printf '%s' "$output" | python3 -c "import json,sys; print(len(json.load(sys.stdin)['findings']))")
+  count=$(printf '%s' "$output" | bun -e "console.log(JSON.parse(await Bun.stdin.text()).findings.length)")
   assert_eq "$count" "0"
 }
 
@@ -334,7 +328,7 @@ MD
   assert_envelope_has_findings "$output"
   assert_findings_keys_conformant "$output"
   local count
-  count=$(printf '%s' "$output" | python3 -c "import json,sys; print(len(json.load(sys.stdin)['findings']))")
+  count=$(printf '%s' "$output" | bun -e "console.log(JSON.parse(await Bun.stdin.text()).findings.length)")
   [ "$count" -ge 1 ] || {
     printf 'expected >= 1 finding, got %s\n' "$count" >&2
     return 1
@@ -373,7 +367,7 @@ MD
   run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --target "$MINIMAL_VAULT"
   assert_success
   # Human output must NOT be valid JSON
-  if printf '%s' "$output" | python3 -m json.tool >/dev/null 2>&1; then
+  if printf '%s' "$output" | bun -e "JSON.parse(await Bun.stdin.text())" >/dev/null 2>&1; then
     printf 'default output should be human text, not JSON:\n%s\n' "$output" >&2
     return 1
   fi
@@ -383,7 +377,7 @@ MD
 @test "json-envelope: check-wikilinks without --json emits human text (behavior unchanged)" {
   run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --target "$MINIMAL_VAULT"
   assert_success
-  if printf '%s' "$output" | python3 -m json.tool >/dev/null 2>&1; then
+  if printf '%s' "$output" | bun -e "JSON.parse(await Bun.stdin.text())" >/dev/null 2>&1; then
     printf 'default output should be human text, not JSON:\n%s\n' "$output" >&2
     return 1
   fi

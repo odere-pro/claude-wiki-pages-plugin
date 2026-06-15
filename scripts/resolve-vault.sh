@@ -28,7 +28,7 @@
 
 # PATH hardening: hook shells can arrive with a stripped PATH (the harness
 # passes whatever environment it has, which may omit the standard tool dirs).
-# When that happens `python3` and `sort` silently vanish, tier 2 and tier 3
+# When that happens `bun` and `sort` silently vanish, tier 2 and tier 3
 # fall through, and resolution lands on the tier-4 default — the
 # silent-wrong-vault bug. Sourced-safe form: do NOT mutate the caller's PATH
 # (this file is sourced by every hook script; a global prepend would change
@@ -42,9 +42,33 @@ case ":$PATH:" in
   *:/usr/bin:*) ;;
   *) _CLAUDE_WIKI_PAGES_TOOL_PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH" ;;
 esac
+# Bun is the JSON-correct parser/writer for settings (settings-tool.ts), but it
+# installs to the user's bun dir (default ~/.bun/bin), NOT /usr/bin — so a
+# stripped hook shell that can still find /usr/bin/python3 would NOT find bun and
+# would degrade unnecessarily. Append the bun bin dir to the private lookup PATH
+# (only when it exists; appended so a caller-curated ordering keeps precedence).
+# This never mutates the caller's own PATH — same sourced-safe contract as above.
+_cwp_bun_bin="${BUN_INSTALL:-$HOME/.bun}/bin"
+case ":$_CLAUDE_WIKI_PAGES_TOOL_PATH:" in
+  *":$_cwp_bun_bin:"*) ;;
+  *) [ -d "$_cwp_bun_bin" ] && _CLAUDE_WIKI_PAGES_TOOL_PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH:$_cwp_bun_bin" ;;
+esac
+unset _cwp_bun_bin
+
+# Directory of this sourced file — used to locate the Bun settings helper. Pure
+# bash substitution (no external `dirname`) so it works in a stripped hook shell.
+_CWP_SCRIPT_DIR="${BASH_SOURCE[0]%/*}"
 
 CLAUDE_WIKI_PAGES_DEFAULT_VAULT="docs/vault"
 CLAUDE_WIKI_PAGES_SETTINGS="${CLAUDE_WIKI_PAGES_SETTINGS_FILE:-.claude/claude-wiki-pages/settings.json}"
+
+# Run the Bun settings/JSON helper (settings-tool.ts) with the hardened tool
+# PATH so bun resolves even in a stripped hook shell. Returns bun's exit code;
+# callers with a degraded fallback treat 126/127 (bun resolvable but un-execable)
+# as "tool unavailable", exactly as the former python path did.
+_cwp_settings_tool() {
+  PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" bun "$_CWP_SCRIPT_DIR/settings-tool.ts" "$@"
+}
 
 # Slugify a string into a directory-name-safe form: lowercase, every run of
 # non-alphanumerics collapses to a single "-", leading/trailing "-" trimmed.
@@ -70,55 +94,45 @@ default_new_vault_path() {
   echo "docs/${slug}-vault"
 }
 
-# Internal: extract a top-level string field from a JSON file using python3.
+# Internal: extract a top-level string field from a JSON file using the Bun
+# settings helper (settings-tool.ts).
 # Line-independent: works on compact (single-line) and multi-line/indented JSON.
 # Usage: _settings_get_field <file> <field_name>
 # Prints the field value on stdout, or nothing if the field is absent or not a string.
 # Exits 0 on success (including absent field); exits non-zero only on parse error.
 #
-# Degraded mode: when python3 cannot run — missing from PATH, or resolvable but
+# Degraded mode: when bun cannot run — missing from PATH, or resolvable but
 # broken (exec failure 126/127 in a PATH-degraded hook shell) — fall back to
 # the grep/sed extractor below and emit ONE stderr WARN. Without this fallback
-# a missing python3 is indistinguishable from "field absent" and tier 2
+# a missing bun is indistinguishable from "field absent" and tier 2
 # silently falls through (the silent-wrong-vault bug). Python parse errors
 # (malformed JSON, exit 1) keep their current behavior: they are a real error,
 # not a missing-tool condition.
 _settings_get_field() {
   local settings_file="$1"
   local field_name="$2"
-  # L03 / Architect ruling (document — accepted golden-hammer): python3 is the
-  # deliberate JSON-correct parser for settings / registry / wired-source records.
-  # jq is not assumed present in hook shells. Flat top-level string reads have the
-  # grep/sed fallback (_settings_get_field_degraded) below; nested arrays and
-  # objects deliberately do NOT — they require a real JSON parser to avoid
-  # silent-wrong-vault bugs from malformed output. This is an accepted trade-off,
-  # not to be flattened to shell builtins. The degraded fallback (with a stderr
-  # WARN) handles hook shells where python3 itself is unavailable.
-  if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v python3 >/dev/null 2>&1; then
+  # L03 / Architect ruling (document — accepted golden-hammer): Bun is the
+  # deliberate JSON-correct parser for settings / registry / wired-source records
+  # (settings-tool.ts). jq is not assumed present in hook shells. Flat top-level
+  # string reads have the grep/sed fallback (_settings_get_field_degraded) below;
+  # nested arrays and objects deliberately do NOT — they require a real JSON
+  # parser to avoid silent-wrong-vault bugs from malformed output. This is an
+  # accepted trade-off, not to be flattened to shell builtins. The degraded
+  # fallback (with a stderr WARN) handles hook shells where Bun is unavailable.
+  if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v bun >/dev/null 2>&1; then
     local out rc
-    out=$(
-      PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" python3 - "$settings_file" "$field_name" 2>/dev/null <<'PYEOF'
-import json, sys
-try:
-    data = json.load(open(sys.argv[1]))
-except Exception:
-    sys.exit(1)
-val = data.get(sys.argv[2], "")
-if isinstance(val, str):
-    print(val)
-PYEOF
-    )
+    out=$(_cwp_settings_tool get "$settings_file" "$field_name" 2>/dev/null)
     rc=$?
-    # 126/127 = python3 resolved by `command -v` but could not actually run
+    # 126/127 = bun resolved by `command -v` but could not actually run
     # (broken shim / stripped PATH at exec time) — fall through to the
-    # degraded parser. Any other code is python3's own verdict (0 = ok,
+    # degraded parser. Any other code is the helper's own verdict (0 = ok,
     # 1 = malformed JSON) and is passed through unchanged.
     if [ "$rc" -ne 126 ] && [ "$rc" -ne 127 ]; then
       if [ -n "$out" ]; then printf '%s\n' "$out"; fi
       return "$rc"
     fi
   fi
-  printf '[claude-wiki-pages] WARN: python3 unavailable — using degraded settings parser\n' >&2
+  printf '[claude-wiki-pages] WARN: Bun unavailable — using degraded settings parser\n' >&2
   _settings_get_field_degraded "$settings_file" "$field_name"
 }
 
@@ -127,7 +141,7 @@ PYEOF
 # this same script family; handles both compact ({"k":"v"}) and indented
 # ("k": "v") layouts. head -n1 keeps the first match should a value ever
 # repeat. Prints nothing when the field is absent; exits 1 when the file is
-# missing (mirrors the python parser's only hard-error path it can detect).
+# missing (mirrors the JSON parser's only hard-error path it can detect).
 _settings_get_field_degraded() {
   local settings_file="$1"
   local field_name="$2"
@@ -200,7 +214,7 @@ resolve_vault() {
   # Invariant (silent-wrong-vault guard): reaching this tier while a settings
   # file EXISTS with a non-empty current_vault_path would mean tier 2 failed
   # to read a value the user explicitly set. _settings_get_field makes that
-  # unreachable — when python3 cannot run it falls back to the degraded
+  # unreachable — when bun cannot run it falls back to the degraded
   # grep/sed parser (with a stderr WARN), so a readable settings value always
   # resolves at tier 2. Only a truly absent settings file or an empty
   # current_vault_path can land here.
@@ -233,30 +247,21 @@ set_vault_path() {
   local tmp="${CLAUDE_WIKI_PAGES_SETTINGS}.tmp"
   # M30: awk -v path="$new_path" then sub() replacement is unsafe when path
   # contains '&' or '\' — awk interprets those as regex back-references in the
-  # replacement string. Use python3 (the consistent JSON writer already used
-  # throughout this file) to set current_vault_path safely via argv, not the
-  # awk replacement string. Fall back to the awk writer only when python3 is
+  # replacement string. Use the Bun settings writer (the consistent JSON writer
+  # used throughout this file) to set current_vault_path safely via argv, not the
+  # awk replacement string. Fall back to the awk writer only when Bun is
   # unavailable (graceful degradation consistent with _settings_get_field).
-  if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v python3 >/dev/null 2>&1; then
-    if ! PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" python3 - \
-      "$CLAUDE_WIKI_PAGES_SETTINGS" "$new_path" >"$tmp" 2>/dev/null <<'PYEOF'; then
-import json, sys
-try:
-    data = json.load(open(sys.argv[1]))
-except Exception:
-    data = {}
-data["current_vault_path"] = sys.argv[2]
-print(json.dumps(data, indent=2))
-PYEOF
+  if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v bun >/dev/null 2>&1; then
+    if ! _cwp_settings_tool set "$CLAUDE_WIKI_PAGES_SETTINGS" current_vault_path "$new_path" >"$tmp" 2>/dev/null; then
       printf '[claude-wiki-pages] WARN: cannot update settings.json\n' >&2
       rm -f "$tmp" 2>/dev/null
       return 0
     fi
   else
-    # Degraded path: python3 unavailable — fall back to awk sed-replacement.
+    # Degraded path: Bun unavailable — fall back to awk sed-replacement.
     # Paths with '&' or '\' may not round-trip correctly; a stderr WARN is
     # emitted. In hook shells this is already known-degraded (M30 accepted risk).
-    printf '[claude-wiki-pages] WARN: python3 unavailable for settings write — using degraded awk writer (paths with & or \\ may not persist correctly)\n' >&2
+    printf '[claude-wiki-pages] WARN: Bun unavailable for settings write — using degraded awk writer (paths with & or \\ may not persist correctly)\n' >&2
     if ! awk -v path="$new_path" '
       /"current_vault_path"/ { sub(/"current_vault_path"[[:space:]]*:[[:space:]]*"[^"]*"/, "\"current_vault_path\": \"" path "\"") }
       { print }

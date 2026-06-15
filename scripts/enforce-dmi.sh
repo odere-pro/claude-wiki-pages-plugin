@@ -11,7 +11,8 @@ set -euo pipefail
 
 # Read tool input from stdin (Claude passes it as JSON).
 INPUT=$(cat)
-FILE_PATH=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+FILE_PATH=$(printf '%s' "$INPUT" | bun "$SCRIPT_DIR/json-tool.ts" field tool_input.file_path 2>/dev/null || true)
 
 # Only apply to skills/*/SKILL.md paths.
 if [[ "$FILE_PATH" != */skills/*/SKILL.md ]]; then
@@ -19,7 +20,7 @@ if [[ "$FILE_PATH" != */skills/*/SKILL.md ]]; then
 fi
 
 # The file may not exist yet (new write) — check content from tool_input.
-CONTENT=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('content',''))" 2>/dev/null || true)
+CONTENT=$(printf '%s' "$INPUT" | bun "$SCRIPT_DIR/json-tool.ts" field tool_input.content 2>/dev/null || true)
 
 # If content is empty (Edit call with old_string/new_string), read file from disk.
 if [[ -z "$CONTENT" && -f "$FILE_PATH" ]]; then

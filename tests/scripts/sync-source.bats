@@ -83,7 +83,7 @@ run_script() {
   run_script sync-source.sh pull --name proj
   assert_success
   head_sha=$(git -C "$PROJ" rev-parse HEAD)
-  run python3 -c "import json; print(json.load(open('$SETTINGS'))['wired_sources'][0]['lastSyncedCommit'])"
+  run bun -e "console.log(JSON.parse(require('fs').readFileSync('$SETTINGS','utf8')).wired_sources[0].lastSyncedCommit)"
   assert_output_contains "$head_sha"
 }
 
@@ -96,11 +96,11 @@ run_script() {
 @test "sync-source: M15 — a '|' in a wired field fails closed (no corrupt record split)" {
   # Tamper the stored record so a field carries the reserved '|' delimiter.
   # wired_read must refuse it rather than emit an ambiguous positional record.
-  python3 -c "
-import json
-d = json.load(open('$SETTINGS'))
-d['wired_sources'][0]['path'] = '/tmp/ev|il'
-json.dump(d, open('$SETTINGS', 'w'))
+  bun -e "
+const fs = require('fs');
+const d = JSON.parse(fs.readFileSync('$SETTINGS', 'utf8'));
+d.wired_sources[0].path = '/tmp/ev|il';
+fs.writeFileSync('$SETTINGS', JSON.stringify(d));
 "
   run_script sync-source.sh status
   assert_status 1

@@ -15,7 +15,8 @@ set -euo pipefail
 
 # Read tool input from stdin (Claude passes it as JSON).
 INPUT=$(cat)
-FILE_PATH=$(printf '%s' "$INPUT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || true)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+FILE_PATH=$(printf '%s' "$INPUT" | bun "$SCRIPT_DIR/json-tool.ts" field tool_input.file_path 2>/dev/null || true)
 
 # Only act on CLAUDE.md files; no-op otherwise.
 case "$FILE_PATH" in
@@ -26,7 +27,7 @@ esac
 # Inspect only the text being written/added: `content` for Write, `new_string`
 # for Edit. MultiEdit (no single content/new_string) falls through to a no-op so
 # we never warn on edits whose added text we cannot see.
-NEW=$(printf '%s' "$INPUT" | python3 -c "import sys,json; ti=json.load(sys.stdin).get('tool_input',{}); print(ti.get('content') or ti.get('new_string') or '')" 2>/dev/null || true)
+NEW=$(printf '%s' "$INPUT" | bun "$SCRIPT_DIR/json-tool.ts" field tool_input.content tool_input.new_string 2>/dev/null || true)
 [[ -z "$NEW" ]] && exit 0
 
 # Heuristic: count imperative rule words in the added text.

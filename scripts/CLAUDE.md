@@ -132,14 +132,17 @@ run top to bottom and the first block short-circuits the write.
   freshness (orphans, unreferenced groups, tags below floor).
 - [`graph-quality.sh`](./graph-quality.sh) — dangling-wikilink scanner (the
   detector `verify` lacks) plus the topic-cluster node/edge concentration
-  metric. Read-only; pure bash + python3. Used by the `fill-gaps` skill.
+  metric. A thin bash wrapper over [`graph-quality.ts`](./graph-quality.ts)
+  (Bun), which reuses the engine's resolver. Read-only. Used by the `fill-gaps`
+  skill.
 - [`disentangle-links.sh`](./disentangle-links.sh) — topic-local linking
   remediation (ADR-0033): demotes cross-topic `[[wikilinks]]` to plain text and
   prunes cross-topic association frontmatter so the graph forms topic islands
   instead of a hairball. Dry-run by default; `--apply` rewrites in place
-  (git-checkpointed). Pure bash + python3; mirrors `graph-quality.sh`'s
-  resolver. Never touches `parent`/`sources`/`children` or creates dangling
-  links.
+  (git-checkpointed). A thin bash wrapper over
+  [`disentangle-links.ts`](./disentangle-links.ts) (Bun); mirrors
+  `graph-quality.sh`'s resolver. Never touches `parent`/`sources`/`children` or
+  creates dangling links.
 - [`check-duplicate-claims.sh`](./check-duplicate-claims.sh) — advisory
   duplicate-claim warning across `source_quotes`.
 
@@ -155,6 +158,30 @@ run top to bottom and the first block short-circuits the write.
 - [`engine.sh`](./engine.sh) — the bash-to-Bun bridge for `verify` / `fix` /
   `heal` and friends. Prefers built `dist/cli.js`, falls back to running
   `src/cli/cli.ts` directly; warns and exits 0 when Bun is absent.
+
+### Bun helpers (called inline by the shell)
+
+These small Bun scripts replace what used to be inline `python3` heredocs, so the
+plugin needs a single non-shell runtime (Bun) rather than two (python3 + Bun).
+Each is invoked directly by a bash script via `bun <helper> …`.
+
+- [`json-tool.ts`](./json-tool.ts) — JSON-correct field extraction (`field`) and
+  symlink-resolving path normalisation (`realpath`) for the hot-path hooks
+  ([`enforce-dmi.sh`](./enforce-dmi.sh), [`enforce-must-rule.sh`](./enforce-must-rule.sh),
+  [`scope-guard.sh`](./scope-guard.sh)).
+- [`settings-tool.ts`](./settings-tool.ts) — the JSON reader/writer for
+  `settings.json` (vault path, multi-vault registry, wired sources); the Bun
+  half of the vault-resolution spine, called by `resolve-vault.sh`,
+  `lib-vault-registry.sh`, and `lib-wired-source.sh`. The flat top-level string
+  reads keep their grep/sed degraded fallback for when Bun itself is absent.
+- [`graph-quality.ts`](./graph-quality.ts), [`disentangle-links.ts`](./disentangle-links.ts)
+  — the analysis engines behind the like-named wrappers; reuse the engine's
+  resolver in [`../src/core/link-resolver.ts`](../src/core/link-resolver.ts).
+- [`verify-twins.ts`](./verify-twins.ts) — the five structural checks
+  [`verify-ingest.sh`](./verify-ingest.sh) runs that need a real parser
+  (MOC reachability, index consistency, orphan sources, dangling links,
+  collisions). Deliberately SELF-CONTAINED (node built-ins only, no `src/core`
+  import) so gate-05's verify-ingest↔engine parity stays an independent check.
 
 ### Concurrency
 

@@ -249,11 +249,7 @@ teardown() {
   assert_success
   # vaults array must have exactly 1 entry (idempotent — no duplicates added)
   local vault_count
-  vault_count=$(python3 -c "
-import json, sys
-data = json.load(open('$SETTINGS_TMP'))
-print(len(data.get('vaults', [])))
-")
+  vault_count=$(bun -e "console.log((JSON.parse(require('fs').readFileSync('$SETTINGS_TMP','utf8')).vaults||[]).length)")
   [ "$vault_count" -eq 1 ]
 }
 
@@ -489,11 +485,7 @@ print(len(data.get('vaults', [])))
   assert_success
   [ -f "$SETTINGS_TMP" ]
   # vaults key must be absent
-  run bash -c "python3 -c \"
-import json, sys
-data = json.load(open('$SETTINGS_TMP'))
-sys.exit(0 if 'vaults' not in data else 1)
-\""
+  run bash -c "bun -e \"const d=JSON.parse(require('fs').readFileSync('$SETTINGS_TMP','utf8')); process.exit('vaults' in d ? 1 : 0)\""
   assert_success
 }
 
@@ -509,11 +501,7 @@ sys.exit(0 if 'vaults' not in data else 1)
 
   assert_success
   # vaults key must now exist
-  run bash -c "python3 -c \"
-import json, sys
-data = json.load(open('$SETTINGS_TMP'))
-sys.exit(0 if 'vaults' in data else 1)
-\""
+  run bash -c "bun -e \"const d=JSON.parse(require('fs').readFileSync('$SETTINGS_TMP','utf8')); process.exit('vaults' in d ? 0 : 1)\""
   assert_success
 }
 
@@ -571,11 +559,7 @@ sys.exit(0 if 'vaults' in data else 1)
   [ "$output" = "$V2" ]
 
   # current_vault_path in settings must be V2
-  run bash -c "python3 -c \"
-import json, sys
-data = json.load(open('$SETTINGS_TMP'))
-sys.exit(0 if data['current_vault_path'] == '$V2' else 1)
-\""
+  run bash -c "bun -e \"const d=JSON.parse(require('fs').readFileSync('$SETTINGS_TMP','utf8')); process.exit(d.current_vault_path === '$V2' ? 0 : 1)\""
   assert_success
 
   # Exactly one registry entry matches V2 as active, V1/V3 are non-active
@@ -1036,8 +1020,8 @@ sys.exit(0 if data['current_vault_path'] == '$V2' else 1)
 # Regression suite for the silent-wrong-vault bug: in a PATH-degraded hook
 # shell, resolve_vault returned the tier-4 default even though settings.json
 # carried a non-empty current_vault_path. Root causes pinned here:
-#   (a) _settings_get_field shelled out to python3 with stderr discarded, so a
-#       missing/broken python3 looked identical to "field absent" (tier 2
+#   (a) _settings_get_field shelled out to the JSON parser (bun) with stderr
+#       discarded, so a missing/broken bun looked identical to "field absent" (tier 2
 #       silently fell through);
 #   (b) tier 3's `find | sort` died when sort was missing, so auto-detect also
 #       yielded nothing;
@@ -1060,12 +1044,12 @@ _make_shim_dir() {
   printf '%s\n' "$shim_dir"
 }
 
-@test "degraded: python3 broken — tier 2 still resolves current_vault_path from settings.json" {
+@test "degraded: Bun broken — tier 2 still resolves current_vault_path from settings.json" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "degraded/from-settings"\n}\n' >"$SETTINGS_TMP"
 
   local shim_dir
-  shim_dir=$(_make_shim_dir "shim-py" python3)
+  shim_dir=$(_make_shim_dir "shim-bun" bun)
 
   # stdout only — the resolved path must be exactly the settings value,
   # NOT the tier-4 default.
@@ -1081,12 +1065,12 @@ _make_shim_dir() {
   [ "$output" = "degraded/from-settings" ]
 }
 
-@test "degraded: python3 broken — stderr carries the degraded-parser WARN" {
+@test "degraded: Bun broken — stderr carries the degraded-parser WARN" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "degraded/from-settings"\n}\n' >"$SETTINGS_TMP"
 
   local shim_dir
-  shim_dir=$(_make_shim_dir "shim-py-warn" python3)
+  shim_dir=$(_make_shim_dir "shim-bun-warn" bun)
 
   # stderr only (stdout discarded) — the WARN must be present and explicit.
   run bash -c "
@@ -1098,17 +1082,17 @@ _make_shim_dir() {
   "
 
   assert_success
-  assert_output_contains "WARN: python3 unavailable"
+  assert_output_contains "WARN: Bun unavailable"
   assert_output_contains "degraded settings parser"
 }
 
-@test "degraded: python3 broken + compact single-line JSON — degraded parser still extracts the value" {
+@test "degraded: Bun broken + compact single-line JSON — degraded parser still extracts the value" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   # Compact layout: no spaces, no newlines — the grep/sed fallback must handle it.
   printf '{"default_vault_path":"docs/vault","current_vault_path":"compact/degraded-vault"}' >"$SETTINGS_TMP"
 
   local shim_dir
-  shim_dir=$(_make_shim_dir "shim-py-compact" python3)
+  shim_dir=$(_make_shim_dir "shim-bun-compact" bun)
 
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
@@ -1152,7 +1136,7 @@ _make_shim_dir() {
   [ "$output" = "./docs/found-vault" ]
 }
 
-@test "degraded: python3 AND sort broken — settings value still wins over tier-4 default (silent-wrong-vault repro)" {
+@test "degraded: Bun AND sort broken — settings value still wins over tier-4 default (silent-wrong-vault repro)" {
   # The exact user-reported scenario: PATH-degraded shell, settings.json
   # present with an explicit current_vault_path. Resolution must return that
   # value, never silently land on docs/vault.
@@ -1160,7 +1144,7 @@ _make_shim_dir() {
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/claude-wiki-pages-plugin-vault"\n}\n' >"$SETTINGS_TMP"
 
   local shim_dir
-  shim_dir=$(_make_shim_dir "shim-both" python3 sort)
+  shim_dir=$(_make_shim_dir "shim-both" bun sort)
 
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
@@ -1176,9 +1160,11 @@ _make_shim_dir() {
 
 @test "hardening: stripped PATH — tier 2 still resolves the settings value via the scoped tool path" {
   # A hook shell arriving with a PATH that contains none of the standard tool
-  # dirs. The scoped hardened lookup PATH (_CLAUDE_WIKI_PAGES_TOOL_PATH) must
-  # make python3 reachable so tier 2 resolves normally — without mutating the
-  # caller's PATH.
+  # dirs. The scoped hardened lookup PATH (_CLAUDE_WIKI_PAGES_TOOL_PATH) makes
+  # the JSON parser reachable so tier 2 resolves normally — either via bun (the
+  # tool path also appends ~/.bun/bin) or, if bun is unreachable, via the
+  # degraded grep/sed parser — without mutating the caller's PATH. Either way the
+  # explicit current_vault_path must win over the tier-4 default.
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "stripped/path-vault"\n}\n' >"$SETTINGS_TMP"
 
@@ -1217,8 +1203,8 @@ _make_shim_dir() {
   assert_output_contains "unchanged"
 }
 
-@test "degraded: normal PATH behavior unchanged — python3 path still authoritative for malformed JSON" {
-  # With a working python3, malformed JSON must keep its current behavior:
+@test "degraded: normal PATH behavior unchanged — Bun path still authoritative for malformed JSON" {
+  # With a working bun, malformed JSON must keep its current behavior:
   # _settings_get_field exits non-zero, prints nothing, and emits NO
   # degraded-parser WARN (the fallback is for missing tools, not bad JSON).
   mkdir -p "$(dirname "$SETTINGS_TMP")"

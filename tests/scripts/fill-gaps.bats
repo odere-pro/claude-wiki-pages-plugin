@@ -67,10 +67,10 @@ EOF
   _seed_vault
   run bash "$REPO_ROOT/$GQ" --target "$VAULT" --json
   [[ "$output" == *'"engine": 3'* ]]
-  [[ "$output" == *'"Cn": 1.0'* ]]
+  [[ "$output" == *'"Cn": 1'* ]]
   # all edges are within the cluster, and every edge touches the hub here
-  [[ "$output" == *'"Ce": 1.0'* ]]
-  [[ "$output" == *'"Ch": 1.0'* ]]
+  [[ "$output" == *'"Ce": 1'* ]]
+  [[ "$output" == *'"Ch": 1'* ]]
 }
 
 @test "graph-quality: clean vault reports zero dangling" {

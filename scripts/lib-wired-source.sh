@@ -45,50 +45,13 @@
 # delimiter-bearing field.
 wired_read() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
-  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" <<'PYEOF'
-import json, sys
-
-try:
-    data = json.load(open(sys.argv[1]))
-except Exception as exc:
-    sys.stderr.write(
-        "[claude-wiki-pages] WARN: settings malformed (cannot parse %s: %s)"
-        " — wired sources unavailable\n" % (sys.argv[1], exc)
-    )
-    sys.exit(1)
-
-for w in data.get("wired_sources", []):
-    name, path, vault = w.get("name", ""), w.get("path", ""), w.get("vault", "")
-    commit = w.get("lastSyncedCommit", "")
-    if not all(isinstance(v, str) for v in (name, path, vault, commit)) or not name:
-        sys.stderr.write(
-            "[claude-wiki-pages] WARN: wired_sources entry malformed (name=%r)"
-            " — wired sources unavailable\n" % name
-        )
-        sys.exit(1)
-    if any("|" in v for v in (name, path, vault, commit)):
-        sys.stderr.write(
-            "[claude-wiki-pages] WARN: wired_sources entry %r has a '|' in a"
-            " field (reserved record delimiter) — wired sources unavailable\n"
-            % name
-        )
-        sys.exit(1)
-    print("%s|%s|%s|%s" % (name, path, vault, commit))
-PYEOF
+  _cwp_settings_tool wired-read "$CLAUDE_WIKI_PAGES_SETTINGS"
 }
 
 # wired_globs <name> <include|exclude>: print that record's glob list, one per line.
 wired_globs() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 0
-  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" "$1" "$2" 2>/dev/null <<'PYEOF'
-import json, sys
-data = json.load(open(sys.argv[1]))
-for w in data.get("wired_sources", []):
-    if w.get("name") == sys.argv[2]:
-        for g in w.get(sys.argv[3], []):
-            if isinstance(g, str):
-                print(g)
-PYEOF
+  _cwp_settings_tool wired-globs "$CLAUDE_WIKI_PAGES_SETTINGS" "$1" "$2" 2>/dev/null
 }
 
 # wired_add <name> <path> <vault> <include_json> <exclude_json>:
@@ -97,19 +60,7 @@ PYEOF
 wired_add() {
   init_vault_settings
   local tmp="${CLAUDE_WIKI_PAGES_SETTINGS}.tmp"
-  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" "$1" "$2" "$3" "$4" "$5" >"$tmp" 2>/dev/null <<'PYEOF'
-import json, sys
-data = json.load(open(sys.argv[1]))
-name, path, vault = sys.argv[2], sys.argv[3], sys.argv[4]
-include, exclude = json.loads(sys.argv[5]), json.loads(sys.argv[6])
-sources = data.setdefault("wired_sources", [])
-entry = next((w for w in sources if w.get("name") == name), None)
-if entry is None:
-    entry = {"name": name, "lastSyncedCommit": "", "lastSyncedAt": ""}
-    sources.append(entry)
-entry.update({"path": path, "vault": vault, "include": include, "exclude": exclude})
-print(json.dumps(data, indent=2))
-PYEOF
+  _cwp_settings_tool wired-add "$CLAUDE_WIKI_PAGES_SETTINGS" "$1" "$2" "$3" "$4" "$5" >"$tmp" 2>/dev/null
   if [ ! -s "$tmp" ]; then
     printf '[claude-wiki-pages] WARN: cannot update wired_sources\n' >&2
     rm -f "$tmp" 2>/dev/null
@@ -122,15 +73,7 @@ PYEOF
 wired_set_synced() {
   [ -f "$CLAUDE_WIKI_PAGES_SETTINGS" ] || return 1
   local tmp="${CLAUDE_WIKI_PAGES_SETTINGS}.tmp"
-  python3 - "$CLAUDE_WIKI_PAGES_SETTINGS" "$1" "$2" "$3" >"$tmp" 2>/dev/null <<'PYEOF'
-import json, sys
-data = json.load(open(sys.argv[1]))
-for w in data.get("wired_sources", []):
-    if w.get("name") == sys.argv[2]:
-        w["lastSyncedCommit"] = sys.argv[3]
-        w["lastSyncedAt"] = sys.argv[4]
-print(json.dumps(data, indent=2))
-PYEOF
+  _cwp_settings_tool wired-set-synced "$CLAUDE_WIKI_PAGES_SETTINGS" "$1" "$2" "$3" >"$tmp" 2>/dev/null
   if [ ! -s "$tmp" ]; then
     printf '[claude-wiki-pages] WARN: cannot record sync state\n' >&2
     rm -f "$tmp" 2>/dev/null

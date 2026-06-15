@@ -49,8 +49,6 @@ TOOLS=(
 )
 
 # Python-pip tools. These map 1:1 to importable module names (with - → _).
-PY_TOOLS=(yq check-jsonschema)
-
 # Bats assertion helpers — cloned via git, not package-managed.
 BATS_HELPERS=(bats-support bats-assert bats-file)
 
@@ -95,31 +93,6 @@ install_native() {
   fi
 }
 
-install_py() {
-  local pkg="$1"
-  local module="${pkg//-/_}"
-  local py=""
-  if have python; then py=python; elif have python3; then py=python3; else
-    echo "SKIP: $pkg — python not on PATH" >&2
-    return 0
-  fi
-  if "$py" -c "import importlib.util as u; import sys; sys.exit(0 if u.find_spec('$module') else 1)" 2>/dev/null; then
-    if [ "$CHECK_ONLY" -eq 1 ]; then
-      echo "OK: $pkg (python)"
-    fi
-    return 0
-  fi
-  if [ "$CHECK_ONLY" -eq 1 ]; then
-    echo "MISSING: $pkg (python)" >&2
-    return 1
-  fi
-  if [ "$DRY_RUN" -eq 1 ]; then
-    echo "[dry-run] pip install $pkg"
-    return 0
-  fi
-  "$py" -m pip install --quiet "$pkg"
-}
-
 clone_bats_helper() {
   local h="$1"
   local dir
@@ -149,10 +122,6 @@ STATUS=0
 for t in "${TOOLS[@]}"; do
   IFS='|' read -r binary brew_pkg apt_pkg <<< "$t"
   install_native "$binary" "$brew_pkg" "$apt_pkg" || STATUS=1
-done
-
-for p in "${PY_TOOLS[@]}"; do
-  install_py "$p" || STATUS=1
 done
 
 for h in "${BATS_HELPERS[@]}"; do
