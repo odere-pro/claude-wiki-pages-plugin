@@ -2,6 +2,7 @@
 title: "Plugin Architecture Synthesis"
 type: synthesis
 synthesis_type: theme
+aliases: ["Plugin Architecture Synthesis", "plugin architecture synthesis"]
 path: "_synthesis"
 scope:
   - "[[Four-Layer Stack]]"

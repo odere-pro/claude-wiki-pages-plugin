@@ -60,15 +60,17 @@ maxPerRun, cooldownMinutes). An optional `modelHints` map allows per-task model 
 - `additionalProperties: false` on all objects — the schema is closed; undeclared
   config keys are rejected.
 
-## Entities Mentioned
+## Concepts Covered
 
-(No new entities beyond what is already tracked)
+- [[Config Schema]]
+- [[Auto-Heal]]
+- [[Git Checkpoint]]
+- [[Firewall]]
+- [[Offline Policy]]
+- [[Local Model Quality Gate]]
 
-## Concepts Mentioned
+## Grounded Pages
 
-- Config Schema (new — `wiki/knowledge-graph/config-schema.md`)
-- Auto-Heal (already tracked as `[[Auto-Heal]]`)
-- Git Checkpoint (already tracked as `[[Git Checkpoint]]`)
-- Firewall (already tracked as `[[Firewall]]`)
-- Offline Policy (already tracked as `[[Offline Policy]]`)
-- Local Model Quality Gate (already tracked as `[[Local Model Quality Gate]]`)
+Wiki pages that cite this source:
+
+- [[Config Schema]] — the concept page this source directly backs (seven config groups, closed schema)

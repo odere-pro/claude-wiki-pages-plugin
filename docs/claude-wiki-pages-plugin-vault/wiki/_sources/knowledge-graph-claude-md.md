@@ -51,17 +51,19 @@ concept page, which already captures all the key claims from this document.
 - The ontology profile (`ontology-profile-v1`) is the single named contract for
   predicate domain→range and enum list.
 
-## Entities Mentioned
+## Concepts Covered
 
-(No new entities — all relevant entities already tracked in wiki/)
+- [[Schema Authority]]
+- [[Ontology Profile v1]]
+- [[Folder Note]]
+- [[Ingest Pipeline]]
+- [[Lint Rules]]
+- [[Config Schema]]
+- [[Frontmatter Parser]]
+- [[Wikilink Extractor]]
 
-## Concepts Mentioned
+## Grounded Pages
 
-- Schema Authority (already tracked as `[[Schema Authority]]`)
-- Ontology Profile v1 (already tracked as `[[Ontology Profile v1]]`)
-- Folder Note (already tracked as `[[Folder Note]]`)
-- Ingest Pipeline (already tracked as `[[Ingest Pipeline]]`)
-- Lint Rules (already tracked as `[[Lint Rules]]`)
-- Config Schema (new — `raw/repo/knowledge-graph/config.schema.json`)
-- Frontmatter Parser (new — `raw/repo/knowledge-graph/frontmatter.ts`)
-- Wikilink Extractor (new — `raw/repo/knowledge-graph/wikilinks.ts`)
+Wiki pages that cite this source:
+
+- [[Schema Authority]] — the concept page this source directly backs (nine-type ontology, required-fields table, schema v3)
