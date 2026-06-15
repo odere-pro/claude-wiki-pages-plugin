@@ -2,13 +2,13 @@
 title: ""
 type: project
 aliases: []
-parent: "[[Parent Index]]"
+parent: "[[parent-folder|Parent Index]]" # piped basename link to the folder note (replace with the real basename); never a bare title
 path: ""
 objective: ""
 project_status: planned
-members: []
-sources: []
-related: []
+members: [] # piped basename links, e.g. ["[[related-entity|Related Entity]]"]
+sources: [] # piped basename links, e.g. ["[[source-note|Source Note]]"]
+related: [] # piped basename links, e.g. ["[[related-project|Related Project]]"]
 source_quotes: []
 derived: false
 tags: []

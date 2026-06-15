@@ -80,7 +80,7 @@ Nine allowed types: `source`, `entity`, `concept`, `topic`, `project`, `synthesi
 > [!note] Schema versions 2 and 3
 > `topic`, `project`, and `manifest` were added in schema_version 2, along with the optional claim-level provenance fields `source_quotes` and `derived` (available on every typed page). Schema_version 3 changes only the per-folder index convention: the index file is a **folder note** named after its folder (`wiki/<topic>/<topic>.md`) instead of `_index.md`, and the wikilink form of `parent`/`children`/`child_indexes` is normative. Vaults declaring `schema_version: 1` or `2` remain valid — each version is a strict superset of the previous one. Upgrade an existing vault with `bash scripts/engine.sh migrate --target <vault> --write`; the v2→v3 `rename-index` action renames each `_index.md` to its folder-note name and rewrites the wikilinks that pointed at it (name conflict ⇒ report + skip).
 
-The `log` type is used only for `wiki/log.md` (the operations log). It requires minimal frontmatter: `title`, `type`, `created`, `updated`. Log entries may use `[[wikilinks]]` to reference real pages (e.g., `[[LLM Wiki Pattern]]`), but when describing old/fixed/invalid link patterns, use backtick code formatting instead (e.g., `` `_index` `` not `[[_index]]`) — otherwise Obsidian creates ghost nodes in the graph.
+The `log` type is used only for `wiki/log.md` (the operations log). It requires minimal frontmatter: `title`, `type`, `created`, `updated`. Log entries may use `[[wikilinks]]` to reference real pages in piped basename form (e.g., `[[llm-wiki-pattern|LLM Wiki Pattern]]`), but when describing old/fixed/invalid link patterns, use backtick code formatting instead (e.g., `` `_index` `` not `[[_index]]`) — a code span is not a link, so Obsidian draws no edge and no ghost node.
 
 ### Required fields by type
 
@@ -137,10 +137,10 @@ title: "Entity Name"
 type: entity
 entity_type: person | organization | product | tool | service | standard | place
 aliases: []
-parent: "[[Parent Index]]"
+parent: "[[subtopic-a1|Subtopic A1]]"
 path: "topic-a/subtopic-a1"
-sources: ["[[source-note-1]]", "[[source-note-2]]"]
-related: ["[[other-entity]]", "[[concept-note]]"]
+sources: ["[[source-note-1|Source Note 1]]", "[[source-note-2|Source Note 2]]"]
+related: ["[[other-entity|Other Entity]]", "[[concept-note|Concept Note]]"]
 tags: []
 created: 2026-04-16
 updated: 2026-04-16
@@ -159,10 +159,10 @@ Concepts are abstract ideas: frameworks, theories, patterns, principles, methodo
 title: "Concept Name"
 type: concept
 aliases: []
-parent: "[[Parent Index]]"
+parent: "[[subtopic-a1|Subtopic A1]]"
 path: "topic-a/subtopic-a1"
-sources: ["[[source-note-1]]"]
-related: ["[[entity-note]]", "[[other-concept]]"]
+sources: ["[[source-note-1|Source Note 1]]"]
+related: ["[[entity-note|Entity Note]]", "[[other-concept|Other Concept]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -184,12 +184,12 @@ A topic page is a narrative landing page for a topic — distinct from the folde
 title: "Topic Name"
 type: topic
 aliases: []
-parent: "[[Parent Index]]"
+parent: "[[topic-a|Topic A]]"
 path: "topic-a"
 summary: "One- or two-sentence orientation for this topic."
-key_pages: ["[[important-concept]]", "[[important-entity]]"]
-sources: ["[[source-note-1]]"]
-related: ["[[adjacent-topic]]"]
+key_pages: ["[[important-concept|Important Concept]]", "[[important-entity|Important Entity]]"]
+sources: ["[[source-note-1|Source Note 1]]"]
+related: ["[[adjacent-topic|Adjacent Topic]]"]
 source_quotes: [] # optional claim-level provenance — see below
 derived: false # optional — true when the page is LLM inference, not stated in a source
 tags: []
@@ -210,13 +210,13 @@ A project page tracks a goal or initiative that aggregates related entities, con
 title: "Project Name"
 type: project
 aliases: []
-parent: "[[Parent Index]]"
+parent: "[[topic-a|Topic A]]"
 path: "topic-a"
 objective: "What this project aims to achieve."
 project_status: planned | active | paused | done | abandoned
-members: ["[[related-entity]]", "[[related-concept]]"]
-sources: ["[[source-note-1]]"]
-related: ["[[related-project]]"]
+members: ["[[related-entity|Related Entity]]", "[[related-concept|Related Concept]]"]
+sources: ["[[source-note-1|Source Note 1]]"]
+related: ["[[related-project|Related Project]]"]
 source_quotes: [] # optional claim-level provenance — see below
 derived: false # optional
 tags: []
@@ -238,8 +238,8 @@ title: "Synthesis Title"
 type: synthesis
 synthesis_type: comparison | theme | contradiction | gap | timeline
 path: "_synthesis"
-scope: ["[[concept-1]]", "[[concept-2]]", "[[entity-1]]"]
-sources: ["[[source-1]]", "[[source-2]]", "[[source-3]]"]
+scope: ["[[concept-1|Concept 1]]", "[[concept-2|Concept 2]]", "[[entity-1|Entity 1]]"]
+sources: ["[[source-1|Source 1]]", "[[source-2|Source 2]]", "[[source-3|Source 3]]"]
 tags: []
 created: 2026-04-16
 updated: 2026-04-16
@@ -257,7 +257,7 @@ Every topic folder contains a **folder note** — a note named exactly after its
 title: "Topic Name"
 type: index
 aliases: ["topic-name", "Topic Name"]
-parent: "[[Parent Index]]"
+parent: "[[topic-a|Topic A]]"
 path: "topic-a/subtopic-a1"
 children: []
 child_indexes: []
@@ -267,9 +267,9 @@ updated: 2026-04-16
 ---
 ```
 
-**`aliases`** — every index must include aliases that reflect the topic it represents. Use the topic name in common variations (lowercase slug, title case, abbreviations). This ensures wikilinks resolve when other pages reference the topic by any name variant.
+**`aliases`** — every index should include aliases that reflect the topic it represents: the topic name in common variations (lowercase slug, title case, abbreviations). These aid search and autocomplete discovery — they do **not** make written links resolve (Obsidian resolves by basename/path only). Links to this index still target its file basename in piped form.
 
-**`children` / `child_indexes`** — MUST be quoted `"[[wikilink]]"` values, like `parent`; a plain title string produces no graph edge. On the root `wiki/index.md`, `child_indexes` entries are filename links to the folder notes — e.g. `"[[agents]]"`, not a prose title — so the root MOC's edges land on the real index nodes.
+**`children` / `child_indexes`** — MUST be quoted `"[[wikilink]]"` values, like `parent`, in piped basename form (`"[[entity-name|Entity Name]]"`); a plain title string produces no graph edge, and a bare title that relies on an alias does not resolve. On the root `wiki/index.md`, `child_indexes` entries are piped basename links to the folder notes — e.g. `"[[agents|Agents]]"`, not a bare prose title — so the root MOC's edges land on the real index nodes.
 
 ### Source manifest (`wiki/_sources/manifest.md`) — schema v2
 
@@ -313,7 +313,7 @@ Graph filters and color groups are **regenerable cache**, not precious state: ev
 
 ### Field: `parent` placeholder form
 
-Every non-root page has a `parent` wikilink that points to the containing folder's folder note. Use the actual index title when it is known (e.g., `"[[Patterns — Index]]"`, `"[[Tools — Index]]"`). Use `"[[Parent Index]]"` only as a placeholder in templates.
+Every non-root page has a `parent` wikilink that points to the containing folder's folder note, in piped basename form: target the folder note's file basename with a Title-Case display, e.g. `"[[patterns|Patterns]]"`, `"[[tools|Tools]]"`. (Path-qualify if the basename is not unique vault-wide.) Use `"[[parent-folder|Parent Index]]"` only as a placeholder in templates — a bare `"[[Parent Index]]"` relies on alias resolution Obsidian does not perform and produces no edge.
 
 ### Output files (`output/`) — not part of the schema
 
@@ -327,7 +327,7 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 - Query reads `entity`, `concept`, `topic`, `project`, `synthesis`.
 - Lint scans all wiki types. Files in `vault/output/` are out of scope.
 
-**`parent`** links a note to its folder's folder note. Makes the tree navigable through wikilinks, not just the filesystem. Every note except top-level indexes must have a `parent`. Like `children` and `child_indexes`, the value MUST be a quoted `"[[wikilink]]"` — a plain title string produces no graph edge.
+**`parent`** links a note to its folder's folder note. Makes the tree navigable through wikilinks, not just the filesystem. Every note except top-level indexes must have a `parent`. Like `children` and `child_indexes`, the value MUST be a quoted `"[[wikilink]]"` in piped basename form (`"[[folder-note|Folder Note]]"`) — a plain title string produces no graph edge, and a bare title relying on an alias does not resolve.
 
 **`path`** records the folder path relative to `wiki/`. Enables Dataview queries scoped to a subtree.
 
@@ -350,7 +350,7 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 
 **`derived`** _(schema v2, optional, default `false`)_ — set to `true` when the page (or a claim on it) is LLM inference synthesised across sources rather than stated in any single source. Makes the inference explicit so a reviewer knows it carries less direct evidentiary weight. A `derived: true` page should keep `confidence` below `0.8` unless multiple sources independently support the inference.
 
-**`aliases`** enable wikilink resolution. Obsidian resolves `[[X]]` by matching filenames or aliases — not titles. Since filenames are kebab-case but wikilinks use Title Case page titles, **the `title` value must always appear as the first entry in `aliases`**. Without this, every `[[Title Case Link]]` creates a ghost node in the graph. On index notes, also include the topic name in common variations (slug, title case, abbreviations).
+**`aliases`** aid search and autocomplete discovery — they are **not** a link-resolution mechanism. Obsidian resolves a written `[[target]]` by **exact vault path or filename basename only**; it does not resolve a bare `[[Alias]]` or `[[Title]]` to a note that merely carries that string in `aliases:` or `title:`. (Obsidian's autocomplete inserts an alias pick as a piped link `[[file-basename|Alias]]` — target is the real filename, the alias is only display text.) So aliases never make a written link resolve; they only help a human or the autocomplete find the page. Keep useful display variants here (slug, title case, abbreviations) for discoverability. The old "the title must be the first alias to avoid ghost nodes" rule is **obsolete**: ghost nodes came from authoring bare `[[Title Case]]` links and relying on alias resolution Obsidian never performs. The fix is to write links in piped basename form (`[[file-basename|Title Case]]`) — see "Linking conventions" — not to add aliases.
 
 **`created` / `updated`** use `YYYY-MM-DD` format.
 
@@ -458,23 +458,29 @@ These rules keep pages scannable in Obsidian and in plain-markdown viewers. They
 - **One concept per page, one page per concept.** If two pages would overlap by more than 50%, merge them or pick a canonical one and link from the other.
 - **Transclusion policy.** Default to `[[wikilink]] + 1–2-sentence summary` when referencing another page. Use `![[page#block-id]]` transclusion only when the same verbatim block must appear in two contexts (e.g., an effort table shared between a concept page and a synthesis). When you transclude, leave a short comment above the embed explaining why the canonical block lives elsewhere, so the next editor does not duplicate it back.
 - **Line length and paragraph length.** Break lines at natural phrase boundaries, not fixed columns. Keep paragraphs at 5 sentences or fewer.
-- **Aliases work for you.** Add every reasonable display variant (slug, title case, abbreviation) to `aliases` so Obsidian resolves wikilinks regardless of how a sibling page refers to the topic.
+- **Aliases aid discovery, not resolution.** Add reasonable display variants (slug, title case, abbreviation) to `aliases` so a human or the autocomplete can find the page by any name. Aliases do **not** make a written `[[link]]` resolve — links must target the file basename in piped form (`[[file-basename|Title Case]]`); see "Linking conventions".
 - **Confidence discipline.** Never default to `1.0`. Use `1.0` only for direct quotes or settled facts from an authoritative source. Use `0.8` only when at least two independent sources corroborate the claim. Use `0.6` for single-source internal-policy claims. Use below `0.5` for inference not supported by explicit source text. Record `confidence` honestly — lint enforces the single-source-≥0.8 check.
 
 ## Linking conventions
 
+> [!important] Obsidian resolves by path or basename only — never by alias or title
+> A written `[[target]]` resolves to a note **only** by exact vault path or filename basename. It does **not** resolve by the note's `aliases:` or `title:`. A bare `[[Title Case]]` link that relies on an alias does not resolve — it floats as a ghost node and orphans the target. This applies in body text **and** in every frontmatter link field.
+
 - Use `[[wikilinks]]` for all internal links. Never use raw file paths in prose.
+- **Every cross-page link MUST target the destination's file basename** (the kebab-case filename stem, no extension), with the Title-Case page title as piped display text: `[[entity-name|Entity Name]]`. The bare `[[Entity Name]]` form is wrong — it relies on alias resolution Obsidian does not perform.
+- **Path-qualify when the basename is not unique across the WHOLE vault** (including `raw/` originals). A `wiki/_sources/adr-0001-x.md` summary and its `raw/docs/adr/ADR-0001-x.md` original share a basename, so a bare-basename link silently routes to the wrong file. Target the wiki-relative path (no extension) instead: `[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]`.
+- This applies to **both** body text and frontmatter link fields (`parent`, `sources`, `related`, `children`, `child_indexes`, `key_pages`, `members`, `scope`, `depends_on`, etc.). Every link field uses the piped basename (or path-qualified) form.
 - Link to the most specific page.
 - Every wiki page must link back to at least one source.
-- Use `aliases` in frontmatter for alternative names so wikilinks resolve.
-- In frontmatter, use typed relationship fields (`contradicts`, `supersedes`, `depends_on`) for semantic links.
-- Wikilink display text uses Title Case page titles, not filenames.
+- `aliases` aid search/autocomplete discovery only — they are not a resolution mechanism. Do not rely on an alias to make a written link resolve; write the piped basename form instead.
+- In frontmatter, use typed relationship fields (`contradicts`, `supersedes`, `depends_on`) for semantic links — also in piped basename form.
+- Wikilink display text uses Title Case page titles; the link target is always the file basename (or wiki-relative path), never the title.
 
 ## Naming conventions
 
 - Filenames use kebab-case: `article-title-here.md`
 - Page titles inside files use Title Case: `# Article Title Here`
-- Wikilinks reference page titles: `[[Entity Name]]`
+- Wikilinks target the file basename with Title-Case display: `[[entity-name|Entity Name]]` (path-qualify when the basename is not unique vault-wide — see "Linking conventions")
 - The per-folder index is a folder note named exactly after its folder: `<topic>.md` inside `wiki/<topic>/`. The root index is always `wiki/index.md`. (`_index.md` is the legacy pre-v3 name — accepted, but flagged `legacy-index-filename`.)
 - Source summaries match source title in kebab-case
 
@@ -521,7 +527,7 @@ These skills were written for a **flat** directory layout: `wiki/sources/`, `wik
 | `wiki/concepts/`                                              | topic folders (`wiki/<topic>/`)              | Place concepts in the appropriate topic folder, not a flat `concepts/` directory |
 | `wiki/synthesis/`                                             | `wiki/_synthesis/`                           | Always use `wiki/_synthesis/`                                                    |
 | Minimal frontmatter (`tags`, `sources`, `created`, `updated`) | Full schema (see above)                      | Always use the full frontmatter schema for the page's `type`                     |
-| `sources` as plain strings                                    | `sources` as `[[wikilinks]]`                 | Always use wikilink syntax in the `sources` field                                |
+| `sources` as plain strings                                    | `sources` as piped basename `[[wikilinks]]`  | Always use piped basename wikilinks (`[[source-note\|Source Note]]`) in `sources`  |
 | No `type` field                                               | `type` required on every page                | Always include `type` in frontmatter                                             |
 | No `parent` / `path` fields                                   | Required on all pages except top-level index | Always set `parent` and `path`                                                   |
 | No per-folder index files                                     | A folder note in every topic folder          | Create the folder note (`wiki/<topic>/<topic>.md`) when creating a topic folder  |

@@ -149,7 +149,7 @@ describe("resolveLink — tie-break", () => {
 });
 
 describe("resolvableNames", () => {
-  test("includes basenames, aliases, and titles; excludes path-only forms", () => {
+  test("includes paths, basenames, aliases, and titles", () => {
     const { wiki, cleanup } = wikiOf({
       "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
       "wiki/index.md": "---\ntitle: index\n---\n",
@@ -162,9 +162,10 @@ describe("resolvableNames", () => {
     expect(names.has("installation")).toBe(true); // basename + title
     expect(names.has("install")).toBe(true); // alias
     expect(names.has("setup")).toBe(true); // alias
-    // The path-only form is resolvable via the ladder but NOT a member of the
-    // dangling membership set (ADR-0030 §2).
-    expect(names.has("how-it-works/installation")).toBe(false);
+    // The wiki-relative path form is a member too (ADR-0031): a path-qualified
+    // target like `[[how-it-works/installation]]` resolves and must not dangle.
+    expect(names.has("how-it-works/installation")).toBe(true); // path, no .md
+    expect(names.has("how-it-works/installation.md")).toBe(true); // path, with .md
     cleanup();
   });
 });

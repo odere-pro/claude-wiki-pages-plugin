@@ -39,7 +39,7 @@ not adjectives).
 
 - `vault/raw/` — the sources themselves. Immutable. Enforced by
   `protect-raw.sh`.
-- `vault/CLAUDE.md` — the schema. Read first, before touching any source.
+- `vault/CLAUDE.md` — the schema. Read first, before touching any source. Its "Linking conventions" section is normative for every link this skill emits.
 - `vault/wiki/` — to detect existing pages for the entities and concepts the
   new source mentions. This skill extends existing pages rather than
   duplicating them.
@@ -128,6 +128,34 @@ are never dropped, overwritten, or lost. Every merge operation:
 2. Increments `update_count`.
 3. Advances `updated` to today's date.
 4. Recalculates `confidence` per the confidence-discipline rules.
+
+## Wikilink emission — piped, basename-targeted, path-qualified
+
+Every `[[link]]` this skill writes — in body text **and** in every frontmatter
+link field (`parent`, `sources`, `related`, `children`, `child_indexes`,
+`key_pages`, `members`, `scope`, `depends_on`) — MUST follow the schema's
+"Linking conventions". Obsidian resolves a written `[[target]]` by **exact vault
+path or filename basename only** — never by a note's `aliases:` or `title:`. A
+bare `[[Title Case]]` link does not resolve; it floats as a ghost node and
+orphans the target.
+
+Concretely, when emitting any link:
+
+1. **Target the destination's file basename, with the Title-Case page title as
+   piped display:** `[[entity-name|Entity Name]]`. Never emit a bare
+   `[[Entity Name]]`.
+2. **Path-qualify when the basename is not unique across the WHOLE vault**
+   (including `raw/` originals). A `wiki/_sources/adr-0001-x.md` summary and its
+   `raw/docs/adr/ADR-0001-x.md` original share a basename, so a bare-basename
+   link silently routes to the wrong file. Use the wiki-relative path (no
+   extension): `[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]`.
+3. `parent` targets the containing folder note's basename:
+   `parent: "[[<folder>|<Folder Title>]]"`.
+4. `sources` entries target each source summary's basename (path-qualify if it
+   collides with its `raw/` original): `sources: ["[[<source-slug>|<Source Title>]]"]`.
+5. `aliases` still carry useful display variants for search and autocomplete —
+   they do **not** make a written link resolve, so never rely on an alias in
+   place of the piped basename form.
 
 When no match is found in either pass, create a new typed page for the concept.
 Author it from the body skeleton in `vault/_templates/<type>.md`: copy that

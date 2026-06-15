@@ -34,10 +34,12 @@ confidence: 1.0
 
 ## Entities Mentioned
 
-<!-- One clean `- [[Page]]` list item per entity (`- [[Page|display]]` allowed). -->
+<!-- One clean `- [[page-basename|Display]]` list item per entity: target the file basename, Title-Case display. -->
+<!-- Path-qualify (`- [[topic/page-basename|Display]]`) when the basename is not unique vault-wide. -->
 <!-- Never wrap a `[[link]]` in backticks (a code span is not a link — no graph edge) and never use a bare file path. -->
 
 ## Concepts Mentioned
 
-<!-- One clean `- [[Page]]` list item per concept (`- [[Page|display]]` allowed). -->
+<!-- One clean `- [[page-basename|Display]]` list item per concept: target the file basename, Title-Case display. -->
+<!-- Path-qualify (`- [[topic/page-basename|Display]]`) when the basename is not unique vault-wide. -->
 <!-- Never wrap a `[[link]]` in backticks (a code span is not a link — no graph edge) and never use a bare file path. A parenthetical gloss goes as plain text AFTER the link. -->

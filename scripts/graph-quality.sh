@@ -12,10 +12,12 @@
 # Usage:
 #   scripts/graph-quality.sh [--target <vault-path>] [--json]
 #
-# Resolution model (mirrors Obsidian): a link [[T]] (after stripping a trailing
-#   "|alias" and "#heading" anchor) resolves iff, case-insensitively, T equals
-#   some page's filename stem, its `title:`, or one of its `aliases:`. No
-#   space<->hyphen fuzzing — that mismatch is exactly what produces empty nodes.
+# Resolution model (mirrors Obsidian, ADR-0031): a link [[T]] (after stripping a
+#   trailing "|alias" and "#heading"/"^block" anchor) resolves iff, case-
+#   insensitively, T equals some page's wiki-relative PATH (with or without .md),
+#   its filename stem, its `title:`, or one of its `aliases:`. Path and basename
+#   are what Obsidian resolves; title/alias are a superset. No space<->hyphen
+#   fuzzing — that mismatch is exactly what produces empty nodes.
 #
 # Cluster model: each topic-bearing page (everything under wiki/ except _sources/,
 #   _synthesis/, and the root index.md/log.md/manifest.md) is assigned to one of
@@ -182,6 +184,11 @@ for dirpath, _dirs, files in os.walk(wiki):
         fm, _body = split_frontmatter(text)
         title, aliases = parse_title_aliases(fm)
 
+        # Resolvable by wiki-relative PATH (with & without .md) and basename —
+        # the two forms Obsidian resolves (ADR-0031) — plus title/alias superset.
+        rel_norm = norm(rel.replace(os.sep, "/"))
+        resolvable.add(rel_norm)
+        resolvable.add(rel_norm[:-3] if rel_norm.endswith(".md") else rel_norm)
         resolvable.add(norm(stem))
         if title:
             resolvable.add(norm(title))

@@ -17,11 +17,16 @@
  * the source → alphabetical (fully sorted, so the same vault always resolves
  * the same way).
  *
- * This is the one resolution rule. The dangling-wikilink check
- * ([`wikilink-check.ts`](./wikilink-check.ts)) consumes `resolvableNames(index)`
- * — the basename ∪ alias ∪ title membership set, identical to the flat set
- * ADR-0028 pinned, so its WARN count is unchanged. The collision check
- * ([`collision-check.ts`](./collision-check.ts)) and the connectivity metric in
+ * This is the one resolution rule. The dangling/orphan/stale/MOC checks treat a
+ * link as resolved iff it resolves by PATH or BASENAME — exactly what Obsidian
+ * does (ADR-0031 §2). They consume `resolvableNames(index)`, which is the path
+ * ∪ basename ∪ alias ∪ title membership set: a `[[_sources/adr-0001…]]`
+ * path-qualified target resolves through the `byPath` keys, and a piped
+ * `[[entity-name|Entity Name]]` through the basename keys. (The alias/title
+ * tiers are kept in the set as a deliberate superset — they never make Obsidian
+ * resolve, but including them cannot turn a real link into a false dangling
+ * report.) The collision check ([`collision-check.ts`](./collision-check.ts))
+ * and the connectivity metric in
  * [`../../scripts/graph-quality.sh`](../../scripts/graph-quality.sh) consume the
  * full ladder. The python twins re-implement this specification; the
  * verify-ingest.sh twin is pinned by gate-05.
@@ -200,12 +205,18 @@ export function resolveLink(
 
 /**
  * The set of normalised names a `[[link]]` resolves against for the
- * dangling-wikilink check: basename ∪ alias ∪ title (the `byPath` tier is
- * excluded). Identical to ADR-0028's flat resolvable set, so the dangling WARN
- * count is unchanged when `wikilink-check.ts` consumes this.
+ * dangling/orphan/stale/MOC checks: path ∪ basename ∪ alias ∪ title (ADR-0031).
+ *
+ * The `byPath` keys (wiki-relative path, with and without `.md`) make a
+ * path-qualified target like `_sources/adr-0001-four-layer-orchestrator`
+ * resolve; the basename keys make a piped `[[entity-name|Entity Name]]` resolve
+ * once `normaliseTarget` has stripped the `|display`. Alias and title are kept
+ * as a deliberate superset (Obsidian resolves by path/basename only, but their
+ * presence can never produce a false dangling report).
  */
 export function resolvableNames(index: LinkIndex): Set<string> {
   const names = new Set<string>();
+  for (const k of index.byPath.keys()) names.add(k);
   for (const k of index.byBasename.keys()) names.add(k);
   for (const k of index.byAlias.keys()) names.add(k);
   for (const k of index.byTitle.keys()) names.add(k);

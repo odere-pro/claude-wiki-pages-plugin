@@ -49,6 +49,22 @@ function writeIndex(wiki: string, body: string): void {
   );
 }
 
+/**
+ * Write the root index.md with a `children:` list — the hierarchical MOC
+ * membership source (ADR-0031). `children` are piped-basename wikilinks the
+ * reachability walk resolves; `body` is optional prose.
+ */
+function writeIndexWithChildren(wiki: string, children: readonly string[], body = ""): void {
+  const childYaml =
+    children.length === 0
+      ? "children: []"
+      : `children:\n${children.map((c) => `  - "${c}"`).join("\n")}`;
+  writeFileSync(
+    join(wiki, "index.md"),
+    `---\ntitle: "Index"\ntype: index\n${childYaml}\n---\n# Index\n\n${body}\n`,
+  );
+}
+
 // ── checkIndex ────────────────────────────────────────────────────────────────
 
 describe("checkIndex — missing index.md", () => {
@@ -100,21 +116,23 @@ describe("checkIndex — duplicate entries", () => {
   });
 });
 
-describe("checkIndex — page missing from index", () => {
+describe("checkIndex — page missing from MOC", () => {
   afterEach(teardown);
 
-  test("emits warn when a non-bookkeeping page is not listed in index.md", () => {
+  test("emits warn when a non-bookkeeping page is not reachable from the MOC", () => {
     const base = setup();
     const wiki = makeWiki(base);
 
     writePage(wiki, "listed.md", "Listed Page");
     writePage(wiki, "unlisted.md", "Unlisted Page");
-    writeIndex(wiki, "- [[Listed Page]]");
-    // "Unlisted Page" is not in the index
+    // Only `listed` is in the root index's children; `unlisted` is unreachable.
+    writeIndexWithChildren(wiki, ["[[listed|Listed Page]]"]);
 
     const findings = checkIndex(wiki);
     const warns = findings.filter((f) => f.check === "index-duplicates" && f.severity === "warn");
     expect(warns.some((w) => w.message.includes('"Unlisted Page"'))).toBe(true);
+    // The page reachable via children is NOT flagged.
+    expect(warns.some((w) => w.message.includes('"Listed Page"'))).toBe(false);
   });
 
   test("does not warn for bookkeeping files (index.md, log.md, _index.md)", () => {
@@ -139,13 +157,14 @@ describe("checkIndex — page missing from index", () => {
 describe("checkIndex — well-formed index", () => {
   afterEach(teardown);
 
-  test("returns no findings when all pages are in the index with no duplicates", () => {
+  test("returns no findings when all pages are reachable from the MOC children", () => {
     const base = setup();
     const wiki = makeWiki(base);
 
     writePage(wiki, "page-a.md", "Page A");
     writePage(wiki, "page-b.md", "Page B");
-    writeIndex(wiki, "- [[Page A]]\n- [[Page B]]");
+    // Both pages reachable via the root index's children (piped-basename links).
+    writeIndexWithChildren(wiki, ["[[page-a|Page A]]", "[[page-b|Page B]]"]);
 
     const findings = checkIndex(wiki);
     // No errors (no duplicates, no missing pages)
@@ -157,6 +176,32 @@ describe("checkIndex — well-formed index", () => {
           f.severity === "warn" && (f.message.includes("Page A") || f.message.includes("Page B")),
       ),
     ).toHaveLength(0);
+  });
+
+  test("reaches pages through nested folder notes via child_indexes", () => {
+    const base = setup();
+    const wiki = makeWiki(base);
+
+    // A topic folder with its own folder note listing a child page.
+    mkdirSync(join(wiki, "topic"), { recursive: true });
+    writeFileSync(
+      join(wiki, "topic", "topic.md"),
+      `---\ntitle: "Topic"\ntype: index\nchildren:\n  - "[[deep-page|Deep Page]]"\n---\n# Topic\n`,
+    );
+    writeFileSync(
+      join(wiki, "topic", "deep-page.md"),
+      `---\ntitle: "Deep Page"\ntype: entity\nsources:\n  - "[[Source A]]"\n---\n# Deep Page\n`,
+    );
+    // Root index points at the folder note via child_indexes.
+    writeFileSync(
+      join(wiki, "index.md"),
+      `---\ntitle: "Index"\ntype: index\nchildren: []\nchild_indexes:\n  - "[[topic|Topic]]"\n---\n# Index\n`,
+    );
+
+    const findings = checkIndex(wiki);
+    const warns = findings.filter((f) => f.check === "index-duplicates" && f.severity === "warn");
+    // Deep Page is reachable: index.md -> topic.md (child_indexes) -> deep-page (children).
+    expect(warns.some((w) => w.message.includes("Deep Page"))).toBe(false);
   });
 });
 

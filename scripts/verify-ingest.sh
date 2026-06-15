@@ -200,24 +200,202 @@ else
     green "No duplicates in index.md ($LINK_COUNT unique entries)"
   fi
 
-  # Check for pages in wiki that are NOT in the index
-  while IFS= read -r filepath; do
-    BASENAME=$(basename "$filepath" .md)
-    # Skip bookkeeping files (by name, or a folder note)
-    case "$BASENAME" in
-      index | log | dashboard | manifest | _index | .gitkeep) continue ;;
-    esac
-    if _is_folder_note "$filepath"; then continue; fi
-    # Extract the title from frontmatter
-    TITLE=$(_fm_title "$filepath")
-    if [ -z "$TITLE" ]; then
-      TITLE="$BASENAME"
+  # Hierarchical MOC reachability (schema v3 folder notes, ADR-0031).
+  # A page is "in the MOC" if the folder-note tree rooted at index.md reaches it
+  # via child_indexes -> children, resolved by path U basename — NOT if it is
+  # listed in index.md directly. _sources/ and _synthesis/ pages are reached from
+  # the pages that cite them (CHECK 3b), so they are excluded here. Twin of
+  # reachableFromMoc()/checkIndex in src/core/index-check.ts.
+  if command -v python3 >/dev/null 2>&1; then
+    NOT_IN_MOC=$(
+      VERIFY_WIKI="$WIKI" python3 - <<'PY'
+import os, re
+
+wiki = os.environ["VERIFY_WIKI"]
+BOOKKEEPING_STEMS = {"index", "log", "dashboard", "manifest", "_index", ".gitkeep"}
+
+def norm(s):
+    return s.strip().lower()
+
+def split_frontmatter(text):
+    if not text.startswith("---"):
+        return "", text
+    end = text.find("\n---", 3)
+    if end == -1:
+        return "", text
+    return text[3:end], text[end + 4:]
+
+def parse_fm_lists(fm):
+    """Extract title, aliases, children, child_indexes from a frontmatter block.
+    Handles inline-flow and block (dash) YAML lists — mirrors the engine yaml parse."""
+    title = None
+    aliases, children, child_indexes = [], [], []
+    lines = fm.splitlines()
+    i = 0
+    def parse_list(rest, j):
+        vals = []
+        rest = rest.strip()
+        if rest.startswith("["):
+            items = re.findall(r"\"([^\"]*)\"|'([^']*)'", rest)
+            if items:
+                for a, b in items:
+                    v = a or b
+                    if v:
+                        vals.append(v)
+            else:
+                for piece in rest.strip("[]").split(","):
+                    piece = piece.strip().strip('"').strip("'")
+                    if piece:
+                        vals.append(piece)
+            return vals, j
+        k = j + 1
+        while k < len(lines):
+            bm = re.match(r"^\s*-\s*(.+?)\s*$", lines[k])
+            if bm:
+                vals.append(bm.group(1).strip().strip('"').strip("'"))
+                k += 1
+            else:
+                break
+        return vals, k - 1
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r"^title:\s*(.+?)\s*$", line)
+        if m:
+            title = m.group(1).strip().strip('"').strip("'")
+        for field, bucket in (("aliases", aliases), ("children", children),
+                              ("child_indexes", child_indexes)):
+            m = re.match(r"^" + field + r":\s*(.*)$", line)
+            if m:
+                vals, i = parse_list(m.group(1), i)
+                bucket.extend(vals)
+        i += 1
+    return title, aliases, children, child_indexes
+
+def link_target(raw):
+    """Strip [[ ]], |display, #heading, ^block; return normalised target."""
+    t = raw
+    t = re.sub(r"^\[\[", "", t)
+    t = re.sub(r"\]\]$", "", t)
+    for sep in ("|", "#", "^"):
+        idx = t.find(sep)
+        if idx != -1:
+            t = t[:idx]
+    return norm(t)
+
+# Build the path U basename resolver over wiki/.
+by_path = {}       # normalised wiki-rel path (with & without .md) -> rel
+by_basename = {}   # normalised stem -> [rel]
+by_alias = {}
+by_title = {}
+fm_by_rel = {}
+all_pages = []
+for dirpath, _dirs, files in os.walk(wiki):
+    for fn in sorted(files):
+        if not fn.endswith(".md"):
+            continue
+        full = os.path.join(dirpath, fn)
+        rel = os.path.relpath(full, wiki).replace(os.sep, "/")
+        all_pages.append(rel)
+        stem = fn[:-3]
+        pk = norm(rel)
+        by_path.setdefault(pk, rel)
+        by_path.setdefault(pk[:-3] if pk.endswith(".md") else pk, rel)
+        by_basename.setdefault(norm(stem), []).append(rel)
+        try:
+            text = open(full, encoding="utf-8").read()
+        except Exception:
+            text = ""
+        fm, _b = split_frontmatter(text)
+        title, aliases, children, child_indexes = parse_fm_lists(fm)
+        fm_by_rel[rel] = (title, children, child_indexes)
+        if title:
+            by_title.setdefault(norm(title), []).append(rel)
+        for a in aliases:
+            if norm(a):
+                by_alias.setdefault(norm(a), []).append(rel)
+
+for _m in (by_basename, by_alias, by_title):
+    for _k in list(_m):
+        _m[_k] = sorted(set(_m[_k]))
+
+def tiebreak(cands, src):
+    srcdir = src.rsplit("/", 1)[0] if "/" in src else ""
+    def key(c):
+        cdir = c.rsplit("/", 1)[0] if "/" in c else ""
+        return (c.count("/"), 0 if cdir == srcdir else 1, c)
+    return sorted(cands, key=key)[0]
+
+def resolve(raw, src):
+    nt = link_target(raw)
+    if not nt:
+        return None
+    if nt in by_path:
+        return by_path[nt]
+    if by_basename.get(nt):
+        return tiebreak(by_basename[nt], src)
+    if by_alias.get(nt):
+        return tiebreak(by_alias[nt], src)
+    if by_title.get(nt):
+        return tiebreak(by_title[nt], src)
+    return None
+
+# Walk the MOC from index.md.
+covered = set()
+visited = set()
+def visit(rel):
+    if rel in visited:
+        return
+    visited.add(rel)
+    covered.add(rel)
+    title, children, child_indexes = fm_by_rel.get(rel, (None, [], []))
+    for c in children:
+        r = resolve(c, rel)
+        if r is not None:
+            covered.add(r)
+    for ci in child_indexes:
+        r = resolve(ci, rel)
+        if r is not None:
+            visit(r)
+
+if "index.md" in fm_by_rel:
+    visit("index.md")
+
+# Folder-note detection mirrors _is_folder_note: stem == parent AND type: index.
+def is_folder_note(rel):
+    parts = rel.split("/")
+    stem = parts[-1][:-3]
+    parent = parts[-2] if len(parts) >= 2 else ""
+    if stem != parent:
+        return False
+    try:
+        text = open(os.path.join(wiki, rel), encoding="utf-8").read()
+    except Exception:
+        return False
+    return bool(re.search(r"^type:\s*[\"']?index[\"']?\s*$", text, re.MULTILINE))
+
+for rel in sorted(all_pages):
+    stem = rel.split("/")[-1][:-3]
+    if stem in BOOKKEEPING_STEMS:
+        continue
+    if is_folder_note(rel):
+        continue
+    if rel.startswith("_sources/") or rel.startswith("_synthesis/"):
+        continue
+    if rel not in covered:
+        title = fm_by_rel.get(rel, (None, [], []))[0] or stem
+        # Output FILE then TITLE, read in pairs by the bash loop below.
+        print(os.path.join(wiki, rel))
+        print(title)
+PY
+    )
+    if [ -n "$NOT_IN_MOC" ]; then
+      while IFS= read -r moc_file && IFS= read -r moc_title; do
+        [ -z "$moc_file" ] && continue || true
+        yellow "Page not in MOC: \"$moc_title\" ($moc_file) — not reachable from index.md via folder notes"
+        WARNINGS=$((WARNINGS + 1))
+      done <<<"$NOT_IN_MOC"
     fi
-    if ! echo "$LINKS" | grep -qxF "$TITLE"; then
-      yellow "Page not in index.md: \"$TITLE\" ($filepath)"
-      WARNINGS=$((WARNINGS + 1))
-    fi
-  done < <(find "$WIKI" -name '*.md' -type f | sort)
+  fi
 fi
 
 # ──────────────────────────────────────────────
@@ -272,124 +450,422 @@ fi
 # ──────────────────────────────────────────────
 header "Index consistency"
 
-# All per-folder index files: legacy _index.md plus folder notes.
-_list_index_files() {
-  local f
-  while IFS= read -r f; do
-    if [ "$(basename "$f")" = "_index.md" ] || _is_folder_note "$f"; then
-      printf '%s\n' "$f"
-    fi
-  done < <(find "$WIKI" -name '*.md' -type f | sort)
-}
+# Children are "[[wikilink]]" values (piped-basename or path-qualified); a page
+# is matched by the file its child link RESOLVES to (path U basename, ADR-0031),
+# not by title. A child is an error only when it resolves to no page anywhere in
+# wiki/. Twin of checkIndexConsistency in src/core/moc.ts. The python3 block
+# emits one tagged line per finding; the subfolder-index check stays here.
+if command -v python3 >/dev/null 2>&1; then
+  MOC_OUTPUT=$(
+    VERIFY_WIKI="$WIKI" python3 - <<'PY'
+import os, re
 
+wiki = os.environ["VERIFY_WIKI"]
+
+def norm(s):
+    return s.strip().lower()
+
+def split_frontmatter(text):
+    if not text.startswith("---"):
+        return "", text
+    end = text.find("\n---", 3)
+    if end == -1:
+        return "", text
+    return text[3:end], text[end + 4:]
+
+def parse_fm(fm):
+    title = None
+    aliases, children = [], []
+    is_index = bool(re.search(r"^type:\s*[\"']?index[\"']?\s*$", fm, re.MULTILINE))
+    lines = fm.splitlines()
+    i = 0
+    def parse_list(rest, j):
+        vals = []
+        rest = rest.strip()
+        if rest.startswith("["):
+            items = re.findall(r"\"([^\"]*)\"|'([^']*)'", rest)
+            if items:
+                for a, b in items:
+                    v = a or b
+                    if v:
+                        vals.append(v)
+            else:
+                for piece in rest.strip("[]").split(","):
+                    piece = piece.strip().strip('"').strip("'")
+                    if piece:
+                        vals.append(piece)
+            return vals, j
+        k = j + 1
+        while k < len(lines):
+            bm = re.match(r"^\s*-\s*(.+?)\s*$", lines[k])
+            if bm:
+                vals.append(bm.group(1).strip().strip('"').strip("'"))
+                k += 1
+            else:
+                break
+        return vals, k - 1
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r"^title:\s*(.+?)\s*$", line)
+        if m:
+            title = m.group(1).strip().strip('"').strip("'")
+        for field, bucket in (("aliases", aliases), ("children", children)):
+            m = re.match(r"^" + field + r":\s*(.*)$", line)
+            if m:
+                vals, i = parse_list(m.group(1), i)
+                bucket.extend(vals)
+        i += 1
+    return title, aliases, children, is_index
+
+def link_target(raw):
+    t = re.sub(r"^\[\[", "", raw)
+    t = re.sub(r"\]\]$", "", t)
+    for sep in ("|", "#", "^"):
+        idx = t.find(sep)
+        if idx != -1:
+            t = t[:idx]
+    return norm(t)
+
+by_path, by_basename, by_alias, by_title = {}, {}, {}, {}
+pages = {}  # rel -> (title, aliases, children, is_index)
+for dirpath, _dirs, files in os.walk(wiki):
+    for fn in sorted(files):
+        if not fn.endswith(".md"):
+            continue
+        full = os.path.join(dirpath, fn)
+        rel = os.path.relpath(full, wiki).replace(os.sep, "/")
+        stem = fn[:-3]
+        pk = norm(rel)
+        by_path.setdefault(pk, rel)
+        by_path.setdefault(pk[:-3] if pk.endswith(".md") else pk, rel)
+        by_basename.setdefault(norm(stem), []).append(rel)
+        try:
+            text = open(full, encoding="utf-8").read()
+        except Exception:
+            text = ""
+        fm, _b = split_frontmatter(text)
+        title, aliases, children, is_index = parse_fm(fm)
+        pages[rel] = (title, aliases, children, is_index)
+        if title:
+            by_title.setdefault(norm(title), []).append(rel)
+        for a in aliases:
+            if norm(a):
+                by_alias.setdefault(norm(a), []).append(rel)
+
+for _m in (by_basename, by_alias, by_title):
+    for _k in list(_m):
+        _m[_k] = sorted(set(_m[_k]))
+
+def tiebreak(cands, src):
+    srcdir = src.rsplit("/", 1)[0] if "/" in src else ""
+    def key(c):
+        cdir = c.rsplit("/", 1)[0] if "/" in c else ""
+        return (c.count("/"), 0 if cdir == srcdir else 1, c)
+    return sorted(cands, key=key)[0]
+
+def resolve(raw, src):
+    nt = link_target(raw)
+    if not nt:
+        return None
+    if nt in by_path:
+        return by_path[nt]
+    if by_basename.get(nt):
+        return tiebreak(by_basename[nt], src)
+    if by_alias.get(nt):
+        return tiebreak(by_alias[nt], src)
+    if by_title.get(nt):
+        return tiebreak(by_title[nt], src)
+    return None
+
+def is_folder_note(rel):
+    parts = rel.split("/")
+    stem = parts[-1][:-3]
+    parent = parts[-2] if len(parts) >= 2 else ""
+    return stem == parent and pages.get(rel, (None, None, None, False))[3]
+
+def title_of(rel):
+    t = pages.get(rel, (None,))[0]
+    return t if t else rel.split("/")[-1][:-3]
+
+# Index files: legacy _index.md plus folder notes — in sorted-path order.
+index_files = []
+for rel in sorted(pages):
+    fn = rel.split("/")[-1]
+    if fn == "_index.md" or is_folder_note(rel):
+        index_files.append(rel)
+
+for index_rel in index_files:
+    folder = index_rel.rsplit("/", 1)[0] if "/" in index_rel else ""
+    folder_name = folder.split("/")[-1] if folder else os.path.basename(wiki.rstrip("/"))
+    index_name = index_rel.split("/")[-1]
+    _t, _a, children, _i = pages[index_rel]
+
+    # Actual non-index pages directly in this folder.
+    actual = []
+    for rel in sorted(pages):
+        d = rel.rsplit("/", 1)[0] if "/" in rel else ""
+        if d != folder:
+            continue
+        if rel.split("/")[-1] == "_index.md" or is_folder_note(rel):
+            continue
+        actual.append(rel)
+
+    child_resolved = {c: resolve(c, index_rel) for c in children}
+    resolved_files = {r for r in child_resolved.values() if r is not None}
+
+    # Pages in folder but missing from children.
+    for rel in actual:
+        if children:
+            if rel not in resolved_files:
+                print('WARN\tPage "%s" in %s/ but not in %s/%s children' %
+                      (title_of(rel), folder_name, folder_name, index_name))
+        else:
+            print('WARN\tPage "%s" in %s/ but %s has empty children list' %
+                  (title_of(rel), folder_name, index_name))
+
+    # Children that resolve to no page anywhere.
+    for c in children:
+        if child_resolved[c] is None:
+            if actual:
+                print('ERR\tIndex lists "%s" but no matching page found in %s/' % (c, folder_name))
+            else:
+                print('ERR\tIndex lists "%s" but folder %s/ has no pages' % (c, folder_name))
+PY
+  )
+  if [ -n "$MOC_OUTPUT" ]; then
+    while IFS=$'\t' read -r tag msg; do
+      [ -z "$tag" ] && continue || true
+      case "$tag" in
+        WARN)
+          yellow "$msg"
+          WARNINGS=$((WARNINGS + 1))
+          ;;
+        ERR)
+          red "$msg"
+          ERRORS=$((ERRORS + 1))
+          ;;
+      esac
+    done <<<"$MOC_OUTPUT"
+  fi
+fi
+
+# Subfolder index-file presence (filesystem-based, resolution-independent) plus
+# the per-index informational "checked" line (green, never counted).
 while IFS= read -r index_file; do
+  if [ "$(basename "$index_file")" != "_index.md" ] && ! _is_folder_note "$index_file"; then
+    continue
+  fi
   FOLDER=$(dirname "$index_file")
   FOLDER_NAME=$(basename "$FOLDER")
   INDEX_BASENAME=$(basename "$index_file")
-
-  # Get children listed in the index frontmatter.
-  # M06/M11: use the shared _extract_yaml_list helper (DRY + flattened nesting).
-  INDEX_FRONTMATTER=$(sed -n '/^---$/,/^---$/p' "$index_file")
-  INDEX_CHILDREN=$(printf '%s\n' "$INDEX_FRONTMATTER" | _extract_yaml_list "children")
-
-  # Get actual .md files in this folder (excluding the index files themselves).
-  ACTUAL_FILES=""
-  while IFS= read -r f; do
-    if _is_folder_note "$f"; then continue; fi
-    TITLE=$(_fm_title "$f")
-    if [ -n "$TITLE" ]; then
-      ACTUAL_FILES="${ACTUAL_FILES}${TITLE}"$'\n'
-    fi
-  done < <(find "$FOLDER" -maxdepth 1 -name '*.md' -not -name '_index.md' -type f | sort)
-
-  # Get actual subdirectories
-  ACTUAL_SUBDIRS=""
   while IFS= read -r d; do
     [ -z "$d" ] && continue || true
-    ACTUAL_SUBDIRS="${ACTUAL_SUBDIRS}$(basename "$d")"$'\n'
-  done < <(find "$FOLDER" -mindepth 1 -maxdepth 1 -type d | sort)
-
-  # Check: pages in folder but missing from index children
-  while IFS= read -r title; do
-    [ -z "$title" ] && continue || true
-    if [ -n "$INDEX_CHILDREN" ]; then
-      if ! echo "$INDEX_CHILDREN" | grep -qxF "$title"; then
-        yellow "Page \"$title\" in $FOLDER_NAME/ but not in $FOLDER_NAME/$INDEX_BASENAME children"
-        WARNINGS=$((WARNINGS + 1))
-      fi
-    else
-      yellow "Page \"$title\" in $FOLDER_NAME/ but $INDEX_BASENAME has empty children list"
-      WARNINGS=$((WARNINGS + 1))
-    fi
-  done <<<"$ACTUAL_FILES"
-
-  # Check: entries in index children but no matching file
-  while IFS= read -r child; do
-    [ -z "$child" ] && continue || true
-    if [ -n "$ACTUAL_FILES" ]; then
-      if ! echo "$ACTUAL_FILES" | grep -qxF "$child"; then
-        red "Index lists \"$child\" but no matching page found in $FOLDER_NAME/"
-        ERRORS=$((ERRORS + 1))
-      fi
-    else
-      red "Index lists \"$child\" but folder $FOLDER_NAME/ has no pages"
-      ERRORS=$((ERRORS + 1))
-    fi
-  done <<<"$INDEX_CHILDREN"
-
-  # Check: subdirectories should have corresponding child_indexes entries
-  while IFS= read -r subdir; do
-    [ -z "$subdir" ] && continue || true
+    subdir=$(basename "$d")
     if ! _has_index_file "$FOLDER/$subdir"; then
       red "Subfolder $FOLDER_NAME/$subdir/ has no index file (folder note or _index.md)"
       ERRORS=$((ERRORS + 1))
     fi
-  done <<<"$ACTUAL_SUBDIRS"
-
+  done < <(find "$FOLDER" -mindepth 1 -maxdepth 1 -type d | sort)
   green "$FOLDER_NAME/$INDEX_BASENAME checked"
-
-done < <(_list_index_files)
+done < <(find "$WIKI" -name '*.md' -type f | sort)
 
 # CHECK 3b: Source summaries referenced by at least one wiki page
 header "Orphan source summaries"
 
 SOURCES_DIR="$WIKI/_sources"
-ORPHAN_SOURCES=0
-if [ -d "$SOURCES_DIR" ]; then
-  while IFS= read -r source_file; do
-    # The source manifest (type: manifest) is bookkeeping, not a source summary;
-    # the schema exempts it from index-membership checks, so it is never an orphan.
-    SOURCE_TYPE=$(sed -n '/^---$/,/^---$/{/^type:/{s/^type: *//;s/ *$//;p;q;};}' "$source_file")
-    if [ "$SOURCE_TYPE" = "manifest" ]; then
-      continue
-    fi
-    SOURCE_TITLE=$(_fm_title "$source_file")
-    if [ -z "$SOURCE_TITLE" ]; then
-      SOURCE_TITLE=$(basename "$source_file" .md)
-    fi
-    # Search all wiki pages (excluding _sources/) for this source in their sources: field
-    REFS=$(grep -rl "\[\[${SOURCE_TITLE}\]\]" "$WIKI" --include='*.md' 2>/dev/null | grep -v '/_sources/' | grep -v '/index\.md$' | grep -v '/log\.md$' | head -1 || true)
-    if [ -z "$REFS" ]; then
-      yellow "Orphan source: \"$SOURCE_TITLE\" ($(basename "$source_file")) — not referenced by any wiki page"
+if [ ! -d "$SOURCES_DIR" ]; then
+  yellow "No _sources/ directory found"
+elif command -v python3 >/dev/null 2>&1; then
+  # A source is referenced iff some citing page has a wikilink that RESOLVES to
+  # it by path U basename (ADR-0031) — not iff a bare [[title]] string appears.
+  # Twin of checkOrphanSources in src/core/moc.ts.
+  ORPHAN_OUTPUT=$(
+    VERIFY_WIKI="$WIKI" python3 - <<'PY'
+import os, re
+
+wiki = os.environ["VERIFY_WIKI"]
+LINK_RE = re.compile(r"\[\[([^\[\]]+?)\]\]")
+
+def norm(s):
+    return s.strip().lower()
+
+def split_frontmatter(text):
+    if not text.startswith("---"):
+        return "", text
+    end = text.find("\n---", 3)
+    if end == -1:
+        return "", text
+    return text[3:end], text[end + 4:]
+
+def strip_code(text):
+    out = []
+    in_fence = False
+    marker = ""
+    for line in text.splitlines():
+        s = line.lstrip()
+        if not in_fence and (s.startswith("```") or s.startswith("~~~")):
+            in_fence = True
+            marker = s[:3]
+            continue
+        if in_fence:
+            if s.startswith(marker):
+                in_fence = False
+                marker = ""
+            continue
+        out.append(re.sub(r"`[^`]*`", "", line))
+    return "\n".join(out)
+
+def parse_title_aliases(fm):
+    title = None
+    aliases = []
+    lines = fm.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r"^title:\s*(.+?)\s*$", line)
+        if m:
+            title = m.group(1).strip().strip('"').strip("'")
+        m = re.match(r"^aliases:\s*(.*)$", line)
+        if m:
+            rest = m.group(1).strip()
+            if rest.startswith("["):
+                items = re.findall(r"\"([^\"]*)\"|'([^']*)'", rest)
+                if items:
+                    for a, b in items:
+                        v = a or b
+                        if v:
+                            aliases.append(v)
+                else:
+                    for piece in rest.strip("[]").split(","):
+                        piece = piece.strip().strip('"').strip("'")
+                        if piece:
+                            aliases.append(piece)
+            else:
+                j = i + 1
+                while j < len(lines):
+                    bm = re.match(r"^\s*-\s*(.+?)\s*$", lines[j])
+                    if bm:
+                        aliases.append(bm.group(1).strip().strip('"').strip("'"))
+                        j += 1
+                    else:
+                        break
+                i = j - 1
+        i += 1
+    return title, aliases
+
+def link_target(raw):
+    t = re.sub(r"^\[\[", "", raw)
+    t = re.sub(r"\]\]$", "", t)
+    for sep in ("|", "#", "^"):
+        idx = t.find(sep)
+        if idx != -1:
+            t = t[:idx]
+    return norm(t)
+
+by_path, by_basename, by_alias, by_title = {}, {}, {}, {}
+all_pages, titles = [], {}
+for dirpath, _dirs, files in os.walk(wiki):
+    for fn in sorted(files):
+        if not fn.endswith(".md"):
+            continue
+        full = os.path.join(dirpath, fn)
+        rel = os.path.relpath(full, wiki).replace(os.sep, "/")
+        all_pages.append(rel)
+        stem = fn[:-3]
+        pk = norm(rel)
+        by_path.setdefault(pk, rel)
+        by_path.setdefault(pk[:-3] if pk.endswith(".md") else pk, rel)
+        by_basename.setdefault(norm(stem), []).append(rel)
+        try:
+            text = open(full, encoding="utf-8").read()
+        except Exception:
+            text = ""
+        fm, _b = split_frontmatter(text)
+        title, aliases = parse_title_aliases(fm)
+        titles[rel] = title if title else stem
+        if title:
+            by_title.setdefault(norm(title), []).append(rel)
+        for a in aliases:
+            if norm(a):
+                by_alias.setdefault(norm(a), []).append(rel)
+
+for _m in (by_basename, by_alias, by_title):
+    for _k in list(_m):
+        _m[_k] = sorted(set(_m[_k]))
+
+def tiebreak(cands, src):
+    srcdir = src.rsplit("/", 1)[0] if "/" in src else ""
+    def key(c):
+        cdir = c.rsplit("/", 1)[0] if "/" in c else ""
+        return (c.count("/"), 0 if cdir == srcdir else 1, c)
+    return sorted(cands, key=key)[0]
+
+def resolve(raw, src):
+    nt = link_target(raw)
+    if not nt:
+        return None
+    if nt in by_path:
+        return by_path[nt]
+    if by_basename.get(nt):
+        return tiebreak(by_basename[nt], src)
+    if by_alias.get(nt):
+        return tiebreak(by_alias[nt], src)
+    if by_title.get(nt):
+        return tiebreak(by_title[nt], src)
+    return None
+
+# Collect every file a citing page's wikilink resolves to.
+referenced = set()
+for rel in all_pages:
+    if rel.startswith("_sources/") or rel in ("index.md", "log.md"):
+        continue
+    try:
+        text = open(os.path.join(wiki, rel), encoding="utf-8").read()
+    except Exception:
+        continue
+    for raw in LINK_RE.findall(strip_code(text)):
+        r = resolve(raw, rel)
+        if r is not None:
+            referenced.add(r)
+
+# Source summaries (type != manifest) not referenced by any page are orphans.
+for rel in sorted(all_pages):
+    parts = rel.split("/")
+    if parts[0] != "_sources" or parts[-1] == ".gitkeep":
+        continue
+    try:
+        text = open(os.path.join(wiki, rel), encoding="utf-8").read()
+    except Exception:
+        text = ""
+    fm, _b = split_frontmatter(text)
+    if re.search(r"^type:\s*manifest\s*$", fm, re.MULTILINE):
+        continue
+    if rel not in referenced:
+        print('%s\t%s' % (titles[rel], parts[-1]))
+PY
+  )
+  ORPHAN_SOURCES=0
+  if [ -n "$ORPHAN_OUTPUT" ]; then
+    while IFS=$'\t' read -r src_title src_base; do
+      [ -z "$src_title" ] && continue || true
+      yellow "Orphan source: \"$src_title\" ($src_base) — not referenced by any wiki page"
       WARNINGS=$((WARNINGS + 1))
       ORPHAN_SOURCES=$((ORPHAN_SOURCES + 1))
-    fi
-  done < <(find "$SOURCES_DIR" -name '*.md' -not -name '.gitkeep' -type f | sort)
-
+    done <<<"$ORPHAN_OUTPUT"
+  fi
   if [ "$ORPHAN_SOURCES" -eq 0 ]; then
     green "All source summaries are referenced by at least one wiki page"
   fi
-else
-  yellow "No _sources/ directory found"
 fi
 
 # Also check for topic folders that lack an index file entirely
 while IFS= read -r dir; do
   [ -z "$dir" ] && continue || true
   DIRNAME=$(basename "$dir")
-  # Skip special folders
+  # Skip special folders and dot-directories (.claude/, .obsidian/ — tooling
+  # state, not topic folders).
   case "$DIRNAME" in
-    _sources | _synthesis) continue ;;
+    _sources | _synthesis | .*) continue ;;
   esac
   if ! _has_index_file "$dir"; then
     red "Topic folder $DIRNAME/ has no index file (folder note or _index.md)"
@@ -438,22 +914,56 @@ _fm_field() {
   printf '%s' "$line" | sed "s/^${field}:[[:space:]]*//" | tr -d "\"'"
 }
 
-# Helper: given a wikilink target name (without [[ ]]), find the source file in
-# _sources/ whose title: or aliases: contains that name.
-# Prints the absolute filepath or nothing.
+# Helper: given a cited wikilink target (without [[ ]], pipe already stripped),
+# find the source file in _sources/ it resolves to. Resolution order mirrors the
+# engine resolveLink (ADR-0031): exact wiki-relative PATH (with/without .md,
+# case-insensitive) -> filename basename (case-insensitive) -> title -> alias.
+# Path and basename are what Obsidian resolves; title/alias are a superset.
+# Prints the absolute filepath or nothing. Twin of the path U basename branch of
+# checkCitedSourceStaleness in src/core/staleness.ts.
 _resolve_source_wikilink() {
   local target="$1"
   local sources_dir="$2"
+  local wiki_dir
+  wiki_dir=$(dirname "$sources_dir")
   [ -d "$sources_dir" ] || return 0
+  # Normalise the target to lowercase for case-insensitive path/basename match.
+  local nt
+  nt=$(printf '%s' "$target" | tr '[:upper:]' '[:lower:]')
+
+  # Tier 1: exact wiki-relative path (a path-qualified target like
+  # "_sources/adr-0001-foo"). Strip a trailing .md before comparing.
+  local nt_noext="${nt%.md}"
+  local cand_rel cand_norm
   while IFS= read -r candidate; do
-    # Match against title:
+    cand_rel="${candidate#"$wiki_dir"/}"
+    cand_norm=$(printf '%s' "$cand_rel" | tr '[:upper:]' '[:lower:]')
+    cand_norm="${cand_norm%.md}"
+    if [ "$cand_norm" = "$nt_noext" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done < <(find "$sources_dir" -name '*.md' -not -name '.gitkeep' -type f | sort)
+
+  # Tier 2: filename basename (case-insensitive).
+  local stem stem_norm
+  while IFS= read -r candidate; do
+    stem=$(basename "$candidate" .md)
+    stem_norm=$(printf '%s' "$stem" | tr '[:upper:]' '[:lower:]')
+    if [ "$stem_norm" = "$nt_noext" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done < <(find "$sources_dir" -name '*.md' -not -name '.gitkeep' -type f | sort)
+
+  # Tier 3/4: title: then aliases: (exact, as before — kept as a superset).
+  while IFS= read -r candidate; do
     local title
     title=$(_fm_field "$candidate" "title")
     if [ "$title" = "$target" ]; then
       printf '%s\n' "$candidate"
       return 0
     fi
-    # Match against aliases: (inline list, e.g. aliases: ["Foo", "foo"])
     local aliases_line
     aliases_line=$(sed -n '/^---$/,/^---$/p' "$candidate" |
       grep -m1 -E "^aliases:" || true)
@@ -762,14 +1272,21 @@ def is_folder_note(full_path, stem, parent_name):
     return bool(re.search(r"^type:\s*[\"']?index[\"']?\s*$", text, re.MULTILINE))
 
 # ── Pass 1: build the resolvable-name set (ALL pages are potential targets) ──
+# A link resolves iff its normalised target is the wiki-relative PATH (with or
+# without .md), the filename stem, the title:, or an aliases: entry of some page
+# (ADR-0031). Path + basename are what Obsidian resolves; title/alias are kept
+# as a deliberate superset. Twin of resolvableNames() in src/core/link-resolver.ts.
 resolvable = set()
 for dirpath, _dirs, files in os.walk(wiki):
     for fn in sorted(files):
         if not fn.endswith(".md"):
             continue
         stem = fn[:-3]
-        resolvable.add(norm(stem))
         full = os.path.join(dirpath, fn)
+        rel = os.path.relpath(full, wiki).replace(os.sep, "/")
+        resolvable.add(norm(rel))
+        resolvable.add(norm(rel[:-3] if rel.endswith(".md") else rel))
+        resolvable.add(norm(stem))
         try:
             text = open(full, encoding="utf-8").read()
         except Exception:
@@ -833,7 +1350,7 @@ PY
   if [ -n "$DANGLING_OUTPUT" ]; then
     while IFS= read -r dangling_file && IFS= read -r dangling_target; do
       [ -z "$dangling_file" ] && continue || true
-      yellow "dangling-wikilink: [[${dangling_target}]] in ${dangling_file} has no matching page (stem, title, or alias)"
+      yellow "dangling-wikilink: [[${dangling_target}]] in ${dangling_file} has no matching page (path, stem, title, or alias)"
       DANGLING_WARNS=$((DANGLING_WARNS + 1))
       WARNINGS=$((WARNINGS + 1))
     done <<<"$DANGLING_OUTPUT"
