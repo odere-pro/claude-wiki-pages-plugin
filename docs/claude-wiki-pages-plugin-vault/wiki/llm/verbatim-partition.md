@@ -4,8 +4,8 @@ type: concept
 aliases: ["Verbatim Partition", "verbatim partition", "verbatim test", "over-citation vs fabrication", "substring test"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0017: Fabrication Floor — Verbatim Partition]]"]
-related: ["[[Zero-Fabrication Floor]]", "[[Local Model Quality Gate]]", "[[Golden Set]]", "[[Approved Local Model]]"]
+sources: ["[[adr-0017-fabrication-floor|ADR-0017: Fabrication Floor — Verbatim Partition]]"]
+related: ["[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[local-model-quality-gate|Local Model Quality Gate]]", "[[approved-local-model|Approved Local Model]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -20,7 +20,7 @@ confidence: 1.0
 # Verbatim Partition
 
 > [!summary]
-> The verbatim partition is the ADR-0017 refinement of the [[Zero-Fabrication Floor]] that distinguishes fabrication from over-citation using a verbatim substring test. A `source_quotes` entry whose `quote` is a whitespace-normalized verbatim substring of the raw input is over-citation (acceptable). A `source_quotes` entry whose `quote` is not a substring of the raw input is fabrication (disqualifying).
+> The verbatim partition is the ADR-0017 refinement of the [[zero-fabrication-floor|Zero-Fabrication Floor]] that distinguishes fabrication from over-citation using a verbatim substring test. A `source_quotes` entry whose `quote` is a whitespace-normalized verbatim substring of the raw input is over-citation (acceptable). A `source_quotes` entry whose `quote` is not a substring of the raw input is fabrication (disqualifying).
 
 ## Key Principles
 
@@ -36,7 +36,7 @@ The partition test applied to a `source_quotes` entry:
 
 ```
 source_quotes:
-  - source: "[[ADR-0017: Fabrication Floor — Verbatim Partition]]"
+  - source: "[[adr-0017-fabrication-floor|ADR-0017: Fabrication Floor — Verbatim Partition]]"
     quote: "a `source_quotes` entry whose quote is NOT a verbatim substring"
 
 raw_input: "...a source_quotes entry whose quote is NOT a verbatim substring of the raw input..."
@@ -62,7 +62,7 @@ The problem ADR-0017 solved: early testing of `qwen3-coder:30b` produced `source
 **The partition test:**
 
 ```
-Given: a source_quotes entry { source: "[[ADR-0017: Fabrication Floor — Verbatim Partition]]", quote: "some text" }
+Given: a source_quotes entry { source: "[[adr-0017-fabrication-floor|ADR-0017: Fabrication Floor — Verbatim Partition]]", quote: "some text" }
 Given: the raw input document I
 
 IF quote ∈ verbatim_substrings(whitespace_normalize(I)):
@@ -91,7 +91,7 @@ The verbatim partition resolves this by measuring the right thing: the real ques
 
 ## Related Concepts
 
-- [[Zero-Fabrication Floor]] — the hard floor that the verbatim partition refines; applies only to fabrication, not over-citation
-- [[Local Model Quality Gate]] — the overall gate that uses the verbatim partition as part of its scoring
-- [[Golden Set]] — the fixtures corpus; over-citations are gold-set misses, not model errors
-- [[Approved Local Model]] — `qwen3-coder:30b`, the first model to pass under the verbatim partition refinement
+- [[zero-fabrication-floor|Zero-Fabrication Floor]] — the hard floor that the verbatim partition refines; applies only to fabrication, not over-citation
+- [[local-model-quality-gate|Local Model Quality Gate]] — the overall gate that uses the verbatim partition as part of its scoring
+- Golden Set — the fixtures corpus; over-citations are gold-set misses, not model errors
+- [[approved-local-model|Approved Local Model]] — `qwen3-coder:30b`, the first model to pass under the verbatim partition refinement

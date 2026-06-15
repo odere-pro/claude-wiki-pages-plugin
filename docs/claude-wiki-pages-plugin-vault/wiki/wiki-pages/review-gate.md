@@ -2,10 +2,10 @@
 title: "Review Gate"
 type: concept
 aliases: ["Review Gate", "review gate", "_proposed/ gate", "proposed gate", "draft review gate"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[ADR-0010: Durable-Memory Carve-Out]]", "[[Design: Sequences]]"]
-related: ["[[Durable Memory]]", "[[Draft Review Surface]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Firewall]]"]
+sources: ["[[adr-0010-durable-memory|ADR-0010: Durable-Memory Carve-Out]]", "[[design-03-sequences|Design: Sequences]]"]
+related: []
 contradicts: []
 supersedes: []
 depends_on: []
@@ -59,7 +59,7 @@ ADR-0010 established the `_proposed/` gate as the only sanctioned path for LLM-p
 
 ## Gate Operations
 
-The review gate is managed by the [[Draft Review Surface]] (engine `review`, `approve`, `reject` verbs):
+The review gate is managed by the Draft Review Surface (engine `review`, `approve`, `reject` verbs):
 
 ```bash
 # List pending drafts
@@ -97,12 +97,12 @@ proposed_by: "ollama:qwen3-coder:30b" # or "claude" for session write-backs
 
 Auto-promotion would remove the trust boundary. The plugin's provenance discipline requires that every claim in the wiki traces to a curated source. A durable memory write-back or local model draft has not been curated — it has been generated. The review gate is where curation happens.
 
-The [[Durable Memory]] write-back workflow is designed for low overhead (a session writes learnings, the next wiki call queues them for review) not zero overhead. The human review step is intentional.
+The Durable Memory write-back workflow is designed for low overhead (a session writes learnings, the next wiki call queues them for review) not zero overhead. The human review step is intentional.
 
 ## Related Concepts
 
-- [[Durable Memory]] — the mechanism that produces agent-session drafts through the review gate
-- [[Draft Review Surface]] — the engine verbs (`review`, `approve`, `reject`) that manage the gate
-- [[Ingest Agent]] — processes `raw/agent-sessions/` sources and creates drafts in `_proposed/`
-- [[Curator Agent]] — runs after approval to heal the wiki and update indexes
-- [[Firewall]] — enforces that `_proposed/` is a legitimate write target (on the allowPaths list)
+- Durable Memory — the mechanism that produces agent-session drafts through the review gate
+- Draft Review Surface — the engine verbs (`review`, `approve`, `reject`) that manage the gate
+- Ingest Agent — processes `raw/agent-sessions/` sources and creates drafts in `_proposed/`
+- Curator Agent — runs after approval to heal the wiki and update indexes
+- Firewall — enforces that `_proposed/` is a legitimate write target (on the allowPaths list)

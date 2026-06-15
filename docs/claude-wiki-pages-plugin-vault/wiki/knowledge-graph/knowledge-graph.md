@@ -2,15 +2,15 @@
 title: "Knowledge Graph"
 type: index
 aliases: ["Knowledge Graph", "knowledge-graph", "knowledge graph", "KG", "graph layer"]
-parent: "[[Wiki Index]]"
+parent: "[[index|Wiki Index]]"
 path: "knowledge-graph"
 children:
-  - "[[Config Schema]]"
-  - "[[Frontmatter Parser]]"
-  - "[[Wikilink Extractor]]"
-  - "[[Node Grounding]]"
-  - "[[Ontology Profile v1]]"
-  - "[[Predicate Domain-Range Table]]"
+  - "[[config-schema|Config Schema]]"
+  - "[[frontmatter-parser|Frontmatter Parser]]"
+  - "[[wikilink-extractor|Wikilink Extractor]]"
+  - "[[node-grounding|Node Grounding]]"
+  - "[[ontology-profile-v1|Ontology Profile v1]]"
+  - "[[predicate-domain-range-table|Predicate Domain-Range Table]]"
 child_indexes: []
 tags: ["knowledge-graph", "typescript", "parsing", "implementation"]
 created: 2026-06-13
@@ -20,7 +20,7 @@ updated: 2026-06-13
 # Knowledge Graph
 
 > [!summary]
-> The Knowledge Graph cluster covers the three TypeScript modules that form the data-access foundation of the engine: [[Frontmatter Parser]] (`frontmatter.ts`), [[Wikilink Extractor]] (`wikilinks.ts`), and [[Config Schema]] (`config.schema.json`). Every higher-level engine operation — verification, search scoring, graph traversal, MOC repair, schema gating — reads through these primitives. Their key property is **fail-safe parsing**: a malformed file is treated as absent, not as an error that halts the engine.
+> The Knowledge Graph cluster covers the three TypeScript modules that form the data-access foundation of the engine: [[frontmatter-parser|Frontmatter Parser]] (`frontmatter.ts`), [[wikilink-extractor|Wikilink Extractor]] (`wikilinks.ts`), and [[config-schema|Config Schema]] (`config.schema.json`). Every higher-level engine operation — verification, search scoring, graph traversal, MOC repair, schema gating — reads through these primitives. Their key property is **fail-safe parsing**: a malformed file is treated as absent, not as an error that halts the engine.
 
 ## Overview
 
@@ -38,13 +38,13 @@ The two parsers have a hard parity requirement with their bash counterparts (`ve
 
 ### Parsing Primitives
 
-[[Frontmatter Parser]] documents the five exported functions from `frontmatter.ts`: `splitFrontmatter` (separate YAML block from body), `parseFrontmatter` (get all fields as a typed object), `titleOf` (page title with filename-stem fallback), `stringList` (normalize inline or block YAML arrays to `string[]`), and `stripWikilink` (unwrap wikilink wrapper syntax from strings). The parser returns `{}` on malformed frontmatter — never throws. Unterminated frontmatter (opening `---` with no closing `---`) treats the entire file as body.
+[[frontmatter-parser|Frontmatter Parser]] documents the five exported functions from `frontmatter.ts`: `splitFrontmatter` (separate YAML block from body), `parseFrontmatter` (get all fields as a typed object), `titleOf` (page title with filename-stem fallback), `stringList` (normalize inline or block YAML arrays to `string[]`), and `stripWikilink` (unwrap wikilink wrapper syntax from strings). The parser returns `{}` on malformed frontmatter — never throws. Unterminated frontmatter (opening `---` with no closing `---`) treats the entire file as body.
 
-[[Wikilink Extractor]] documents `extractWikilinks` (scan body for wikilink patterns), `duplicates` (find repeated wikilinks), and `markdownLinkViolation` (detect raw markdown-path links that should be converted to wikilinks). The extractor imports `splitFrontmatter` to isolate the body before scanning — frontmatter wikilinks are intentional field values, not body prose links.
+[[wikilink-extractor|Wikilink Extractor]] documents `extractWikilinks` (scan body for wikilink patterns), `duplicates` (find repeated wikilinks), and `markdownLinkViolation` (detect raw markdown-path links that should be converted to wikilinks). The extractor imports `splitFrontmatter` to isolate the body before scanning — frontmatter wikilinks are intentional field values, not body prose links.
 
 ### Configuration
 
-[[Config Schema]] documents the JSON Schema for `claude-wiki-pages.json`. The config has five top-level groups: `autoHeal` (enabled, interval, maxPerRun), `gitCheckpoint` (mode: auto/manual/off), `firewall` (enabled, mode, allowPaths, denyPaths), `localModel` (provider, model, endpoint, timeout, maxRetries), and `maintenance` (enabled, maxPerRun, maxParallelExtract). All groups are optional — a missing key falls back to the engine's built-in defaults.
+[[config-schema|Config Schema]] documents the JSON Schema for `claude-wiki-pages.json`. The config has five top-level groups: `autoHeal` (enabled, interval, maxPerRun), `gitCheckpoint` (mode: auto/manual/off), `firewall` (enabled, mode, allowPaths, denyPaths), `localModel` (provider, model, endpoint, timeout, maxRetries), and `maintenance` (enabled, maxPerRun, maxParallelExtract). All groups are optional — a missing key falls back to the engine's built-in defaults.
 
 ## Open Questions
 

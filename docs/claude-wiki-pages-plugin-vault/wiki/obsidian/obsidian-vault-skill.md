@@ -5,8 +5,8 @@ entity_type: tool
 aliases: ["obsidian-vault Skill", "obsidian-vault skill", "obsidian-vault", "vault guard skill"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources: ["[[Obsidian Vault Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[Obsidian CLI Vault Scoping]]", "[[Defense-in-Depth Scoping]]", "[[Firewall]]", "[[Vault Resolution]]", "[[Hook System]]", "[[Graph Coloring]]"]
+sources: ["[[_sources/obsidian-vault-skill|Obsidian Vault Skill (SKILL.md)]]", "[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]"]
+related: ["[[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]]", "[[defense-in-depth-scoping|Defense-in-Depth Scoping]]", "[[graph-coloring|Graph Coloring]]"]
 tags: ["tool", "obsidian", "skill"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -23,7 +23,7 @@ The `obsidian-vault` skill is a **guard contract** for driving the Obsidian CLI 
 
 The skill's allowed tools are `Read` and `Bash` only — it reads vault state and issues scoped CLI calls, but does not write or edit files directly. This tool restriction is the behavioral equivalent of the firewall's path restriction.
 
-The skill is the behavioral twin of the firewall hook (`scripts/firewall.sh`): the hook enforces vault boundaries at the `PreToolUse` level; this skill teaches agents to scope correctly in the first place, so the hook rarely has to fire. Together they form the [[Defense-in-Depth Scoping]] design.
+The skill is the behavioral twin of the firewall hook (`scripts/firewall.sh`): the hook enforces vault boundaries at the `PreToolUse` level; this skill teaches agents to scope correctly in the first place, so the hook rarely has to fire. Together they form the [[defense-in-depth-scoping|Defense-in-Depth Scoping]] design.
 
 ## Key Facts
 
@@ -53,9 +53,9 @@ A confused agent is stopped by the hook. A careful agent never reaches it.
 
 ## Related
 
-- [[Obsidian CLI Vault Scoping]] — the detailed four-rule convention this skill encodes
-- [[Defense-in-Depth Scoping]] — the two-layer design (intent + enforcement) this skill participates in
-- [[Firewall]] — the enforcement-layer twin; `scripts/firewall.sh` + `firewall.ts`
-- [[Vault Resolution]] — the four-tier resolver (`scripts/resolve-vault.sh`) this skill depends on
-- [[Hook System]] — the `PreToolUse` hook chain that runs the firewall on every write
-- [[Graph Coloring]] — the primary operation for which Obsidian CLI calls are needed
+- [[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]] — the detailed four-rule convention this skill encodes
+- [[defense-in-depth-scoping|Defense-in-Depth Scoping]] — the two-layer design (intent + enforcement) this skill participates in
+- Firewall — the enforcement-layer twin; `scripts/firewall.sh` + `firewall.ts`
+- Vault Resolution — the four-tier resolver (`scripts/resolve-vault.sh`) this skill depends on
+- Hook System — the `PreToolUse` hook chain that runs the firewall on every write
+- [[graph-coloring|Graph Coloring]] — the primary operation for which Obsidian CLI calls are needed

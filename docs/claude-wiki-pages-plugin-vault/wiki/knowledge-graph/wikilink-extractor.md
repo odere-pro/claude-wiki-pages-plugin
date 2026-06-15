@@ -2,13 +2,13 @@
 title: "Wikilink Extractor"
 type: concept
 aliases: ["Wikilink Extractor", "wikilink extractor", "extractWikilinks", "markdownLinkViolation"]
-parent: "[[Knowledge Graph]]"
+parent: "[[knowledge-graph|Knowledge Graph]]"
 path: "knowledge-graph"
-sources: ["[[Wikilink Extractor (wikilinks.ts)]]"]
-related: ["[[Frontmatter Parser]]", "[[Provenance Checks]]", "[[MOC Repair Primitives]]", "[[Graph Walk Algorithm]]"]
+sources: ["[[wikilinks-ts|Wikilink Extractor (wikilinks.ts)]]"]
+related: ["[[frontmatter-parser|Frontmatter Parser]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Frontmatter Parser]]"]
+depends_on: ["[[frontmatter-parser|Frontmatter Parser]]"]
 tags: ["typescript", "wikilinks", "parsing", "engine", "guard"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -68,7 +68,7 @@ time via the PostToolUse hook to prevent markdown links from entering the vault.
 
 ## Related Concepts
 
-- [[Frontmatter Parser]] — `splitFrontmatter` is imported to separate body from frontmatter
-- [[Provenance Checks]] — uses extracted wikilinks to verify `sources:` presence
-- [[MOC Repair Primitives]] — uses `duplicates` to detect and clean repeated `children:` entries
-- [[Graph Walk Algorithm]] — consumes `extractWikilinks` output as the edge set for BFS traversal
+- [[frontmatter-parser|Frontmatter Parser]] — `splitFrontmatter` is imported to separate body from frontmatter
+- Provenance Checks — uses extracted wikilinks to verify `sources:` presence
+- MOC Repair Primitives — uses `duplicates` to detect and clean repeated `children:` entries
+- Graph Walk Algorithm — consumes `extractWikilinks` output as the edge set for BFS traversal

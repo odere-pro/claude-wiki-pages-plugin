@@ -2,10 +2,10 @@
 title: "Design Diagrams"
 type: concept
 aliases: ["Design Diagrams", "design diagrams", "C4 diagrams", "mermaid diagrams"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Design README]]", "[[Design: System Context]]", "[[Design: Component Design]]", "[[Design: Sequences]]", "[[Design: Teams and Agents]]", "[[Design: Claude Config and Security]]", "[[Design: Feature Relations]]", "[[Design: Ontology]]", "[[Design Diagram Template]]"]
-related: ["[[Four-Layer Stack]]", "[[Design-Drift Gate]]", "[[Hook System]]", "[[Orchestrator Agent]]"]
+sources: ["[[design-readme|Design README]]", "[[design-01-system-context|Design: System Context]]", "[[design-02-component-design|Design: Component Design]]", "[[design-03-sequences|Design: Sequences]]", "[[design-04-teams-and-agents|Design: Teams and Agents]]", "[[design-05-claude-config-security|Design: Claude Config and Security]]", "[[design-06-feature-relations|Design: Feature Relations]]", "[[design-07-ontology|Design: Ontology]]", "[[design-template|Design Diagram Template]]"]
+related: ["[[four-layer-stack|Four-Layer Stack]]", "[[design-drift-gate|Design-Drift Gate]]", "[[hook-system|Hook System]]", "[[orchestrator-agent|Orchestrator Agent]]"]
 tags: ["concept", "design"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -87,7 +87,7 @@ The system has two co-equal first-class users: a person (in Obsidian or a termin
 
 ## Design-Drift Gate
 
-The [[Design-Drift Gate]] (`validate-docs.sh` Check 5, added in ADR-0013) scans `docs/design/*.md` and `SOFTWARE-3-0.md` for five categories of drift:
+The [[design-drift-gate|Design-Drift Gate]] (`validate-docs.sh` Check 5, added in ADR-0013) scans `docs/design/*.md` and `SOFTWARE-3-0.md` for five categories of drift:
 
 1. Mermaid nodes naming a path that no longer exists
 2. Dead relative links
@@ -99,7 +99,7 @@ The gate runs in CI Tier 0 using grep/awk/bash only — no mermaid parser.
 
 ## Related Concepts
 
-- [[Four-Layer Stack]] — what the diagrams visualize at L1
-- [[Design-Drift Gate]] — the CI check that keeps diagrams grounded
-- [[Hook System]] — whose wiring is visualized in `02-component-design.md`
-- [[Orchestrator Agent]] — the agent visualized in `04-teams-and-agents.md`
+- [[four-layer-stack|Four-Layer Stack]] — what the diagrams visualize at L1
+- [[design-drift-gate|Design-Drift Gate]] — the CI check that keeps diagrams grounded
+- [[hook-system|Hook System]] — whose wiring is visualized in `02-component-design.md`
+- [[orchestrator-agent|Orchestrator Agent]] — the agent visualized in `04-teams-and-agents.md`

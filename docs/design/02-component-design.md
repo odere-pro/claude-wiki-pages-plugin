@@ -15,6 +15,7 @@ graph LR
     subgraph events["hooks/hooks.json events"]
         ss["SessionStart"]
         ups["UserPromptSubmit"]
+        pre_rg["PreToolUse<br/>(Read/Grep/Glob)"]
         pre["PreToolUse<br/>(Write/Edit)"]
         post["PostToolUse<br/>(Write/Edit)"]
         sub["SubagentStop"]
@@ -24,6 +25,7 @@ graph LR
 
     ss --> p_ss["session-start.sh<br/>resolve vault, MOC pointer"]
     ups --> p_pg["prompt-guard.sh<br/>untrusted-input guard"]
+    pre_rg --> p_sg["scope-guard.sh<br/>advisory read scope"]
     pre --> p_fw["firewall.sh<br/>write confinement"]
     pre --> p_vf["validate-frontmatter.sh"]
     pre --> p_wl["check-wikilinks.sh"]

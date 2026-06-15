@@ -2,10 +2,10 @@
 title: "Engine Verb Surface"
 type: concept
 aliases: ["Engine Verb Surface", "CAPABILITIES table", "verb surface", "engine commands"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[cli.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[Engine CLI Router]]", "[[cli.ts]]", "[[Deterministic Engine]]"]
+sources: ["[[cli-ts-source|cli.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
+related: ["[[engine-cli-router|Engine CLI Router]]", "[[cli-ts|cli.ts]]", "[[deterministic-engine|Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -84,6 +84,6 @@ A planned verb call returns a stable degradation object rather than an error:
 
 ## Related Concepts
 
-- [[Engine CLI Router]] — the dispatch logic that consumes this surface
-- [[cli.ts]] — the file where the CAPABILITIES table lives
-- [[Deterministic Engine]] — the engine whose commands this surface describes
+- [[engine-cli-router|Engine CLI Router]] — the dispatch logic that consumes this surface
+- [[cli-ts|cli.ts]] — the file where the CAPABILITIES table lives
+- [[deterministic-engine|Deterministic Engine]] — the engine whose commands this surface describes

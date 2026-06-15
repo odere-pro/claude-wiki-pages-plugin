@@ -4,8 +4,8 @@ type: concept
 aliases: ["Capability Tier", "capability tier", "capability tiers", "model tier", "ingest-extract tier", "query tier", "draft tier"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0018: Offline Policy and Degraded-Mode Routing]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Local Models]]"]
-related: ["[[Local Model Quality Gate]]", "[[Approved Local Model]]", "[[Zero-Fabrication Floor]]", "[[Offline Policy]]", "[[Golden Set]]"]
+sources: ["[[_sources/adr-0011-local-model-quality-gate|ADR-0011: Local-Model Quality Gate]]", "[[adr-0018-offline-policy|ADR-0018: Offline Policy and Degraded-Mode Routing]]", "[[adr-0019-query-tier|ADR-0019: Query Tier and Answer Verification]]", "[[_sources/local-models|Local Models]]"]
+related: ["[[local-model-quality-gate|Local Model Quality Gate]]", "[[approved-local-model|Approved Local Model]]", "[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[offline-policy|Offline Policy]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -64,7 +64,7 @@ The three tiers:
 
 ## Relationship to the Quality Gate
 
-The [[Local Model Quality Gate]] (ADR-0011) defines the evaluation methodology for any new tier unlock. A model candidate must run against the tier's golden set and clear all four thresholds (schema-validity ≥ 0.98, claim-source fidelity ≥ 0.97, field accuracy ≥ 0.90, dedup correctness ≥ 0.90) plus the zero-fabrication hard floor. Passing the gate for `ingest-extract` does not grant `query` access; each tier requires its own measured evidence artifact.
+The [[local-model-quality-gate|Local Model Quality Gate]] (ADR-0011) defines the evaluation methodology for any new tier unlock. A model candidate must run against the tier's golden set and clear all four thresholds (schema-validity ≥ 0.98, claim-source fidelity ≥ 0.97, field accuracy ≥ 0.90, dedup correctness ≥ 0.90) plus the zero-fabrication hard floor. Passing the gate for `ingest-extract` does not grant `query` access; each tier requires its own measured evidence artifact.
 
 The `draft` tier is currently BLOCKED not because it is impossible but because no golden set has been defined and no evaluation has been run. It is wired so that when the evaluation is done, unlocking it requires only adding a passing model to the allow-list.
 
@@ -80,8 +80,8 @@ The `route` command is pure: it reads config and Bun/Claude/Ollama availability 
 
 ## Related Concepts
 
-- [[Local Model Quality Gate]] — the evaluation methodology that gates tier unlock
-- [[Approved Local Model]] — the allow-list result of a passed gate
-- [[Zero-Fabrication Floor]] — the hard floor all tier evaluations enforce
-- [[Offline Policy]] — the config dimension that activates local-model routing
-- [[Golden Set]] — the fixtures used to evaluate a model against a tier
+- [[local-model-quality-gate|Local Model Quality Gate]] — the evaluation methodology that gates tier unlock
+- [[approved-local-model|Approved Local Model]] — the allow-list result of a passed gate
+- [[zero-fabrication-floor|Zero-Fabrication Floor]] — the hard floor all tier evaluations enforce
+- [[offline-policy|Offline Policy]] — the config dimension that activates local-model routing
+- Golden Set — the fixtures used to evaluate a model against a tier

@@ -273,6 +273,8 @@ Concepts for reproducing Obsidian's link resolution and measuring whether the wi
 | connected component             | A maximal set of nodes mutually reachable through resolving links (treated undirected, body plus frontmatter). The objective connectivity measure: a graph is "one piece" iff it has exactly one component. Computed by `scripts/graph-quality.sh`. See ADR-0031. |
 | orphan node                     | A node with degree 0 — no resolving link into it and none out of it. Renders as an isolated point in Obsidian's graph. The objective health target is zero orphans (paired with one connected component). Distinct from `dangling wikilink`, which is an outgoing link with no target; an orphan is a page with no edges at all. See ADR-0031. |
 | node universe                   | The set of pages counted as graph nodes for connectivity: every `wiki/` page minus the `userIgnoreFilters` paths (`raw/`, `_templates/`, `_proposed/`) and the scratch quarantine folders (`output/`, `_inbox/`). Defines the scope over which "every node reachable" is asserted. See ADR-0031. |
+| piped wikilink                  | A `[[target\|Display]]` link whose target is the destination's file basename (the resolving part Obsidian reads) and whose display text is the Title-Case page title. The required cross-page link form, because Obsidian resolves by basename/path only — never by `aliases:` or `title:` — so a bare `[[Title Case]]` does not resolve. Applies in body text and every frontmatter link field. See ADR-0032. |
+| path-qualified wikilink         | A piped wikilink whose target is the wiki-relative path (no extension) rather than a bare basename, used when the basename is not unique across the whole vault: `[[_sources/adr-0001-x\|ADR-0001: X]]`. Disambiguates a `wiki/` page from a `raw/` original that shares its basename, which a bare-basename link would silently misroute to. See ADR-0032. |
 
 ### Vault management terms
 
@@ -299,6 +301,17 @@ Concepts for reproducing Obsidian's link resolution and measuring whether the wi
 | provenance-completeness  | The property of a wiki page that every claim traceable to a raw source carries an explicit `sources` entry (and optionally `source_quotes`). Checked by the provenance-completeness lint rule (I3).                                                                           |
 | classification checklist | The structured prompt or rule (I1) that ensures an ingested entity is evaluated against the `entity_type` enum and assigned to the correct class before a wiki page is written.                                                                                               |
 | superseded               | A source note whose document has a newer snapshot: `sync` adds optional frontmatter `superseded_by: "[[New Source]]"` to the older `_sources/` note. History stays intact — provenance is never rewritten; ingest's additive merge appends the new source when pages refresh. |
+
+### Context layering and OKF interop terms
+
+Concepts for the per-skill context contract and the OKF (Open Knowledge Format) interop surface introduced by the ICM / OKF work.
+
+| Term                | Description                                                                                                                                                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| context contract    | A machine-readable `## Context contract` table in a maintenance skill or agent `SKILL.md` that declares which vault paths the skill reads (inputs L4), which it uses for schema reference (reference L3), and which it writes (outputs). Parsed by `parseContextContract()` in `src/core/ontology-profile.ts` and consumed by the `engine context` verb. |
+| OKF                 | Open Knowledge Format (Google). A portable markdown bundle convention that maps to the vault schema: our `type`/`title`/`description`/`tags`/`sources`/`url` frontmatter fields are a superset of OKF's model. The `engine okf export` verb renders `wiki/` as an OKF bundle; `engine okf import` snapshots an external bundle into `vault/raw/okf/<bundle>/` for normal ingest. |
+| OKF bundle          | A directory produced by `engine okf export`: plain-markdown files (frontmatter stripped, `[[wikilinks]]` rewritten as relative links) plus a flat machine `index.md` catalog listing path, type, title, description, and link targets for every exported page.          |
+| context layers      | The L0–L4 decomposition of the file set available to a skill turn: L0 = vault schema + vocabulary, L1 = MOC hierarchy, L2 = topic pages, L3 = source summaries, L4 = raw sources. The `engine context` verb resolves each layer for a named skill and reports the file lists plus a token estimate. |
 
 ### Parallel-extract and scheduled-upkeep terms
 

@@ -3,13 +3,13 @@ title: "ADR-0006: One Search Score Object"
 type: source
 source_type: manual
 source_format: text
-date_published: 2026-06-13
+date_published: 2026-06-05
 date_ingested: 2026-06-13
 tags: ["adr", "search", "scoring"]
 aliases: ["ADR-0006: One Search Score Object"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -18,28 +18,13 @@ confidence: 1.0
 
 ## Summary
 
-Defines the single `SearchHit` score object shape with a `matched[]` breakdown. The invariant `score === sum(points)` ensures scores are fully explainable. Seven scoring channels are defined.
+Establishes a single shared `SearchHit` score object with a `matched[]` breakdown array. The invariant `score === sum(matched[].points)` ensures every awarded point is fully explainable. Eight scoring channels are defined. All downstream consumers — C1 MOC descent, Tier-2 recall, R2 graph traversal — read this one object rather than computing a second ranking.
 
 ## Key Claims
 
-- `SearchHit.matched[]` contains per-channel breakdown: `{channel, term, hits, points}`.
-- `score === sum(matched[].points)` is the invariant.
-- Seven channels: title-phrase, title-term, alias-term, tag-term, body-term, synonym-term, stem-term, graph-edge.
-- The score object is shared across R1 (basic search), R2 (graph-expanded), and analyst modes.
-- No embeddings: all scoring is deterministic keyword matching.
-
-## Entities Mentioned
-
-- [[Deterministic Engine]]
-
-## Concepts Covered
-
-- [[Search Score Object]]
-- [[Wiki-Native Recall]]
-- [[Scoring Channels]]
-
-## Grounded Pages
-
-Wiki pages that cite this source:
-
-- [[Wiki-Native Recall]] — search score object design
+- `SearchHit.matched[]` carries a per-channel breakdown: `{ channel, term, hits, points }`.
+- `score === sum(matched[].points)` is a hard invariant; every `score +=` is paired with a `components.push()` by construction.
+- Eight channels: `title-phrase`, `title-term`, `alias-term`, `tag-term`, `body-term`, `synonym-term`, `stem-term`, `graph-edge`.
+- `matched[]` is JSON-only; it is never printed in the human text render path, so gate-05 parity is unaffected.
+- Components are sorted by a total order: points descending, then a fixed `CHANNEL_ORDER` precedence, then term lexicographically — same vault + same query produces byte-identical output.
+- Rejected alternatives: flat `Record<channel, number>` (loses term dimension), per-consumer second ranker (violates Brief §6), rendering `matched[]` in human output (risks gate-05 blast radius).

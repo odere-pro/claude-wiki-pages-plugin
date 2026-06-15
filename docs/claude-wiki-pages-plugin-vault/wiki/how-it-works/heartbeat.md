@@ -2,10 +2,10 @@
 title: "Heartbeat"
 type: concept
 aliases: ["Heartbeat", "heartbeat", "heartbeat.sh", "SessionStart heartbeat", "backlog probe"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Automation]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[Maintenance Loop]]", "[[Backlog]]", "[[Maintenance Agent]]", "[[Hook System]]"]
+sources: ["[[_sources/automation|Automation]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
+related: ["[[maintenance-loop|Maintenance Loop]]", "[[Backlog]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -78,7 +78,7 @@ This design separates two concerns:
 
 ## Relationship to Maintenance Loop
 
-The [[Maintenance Loop]] is the autonomous agent that runs ingest → curator → polish → lint. The heartbeat is not part of the maintenance loop — it is a pre-loop probe. The loop runs when the user invokes the wiki command or when the maintenance agent is dispatched. The heartbeat just tells the user the loop is needed.
+The [[maintenance-loop|Maintenance Loop]] is the autonomous agent that runs ingest → curator → polish → lint. The heartbeat is not part of the maintenance loop — it is a pre-loop probe. The loop runs when the user invokes the wiki command or when the maintenance agent is dispatched. The heartbeat just tells the user the loop is needed.
 
 ```
 Session start
@@ -108,7 +108,7 @@ User invokes /claude-wiki-pages:wiki
 
 ## Related Concepts
 
-- [[Maintenance Loop]] — the autonomous agent the heartbeat recommends running
+- [[maintenance-loop|Maintenance Loop]] — the autonomous agent the heartbeat recommends running
 - [[Backlog]] — the source and lint overdue state that the heartbeat detects
-- [[Maintenance Agent]] — the agent that runs the maintenance loop
-- [[Hook System]] — the event system that fires the heartbeat at SessionStart
+- Maintenance Agent — the agent that runs the maintenance loop
+- Hook System — the event system that fires the heartbeat at SessionStart

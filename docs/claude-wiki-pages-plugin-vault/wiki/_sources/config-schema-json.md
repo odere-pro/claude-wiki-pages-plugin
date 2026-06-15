@@ -59,18 +59,3 @@ maxPerRun, cooldownMinutes). An optional `modelHints` map allows per-task model 
 - `maintenance.maxPerRun` is bounded 1–50, default 10.
 - `additionalProperties: false` on all objects — the schema is closed; undeclared
   config keys are rejected.
-
-## Concepts Covered
-
-- [[Config Schema]]
-- [[Auto-Heal]]
-- [[Git Checkpoint]]
-- [[Firewall]]
-- [[Offline Policy]]
-- [[Local Model Quality Gate]]
-
-## Grounded Pages
-
-Wiki pages that cite this source:
-
-- [[Config Schema]] — the concept page this source directly backs (seven config groups, closed schema)

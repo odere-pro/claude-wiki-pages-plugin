@@ -2,13 +2,13 @@
 title: "Search Scoring Algorithm"
 type: concept
 aliases: ["Search Scoring Algorithm", "search scoring", "scoring channels", "MatchComponent"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[search.ts Source]]", "[[Engine API Skill (SKILL.md)]]", "[[graph.ts Source]]"]
-related: ["[[Tier-2 Deterministic Recall]]", "[[Graph Walk Algorithm]]", "[[Synonym Lexicon]]", "[[Porter Stemmer]]", "[[Wiki-Native Recall]]", "[[Deterministic Engine]]"]
+sources: ["[[search-ts-source|search.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]", "[[graph-ts-source|graph.ts Source]]"]
+related: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[graph-walk-algorithm|Graph Walk Algorithm]]", "[[synonym-lexicon|Synonym Lexicon]]", "[[porter-stemmer|Porter Stemmer]]", "[[deterministic-engine|Deterministic Engine]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Tier-2 Deterministic Recall]]", "[[Graph Walk Algorithm]]"]
+depends_on: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[graph-walk-algorithm|Graph Walk Algorithm]]"]
 tags: ["engine", "search", "scoring"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -55,8 +55,8 @@ For query `"graph rag"`:
 
 ## Related Concepts
 
-- [[Tier-2 Deterministic Recall]] — the synonym and stem channels layered into this algorithm
-- [[Graph Walk Algorithm]] — the R2 graph channel (opt-in via `--graph`)
-- [[Synonym Lexicon]] — provides synonym expansion for `synonym-term` channels
-- [[Porter Stemmer]] — provides stem forms for `stem-term` channel
-- [[Wiki-Native Recall]] — the broader design principle this implements
+- [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] — the synonym and stem channels layered into this algorithm
+- [[graph-walk-algorithm|Graph Walk Algorithm]] — the R2 graph channel (opt-in via `--graph`)
+- [[synonym-lexicon|Synonym Lexicon]] — provides synonym expansion for `synonym-term` channels
+- [[porter-stemmer|Porter Stemmer]] — provides stem forms for `stem-term` channel
+- Wiki-Native Recall — the broader design principle this implements

@@ -2,10 +2,10 @@
 title: "Folder Note"
 type: concept
 aliases: ["Folder Note", "folder note", "per-folder index", "MOC", "Map of Content"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[ADR-0022: Folder Notes and Graph Quality]]", "[[Architecture Documentation]]", "[[Glossary]]"]
-related: ["[[Ingest Pipeline]]", "[[Polish Agent]]", "[[Wiki-Only Graph]]", "[[Schema Authority]]", "[[Auto-Heal]]"]
+sources: ["[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]"]
+related: ["[[ingest-pipeline|Ingest Pipeline]]", "[[schema-authority|Schema Authority]]"]
 tags: ["concept", "schema", "moc"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -17,14 +17,14 @@ confidence: 1.0
 # Folder Note
 
 > [!summary]
-> A folder note is the per-folder index file — named exactly after its folder (`wiki/<topic>/<topic>.md`, `type: index`) — that serves as the navigable Map of Content (MOC) for that branch of the wiki topic tree. It is the structural anchor of the wiki: it lists every page in its folder and every sub-folder's folder note. Hierarchy fields (`parent`, `children`, `child_indexes`) must be quoted wikilink values — plain strings produce no graph edge and are a lint error. The [[Polish Agent]] keeps folder notes current after every write.
+> A folder note is the per-folder index file — named exactly after its folder (`wiki/<topic>/<topic>.md`, `type: index`) — that serves as the navigable Map of Content (MOC) for that branch of the wiki topic tree. It is the structural anchor of the wiki: it lists every page in its folder and every sub-folder's folder note. Hierarchy fields (`parent`, `children`, `child_indexes`) must be quoted wikilink values — plain strings produce no graph edge and are a lint error. The Polish Agent keeps folder notes current after every write.
 
 ## Key Principles
 
 - Every topic folder in `wiki/` contains exactly one folder note named after its folder (`wiki/<topic>/<topic>.md`, `type: index`).
 - Hierarchy fields (`parent`, `children`, `child_indexes`) must be quoted wikilink values — plain strings produce no graph edge and are an ERROR finding at `engine verify`.
 - The `title` value must appear as the first entry in `aliases` to prevent ghost nodes in the Obsidian graph when other pages link to this folder note.
-- The [[Polish Agent]] maintains folder notes idempotently after every write (append-only for `children`; removals require editorial judgment by the [[Curator Agent]]).
+- The Polish Agent maintains folder notes idempotently after every write (append-only for `children`; removals require editorial judgment by the Curator Agent).
 - Legacy `_index.md` filenames are accepted at schema_version 3 but flagged `legacy-index-filename`; remediation is `bash scripts/engine.sh migrate --write`.
 
 ## Examples
@@ -36,10 +36,10 @@ A correct folder-note frontmatter block:
 title: "Wiki Engine"
 type: index
 aliases: ["Wiki Engine", "wiki engine", "engine", "Engine"]
-parent: "[[Wiki Index]]"
+parent: "[[index|Wiki Index]]"
 path: "engine"
 children:
-  - "[[Deterministic Engine]]"
+  - "[[deterministic-engine|Deterministic Engine]]"
   - "[[Firewall]]"
 child_indexes: []
 created: 2026-06-13
@@ -74,12 +74,12 @@ The root index is always `wiki/index.md` — a special case with no `parent`.
 title: "Wiki Engine"
 type: index
 aliases: ["Wiki Engine", "wiki engine", "engine", "Engine"]
-parent: "[[Wiki Index]]"
+parent: "[[index|Wiki Index]]"
 path: "engine"
 children:
-  - "[[Deterministic Engine]]"
+  - "[[deterministic-engine|Deterministic Engine]]"
   - "[[Firewall]]"
-  - "[[Search Score Object]]"
+  - "[[search-score-object|Search Score Object]]"
 child_indexes: []
 tags: []
 created: 2026-06-13
@@ -95,13 +95,13 @@ Key constraints:
 
 ## Why Wikilink Syntax Is Mandatory
 
-Obsidian's graph view and link resolution work through wikilinks, not plain text. A `children` entry like `"Four-Layer Stack"` (plain title) is invisible to the graph — it produces no edge. Only `"[[Four-Layer Stack]]"` creates a graph edge. The engine verifies this; `engine verify` reports plain-string hierarchy fields as ERROR findings.
+Obsidian's graph view and link resolution work through wikilinks, not plain text. A `children` entry like `"Four-Layer Stack"` (plain title) is invisible to the graph — it produces no edge. Only `"[[four-layer-stack|Four-Layer Stack]]"` creates a graph edge. The engine verifies this; `engine verify` reports plain-string hierarchy fields as ERROR findings.
 
 This is why the schema instruction reads: "MUST be quoted wikilink values — a plain title string produces no graph edge and is a lint finding."
 
 ## Aliases — Ghost Node Prevention
 
-Every folder note must include the `title` value as the first entry in `aliases`. Without this, a wikilink like `[[Wiki Engine]]` from another page creates a ghost node in the Obsidian graph (a node that appears but has no content page). The `title` in `aliases` makes Obsidian resolve the wikilink to the existing file.
+Every folder note must include the `title` value as the first entry in `aliases`. Without this, a wikilink like `[[engine|Wiki Engine]]` from another page creates a ghost node in the Obsidian graph (a node that appears but has no content page). The `title` in `aliases` makes Obsidian resolve the wikilink to the existing file.
 
 Aliases should also include:
 
@@ -123,7 +123,7 @@ The `migrate` verb renames each `_index.md` to its folder-note name and rewrites
 
 ## Folder Note Body
 
-The folder note body is a Map of Content: a brief description of the topic, followed by a list of links to the pages in the folder. The [[Ingest Pipeline]] creates the initial structure; the [[Polish Agent]] maintains it.
+The folder note body is a Map of Content: a brief description of the topic, followed by a list of links to the pages in the folder. The [[ingest-pipeline|Ingest Pipeline]] creates the initial structure; the Polish Agent maintains it.
 
 ```markdown
 # Architecture
@@ -132,9 +132,9 @@ The architecture topic covers the four-layer plugin structure, agents, tools, an
 
 ## Pages
 
-- [[Four-Layer Stack]] — the four-layer Data/Skills/Agents/Orchestration model
-- [[Deterministic Engine]] — the Bun CLI for vault validation and search
-- [[Orchestrator Agent]] — the top-level dispatch agent
+- [[four-layer-stack|Four-Layer Stack]] — the four-layer Data/Skills/Agents/Orchestration model
+- [[deterministic-engine|Deterministic Engine]] — the Bun CLI for vault validation and search
+- [[orchestrator-agent|Orchestrator Agent]] — the top-level dispatch agent
 ```
 
 ## Folder Note Lifecycle
@@ -145,9 +145,9 @@ The architecture topic covers the four-layer plugin structure, agents, tools, an
 | New sub-folder created                          | `child_indexes` gains the sub-folder's folder note wikilink |
 | Page moved to a different folder                | `children` entry removed from old folder note; added to new |
 | Folder note missing from folder                 | `engine heal` creates it (deterministic fix)                |
-| `children` drift (page on disk but not in list) | [[Polish Agent]] reconciles (append-only)                   |
+| `children` drift (page on disk but not in list) | Polish Agent reconciles (append-only)                   |
 
-The [[Ingest Pipeline]] updates the folder note at step 11 of every ingest. The polish agent reconciles after every write. The engine's `heal` verb creates missing folder notes as a deterministic structural fix.
+The [[ingest-pipeline|Ingest Pipeline]] updates the folder note at step 11 of every ingest. The polish agent reconciles after every write. The engine's `heal` verb creates missing folder notes as a deterministic structural fix.
 
 ## Children Drift Detection
 
@@ -168,8 +168,8 @@ A correct folder note:
 
 ## Related Concepts
 
-- [[Ingest Pipeline]] — creates folder notes (step 3) and updates them (step 11)
-- [[Polish Agent]] — reconciles folder note children against filesystem siblings after every write
-- [[Wiki-Only Graph]] — graph color groups use `path:wiki/<topic>` to match folder notes
-- [[Schema Authority]] — `CLAUDE.md` defines the complete folder note schema
-- [[Auto-Heal]] — the engine's repair mechanism for missing or drifted folder notes
+- [[ingest-pipeline|Ingest Pipeline]] — creates folder notes (step 3) and updates them (step 11)
+- Polish Agent — reconciles folder note children against filesystem siblings after every write
+- Wiki-Only Graph — graph color groups use `path:wiki/<topic>` to match folder notes
+- [[schema-authority|Schema Authority]] — `CLAUDE.md` defines the complete folder note schema
+- Auto-Heal — the engine's repair mechanism for missing or drifted folder notes

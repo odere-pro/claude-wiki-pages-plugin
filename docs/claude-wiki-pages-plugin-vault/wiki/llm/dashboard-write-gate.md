@@ -4,8 +4,8 @@ type: concept
 aliases: ["Dashboard Write Gate", "dashboard write gate", "dashboard gate", "dashboard approval gate"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related: ["[[Analyst Agent]]", "[[Analyst Dashboard Mode]]", "[[Git Checkpoint]]", "[[Draft Review Surface]]"]
+sources: ["[[llm-analyst-modes-skill|Analyst Modes Skill (SKILL.md)]]", "[[plugin-analyst-agent|Analyst Agent Source]]"]
+related: ["[[analyst-dashboard-mode|Analyst Dashboard Mode]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,9 +21,9 @@ confidence: 1.0
 
 ## Definition
 
-The Dashboard Write Gate is the approval gate that the [[Analyst Agent]] must pass before writing to `vault/wiki/dashboard.md`. Writing to `dashboard.md` overwrites a live-wiki file that participates in frontmatter validation and the Obsidian graph — it is therefore a semi-destructive operation that requires explicit human confirmation. Static snapshots written to `vault/output/<name>.md` do not require this gate.
+The Dashboard Write Gate is the approval gate that the Analyst Agent must pass before writing to `vault/wiki/dashboard.md`. Writing to `dashboard.md` overwrites a live-wiki file that participates in frontmatter validation and the Obsidian graph — it is therefore a semi-destructive operation that requires explicit human confirmation. Static snapshots written to `vault/output/<name>.md` do not require this gate.
 
-The gate applies exclusively to the `dashboard.md` target. Any other [[Analyst Dashboard Mode]] output — static markdown tables, CSV files, output folder files — is ungated.
+The gate applies exclusively to the `dashboard.md` target. Any other [[analyst-dashboard-mode|Analyst Dashboard Mode]] output — static markdown tables, CSV files, output folder files — is ungated.
 
 ## Key Principles
 
@@ -60,7 +60,7 @@ Analyst: Writing vault/wiki/dashboard.md ... Done. Appended to wiki/log.md.
 
 ## Related Concepts
 
-- [[Analyst Dashboard Mode]] — Mode 2; the gate governs writes produced by this mode
-- [[Analyst Agent]] — the agent that enforces this gate
-- [[Draft Review Surface]] — the analogous gate in the engine for draft promotion into `wiki/`
-- [[Git Checkpoint]] — snapshot pre/post wraps ingest writes; the Dashboard Write Gate is a human-in-the-loop complement to the git safety net
+- [[analyst-dashboard-mode|Analyst Dashboard Mode]] — Mode 2; the gate governs writes produced by this mode
+- Analyst Agent — the agent that enforces this gate
+- Draft Review Surface — the analogous gate in the engine for draft promotion into `wiki/`
+- Git Checkpoint — snapshot pre/post wraps ingest writes; the Dashboard Write Gate is a human-in-the-loop complement to the git safety net

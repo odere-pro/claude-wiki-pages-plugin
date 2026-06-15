@@ -3,10 +3,10 @@ title: "sync-source.sh"
 type: entity
 entity_type: tool
 aliases: ["sync-source.sh", "sync-source", "sync source script"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Sync Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[Sync Skill]]", "[[Wired Source]]", "[[Sync Workflow]]", "[[Git Checkpoint]]", "[[Ingest Pipeline]]", "[[Scripts Layer]]"]
+sources: ["[[_sources/sync-skill|Sync Skill (SKILL.md)]]", "[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]"]
+related: ["[[how-it-works/sync-skill|Sync Skill]]", "[[wired-source|Wired Source]]", "[[sync-workflow|Sync Workflow]]"]
 tags: ["entity", "tool", "script", "sync"]
 created: 2026-06-13
 updated: 2026-06-14
@@ -19,9 +19,9 @@ confidence: 1.0
 
 ## Overview
 
-`sync-source.sh` is the deterministic Bash script in the `scripts/` layer that implements the wired-source detection and file-copying operations for the [[Sync Skill]]. It is the Layer 4 (Orchestration) implementation behind Steps 2 and 4 of the [[Sync Workflow]]. The script operates on the registered wired sources in `settings.json` and writes only to `raw/wired/<name>/` — it never touches `wiki/`.
+`sync-source.sh` is the deterministic Bash script in the `scripts/` layer that implements the wired-source detection and file-copying operations for the [[how-it-works/sync-skill|Sync Skill]]. It is the Layer 4 (Orchestration) implementation behind Steps 2 and 4 of the [[sync-workflow|Sync Workflow]]. The script operates on the registered wired sources in `settings.json` and writes only to `raw/wired/<name>/` — it never touches `wiki/`.
 
-The script is intentionally thin: no logic for deciding what to ingest, no wiki page writes, no git commits. It is a pure data-movement script. All judgment (what has changed, what to tell the user, what to mark superseded) lives in the [[Sync Skill]] layer above it.
+The script is intentionally thin: no logic for deciding what to ingest, no wiki page writes, no git commits. It is a pure data-movement script. All judgment (what has changed, what to tell the user, what to mark superseded) lives in the [[how-it-works/sync-skill|Sync Skill]] layer above it.
 
 ## Key Facts
 
@@ -44,13 +44,13 @@ sync-source.sh pull     →  Copy new versioned snapshots into raw/wired/<name>/
 /claude-wiki-pages:wiki →  Ingest Pipeline picks up new snapshots
 ```
 
-The script never calls `snapshot.sh` itself — the [[Sync Skill]] wraps the pull in `snapshot.sh pre` / `snapshot.sh post` calls that git-checkpoint the vault.
+The script never calls `snapshot.sh` itself — the [[how-it-works/sync-skill|Sync Skill]] wraps the pull in `snapshot.sh pre` / `snapshot.sh post` calls that git-checkpoint the vault.
 
 ## Related
 
-- [[Sync Skill]] — the skill that calls this script and wraps it in checkpoints
-- [[Sync Workflow]] — the eight-step workflow in which this script executes Steps 2 and 4
-- [[Wired Source]] — the registered git work tree this script reads from
-- [[Git Checkpoint]] — the snapshot.sh calls that bracket sync-source.sh invocations
-- [[Ingest Pipeline]] — the downstream pipeline that processes the files this script writes
-- [[Scripts Layer]] — the broader shell layer this script belongs to
+- [[how-it-works/sync-skill|Sync Skill]] — the skill that calls this script and wraps it in checkpoints
+- [[sync-workflow|Sync Workflow]] — the eight-step workflow in which this script executes Steps 2 and 4
+- [[wired-source|Wired Source]] — the registered git work tree this script reads from
+- Git Checkpoint — the snapshot.sh calls that bracket sync-source.sh invocations
+- Ingest Pipeline — the downstream pipeline that processes the files this script writes
+- Scripts Layer — the broader shell layer this script belongs to

@@ -2,10 +2,10 @@
 title: "Auto-Heal"
 type: concept
 aliases: ["Auto-Heal", "auto-heal", "automatic repair", "self-heal"]
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[User Guide 04: Review Validate Fix]]", "[[Architecture Documentation]]", "[[Features]]", "[[Operations Guide]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Curator Agent]]", "[[Lint Rules]]", "[[Git Checkpoint]]", "[[Deterministic Engine]]", "[[Maintain Contract]]"]
+sources: ["[[llm-wiki-04-review-validate-fix|User Guide 04: Review Validate Fix]]", "[[_sources/architecture|Architecture Documentation]]", "[[_sources/features|Features]]", "[[_sources/operations|Operations Guide]]", "[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[deterministic-engine|Deterministic Engine]]"]
 tags: ["concept", "curator", "repair"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -39,7 +39,7 @@ aliases: []
 After auto-heal:
 
 ```yaml
-sources: ["[[ADR-0001: Four-Layer Orchestrator]]"]
+sources: ["[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]"]
 aliases: ["Deterministic Engine", "deterministic engine", "Bun CLI", "engine"]
 ```
 
@@ -51,13 +51,13 @@ git revert <heal-commit-sha>
 
 ## Definition
 
-Auto-heal is the repair phase that follows lint diagnosis. The [[Curator Agent]] collects all issues, classifies them into auto-fixable and judgment categories, then applies fixes in phases. The [[Git Checkpoint]] safety model means no approval gate is needed: every change is revertible with `git revert <sha>`.
+Auto-heal is the repair phase that follows lint diagnosis. The Curator Agent collects all issues, classifies them into auto-fixable and judgment categories, then applies fixes in phases. The Git Checkpoint safety model means no approval gate is needed: every change is revertible with `git revert <sha>`.
 
 ## What Auto-Heal Applies (No Approval Needed)
 
 The nine safe, idempotent, content-preserving auto-fixes applied in order:
 
-1. **Wrap plain-string `sources:`** in wikilinks (e.g. `"ADR-0001"` → `"[[ADR-0001: Four-Layer Orchestrator]]"`)
+1. **Wrap plain-string `sources:`** in wikilinks (e.g. `"ADR-0001"` → `"[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]"`)
 2. **Fill missing `parent:`/`path:`** derived from the folder location
 3. **Add `title` to `aliases`** on every page (required for wikilink resolution — Obsidian matches by alias, not by `title` field)
 4. **Repair folder-note children drift** — sync `children:` frontmatter against the actual files in the folder
@@ -115,7 +115,7 @@ The rollback SHA is reported in the curator's final report.
 
 ## Related Concepts
 
-- [[Curator Agent]] — the agent that runs auto-heal
-- [[Lint Rules]] — the checks that produce the findings auto-heal repairs
-- [[Git Checkpoint]] — every auto-heal change lands in a reversible commit
-- [[Deterministic Engine]] — `engine.sh heal` handles the structural-error subset
+- Curator Agent — the agent that runs auto-heal
+- Lint Rules — the checks that produce the findings auto-heal repairs
+- Git Checkpoint — every auto-heal change lands in a reversible commit
+- [[deterministic-engine|Deterministic Engine]] — `engine.sh heal` handles the structural-error subset

@@ -22,6 +22,16 @@
     ],
     "PreToolUse": [
       {
+        "matcher": "Read|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/scope-guard.sh",
+            "description": "Advisory scope warning: emits a stderr notice when a Read/Grep/Glob call targets a path outside the active vault. Non-blocking (always exit 0); the read proceeds regardless. Separate from the Write|Edit chain."
+          }
+        ]
+      },
+      {
         "matcher": "Write|Edit",
         "hooks": [
           {

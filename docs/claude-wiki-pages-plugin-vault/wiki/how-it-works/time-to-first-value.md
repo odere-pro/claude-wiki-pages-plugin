@@ -2,10 +2,10 @@
 title: "Time-to-First-Value"
 type: concept
 aliases: ["Time-to-First-Value", "time-to-first-value", "TTFV", "first cited answer", "quickstart path"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Getting Started (CLI Quickstart)]]", "[[User Guide 01: Getting Started]]"]
-related: ["[[Onboarding Wizard]]", "[[Doctor Command]]", "[[Installation]]", "[[Portable Markdown]]"]
+sources: ["[[_sources/getting-started|Getting Started (CLI Quickstart)]]", "[[llm-wiki-01-getting-started|User Guide 01: Getting Started]]"]
+related: ["[[onboarding-wizard|Onboarding Wizard]]", "[[doctor-command|Doctor Command]]", "[[Installation]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -28,7 +28,7 @@ confidence: 1.0
 - The "value" in TTFV is specifically a cited answer — a Claude inference is not value in this definition.
 - Features that extend TTFV need strong justification; features that shorten it are preferred.
 - Advanced features (multi-vault, local model config, maintenance automation) are deferred to post-TTFV progressive disclosure.
-- The [[Doctor Command]] is positioned on the TTFV path as the verification step between init and first ingest — catching a broken install early prevents confusion at the query step.
+- The [[doctor-command|Doctor Command]] is positioned on the TTFV path as the verification step between init and first ingest — catching a broken install early prevents confusion at the query step.
 
 ## Examples
 
@@ -81,15 +81,15 @@ The query command produces a cited answer by:
 
 TTFV shapes the onboarding wizard's design. The wizard (`/claude-wiki-pages:init`) scaffolds only what is needed to reach Step 4: vault structure, `CLAUDE.md`, `index.md`, `log.md`. Advanced features (local model configuration, multi-vault registry, maintenance automation) are not surfaced in the wizard — they are progressive-disclosure items for after first value.
 
-The [[Doctor Command]] (`/claude-wiki-pages:doctor`) is positioned as a verification step after init, before ingest. It is fast (seconds) and non-destructive. Its placement on the TTFV path is deliberate: catching a broken install early prevents confusion at Step 4.
+The [[doctor-command|Doctor Command]] (`/claude-wiki-pages:doctor`) is positioned as a verification step after init, before ingest. It is fast (seconds) and non-destructive. Its placement on the TTFV path is deliberate: catching a broken install early prevents confusion at Step 4.
 
 ## Relationship to Portable Markdown
 
-Step 5 (query) produces an Obsidian-native cited answer. A related value is the ability to export that answer as [[Portable Markdown]] for use outside Obsidian — `/claude-wiki-pages:markdown` renders a query answer as plain markdown in `vault/output/`. This extends the value proposition to users who are not using Obsidian.
+Step 5 (query) produces an Obsidian-native cited answer. A related value is the ability to export that answer as Portable Markdown for use outside Obsidian — `/claude-wiki-pages:markdown` renders a query answer as plain markdown in `vault/output/`. This extends the value proposition to users who are not using Obsidian.
 
 ## Related Concepts
 
-- [[Onboarding Wizard]] — the wizard that covers Steps 1–2 of the TTFV path
-- [[Doctor Command]] — the health check that verifies the install before ingest
+- [[onboarding-wizard|Onboarding Wizard]] — the wizard that covers Steps 1–2 of the TTFV path
+- [[doctor-command|Doctor Command]] — the health check that verifies the install before ingest
 - [[Installation]] — the three installation paths that lead to Step 1
-- [[Portable Markdown]] — the value extension for non-Obsidian users
+- Portable Markdown — the value extension for non-Obsidian users

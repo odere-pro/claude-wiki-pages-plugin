@@ -2,10 +2,10 @@
 title: "Git Checkpoint"
 type: concept
 aliases: ["Git Checkpoint", "git checkpoint", "snapshot", "git-checkpointed", "commit backstop"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0005: Git Required Per-Vault Init]]", "[[Design: Sequences]]", "[[Features]]", "[[Operations Guide]]", "[[snapshot.ts Source]]"]
-related: ["[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Hook System]]", "[[Auto-Heal]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]", "[[adr-0005-git-required|ADR-0005: Git Required Per-Vault Init]]", "[[design-03-sequences|Design: Sequences]]", "[[_sources/features|Features]]", "[[_sources/operations|Operations Guide]]", "[[snapshot-ts-source|snapshot.ts Source]]"]
+related: ["[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[hook-system|Hook System]]"]
 tags: ["concept", "git"]
 created: 2026-06-13
 updated: 2026-06-14
@@ -84,8 +84,8 @@ This restores the vault to the pre-write state without losing history. The rollb
 
 ## Related Concepts
 
-- [[Deterministic Engine]] — the `snapshot` verb is an engine command
-- [[Ingest Agent]] — calls snapshot pre/post wrapping the write phase
-- [[Curator Agent]] — checkpoint commit precedes every auto-heal change
-- [[Hook System]] — `subagent-commit-gate.sh` is the SubagentStop backstop
-- [[Auto-Heal]] — auto-heal runs under a git checkpoint for reversibility
+- Deterministic Engine — the `snapshot` verb is an engine command
+- [[ingest-agent|Ingest Agent]] — calls snapshot pre/post wrapping the write phase
+- [[curator-agent|Curator Agent]] — checkpoint commit precedes every auto-heal change
+- [[hook-system|Hook System]] — `subagent-commit-gate.sh` is the SubagentStop backstop
+- Auto-Heal — auto-heal runs under a git checkpoint for reversibility

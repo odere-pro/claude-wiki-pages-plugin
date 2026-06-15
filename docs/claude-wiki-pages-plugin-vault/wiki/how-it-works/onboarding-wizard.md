@@ -2,10 +2,10 @@
 title: "Onboarding Wizard"
 type: concept
 aliases: ["Onboarding Wizard", "onboarding-wizard", "onboarding wizard", "init wizard", "first-run wizard"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Getting Started (CLI Quickstart)]]", "[[User Guide: Index]]", "[[User Guide 01: Getting Started]]", "[[User Guide 02: Create a New Vault]]", "[[Installation Guide]]", "[[Onboarding Agent Source]]"]
-related: ["[[Installation]]", "[[Ingest Pipeline]]", "[[Vault Resolution]]", "[[Git Checkpoint]]", "[[claude-wiki-pages Plugin]]"]
+sources: ["[[_sources/getting-started|Getting Started (CLI Quickstart)]]", "[[llm-wiki-index|User Guide: Index]]", "[[llm-wiki-01-getting-started|User Guide 01: Getting Started]]", "[[llm-wiki-02-create-new-vault|User Guide 02: Create a New Vault]]", "[[_sources/install|Installation Guide]]", "[[plugin-onboarding-agent|Onboarding Agent Source]]"]
+related: ["[[Installation]]"]
 tags: ["onboarding", "guides", "getting-started"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -134,7 +134,7 @@ The orchestrator will probe vault state and route to ingest, curator, or analyst
 ## Related Concepts
 
 - [[Installation]] — prerequisites before running the wizard
-- [[Ingest Pipeline]] — the full 13-step process the wizard triggers in step 4
-- [[Vault Resolution]] — how the wizard locates or creates the vault (4-tier resolution)
-- [[Git Checkpoint]] — the snapshot mechanism protecting ingest writes
-- [[claude-wiki-pages Plugin]] — what gets installed before the wizard runs
+- Ingest Pipeline — the full 13-step process the wizard triggers in step 4
+- Vault Resolution — how the wizard locates or creates the vault (4-tier resolution)
+- Git Checkpoint — the snapshot mechanism protecting ingest writes
+- claude-wiki-pages Plugin — what gets installed before the wizard runs

@@ -35,6 +35,12 @@ _why_ a particular path was taken; they are not the spec.
 | 0023 | [Wiki-only graph — exclusions over layer colors, graph config as cache](./ADR-0023-wiki-only-graph.md)                                   |
 | 0024 | [Host-project intake — recursive raw enumeration + "ingest the whole repo" flow](./ADR-0024-host-project-intake.md)                      |
 | 0026 | [Bounded map-only parallel extract + host-owned scheduled upkeep](./ADR-0026-parallel-extract-and-scheduled-upkeep.md)                   |
+| 0027 | [Fill-gaps and graph quality](./ADR-0027-fill-gaps-and-graph-quality.md)                                                                 |
+| 0028 | [Dangling-wikilink verify check](./ADR-0028-dangling-wikilink-verify-check.md)                                                           |
+| 0029 | [Drop `docs/vault-example`](./ADR-0029-drop-vault-example.md)                                                                            |
+| 0030 | [Obsidian-accurate link resolution + `wikilink-collision` check](./ADR-0030-obsidian-accurate-resolution-and-collision.md)              |
+| 0031 | [Graph connectivity, orphans, and shadow edges](./ADR-0031-graph-connectivity-orphans-shadows.md)                                       |
+| 0032 | [Piped, path-qualified wikilinks](./ADR-0032-piped-path-qualified-wikilinks.md)                                                         |
 
 ## Conventions
 

@@ -7,13 +7,13 @@
  *
  * Resolution model: a link `[[T]]` resolves iff its normalised target (see
  * `normaliseTarget` in [`link-resolver.ts`](./link-resolver.ts)) is in the
- * resolvable-name set — the union of every page's filename stem, `title:`, and
- * `aliases:`, case-insensitively. This set comes from `resolvableNames(index)`
- * (ADR-0030 §2): it is exactly the flat set ADR-0028 pinned, so the WARN count
- * here is unchanged by the move to the shared resolver — the priority ladder
- * and the `byPath` tier are NOT consulted by the dangling predicate (those serve
- * the collision and connectivity checks). The verify-ingest.sh twin's dangling
- * block is unchanged and stays pinned by gate-05.
+ * resolvable-name set — the union of every page's wiki-relative PATH, filename
+ * stem, `title:`, and `aliases:`, case-insensitively. This set comes from
+ * `resolvableNames(index)` (ADR-0031): the `byPath` keys make a path-qualified
+ * target like `_sources/adr-0001-…` resolve, and the basename keys make a piped
+ * `[[entity-name|Entity Name]]` resolve once the `|display` is stripped — the
+ * two forms Obsidian itself resolves. The verify-ingest.sh twin's dangling
+ * block mirrors this and stays pinned by gate-05.
  *
  * No space↔hyphen fuzzing: that mismatch is exactly what produces empty Obsidian
  * nodes, so the resolver is strict. (ADR-0028 §2)
@@ -123,7 +123,7 @@ export function checkDanglingWikilinks(wiki: string): readonly Finding[] {
         findings.push({
           severity: "warn",
           check: "wikilink-dangling",
-          message: `dangling-wikilink: [[${display}]] in ${rel} has no matching page (stem, title, or alias)`,
+          message: `dangling-wikilink: [[${display}]] in ${rel} has no matching page (path, stem, title, or alias)`,
           file: rel,
         });
       }

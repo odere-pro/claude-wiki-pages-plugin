@@ -4,8 +4,8 @@ type: concept
 aliases: ["Agent Tool Restriction", "agent tool restriction", "tool restriction", "tools field", "tool set boundary"]
 parent: "[[Plugin]]"
 path: "plugin"
-sources: ["[[Orchestrator Agent Source]]", "[[Ingest Agent Source]]", "[[Curator Agent Source]]", "[[Analyst Agent Source]]", "[[Onboarding Agent Source]]", "[[Maintenance Agent Source]]", "[[Polish Agent Source]]"]
-related: ["[[Agent Contract Table]]", "[[Firewall]]", "[[Ingest Agent]]"]
+sources: ["[[plugin-orchestrator-agent|Orchestrator Agent Source]]", "[[plugin-ingest-agent|Ingest Agent Source]]", "[[plugin-curator-agent|Curator Agent Source]]", "[[plugin-analyst-agent|Analyst Agent Source]]", "[[plugin-onboarding-agent|Onboarding Agent Source]]", "[[plugin-maintenance-agent|Maintenance Agent Source]]", "[[plugin-polish-agent|Polish Agent Source]]"]
+related: ["[[agent-contract-table|Agent Contract Table]]", "[[ingest-agent|Ingest Agent]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -49,6 +49,6 @@ The maintenance agent's lack of Write/Edit means it is a pure sequencer: it read
 
 ## Related Concepts
 
-- [[Agent Contract Table]] — the companion pattern: per-agent contract table with invariants
-- [[Firewall]] — the complementary write-confinement mechanism at the filesystem level
-- [[Ingest Agent]] — holds the widest tool set (Bash + Read + Write + Edit + Glob + Grep + Task)
+- [[agent-contract-table|Agent Contract Table]] — the companion pattern: per-agent contract table with invariants
+- Firewall — the complementary write-confinement mechanism at the filesystem level
+- [[ingest-agent|Ingest Agent]] — holds the widest tool set (Bash + Read + Write + Edit + Glob + Grep + Task)

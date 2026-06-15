@@ -2,10 +2,10 @@
 title: "Multi-Vault Registry"
 type: concept
 aliases: ["Multi-Vault Registry", "multi-vault registry", "vault registry", "settings.json"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0012: Vault Merge Conflict Resolution]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Operations Guide]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Vault Resolution]]", "[[Firewall]]", "[[Active Vault]]", "[[Hook System]]", "[[Multi-Vault Operating Rules]]"]
+sources: ["[[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[adr-0012-vault-merge|ADR-0012: Vault Merge Conflict Resolution]]", "[[adr-0016-multi-vault-registry|ADR-0016: Simultaneous Multi-Vault Management]]", "[[_sources/operations|Operations Guide]]", "[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[hook-system|Hook System]]"]
 tags: ["concept", "vault", "registry"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -17,11 +17,11 @@ confidence: 1.0
 # Multi-Vault Registry
 
 > [!summary]
-> The multi-vault registry is the managed list of vaults known to the plugin, stored in `.claude/claude-wiki-pages/settings.json`. Exactly one vault is active at a time, pointed to by `current_vault_path`. The registry fails closed: a malformed JSON file or a violated invariant (where `current_vault_path` does not match any `vaults[].path`) blocks all writes. The [[Firewall]] uses the registry to enforce the `cross-vault` deny rule — a write to any inactive registered vault is blocked even if `allowPaths` is permissive.
+> The multi-vault registry is the managed list of vaults known to the plugin, stored in `.claude/claude-wiki-pages/settings.json`. Exactly one vault is active at a time, pointed to by `current_vault_path`. The registry fails closed: a malformed JSON file or a violated invariant (where `current_vault_path` does not match any `vaults[].path`) blocks all writes. The Firewall uses the registry to enforce the `cross-vault` deny rule — a write to any inactive registered vault is blocked even if `allowPaths` is permissive.
 
 ## Definition
 
-The multi-vault registry is the managed list of vaults known to the plugin, stored in `.claude/claude-wiki-pages/settings.json`. It holds the `current_vault_path` (the sole active vault pointer), `default_vault_path` (the factory reset reference), and a `vaults` array of `{ path, name }` objects. The [[Firewall]] uses the registry to enforce the `cross-vault` deny rule — writes to inactive registered vaults are blocked even when `allowPaths` is permissive (ADR-0009).
+The multi-vault registry is the managed list of vaults known to the plugin, stored in `.claude/claude-wiki-pages/settings.json`. It holds the `current_vault_path` (the sole active vault pointer), `default_vault_path` (the factory reset reference), and a `vaults` array of `{ path, name }` objects. The Firewall uses the registry to enforce the `cross-vault` deny rule — writes to inactive registered vaults are blocked even when `allowPaths` is permissive (ADR-0009).
 
 ## Key Principles
 
@@ -104,7 +104,7 @@ A `settings.json` without the `vaults` key is valid. The `vaults` array is intro
 
 ## Cross-Vault Deny Rule (ADR-0009)
 
-The [[Firewall]] reads the registry to derive `otherVaults` — all registered vault paths minus the active one. Any write whose target path falls under any `otherVaults` root is denied with `matchedRule: "cross-vault"`.
+The Firewall reads the registry to derive `otherVaults` — all registered vault paths minus the active one. Any write whose target path falls under any `otherVaults` root is denied with `matchedRule: "cross-vault"`.
 
 The `cross-vault` rule sits at higher priority than `allowPaths` in the firewall's rule order:
 
@@ -139,7 +139,7 @@ No external agent or LLM should read `settings.json` directly. Use `scripts/set-
 
 ## Related Concepts
 
-- [[Vault Resolution]] — reads `current_vault_path` from this registry; Tier 2 in the 4-tier order
-- [[Firewall]] — uses `otherVaults` derived from this registry for `cross-vault` deny
-- [[Active Vault]] — `current_vault_path` designates the one writable vault
-- [[Hook System]] — the `firewall.sh` PreToolUse hook reads the registry on every write
+- Vault Resolution — reads `current_vault_path` from this registry; Tier 2 in the 4-tier order
+- Firewall — uses `otherVaults` derived from this registry for `cross-vault` deny
+- Active Vault — `current_vault_path` designates the one writable vault
+- [[hook-system|Hook System]] — the `firewall.sh` PreToolUse hook reads the registry on every write

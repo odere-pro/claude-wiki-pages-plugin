@@ -2,10 +2,10 @@
 title: "Durable Memory"
 type: concept
 aliases: ["Durable Memory", "durable memory", "durable-memory carve-out", "agent session memory", "persistent agent memory"]
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[ADR-0010: Durable-Memory Carve-Out]]", "[[Design: Sequences]]"]
-related: ["[[Ingest Agent]]", "[[Curator Agent]]", "[[Firewall]]", "[[Draft Review Surface]]", "[[Active Vault]]"]
+sources: ["[[adr-0010-durable-memory|ADR-0010: Durable-Memory Carve-Out]]", "[[design-03-sequences|Design: Sequences]]"]
+related: ["[[Firewall]]", "[[draft-review-surface|Draft Review Surface]]", "[[active-vault|Active Vault]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -80,8 +80,8 @@ The review gate ensures that session learnings are human-validated before enteri
 
 ## Related Concepts
 
-- [[Ingest Agent]] — processes `raw/agent-sessions/` files through the standard ingest pipeline
-- [[Curator Agent]] — auto-heals the wiki after promotion; also manages the `_proposed/` gate
+- Ingest Agent — processes `raw/agent-sessions/` files through the standard ingest pipeline
+- Curator Agent — auto-heals the wiki after promotion; also manages the `_proposed/` gate
 - [[Firewall]] — enforces that `raw/agent-sessions/` writes are new-file-only
-- [[Draft Review Surface]] — the `review`, `approve`, and `reject` verbs that manage `_proposed/`
-- [[Active Vault]] — the vault to which all write-backs (including session files) are confined
+- [[draft-review-surface|Draft Review Surface]] — the `review`, `approve`, and `reject` verbs that manage `_proposed/`
+- [[active-vault|Active Vault]] — the vault to which all write-backs (including session files) are confined

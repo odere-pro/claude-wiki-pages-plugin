@@ -2,10 +2,10 @@
 title: "Challenge Mode"
 type: concept
 aliases: ["Challenge Mode", "challenge mode", "adversarial query", "challenge framing"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[Analyst Modes Skill (SKILL.md)]]"]
-related: ["[[Analyst Agent]]", "[[Query Rules]]", "[[Synthesis Note]]", "[[Architecture Decision Record]]", "[[NO-RAG Principle]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[llm-wiki-07-query-the-wiki|User Guide 07: Query the Wiki]]", "[[llm-analyst-modes-skill|Analyst Modes Skill (SKILL.md)]]"]
+related: ["[[architecture-decision-record|Architecture Decision Record]]"]
 tags: ["concept", "query", "analyst"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -17,7 +17,7 @@ confidence: 1.0
 # Challenge Mode
 
 > [!summary]
-> Challenge mode is the [[Analyst Agent]]'s adversarial querying mode — one of its five operating modes. Before writing an ADR, proposal, or significant decision, the user poses the decision with a standard challenge framing. The analyst reads the wiki for contradictions, gaps in evidence, past decisions on similar topics, and counter-arguments, then responds with a structured critique grounded in actual wiki content. It is a technique, not a toggle.
+> Challenge mode is the Analyst Agent's adversarial querying mode — one of its five operating modes. Before writing an ADR, proposal, or significant decision, the user poses the decision with a standard challenge framing. The analyst reads the wiki for contradictions, gaps in evidence, past decisions on similar topics, and counter-arguments, then responds with a structured critique grounded in actual wiki content. It is a technique, not a toggle.
 
 ## Key Principles
 
@@ -41,7 +41,7 @@ Before adding a new capability tier for local models:
 
 ## Definition
 
-Challenge mode is not a configuration flag or a separate agent — it is an invocation pattern for the [[Analyst Agent]]. The pattern is that instead of asking "what does the wiki say about X?", the user frames the question adversarially: "I'm about to decide X — push back on my assumptions."
+Challenge mode is not a configuration flag or a separate agent — it is an invocation pattern for the Analyst Agent. The pattern is that instead of asking "what does the wiki say about X?", the user frames the question adversarially: "I'm about to decide X — push back on my assumptions."
 
 The rationale is that the wiki's value goes beyond information retrieval. Because the wiki accumulates past decisions (ADRs), contradictions between sources, and confidence-decayed claims, it can surface evidence against a proposed direction that the proposer might overlook. Challenge mode makes this explicit.
 
@@ -86,7 +86,7 @@ Before adding a `synthesis` tier for local models:
 
 > "I'm about to add a `synthesis` tier for local models. What does the wiki say about capability tier governance and past rejections?"
 
-The analyst reads [[Local Model Quality Gate]], [[Approved Local Model]], [[Capability Tier]], and the decisions folder. It surfaces ADR-0011's measured rejections table, the governance rule that each tier needs its own golden set and ADR amendment before unlocking, and any low-confidence claims about local model synthesis quality.
+The analyst reads Local Model Quality Gate, Approved Local Model, Capability Tier, and the decisions folder. It surfaces ADR-0011's measured rejections table, the governance rule that each tier needs its own golden set and ADR amendment before unlocking, and any low-confidence claims about local model synthesis quality.
 
 ## Output
 
@@ -108,7 +108,7 @@ The response always ends with the standard `## Sources` section (ADR-0022) — e
 
 ## Related Concepts
 
-- [[Analyst Agent]] — the agent with Challenge as one of its five modes
-- [[Query Rules]] — the broader query workflow the analyst follows
-- [[Synthesis Note]] — the analyst may offer to file the challenge result as a synthesis
-- [[Architecture Decision Record]] — the primary use case: pre-ADR challenge queries
+- Analyst Agent — the agent with Challenge as one of its five modes
+- Query Rules — the broader query workflow the analyst follows
+- Synthesis Note — the analyst may offer to file the challenge result as a synthesis
+- [[architecture-decision-record|Architecture Decision Record]] — the primary use case: pre-ADR challenge queries

@@ -2,10 +2,10 @@
 title: "Lint Rules"
 type: concept
 aliases: ["Lint Rules", "lint rules", "linting", "vault lint", "audit rules"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Architecture Documentation]]", "[[User Guide 04: Review Validate Fix]]", "[[ADR-0014: Single-Source Required Fields]]"]
-related: ["[[Curator Agent]]", "[[Auto-Heal]]", "[[Git Checkpoint]]", "[[Schema Authority]]", "[[Deterministic Engine]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[llm-wiki-04-review-validate-fix|User Guide 04: Review Validate Fix]]", "[[adr-0014-single-source-required-fields|ADR-0014: Single-Source Required Fields]]"]
+related: ["[[schema-authority|Schema Authority]]"]
 tags: ["concept", "lint", "quality"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -17,11 +17,11 @@ confidence: 1.0
 # Lint Rules
 
 > [!summary]
-> Lint rules are the structural and provenance checks the [[Curator Agent]] performs on the wiki, supplemented by the `verify-ingest.sh` script and the [[Deterministic Engine]]'s `verify` verb. Findings are classified as Errors (must fix), Warnings (should fix), or Info (consider addressing). Most mechanical findings are auto-healed by the engine or the curator; judgment findings (restructures, merges) require the curator's explicit pass. Every auto-heal change lands in a revertible git commit.
+> Lint rules are the structural and provenance checks the Curator Agent performs on the wiki, supplemented by the `verify-ingest.sh` script and the Deterministic Engine's `verify` verb. Findings are classified as Errors (must fix), Warnings (should fix), or Info (consider addressing). Most mechanical findings are auto-healed by the engine or the curator; judgment findings (restructures, merges) require the curator's explicit pass. Every auto-heal change lands in a revertible git commit.
 
 ## Definition
 
-Lint rules are the structural and provenance checks the [[Curator Agent]] performs on the wiki, supplemented by the `verify-ingest.sh` script and the [[Deterministic Engine]]'s `verify` verb. Findings are classified as Errors (must fix), Warnings (should fix), or Info (consider addressing). Most mechanical findings are auto-healed; judgment findings (restructures, merges) require the curator's explicit pass.
+Lint rules are the structural and provenance checks the Curator Agent performs on the wiki, supplemented by the `verify-ingest.sh` script and the Deterministic Engine's `verify` verb. Findings are classified as Errors (must fix), Warnings (should fix), or Info (consider addressing). Most mechanical findings are auto-healed; judgment findings (restructures, merges) require the curator's explicit pass.
 
 ## Key Principles
 
@@ -89,7 +89,7 @@ Errors block correct operation of the wiki. They are auto-repaired by `engine he
 | Check                         | Description                                                                             |
 | ----------------------------- | --------------------------------------------------------------------------------------- |
 | Orphan pages                  | Pages with no inbound wikilinks from other pages                                        |
-| Plain-string sources          | `sources: ["architecture.md"]` instead of `sources: ["[[Architecture Documentation]]"]` |
+| Plain-string sources          | `sources: ["architecture.md"]` instead of `sources: ["[[_sources/architecture|Architecture Documentation]]"]` |
 | Missing `parent` / `path`     | Required on all non-root pages; missing fields break graph navigation                   |
 | Index drift                   | Page exists on disk but is not listed in its folder note's `children`                   |
 | Legacy `_index.md` filename   | Schema_version 3 requires folder-note naming; remediation: `engine migrate --write`     |
@@ -171,8 +171,8 @@ The calibration rules from `vault/CLAUDE.md`:
 
 ## Related Concepts
 
-- [[Curator Agent]] — the agent that runs these checks and applies auto-heals
-- [[Deterministic Engine]] — the `verify` and `heal` verbs that implement structural checks
-- [[Auto-Heal]] — the mechanical fixes applied without approval
-- [[Schema Authority]] — `CLAUDE.md` defines the required fields per type
-- [[Git Checkpoint]] — every auto-heal change lands in a revertible commit
+- Curator Agent — the agent that runs these checks and applies auto-heals
+- Deterministic Engine — the `verify` and `heal` verbs that implement structural checks
+- Auto-Heal — the mechanical fixes applied without approval
+- [[schema-authority|Schema Authority]] — `CLAUDE.md` defines the required fields per type
+- Git Checkpoint — every auto-heal change lands in a revertible commit

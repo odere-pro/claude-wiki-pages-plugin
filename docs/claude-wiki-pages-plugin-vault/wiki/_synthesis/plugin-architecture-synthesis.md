@@ -5,24 +5,24 @@ synthesis_type: theme
 aliases: ["Plugin Architecture Synthesis", "plugin architecture synthesis"]
 path: "_synthesis"
 scope:
-  - "[[Four-Layer Stack]]"
-  - "[[Deterministic Engine]]"
-  - "[[NO-RAG Principle]]"
+  - "[[four-layer-stack|Four-Layer Stack]]"
+  - "[[deterministic-engine|Deterministic Engine]]"
+  - "[[no-rag-principle|NO-RAG Principle]]"
   - "[[Firewall]]"
-  - "[[Git Checkpoint]]"
-  - "[[Ontology Profile v1]]"
-  - "[[Scaffolding Ablation]]"
-  - "[[Local Model Quality Gate]]"
+  - "[[git-checkpoint|Git Checkpoint]]"
+  - "[[ontology-profile-v1|Ontology Profile v1]]"
+  - "[[scaffolding-ablation|Scaffolding Ablation]]"
+  - "[[local-model-quality-gate|Local Model Quality Gate]]"
 sources:
-  - "[[Architecture Documentation]]"
-  - "[[Glossary]]"
-  - "[[ADR-0001: Four-Layer Orchestrator]]"
-  - "[[ADR-0007: Wiki-Native Recall]]"
-  - "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]"
-  - "[[ADR-0011: Local-Model Quality Gate]]"
-  - "[[ADR-0020: The Scaffolding Ablation]]"
-  - "[[ADR-0023: Wiki-Only Graph]]"
-  - "[[Features]]"
+  - "[[_sources/architecture|Architecture Documentation]]"
+  - "[[_sources/glossary|Glossary]]"
+  - "[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]"
+  - "[[_sources/adr-0007-wiki-native-recall|ADR-0007: Wiki-Native Recall]]"
+  - "[[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]"
+  - "[[_sources/adr-0011-local-model-quality-gate|ADR-0011: Local-Model Quality Gate]]"
+  - "[[adr-0020-scaffolding-ablation|ADR-0020: The Scaffolding Ablation]]"
+  - "[[_sources/adr-0023-wiki-only-graph|ADR-0023: Wiki-Only Graph]]"
+  - "[[_sources/features|Features]]"
 tags: ["synthesis", "architecture", "design-principles"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -70,9 +70,9 @@ The specialist-agent pattern (orchestrator probes, specialists trust payload) is
 
 ## Relationships
 
-The [[Four-Layer Stack]] is the spine. [[Deterministic Engine]] is Layer 4's enforcement peer. [[Firewall]] + [[Git Checkpoint]] are the safety mechanisms that make autonomous operation safe. [[NO-RAG Principle]] + [[Wiki-Native Recall]] are the retrieval philosophy. [[Ontology Profile v1]] is the single named contract for typed relationships. [[Local Model Quality Gate]] + [[Scaffolding Ablation]] are the evidence-based quality discipline.
+The [[four-layer-stack|Four-Layer Stack]] is the spine. [[deterministic-engine|Deterministic Engine]] is Layer 4's enforcement peer. [[Firewall]] + [[git-checkpoint|Git Checkpoint]] are the safety mechanisms that make autonomous operation safe. [[no-rag-principle|NO-RAG Principle]] + [[wiki-native-recall|Wiki-Native Recall]] are the retrieval philosophy. [[ontology-profile-v1|Ontology Profile v1]] is the single named contract for typed relationships. [[local-model-quality-gate|Local Model Quality Gate]] + [[scaffolding-ablation|Scaffolding Ablation]] are the evidence-based quality discipline.
 
-The [[Orchestrator Agent]] routes to [[Ingest Agent]] → [[Curator Agent]] → [[Polish Agent]] in sequence. The ingest agent follows the 13-step [[Ingest Pipeline]] and the [[Entity Distribution Model]] (update, don't duplicate). The curator runs [[Lint Rules]] and [[Auto-Heal]]. The polish agent maintains the [[Obsidian Experience]] and the [[Wiki-Only Graph]].
+The [[orchestrator-agent|Orchestrator Agent]] routes to [[ingest-agent|Ingest Agent]] → [[curator-agent|Curator Agent]] → [[polish-agent|Polish Agent]] in sequence. The ingest agent follows the 13-step [[ingest-pipeline|Ingest Pipeline]] and the [[entity-distribution-model|Entity Distribution Model]] (update, don't duplicate). The curator runs [[lint-rules|Lint Rules]] and [[Auto-Heal]]. The polish agent maintains the [[obsidian/obsidian-experience|Obsidian Experience]] and the [[wiki-only-graph|Wiki-Only Graph]].
 
 ## Gaps
 
@@ -91,17 +91,17 @@ The [[Orchestrator Agent]] routes to [[Ingest Agent]] → [[Curator Agent]] → 
 
 ## Sources Consulted
 
-- [[Four-Layer Stack]] — the organizational backbone and layer boundary model
-- [[Deterministic Engine]] — the Bun CLI implementing the NO-RAG enforcement
-- [[NO-RAG Principle]] — the retrieval philosophy eliminating embeddings
+- [[four-layer-stack|Four-Layer Stack]] — the organizational backbone and layer boundary model
+- [[deterministic-engine|Deterministic Engine]] — the Bun CLI implementing the NO-RAG enforcement
+- [[no-rag-principle|NO-RAG Principle]] — the retrieval philosophy eliminating embeddings
 - [[Firewall]] — the write-confinement mechanism for cross-vault safety
-- [[Git Checkpoint]] — the snapshot/post pattern enabling safe autonomous operation
-- [[Ontology Profile v1]] — the named typed-relationship contract
-- [[Scaffolding Ablation]] — the measured evidence for contractual value
-- [[Local Model Quality Gate]] — the four-metric evidence gate for local models
-- [[Architecture Documentation]] — the four-layer contract authority
-- [[ADR-0007: Wiki-Native Recall]] — the NO-RAG decision and retrieval design
-- [[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]] — the firewall and confinement design
-- [[ADR-0011: Local-Model Quality Gate]] — the quality gate metrics and threshold
-- [[ADR-0020: The Scaffolding Ablation]] — the measured gap between scaffolded and unscaffolded output
-- [[ADR-0023: Wiki-Only Graph]] — the regenerable graph config decision
+- [[git-checkpoint|Git Checkpoint]] — the snapshot/post pattern enabling safe autonomous operation
+- [[ontology-profile-v1|Ontology Profile v1]] — the named typed-relationship contract
+- [[scaffolding-ablation|Scaffolding Ablation]] — the measured evidence for contractual value
+- [[local-model-quality-gate|Local Model Quality Gate]] — the four-metric evidence gate for local models
+- [[_sources/architecture|Architecture Documentation]] — the four-layer contract authority
+- [[_sources/adr-0007-wiki-native-recall|ADR-0007: Wiki-Native Recall]] — the NO-RAG decision and retrieval design
+- [[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]] — the firewall and confinement design
+- [[_sources/adr-0011-local-model-quality-gate|ADR-0011: Local-Model Quality Gate]] — the quality gate metrics and threshold
+- [[adr-0020-scaffolding-ablation|ADR-0020: The Scaffolding Ablation]] — the measured gap between scaffolded and unscaffolded output
+- [[_sources/adr-0023-wiki-only-graph|ADR-0023: Wiki-Only Graph]] — the regenerable graph config decision

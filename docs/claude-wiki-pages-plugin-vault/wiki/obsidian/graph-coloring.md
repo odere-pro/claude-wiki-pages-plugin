@@ -4,8 +4,8 @@ type: concept
 aliases: ["Graph Coloring", "graph coloring", "color groups", "graph color groups", "Obsidian graph colors"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources: ["[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[User Guide: Obsidian Experience]]"]
-related: ["[[Wiki-Only Graph]]", "[[Graph Config Cache]]", "[[Polish Agent]]", "[[Folder Note]]", "[[Obsidian Experience]]"]
+sources: ["[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[_sources/adr-0023-wiki-only-graph|ADR-0023: Wiki-Only Graph]]", "[[adr-0003-polish-agent|ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[llm-wiki-obsidian-experience|User Guide: Obsidian Experience]]"]
+related: ["[[wiki-only-graph|Wiki-Only Graph]]", "[[graph-config-cache|Graph Config Cache]]", "[[obsidian/obsidian-experience|Obsidian Experience]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -88,8 +88,8 @@ ADR-0023 also dropped the "layer pass" — three groups for `path:raw`, `path:wi
 
 ## Related Concepts
 
-- [[Wiki-Only Graph]] — the exclusion contract that determines what appears in the graph
-- [[Graph Config Cache]] — why `.obsidian/` is gitignored and fully regenerable
-- [[Polish Agent]] — the agent that asserts color groups idempotently after every write
-- [[Folder Note]] — the per-topic index pages that drive the `path:wiki/<topic>` color groups
-- [[Obsidian Experience]] — the broader Obsidian-side user experience
+- [[wiki-only-graph|Wiki-Only Graph]] — the exclusion contract that determines what appears in the graph
+- [[graph-config-cache|Graph Config Cache]] — why `.obsidian/` is gitignored and fully regenerable
+- Polish Agent — the agent that asserts color groups idempotently after every write
+- Folder Note — the per-topic index pages that drive the `path:wiki/<topic>` color groups
+- [[obsidian/obsidian-experience|Obsidian Experience]] — the broader Obsidian-side user experience

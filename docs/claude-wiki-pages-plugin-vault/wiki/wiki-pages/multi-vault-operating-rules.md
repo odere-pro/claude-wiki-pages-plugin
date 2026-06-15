@@ -2,13 +2,13 @@
 title: "Multi-Vault Operating Rules"
 type: concept
 aliases: ["Multi-Vault Operating Rules", "multi-vault operating rules", "multi-vault agent rules", "vault operating rules"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Maintain Contract]]", "[[Multi-Vault Registry]]", "[[Firewall]]", "[[Vault Resolution]]"]
+sources: ["[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[maintain-contract|Maintain Contract]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Multi-Vault Registry]]", "[[Firewall]]", "[[Vault Resolution]]"]
+depends_on: []
 tags: ["concept", "multi-vault", "operating-rules"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -20,13 +20,13 @@ confidence: 1.0
 # Multi-Vault Operating Rules
 
 > [!summary]
-> The multi-vault operating rules are five agent-level procedures that extend the [[Maintain Contract]] for environments where more than one vault is registered. They enforce explicit scoping on every engine call, derive the confinement set from the live registry rather than hard-coded paths, permit cross-vault reads, block all cross-vault writes, and treat a malformed registry as zero writable roots (fail-closed). The rules are derived from ADR-0009 and ADR-0016.
+> The multi-vault operating rules are five agent-level procedures that extend the [[maintain-contract|Maintain Contract]] for environments where more than one vault is registered. They enforce explicit scoping on every engine call, derive the confinement set from the live registry rather than hard-coded paths, permit cross-vault reads, block all cross-vault writes, and treat a malformed registry as zero writable roots (fail-closed). The rules are derived from ADR-0009 and ADR-0016.
 
 ## Definition
 
 When more than one vault is registered in `.claude/claude-wiki-pages/settings.json`, every engine call must be explicitly scoped. The five rules codify the correct agent behaviour to prevent cross-vault contamination and fail-closed on any registry inconsistency.
 
-These rules are agent-side procedures — the complementary enforcement mechanism is the [[Firewall]] (bash twin `scripts/firewall.sh` and TypeScript twin `src/core/firewall.ts`). The agent follows the rules voluntarily; the firewall enforces them structurally at the write boundary.
+These rules are agent-side procedures — the complementary enforcement mechanism is the Firewall (bash twin `scripts/firewall.sh` and TypeScript twin `src/core/firewall.ts`). The agent follows the rules voluntarily; the firewall enforces them structurally at the write boundary.
 
 ## Key Principles
 
@@ -96,7 +96,7 @@ Registry inconsistency flow:
 
 ## Related Concepts
 
-- [[Maintain Contract]] — the parent contract that these rules extend for multi-vault environments
-- [[Multi-Vault Registry]] — the registry data structure (`settings.json`) that Rules 2 and 5 read from
-- [[Firewall]] — the enforcement mechanism that Rules 4 and 5 rely on (bash twin + TS twin)
-- [[Vault Resolution]] — `scripts/resolve-vault.sh` that Rules 1 and 2 source for `$VAULT` and `$registry_other_vaults`
+- [[maintain-contract|Maintain Contract]] — the parent contract that these rules extend for multi-vault environments
+- Multi-Vault Registry — the registry data structure (`settings.json`) that Rules 2 and 5 read from
+- Firewall — the enforcement mechanism that Rules 4 and 5 rely on (bash twin + TS twin)
+- Vault Resolution — `scripts/resolve-vault.sh` that Rules 1 and 2 source for `$VAULT` and `$registry_other_vaults`

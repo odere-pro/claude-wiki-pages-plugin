@@ -2,10 +2,10 @@
 title: "Synthesis Note"
 type: concept
 aliases: ["Synthesis Note", "synthesis note", "synthesis notes", "_synthesis", "cross-topic analysis"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[User Guide 05: Export Outputs]]", "[[User Guide 07: Query the Wiki]]", "[[Analyst Agent Source]]"]
-related: ["[[Analyst Agent]]", "[[Challenge Mode]]", "[[Query Rules]]", "[[Grounded Retrieval]]"]
+sources: ["[[llm-wiki-05-export-outputs|User Guide 05: Export Outputs]]", "[[llm-wiki-07-query-the-wiki|User Guide 07: Query the Wiki]]", "[[plugin-analyst-agent|Analyst Agent Source]]"]
+related: ["[[query-rules|Query Rules]]", "[[grounded-retrieval|Grounded Retrieval]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -20,7 +20,7 @@ confidence: 1.0
 # Synthesis Note
 
 > [!summary]
-> A synthesis note is a higher-order analysis page stored in `wiki/_synthesis/`. It is the wiki's permanent record of a multi-page reasoning result — a cross-topic comparison, theme, contradiction, gap analysis, or timeline — produced by the [[Analyst Agent]] and offered for permanent filing when a query answer reveals novel insight. Synthesis notes are distinct from `vault/output/` deliverables: they are schema-tracked knowledge, not scratch deliverables.
+> A synthesis note is a higher-order analysis page stored in `wiki/_synthesis/`. It is the wiki's permanent record of a multi-page reasoning result — a cross-topic comparison, theme, contradiction, gap analysis, or timeline — produced by the Analyst Agent and offered for permanent filing when a query answer reveals novel insight. Synthesis notes are distinct from `vault/output/` deliverables: they are schema-tracked knowledge, not scratch deliverables.
 
 ## Key Principles
 
@@ -40,8 +40,8 @@ title: "Firewall vs. Validate-Frontmatter: Defense-in-Depth Layers"
 type: synthesis
 synthesis_type: comparison
 path: "_synthesis"
-scope: ["[[Firewall]]", "[[Frontmatter Validation]]", "[[Hook System]]"]
-sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0014: Single-Source Required Fields]]"]
+scope: ["[[Firewall]]", "[[frontmatter-validation|Frontmatter Validation]]", "[[hook-system|Hook System]]"]
+sources: ["[[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[adr-0014-single-source-required-fields|ADR-0014: Single-Source Required Fields]]"]
 created: 2026-06-14
 updated: 2026-06-14
 status: active
@@ -77,11 +77,11 @@ title: "Synthesis Title"
 type: synthesis
 synthesis_type: comparison | theme | contradiction | gap | timeline
 path: "_synthesis"
-scope: ["[[Firewall]]", "[[Multi-Vault Registry]]", "[[Deterministic Engine]]"]
+scope: ["[[Firewall]]", "[[multi-vault-registry|Multi-Vault Registry]]", "[[deterministic-engine|Deterministic Engine]]"]
 sources:
   [
-    "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]",
-    "[[ADR-0016: Simultaneous Multi-Vault Management]]",
+    "[[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]",
+    "[[adr-0016-multi-vault-registry|ADR-0016: Simultaneous Multi-Vault Management]]",
   ]
 tags: []
 created: 2026-04-16
@@ -95,7 +95,7 @@ confidence: 0.7
 
 ## Relationship to Query Output
 
-The [[Analyst Agent]] produces synthesis output as part of its `query` and `document compile` modes. When a query answer reveals a cross-cutting insight that the wiki does not already capture, the agent offers to file it as a synthesis note. This is not automatic: the user must explicitly request filing. The reasoning is that many query answers are context-specific and do not belong in the permanent knowledge base.
+The Analyst Agent produces synthesis output as part of its `query` and `document compile` modes. When a query answer reveals a cross-cutting insight that the wiki does not already capture, the agent offers to file it as a synthesis note. This is not automatic: the user must explicitly request filing. The reasoning is that many query answers are context-specific and do not belong in the permanent knowledge base.
 
 The key distinction drawn by User Guide 05: **synthesis goes in `wiki/_synthesis/`, deliverables go in `vault/output/`**. A synthesis note is reasoning the wiki should remember. A `vault/output/` file is a document produced for a specific audience and purpose.
 
@@ -112,7 +112,7 @@ The key distinction drawn by User Guide 05: **synthesis goes in `wiki/_synthesis
 
 ## Related Concepts
 
-- [[Analyst Agent]] — produces synthesis output and offers to file it
-- [[Challenge Mode]] — a query mode that surfaces contradictions and gaps, often resulting in synthesis notes
-- [[Query Rules]] — the full query workflow including the `## Sources` section contract
-- [[Grounded Retrieval]] — how pages are selected for the context window that feeds synthesis
+- Analyst Agent — produces synthesis output and offers to file it
+- Challenge Mode — a query mode that surfaces contradictions and gaps, often resulting in synthesis notes
+- [[query-rules|Query Rules]] — the full query workflow including the `## Sources` section contract
+- [[grounded-retrieval|Grounded Retrieval]] — how pages are selected for the context window that feeds synthesis

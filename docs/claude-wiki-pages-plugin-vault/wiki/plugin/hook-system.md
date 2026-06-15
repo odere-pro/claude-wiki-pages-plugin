@@ -2,10 +2,10 @@
 title: "Hook System"
 type: concept
 aliases: ["Hook System", "hook system", "hooks", "lifecycle hooks"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[Design: Component Design]]", "[[Operations Guide]]", "[[Design: Feature Relations]]"]
-related: ["[[Four-Layer Stack]]", "[[Firewall]]", "[[Git Checkpoint]]", "[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[design-02-component-design|Design: Component Design]]", "[[_sources/operations|Operations Guide]]", "[[design-06-feature-relations|Design: Feature Relations]]"]
+related: ["[[four-layer-stack|Four-Layer Stack]]", "[[git-checkpoint|Git Checkpoint]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]"]
 tags: ["concept", "hooks"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -59,12 +59,12 @@ This design means the hook system catches failures that skills and agents cannot
 
 ## Related Concepts
 
-- [[Four-Layer Stack]] — the hook system is the enforcement layer of Layer 4
-- [[Firewall]] — the confinement check that runs first in the PreToolUse chain
-- [[Git Checkpoint]] — the `subagent-commit-gate.sh` backstop creates these
-- [[Deterministic Engine]] — engine verbs called by hooks (verify, firewall, backlog)
-- [[Ingest Agent]] — the agent whose output `subagent-ingest-gate.sh` audits
-- [[Curator Agent]] — the agent that runs `engine heal` as part of its execution
+- [[four-layer-stack|Four-Layer Stack]] — the hook system is the enforcement layer of Layer 4
+- Firewall — the confinement check that runs first in the PreToolUse chain
+- [[git-checkpoint|Git Checkpoint]] — the `subagent-commit-gate.sh` backstop creates these
+- Deterministic Engine — engine verbs called by hooks (verify, firewall, backlog)
+- [[ingest-agent|Ingest Agent]] — the agent whose output `subagent-ingest-gate.sh` audits
+- [[curator-agent|Curator Agent]] — the agent that runs `engine heal` as part of its execution
 
 ## Hook Events and Scripts
 

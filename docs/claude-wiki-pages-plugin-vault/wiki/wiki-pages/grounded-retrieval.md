@@ -2,13 +2,13 @@
 title: "Grounded Retrieval"
 type: concept
 aliases: ["Grounded Retrieval", "grounded retrieval", "ground-then-judge", "engine-grounded retrieval"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Maintain Contract]]", "[[Query Rules]]", "[[Deterministic Engine]]", "[[NO-RAG Principle]]", "[[Wiki-Native Recall]]", "[[Provenance Checks]]"]
+sources: ["[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[maintain-contract|Maintain Contract]]", "[[query-rules|Query Rules]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Deterministic Engine]]", "[[NO-RAG Principle]]"]
+depends_on: []
 tags: ["concept", "retrieval", "grounding"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -24,13 +24,13 @@ confidence: 1.0
 
 ## Definition
 
-Grounded retrieval is the retrieval half of the [[Maintain Contract]]'s first invariant: "Ground, then judge, then verify." In practical terms it means:
+Grounded retrieval is the retrieval half of the [[maintain-contract|Maintain Contract]]'s first invariant: "Ground, then judge, then verify." In practical terms it means:
 
-1. **Ground:** use the [[Deterministic Engine]] (`engine.sh search`, or `grep` over `wiki/`) to fetch the set of candidate pages that are most relevant to the question.
+1. **Ground:** use the Deterministic Engine (`engine.sh search`, or `grep` over `wiki/`) to fetch the set of candidate pages that are most relevant to the question.
 2. **Judge:** reason over those fetched pages — synthesize, compare, conclude — not over training knowledge or memory.
 3. **Verify:** cite every claim with its wiki page source by wikilink, and close the operation with a `## Sources` section so the answer is auditable.
 
-The [[NO-RAG Principle]] explains why grounded retrieval works without a vector database: the wiki is small enough that keyword + synonym + graph-walk retrieval (the [[Wiki-Native Recall]] algorithm) finds the right pages without embeddings. Grounded retrieval is the agent-side discipline that pairs with the engine's deterministic recall.
+The NO-RAG Principle explains why grounded retrieval works without a vector database: the wiki is small enough that keyword + synonym + graph-walk retrieval (the Wiki-Native Recall algorithm) finds the right pages without embeddings. Grounded retrieval is the agent-side discipline that pairs with the engine's deterministic recall.
 
 ## Key Principles
 
@@ -52,22 +52,22 @@ If the engine retrieval returns no relevant pages, or the relevant pages do not 
 No wiki pages consulted — this question is not covered by the current wiki. See the gap note above.
 ```
 
-Declaring a gap is always preferable to an uncited answer. The user can then add the missing source to `raw/` and run the [[Ingest Pipeline]].
+Declaring a gap is always preferable to an uncited answer. The user can then add the missing source to `raw/` and run the [[ingest-pipeline|Ingest Pipeline]].
 
 ### N≤2 Traversal Limit
 
-When following wikilinks from seed pages (via `related`, `depends_on`, `sources`), grounded retrieval traverses at most 2 hops. Pages reached at hop 2 contribute supporting context, not primary evidence. This keeps the context window focused and the provenance traceable. The limit comes from [[ADR-0008: One Graph-Traversal Primitive]].
+When following wikilinks from seed pages (via `related`, `depends_on`, `sources`), grounded retrieval traverses at most 2 hops. Pages reached at hop 2 contribute supporting context, not primary evidence. This keeps the context window focused and the provenance traceable. The limit comes from [[_sources/adr-0008-graph-traversal-primitive|ADR-0008: One Graph-Traversal Primitive]].
 
 ## Examples
 
 Correct grounded-retrieval answer:
 
-> The firewall confines all writes to the active vault root and fails closed when the registry is malformed [[Firewall]]. Cross-vault writes are blocked before the `allowPaths` check — even a permissive allow-list cannot override the `cross-vault` deny rule [[Multi-Vault Registry]].
+> The firewall confines all writes to the active vault root and fails closed when the registry is malformed Firewall. Cross-vault writes are blocked before the `allowPaths` check — even a permissive allow-list cannot override the `cross-vault` deny rule Multi-Vault Registry.
 >
 > ## Sources
 >
-> 1. [[Firewall]] — raw/docs/adr/ADR-0009-multi-vault-confinement.md
-> 2. [[Multi-Vault Registry]] — raw/docs/adr/ADR-0016-simultaneous-multi-vault-management.md
+> 1. Firewall — raw/docs/adr/ADR-0009-multi-vault-confinement.md
+> 2. Multi-Vault Registry — raw/docs/adr/ADR-0016-simultaneous-multi-vault-management.md
 
 Incorrect (not grounded):
 
@@ -75,8 +75,8 @@ Incorrect (not grounded):
 
 ## Related Concepts
 
-- [[Maintain Contract]] — the first invariant "ground, then judge, then verify" is the parent principle
-- [[Query Rules]] — the 7-step query workflow that implements grounded retrieval for user-facing queries
-- [[NO-RAG Principle]] — why the wiki uses keyword recall instead of vector embeddings
-- [[Wiki-Native Recall]] — the engine algorithm (keyword + synonym + graph walk) that provides the grounding
-- [[Provenance Checks]] — engine-side checks that ensure pages have valid `sources:` chains
+- [[maintain-contract|Maintain Contract]] — the first invariant "ground, then judge, then verify" is the parent principle
+- [[query-rules|Query Rules]] — the 7-step query workflow that implements grounded retrieval for user-facing queries
+- NO-RAG Principle — why the wiki uses keyword recall instead of vector embeddings
+- Wiki-Native Recall — the engine algorithm (keyword + synonym + graph walk) that provides the grounding
+- Provenance Checks — engine-side checks that ensure pages have valid `sources:` chains

@@ -3,10 +3,10 @@ title: "Orchestrator Agent"
 type: entity
 entity_type: tool
 aliases: ["Orchestrator Agent", "orchestrator agent", "claude-wiki-pages-orchestrator-agent", "orchestrator"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[ADR-0001: Four-Layer Orchestrator]]", "[[ADR-0002: Agent Naming Convention]]", "[[Operations Guide]]", "[[Orchestrator Agent Source]]"]
-related: ["[[Ingest Agent]]", "[[Curator Agent]]", "[[Analyst Agent]]", "[[Polish Agent]]", "[[Maintenance Agent]]", "[[Four-Layer Stack]]", "[[Vault Resolution]]", "[[Single-Pass Dispatch]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]", "[[_sources/adr-0002-agent-naming-convention|ADR-0002: Agent Naming Convention]]", "[[_sources/operations|Operations Guide]]", "[[plugin-orchestrator-agent|Orchestrator Agent Source]]"]
+related: ["[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[analyst-agent|Analyst Agent]]", "[[polish-agent|Polish Agent]]", "[[maintenance-agent|Maintenance Agent]]", "[[four-layer-stack|Four-Layer Stack]]", "[[single-pass-dispatch|Single-Pass Dispatch]]"]
 tags: ["agent", "orchestrator"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -69,11 +69,11 @@ This sequence runs once and produces the dispatch payload.
 | State found                                     | Specialist dispatched                 |
 | ----------------------------------------------- | ------------------------------------- |
 | No vault or no `schema_version`                 | Onboarding wizard (scaffold + orient) |
-| Files in `raw/` not in `wiki/log.md`            | [[Ingest Agent]]                      |
-| Previous ingest not followed by lint            | [[Curator Agent]] (audit-and-repair)  |
-| Analytical prompt (`what`, `why`, `compare`, …) | [[Analyst Agent]]                     |
+| Files in `raw/` not in `wiki/log.md`            | [[ingest-agent|Ingest Agent]]                      |
+| Previous ingest not followed by lint            | [[curator-agent|Curator Agent]] (audit-and-repair)  |
+| Analytical prompt (`what`, `why`, `compare`, …) | [[analyst-agent|Analyst Agent]]                     |
 | Pending drafts in `_proposed/`                  | Review gate                           |
-| `maintenance.enabled` + backlog                 | [[Maintenance Agent]]                 |
+| `maintenance.enabled` + backlog                 | [[maintenance-agent|Maintenance Agent]]                 |
 
 Priority goes top to bottom: if raw files are pending AND the prompt is analytical, the ingest takes precedence (stale sources degrade the answer quality anyway).
 
@@ -87,7 +87,7 @@ The constraint is encoded in each specialist's agent file as a note: "The orches
 
 ## Polish as Tail Step
 
-After every successful ingest or curator pass, the orchestrator fans out the [[Polish Agent]] in parallel with the final-report compose step. The user sees the ingest/curator result immediately, and the polish step (graph colors, index refresh, folder note reconciliation) runs concurrently.
+After every successful ingest or curator pass, the orchestrator fans out the [[polish-agent|Polish Agent]] in parallel with the final-report compose step. The user sees the ingest/curator result immediately, and the polish step (graph colors, index refresh, folder note reconciliation) runs concurrently.
 
 The polish agent is `user-invocable: false` and has no standalone meaning — it only makes sense as this tail step.
 
@@ -116,10 +116,10 @@ Bypassing the orchestrator also bypasses the polish tail step. Run `/claude-wiki
 
 ## Related
 
-- [[Ingest Agent]] — dispatched when pending sources exist
-- [[Curator Agent]] — dispatched for audit-and-repair
-- [[Analyst Agent]] — dispatched for analytical queries
-- [[Polish Agent]] — tail-of-write step after ingest or curator
-- [[Maintenance Agent]] — dispatched for autonomous backlog catch-up
-- [[Four-Layer Stack]] — the orchestrator is Layer 3's user-facing entry
-- [[Vault Resolution]] — the resolver the orchestrator uses to find the active vault
+- [[ingest-agent|Ingest Agent]] — dispatched when pending sources exist
+- [[curator-agent|Curator Agent]] — dispatched for audit-and-repair
+- [[analyst-agent|Analyst Agent]] — dispatched for analytical queries
+- [[polish-agent|Polish Agent]] — tail-of-write step after ingest or curator
+- [[maintenance-agent|Maintenance Agent]] — dispatched for autonomous backlog catch-up
+- [[four-layer-stack|Four-Layer Stack]] — the orchestrator is Layer 3's user-facing entry
+- Vault Resolution — the resolver the orchestrator uses to find the active vault

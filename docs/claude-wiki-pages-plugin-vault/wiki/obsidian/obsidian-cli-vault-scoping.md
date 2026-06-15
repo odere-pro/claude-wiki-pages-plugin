@@ -4,11 +4,11 @@ type: concept
 aliases: ["Obsidian CLI Vault Scoping", "obsidian cli vault scoping", "vault scoping convention", "obsidian CLI scoping"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources: ["[[Obsidian Vault Skill (SKILL.md)]]"]
-related: ["[[obsidian-vault Skill]]", "[[Defense-in-Depth Scoping]]", "[[Vault Resolution]]", "[[Firewall]]"]
+sources: ["[[_sources/obsidian-vault-skill|Obsidian Vault Skill (SKILL.md)]]"]
+related: ["[[obsidian/obsidian-vault-skill|obsidian-vault Skill]]", "[[defense-in-depth-scoping|Defense-in-Depth Scoping]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Vault Resolution]]"]
+depends_on: []
 tags: ["concept", "obsidian", "security"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -63,7 +63,7 @@ obsidian eval "app.vault.getName()"
 
 ## Related Concepts
 
-- [[obsidian-vault Skill]] — the skill that encodes and teaches this convention to agents
-- [[Defense-in-Depth Scoping]] — pairs this convention (intent) with the firewall hook (enforcement)
-- [[Vault Resolution]] — the four-tier resolution logic that Rule 1 depends on
-- [[Firewall]] — the enforcement backstop that catches any violation that slips past the convention
+- [[obsidian/obsidian-vault-skill|obsidian-vault Skill]] — the skill that encodes and teaches this convention to agents
+- [[defense-in-depth-scoping|Defense-in-Depth Scoping]] — pairs this convention (intent) with the firewall hook (enforcement)
+- Vault Resolution — the four-tier resolution logic that Rule 1 depends on
+- Firewall — the enforcement backstop that catches any violation that slips past the convention

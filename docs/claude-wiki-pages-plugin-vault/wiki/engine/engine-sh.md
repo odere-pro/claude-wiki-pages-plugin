@@ -3,10 +3,10 @@ title: "engine.sh"
 type: entity
 entity_type: tool
 aliases: ["engine.sh", "engine shell bridge", "bash-to-Bun bridge"]
-parent: "[[Engine — Index]]"
+parent: "[[engine-index|Engine — Index]]"
 path: "engine"
-sources: ["[[engine.sh Source]]", "[[Engine Scripts Layer (CLAUDE.md)]]", "[[Engine API Skill (SKILL.md)]]"]
-related: ["[[cli.ts]]", "[[Deterministic Engine]]", "[[Scripts Layer]]", "[[Engine CLI Router]]", "[[Degraded-Mode Routing]]", "[[Shell-TS Parity]]"]
+sources: ["[[engine-sh-source|engine.sh Source]]", "[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
+related: ["[[cli-ts|cli.ts]]", "[[deterministic-engine|Deterministic Engine]]", "[[scripts-layer|Scripts Layer]]", "[[engine-cli-router|Engine CLI Router]]", "[[degraded-mode-routing|Degraded-Mode Routing]]", "[[shell-ts-parity|Shell-TS Parity]]"]
 tags: ["tool", "bash", "engine"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -31,7 +31,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh" <command> --target <vault> --json
 ## Key Facts
 
 - **Root resolution**: `ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"` — uses env var override when set, otherwise resolves the plugin root relative to the script's own location. The `CLAUDE_PLUGIN_ROOT` env var is the standard override for CI and local dev.
-- **Graceful degradation**: if `bun` is not found in PATH, prints `[claude-wiki-pages] WARN: Bun not found — engine step skipped` to stderr and exits 0. Hot-path bash hooks (`validate-frontmatter.sh`, `firewall.sh`, `check-wikilinks.sh`) remain active; engine-only verbs (`verify`, `fix`, `heal`, `search`, `migrate`) are unavailable. See [[Degraded-Mode Routing]] for the full degradation policy.
+- **Graceful degradation**: if `bun` is not found in PATH, prints `[claude-wiki-pages] WARN: Bun not found — engine step skipped` to stderr and exits 0. Hot-path bash hooks (`validate-frontmatter.sh`, `firewall.sh`, `check-wikilinks.sh`) remain active; engine-only verbs (`verify`, `fix`, `heal`, `search`, `migrate`) are unavailable. See [[degraded-mode-routing|Degraded-Mode Routing]] for the full degradation policy.
 - **Prefers built artifact**: checks for `$ROOT/dist/cli.js` first (built by npm install / `bun build`). Falls back to `$ROOT/src/cli/cli.ts` for the development path.
 - **Uses `exec`**: replaces the bridge process with the engine process — no subshell overhead, arguments pass through unchanged via `"$@"`.
 - **16 verbs available** (when Bun is present): 14 implemented (`verify`, `fix`, `heal`, `doctor`, `config`, `migrate`, `search`, `firewall`, `backlog`, `propose`, `capabilities`, `ontology`, `route`, `snapshot`) plus 2 planned (`index`, `link-suggest`).
@@ -53,9 +53,9 @@ The `doctor` verb (`engine.sh doctor`) detects this state and prints a `D04/D05`
 
 ## Related
 
-- [[cli.ts]] — the TypeScript entry point this bridge invokes
-- [[Deterministic Engine]] — design-level view of the engine tier
-- [[Scripts Layer]] — the shell anatomy this bridge is part of
-- [[Engine CLI Router]] — the dispatch logic inside cli.ts
-- [[Degraded-Mode Routing]] — policy for operation without Bun
-- [[Shell-TS Parity]] — the parity contract between bash gates and the TS engine
+- [[cli-ts|cli.ts]] — the TypeScript entry point this bridge invokes
+- [[deterministic-engine|Deterministic Engine]] — design-level view of the engine tier
+- [[scripts-layer|Scripts Layer]] — the shell anatomy this bridge is part of
+- [[engine-cli-router|Engine CLI Router]] — the dispatch logic inside cli.ts
+- [[degraded-mode-routing|Degraded-Mode Routing]] — policy for operation without Bun
+- [[shell-ts-parity|Shell-TS Parity]] — the parity contract between bash gates and the TS engine

@@ -214,3 +214,13 @@ Default: Sonnet. Override to Opus when:
 - **Script-first diagnosis.** Use the engine (`engine.sh`), falling back to `verify-ingest.sh` primitives when Bun is absent. Extend the engine instead of re-implementing checks in prose.
 - **Never modify `vault/raw/`.** Source files are immutable.
 - **Log every operation** to `wiki/log.md`.
+
+## Context contract
+
+Machine-readable read/write contract for the `engine context` verb.
+
+| role           | globs                                          |
+| -------------- | ---------------------------------------------- |
+| inputs (L4)    | wiki/**, wiki/_sources/**                      |
+| reference (L3) | vault/CLAUDE.md, wiki/index.md                 |
+| outputs        | wiki/**, wiki/_sources/**                      |

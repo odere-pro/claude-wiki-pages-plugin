@@ -2,10 +2,10 @@
 title: "Scaffolding Ablation"
 type: concept
 aliases: ["Scaffolding Ablation", "scaffolding ablation", "ablation eval", "plugin arm vs baseline arm"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[ADR-0020: The Scaffolding Ablation]]", "[[Features]]"]
-related: ["[[Local Model Quality Gate]]", "[[Golden Set]]", "[[claude-wiki-pages Plugin]]", "[[Ingest Pipeline]]", "[[Approved Local Model]]", "[[NO-RAG Principle]]"]
+sources: ["[[adr-0020-scaffolding-ablation|ADR-0020: The Scaffolding Ablation]]", "[[_sources/features|Features]]"]
+related: []
 tags: ["concept", "eval", "quality"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -49,7 +49,7 @@ Measured results (`qwen3-coder:30b`, M1 Pro, Ollama 0.30.7):
 
 ## Problem Statement (ADR-0020)
 
-The plugin's central claim is that its scaffolding — the schema excerpt, the provenance contract, the `source_quotes` verbatim rule, the anti-fabrication hard rules — is what turns a capable LLM into a reliable wiki maintainer. The [[Local Model Quality Gate]] measures whether a specific model clears the bar with the plugin's scaffolding. But until ADR-0020, there was no measurement of what happens without the scaffolding.
+The plugin's central claim is that its scaffolding — the schema excerpt, the provenance contract, the `source_quotes` verbatim rule, the anti-fabrication hard rules — is what turns a capable LLM into a reliable wiki maintainer. The Local Model Quality Gate measures whether a specific model clears the bar with the plugin's scaffolding. But until ADR-0020, there was no measurement of what happens without the scaffolding.
 
 The question users actually ask: _what do I lose if I just ask the model to "take notes" without the plugin?_
 
@@ -108,7 +108,7 @@ The measured baseline runs also revealed: the baseline arm is more likely to dri
 
 ## Related Concepts
 
-- [[Local Model Quality Gate]] — the gate that uses the same golden-set methodology for the plugin arm
-- [[Golden Set]] — the checked-in fixtures used for both arms
-- [[claude-wiki-pages Plugin]] — the plugin whose scaffolding is being measured
-- [[NO-RAG Principle]] — scoring in both arms is exact structural comparison, never embedding
+- Local Model Quality Gate — the gate that uses the same golden-set methodology for the plugin arm
+- Golden Set — the checked-in fixtures used for both arms
+- claude-wiki-pages Plugin — the plugin whose scaffolding is being measured
+- NO-RAG Principle — scoring in both arms is exact structural comparison, never embedding

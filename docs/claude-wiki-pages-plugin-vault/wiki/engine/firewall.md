@@ -3,10 +3,10 @@ title: "Firewall"
 type: entity
 entity_type: tool
 aliases: ["Firewall", "firewall", "write confinement", "per-vault write confinement"]
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Design: Claude Config and Security]]", "[[firewall.ts Source]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[Multi-Vault Registry]]", "[[Vault Resolution]]", "[[Deterministic Engine]]", "[[Active Vault]]", "[[Hook System]]", "[[Scripts Layer]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]", "[[_sources/adr-0009-multi-vault-confinement|ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[adr-0016-multi-vault-registry|ADR-0016: Simultaneous Multi-Vault Management]]", "[[design-05-claude-config-security|Design: Claude Config and Security]]", "[[firewall-ts-source|firewall.ts Source]]", "[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]"]
+related: ["[[vault-resolution|Vault Resolution]]", "[[deterministic-engine|Deterministic Engine]]", "[[active-vault|Active Vault]]", "[[scripts-layer|Scripts Layer]]"]
 tags: ["tool", "security"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -103,8 +103,8 @@ The firewall confines writes to the vault; `protect-raw.sh` confines writes with
 
 ## Related
 
-- [[Multi-Vault Registry]] — the registry the firewall reads for `otherVaults`
-- [[Vault Resolution]] — the 4-tier resolver that identifies the active vault root
-- [[Deterministic Engine]] — the `firewall` verb for programmatic confinement checks
-- [[Hook System]] — the broader `PreToolUse` hook chain that fires the firewall
-- [[Active Vault]] — `current_vault_path` designates the one allowed write root
+- Multi-Vault Registry — the registry the firewall reads for `otherVaults`
+- [[vault-resolution|Vault Resolution]] — the 4-tier resolver that identifies the active vault root
+- [[deterministic-engine|Deterministic Engine]] — the `firewall` verb for programmatic confinement checks
+- Hook System — the broader `PreToolUse` hook chain that fires the firewall
+- [[active-vault|Active Vault]] — `current_vault_path` designates the one allowed write root

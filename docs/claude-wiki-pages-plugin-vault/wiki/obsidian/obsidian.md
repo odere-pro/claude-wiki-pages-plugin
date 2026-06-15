@@ -2,16 +2,16 @@
 title: "Obsidian"
 type: index
 aliases: ["Obsidian", "obsidian", "Obsidian integration", "obsidian-folder", "Obsidian CLI"]
-parent: "[[Wiki Index]]"
+parent: "[[index|Wiki Index]]"
 path: "obsidian"
 children:
-  - "[[Defense-in-Depth Scoping]]"
-  - "[[Obsidian CLI Vault Scoping]]"
-  - "[[obsidian-vault Skill]]"
-  - "[[Graph Config Cache]]"
-  - "[[Wiki-Only Graph]]"
-  - "[[Graph Coloring]]"
-  - "[[Obsidian Experience]]"
+  - "[[defense-in-depth-scoping|Defense-in-Depth Scoping]]"
+  - "[[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]]"
+  - "[[obsidian/obsidian-vault-skill|obsidian-vault Skill]]"
+  - "[[graph-config-cache|Graph Config Cache]]"
+  - "[[wiki-only-graph|Wiki-Only Graph]]"
+  - "[[graph-coloring|Graph Coloring]]"
+  - "[[obsidian/obsidian-experience|Obsidian Experience]]"
 child_indexes: []
 tags: ["obsidian", "cli", "vault-scoping", "firewall"]
 created: 2026-06-13
@@ -21,7 +21,7 @@ updated: 2026-06-13
 # Obsidian
 
 > [!summary]
-> The Obsidian cluster covers the conventions and enforcement mechanisms that make Obsidian CLI calls safe in a multi-vault environment. The [[obsidian-vault Skill]] teaches agents to scope every CLI call to the resolved vault before the call happens. [[Obsidian CLI Vault Scoping]] defines the four rules in detail. [[Defense-in-Depth Scoping]] explains the two-layer design: the skill catches confused agents early; the [[Firewall]] hook provides a deterministic backstop even when the skill is not consulted.
+> The Obsidian cluster covers the conventions and enforcement mechanisms that make Obsidian CLI calls safe in a multi-vault environment. The [[obsidian/obsidian-vault-skill|obsidian-vault Skill]] teaches agents to scope every CLI call to the resolved vault before the call happens. [[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]] defines the four rules in detail. [[defense-in-depth-scoping|Defense-in-Depth Scoping]] explains the two-layer design: the skill catches confused agents early; the Firewall hook provides a deterministic backstop even when the skill is not consulted.
 
 ## Overview
 
@@ -33,11 +33,11 @@ The key invariant: **resolve the vault first, then act**. No Obsidian CLI call o
 
 ## Key Pages
 
-[[obsidian-vault Skill]] is the Layer 2 guard contract for driving the Obsidian CLI. Its four rules are: (1) resolve the vault first using `scripts/resolve-vault.sh`; (2) always pass `--vault "$VAULT"` to every Obsidian CLI call; (3) never operate on a different vault even when named in the task — surface it, do not switch; (4) treat file operations alongside the CLI as vault-scoped. The skill's allowed tools are `Read` and `Bash` only.
+[[obsidian/obsidian-vault-skill|obsidian-vault Skill]] is the Layer 2 guard contract for driving the Obsidian CLI. Its four rules are: (1) resolve the vault first using `scripts/resolve-vault.sh`; (2) always pass `--vault "$VAULT"` to every Obsidian CLI call; (3) never operate on a different vault even when named in the task — surface it, do not switch; (4) treat file operations alongside the CLI as vault-scoped. The skill's allowed tools are `Read` and `Bash` only.
 
-[[Obsidian CLI Vault Scoping]] documents the four-rule convention in detail, independent of the skill's SKILL.md format. This page is the reference for contributors adding new Obsidian CLI integrations.
+[[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]] documents the four-rule convention in detail, independent of the skill's SKILL.md format. This page is the reference for contributors adding new Obsidian CLI integrations.
 
-[[Defense-in-Depth Scoping]] explains the two-layer design pairing the skill (intent) with the [[Firewall]] hook (enforcement). The key insight: the skill guides agents that consult it; the hook protects against agents that do not. The `PreToolUse` hook runs on every write tool call, making the enforcement layer unconditional.
+[[defense-in-depth-scoping|Defense-in-Depth Scoping]] explains the two-layer design pairing the skill (intent) with the Firewall hook (enforcement). The key insight: the skill guides agents that consult it; the hook protects against agents that do not. The `PreToolUse` hook runs on every write tool call, making the enforcement layer unconditional.
 
 ## Open Questions
 

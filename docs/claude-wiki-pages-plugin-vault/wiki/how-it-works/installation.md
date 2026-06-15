@@ -2,10 +2,10 @@
 title: "Installation"
 type: concept
 aliases: ["Installation", "installation", "plugin install"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Installation Guide]]", "[[Getting Started (CLI Quickstart)]]", "[[User Guide 01: Getting Started]]", "[[Features]]"]
-related: ["[[Onboarding Wizard]]", "[[Doctor Command]]", "[[claude-wiki-pages Plugin]]", "[[Git Checkpoint]]"]
+sources: ["[[_sources/install|Installation Guide]]", "[[_sources/getting-started|Getting Started (CLI Quickstart)]]", "[[llm-wiki-01-getting-started|User Guide 01: Getting Started]]", "[[_sources/features|Features]]"]
+related: ["[[onboarding-wizard|Onboarding Wizard]]", "[[doctor-command|Doctor Command]]"]
 tags: ["concept", "install", "reference"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -71,7 +71,7 @@ Pulls the published release:
 /claude-wiki-pages:init
 ```
 
-The third command runs the [[Onboarding Wizard]], which scaffolds a vault by copying `docs/vault-example/` into the user's project as `docs/vault/`, smoke-tests the install, and prints the next three things to do.
+The third command runs the [[onboarding-wizard|Onboarding Wizard]], which scaffolds a vault by copying `docs/vault-example/` into the user's project as `docs/vault/`, smoke-tests the install, and prints the next three things to do.
 
 ## Local — Contributors and Forks
 
@@ -150,7 +150,7 @@ This means structural validation, source protection, and write isolation all hol
 
 ## Related Concepts
 
-- [[Onboarding Wizard]] — the `/claude-wiki-pages:init` step that scaffolds the vault
-- [[Doctor Command]] — the health check after install
-- [[claude-wiki-pages Plugin]] — what gets installed
-- [[Git Checkpoint]] — the safety mechanism that requires git per vault (ADR-0005)
+- [[onboarding-wizard|Onboarding Wizard]] — the `/claude-wiki-pages:init` step that scaffolds the vault
+- [[doctor-command|Doctor Command]] — the health check after install
+- claude-wiki-pages Plugin — what gets installed
+- Git Checkpoint — the safety mechanism that requires git per vault (ADR-0005)

@@ -56,17 +56,3 @@ bash `sed` fallback behavior.
 - `stripWikilink` handles the wikilink-unwrap transformation (removes the double-bracket delimiters) used when
   processing the `sources:` and `related:` wikilink arrays.
 - Parity with `verify-ingest.sh` on well-formed fixtures is enforced by a gate test.
-
-## Concepts Covered
-
-- [[Frontmatter Parser]]
-- [[Provenance Checks]]
-- [[Schema Version Gate]]
-- [[Wikilink Extractor]]
-- [[Shell-TS Parity]]
-
-## Grounded Pages
-
-Wiki pages that cite this source:
-
-- [[Frontmatter Parser]] — the concept page this source directly backs (five exported functions, yaml-library parser)

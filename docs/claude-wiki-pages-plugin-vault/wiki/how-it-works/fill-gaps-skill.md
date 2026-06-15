@@ -2,13 +2,13 @@
 title: "Fill-Gaps Skill"
 type: concept
 aliases: ["Fill-Gaps Skill", "fill-gaps", "/claude-wiki-pages:fill-gaps", "fill-knowledge-gaps", "fill the gaps"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]"]
-related: ["[[Graph Quality]]", "[[Dangling Wikilink]]", "[[Node Concentration]]", "[[Ingest Pipeline]]", "[[Curator Agent]]", "[[Polish Agent]]", "[[Maintenance Loop]]"]
+sources: ["[[_sources/adr-0027-fill-gaps-and-graph-quality|ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]"]
+related: ["[[graph-quality|Graph Quality]]", "[[dangling-wikilink|Dangling Wikilink]]", "[[node-concentration|Node Concentration]]", "[[maintenance-loop|Maintenance Loop]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Graph Quality]]", "[[Ingest Pipeline]]"]
+depends_on: ["[[graph-quality|Graph Quality]]"]
 tags: ["concept", "skill", "fill-gaps", "graph-quality", "workflow"]
 created: 2026-06-15
 updated: 2026-06-15
@@ -59,7 +59,7 @@ A failed gate surfaces with its checkpoint SHA, not papered over. Dangling links
 
 ## Related Concepts
 
-- [[Graph Quality]] — the detector that measures `Cn`/`Ce`/`Ch` and dangling counts
-- [[Dangling Wikilink]] — the broken link pattern fill-gaps resolves
-- [[Node Concentration]] — the Cn/Ce/Ch metrics the workflow gates on
-- [[Maintenance Loop]] — the loop fill-gaps orchestrates (ingest → curator → polish)
+- [[graph-quality|Graph Quality]] — the detector that measures `Cn`/`Ce`/`Ch` and dangling counts
+- [[dangling-wikilink|Dangling Wikilink]] — the broken link pattern fill-gaps resolves
+- [[node-concentration|Node Concentration]] — the Cn/Ce/Ch metrics the workflow gates on
+- [[maintenance-loop|Maintenance Loop]] — the loop fill-gaps orchestrates (ingest → curator → polish)

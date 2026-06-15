@@ -14,15 +14,16 @@
  * match the bash CHECK 4 on the same vault (parity gate-05).
  */
 
-import { basename, join } from "node:path";
-import {
-  listMarkdownRecursive,
-  listMarkdownShallow,
-  readFileSafe,
-  isBookkeepingFile,
-} from "./fs.ts";
+import { basename, join, relative } from "node:path";
+import { listMarkdownRecursive, readFileSafe, isBookkeepingFile } from "./fs.ts";
 import { parseFrontmatter, stringList, stripWikilink, titleOf } from "./frontmatter.ts";
+import { buildLinkIndex, resolveLink } from "./link-resolver.ts";
 import type { Finding } from "./report.ts";
+
+/** Wiki-relative path with `/` separators (Obsidian's path form). */
+function toRel(wiki: string, file: string): string {
+  return relative(wiki, file).split(/[\\/]/).join("/");
+}
 
 const WIKILINK_SOURCE = /^\[\[.+\]\]$/;
 
@@ -43,39 +44,24 @@ function sourceBestDate(fm: Record<string, unknown>): string {
   );
 }
 
-/**
- * Resolve a cited wikilink target to a `_sources/` page by `title:` or by an
- * `aliases:` entry, mirroring the bash `_resolve_source_wikilink`. Returns the
- * source page's parsed frontmatter, or null when the link is dangling.
- */
-function resolveCitedSource(
-  target: string,
-  sourcePages: readonly {
-    readonly title: string;
-    readonly aliases: string[];
-    readonly fm: Record<string, unknown>;
-  }[],
-): Record<string, unknown> | null {
-  for (const src of sourcePages) {
-    if (src.title === target) return src.fm;
-    if (src.aliases.includes(target)) return src.fm;
-  }
-  return null;
-}
-
 /** CHECK 4: cited-source staleness across the wiki. */
 export function checkCitedSourceStaleness(wiki: string): Finding[] {
   const findings: Finding[] = [];
   const sourcesDir = join(wiki, "_sources");
 
-  // Pre-parse every _sources/ page once (title, aliases, frontmatter).
-  const sourcePages = listMarkdownShallow(sourcesDir)
-    .filter((p) => basename(p) !== ".gitkeep")
-    .map((p) => {
-      const content = readFileSafe(p) ?? "";
-      const fm = parseFrontmatter(content);
-      return { title: titleOf(content, p), aliases: stringList(fm["aliases"]), fm };
-    });
+  // One Obsidian-accurate resolver over wiki/. A cited `sources:` wikilink is
+  // resolved by path ∪ basename (ADR-0031) — so a path-qualified
+  // `[[_sources/adr-0001-…|ADR-0001: …]]` or a piped basename both resolve,
+  // not only an exact title/alias string match.
+  const index = buildLinkIndex(wiki);
+
+  // Pre-parse every _sources/ page's frontmatter once, keyed by wiki-rel path.
+  const sourceFmByRel = new Map<string, Record<string, unknown>>();
+  for (const file of listMarkdownRecursive(wiki)) {
+    if (!file.includes(`${sourcesDir}/`)) continue;
+    if (basename(file) === ".gitkeep") continue;
+    sourceFmByRel.set(toRel(wiki, file), parseFrontmatter(readFileSafe(file) ?? ""));
+  }
 
   for (const filepath of listMarkdownRecursive(wiki)) {
     // Skip bookkeeping pages (by name, or a folder note); _sources/ are the targets, not the checkers.
@@ -93,12 +79,22 @@ export function checkCitedSourceStaleness(wiki: string): Finding[] {
     const sources = stringList(fm["sources"]);
     if (sources.length === 0) continue;
 
+    const sourceRel = toRel(wiki, filepath);
+
     for (const entry of sources) {
       // Only `[[wikilink]]` entries; plain strings are CHECK 2's concern.
       if (!WIKILINK_SOURCE.test(entry)) continue;
-      const target = stripWikilink(entry);
+      // Strip the `[[ ]]` wrapper and any `|display` suffix (bash CHECK 4 does
+      // `cut -d'|' -f1`) so the displayed target matches the bash twin.
+      const target = stripWikilink(entry).split("|")[0]?.trim() ?? "";
 
-      const srcFm = resolveCitedSource(target, sourcePages);
+      // Resolve the cited link to a wiki page; only a _sources/ page counts as a
+      // resolved source date carrier.
+      const resolved = resolveLink(target, sourceRel, index);
+      const srcFm =
+        resolved !== null && sourceFmByRel.has(resolved.file)
+          ? (sourceFmByRel.get(resolved.file) as Record<string, unknown>)
+          : null;
       if (srcFm === null) {
         findings.push({
           severity: "warn",

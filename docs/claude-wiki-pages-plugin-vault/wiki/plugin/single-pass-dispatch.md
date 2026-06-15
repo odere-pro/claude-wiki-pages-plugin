@@ -4,8 +4,8 @@ type: concept
 aliases: ["Single-Pass Dispatch", "single-pass dispatch", "single-pass routing", "dispatch contract", "one specialist rule"]
 parent: "[[Plugin]]"
 path: "plugin"
-sources: ["[[Orchestrator Agent Source]]"]
-related: ["[[Orchestrator Agent]]", "[[Agent Contract Table]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Analyst Agent]]"]
+sources: ["[[plugin-orchestrator-agent|Orchestrator Agent Source]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[agent-contract-table|Agent Contract Table]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[analyst-agent|Analyst Agent]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -53,6 +53,6 @@ If a user runs `/claude-wiki-pages:wiki` with no argument and the vault is fully
 
 ## Related Concepts
 
-- [[Agent Contract Table]] — the per-agent contract table where the halting condition is declared
-- [[Orchestrator Agent]] — the agent that implements this dispatch pattern
-- [[Ingest Agent]] — most commonly dispatched specialist
+- [[agent-contract-table|Agent Contract Table]] — the per-agent contract table where the halting condition is declared
+- [[orchestrator-agent|Orchestrator Agent]] — the agent that implements this dispatch pattern
+- [[ingest-agent|Ingest Agent]] — most commonly dispatched specialist

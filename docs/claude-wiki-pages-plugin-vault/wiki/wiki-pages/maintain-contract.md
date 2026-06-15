@@ -2,13 +2,13 @@
 title: "Maintain Contract"
 type: concept
 aliases: ["Maintain Contract", "maintain-contract", "wiki operating contract", "vault operating contract"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[Ingest Pipeline]]", "[[Auto-Heal]]", "[[Query Rules]]", "[[Git Checkpoint]]", "[[Grounded Retrieval]]", "[[Multi-Vault Operating Rules]]", "[[Schema Authority]]"]
+sources: ["[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[ingest-pipeline|Ingest Pipeline]]", "[[query-rules|Query Rules]]", "[[grounded-retrieval|Grounded Retrieval]]", "[[multi-vault-operating-rules|Multi-Vault Operating Rules]]", "[[schema-authority|Schema Authority]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Git Checkpoint]]", "[[Deterministic Engine]]"]
+depends_on: []
 tags: ["concept", "operating-contract", "skills"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -26,7 +26,7 @@ confidence: 1.0
 
 The maintain contract is the safe sequencing protocol that governs vault operations. Any agent — this plugin's own agents or a third-party agent — follows this contract when ingesting sources, answering questions from the wiki, or keeping the vault structurally healthy.
 
-The contract pairs with `/claude-wiki-pages:engine-api` (the [[Deterministic Engine]] surface) to form a complete picture: the engine API documents the tool calls available; the maintain contract documents the order and conditions under which those calls are made correctly.
+The contract pairs with `/claude-wiki-pages:engine-api` (the Deterministic Engine surface) to form a complete picture: the engine API documents the tool calls available; the maintain contract documents the order and conditions under which those calls are made correctly.
 
 ## Key Principles
 
@@ -35,7 +35,7 @@ The contract pairs with `/claude-wiki-pages:engine-api` (the [[Deterministic Eng
 These cannot be compromised; they are the contract's load-bearing walls:
 
 **1. Ground, then judge, then verify.**
-Compute facts with the engine (`verify`, `search`, `heal`) before the LLM reasons over them. The LLM makes only judgment calls — topic placement, prose, what to synthesize — over engine-computed facts, never from memory. Close every write phase with a `verify`/`heal` pass. This is the [[Grounded Retrieval]] principle applied to all operations, not just retrieval.
+Compute facts with the engine (`verify`, `search`, `heal`) before the LLM reasons over them. The LLM makes only judgment calls — topic placement, prose, what to synthesize — over engine-computed facts, never from memory. Close every write phase with a `verify`/`heal` pass. This is the [[grounded-retrieval|Grounded Retrieval]] principle applied to all operations, not just retrieval.
 
 **2. `raw/` is immutable.**
 Never write, move, or delete anything under `vault/raw/`. Sources are the provenance anchor. The `protect-raw` PreToolUse hook enforces this; an agent must not fight it.
@@ -96,10 +96,10 @@ bash engine.sh heal --target /path/to/vault
 
 ## Related Concepts
 
-- [[Grounded Retrieval]] — the retrieval discipline that implements invariant 1 for query operations
-- [[Multi-Vault Operating Rules]] — the five extension rules that bind the contract to multi-vault environments
-- [[Ingest Pipeline]] — the 13-step procedure the ingest phase follows
-- [[Auto-Heal]] — the mechanical fix set the maintain phase applies
-- [[Query Rules]] — the workflow the retrieve phase follows
-- [[Git Checkpoint]] — the safety net underpinning invariant 3
-- [[Schema Authority]] — `vault/CLAUDE.md` that must be read first (hard rule)
+- [[grounded-retrieval|Grounded Retrieval]] — the retrieval discipline that implements invariant 1 for query operations
+- [[multi-vault-operating-rules|Multi-Vault Operating Rules]] — the five extension rules that bind the contract to multi-vault environments
+- [[ingest-pipeline|Ingest Pipeline]] — the 13-step procedure the ingest phase follows
+- Auto-Heal — the mechanical fix set the maintain phase applies
+- [[query-rules|Query Rules]] — the workflow the retrieve phase follows
+- Git Checkpoint — the safety net underpinning invariant 3
+- [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` that must be read first (hard rule)

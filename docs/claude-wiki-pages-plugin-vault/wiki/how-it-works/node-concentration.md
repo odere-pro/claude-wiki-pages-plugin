@@ -2,13 +2,13 @@
 title: "Node Concentration"
 type: concept
 aliases: ["Node Concentration", "node concentration", "Cn", "Ce", "Ch", "edge concentration", "hub-touch fraction", "graph concentration metrics", "cluster concentration"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]"]
-related: ["[[Graph Quality]]", "[[Fill-Gaps Skill]]", "[[Dangling Wikilink]]", "[[Wiki-Only Graph]]", "[[Folder Note]]"]
+sources: ["[[_sources/adr-0027-fill-gaps-and-graph-quality|ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]"]
+related: ["[[graph-quality|Graph Quality]]", "[[fill-gaps-skill|Fill-Gaps Skill]]", "[[dangling-wikilink|Dangling Wikilink]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Graph Quality]]"]
+depends_on: ["[[graph-quality|Graph Quality]]"]
 tags: ["concept", "graph", "metrics", "concentration", "cluster"]
 created: 2026-06-15
 updated: 2026-06-15
@@ -48,10 +48,10 @@ A vault ingested from a large docs tree tends to spread across many small folder
 
 ## Relationship to Hub Pages
 
-Hub pages (`type: topic`) are the concentration anchors. The [[Fill-Gaps Skill]] workflow authors one hub per cluster before computing Cn/Ce, then uses these metrics to verify the authoring succeeded. A failed Cn or Ce gate means the wiki still lacks the center-of-mass the hub pages were supposed to provide.
+Hub pages (`type: topic`) are the concentration anchors. The [[fill-gaps-skill|Fill-Gaps Skill]] workflow authors one hub per cluster before computing Cn/Ce, then uses these metrics to verify the authoring succeeded. A failed Cn or Ce gate means the wiki still lacks the center-of-mass the hub pages were supposed to provide.
 
 ## Related Concepts
 
-- [[Graph Quality]] — the full detector that computes these metrics
-- [[Fill-Gaps Skill]] — the workflow that gates on Cn ≥ 0.85 and Ce ≥ 0.85
-- [[Wiki-Only Graph]] — the Obsidian graph these metrics characterize
+- [[graph-quality|Graph Quality]] — the full detector that computes these metrics
+- [[fill-gaps-skill|Fill-Gaps Skill]] — the workflow that gates on Cn ≥ 0.85 and Ce ≥ 0.85
+- Wiki-Only Graph — the Obsidian graph these metrics characterize

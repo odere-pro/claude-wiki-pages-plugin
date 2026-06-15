@@ -2,10 +2,10 @@
 title: "Golden Set"
 type: concept
 aliases: ["Golden Set", "golden set", "golden-set", "eval fixtures", "golden_set_sha"]
-parent: "[[Wiki Engine]]"
+parent: "[[engine|Wiki Engine]]"
 path: "engine"
-sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0020: The Scaffolding Ablation]]", "[[Local Models]]", "[[ADR-0029|ADR-0029: Drop docs/vault-example]]"]
-related: ["[[Local Model Quality Gate]]", "[[Zero-Fabrication Floor]]", "[[Approved Local Model]]", "[[Capability Tier]]", "[[Scaffolding Ablation]]", "[[Schema Authority]]", "[[Parity Gate]]"]
+sources: ["[[_sources/adr-0011-local-model-quality-gate|ADR-0011: Local-Model Quality Gate]]", "[[adr-0020-scaffolding-ablation|ADR-0020: The Scaffolding Ablation]]", "[[_sources/local-models|Local Models]]", "[[_sources/adr-0029-drop-vault-example|ADR-0029: Drop docs/vault-example]]"]
+related: []
 contradicts: []
 supersedes: []
 depends_on: []
@@ -20,7 +20,7 @@ confidence: 1.0
 # Golden Set
 
 > [!summary]
-> The golden set is the checked-in fixtures corpus used to evaluate whether a local model is eligible for approval at a given [[Capability Tier]]. It consists of `(raw input → expected structured output)` pairs authored to the schema, adversarial-reviewed, and model-neutral. A `golden_set_sha` (git SHA of the fixture files) makes every evaluation reproducible against exactly the same inputs.
+> The golden set is the checked-in fixtures corpus used to evaluate whether a local model is eligible for approval at a given Capability Tier. It consists of `(raw input → expected structured output)` pairs authored to the schema, adversarial-reviewed, and model-neutral. A `golden_set_sha` (git SHA of the fixture files) makes every evaluation reproducible against exactly the same inputs.
 
 ## Key Principles
 
@@ -28,7 +28,7 @@ confidence: 1.0
 - Every evaluation run is identified by `golden_set_sha` — the git SHA of the fixture files at evaluation time — making results reproducible by anyone.
 - Auto-repair is never run before scoring: scoring after `fix`/`heal` would measure the repairer, not the model.
 - The provenance trap is structural: a fabricating model trips it by inventing a claim it cannot source; a correct model acknowledges the gap.
-- The same golden set is the common substrate for both the [[Local Model Quality Gate]] and the [[Scaffolding Ablation]], making the two studies directly comparable.
+- The same golden set is the common substrate for both the Local Model Quality Gate and the Scaffolding Ablation, making the two studies directly comparable.
 
 ## Examples
 
@@ -52,7 +52,7 @@ Metric thresholds that a model must clear to be approved:
 
 ## Definition
 
-The golden set lives in `tests/eval/ingest-extract/` and serves as the evaluation corpus for the [[Local Model Quality Gate]] (ADR-0011). It is:
+The golden set lives in `tests/eval/ingest-extract/` and serves as the evaluation corpus for the Local Model Quality Gate (ADR-0011). It is:
 
 - **Model-neutral** — authored by humans against the schema, not by any model. No model's output is used as a gold reference.
 - **Adversarial-reviewed** — includes deliberate edge cases, boundary conditions, and a provenance trap.
@@ -65,7 +65,7 @@ Each fixture pair contains:
 
 ## The Provenance Trap
 
-The golden set includes at least one fixture whose raw input is authored so that a fabricating model is forced to invent a sourced claim in order to produce a plausible answer. This exercises the [[Zero-Fabrication Floor]] directly — if a model trips the trap, it invented a claim, and the floor fires. If it does not trip the trap, the floor is satisfied.
+The golden set includes at least one fixture whose raw input is authored so that a fabricating model is forced to invent a sourced claim in order to produce a plausible answer. This exercises the Zero-Fabrication Floor directly — if a model trips the trap, it invented a claim, and the floor fires. If it does not trip the trap, the floor is satisfied.
 
 The trap is structural: it is not a trick question but a case where the correct answer requires acknowledging that a certain claim cannot be sourced, and a fabricator will instead invent one. `gpt-oss:20b` is the only model to have tripped the provenance trap in testing.
 
@@ -95,12 +95,12 @@ A vendor claim or screenshot is not acceptable evidence. The artifact must be re
 
 ## Relationship to the Scaffolding Ablation
 
-The [[Scaffolding Ablation]] (ADR-0020) uses the same golden set as its measured input. It runs two arms — plugin arm (full scaffolding) and baseline arm (generic prompt) — against the same golden inputs to measure what the plugin buys over plain LLM extraction. The golden set is the common substrate for both the quality gate and the ablation study.
+The Scaffolding Ablation (ADR-0020) uses the same golden set as its measured input. It runs two arms — plugin arm (full scaffolding) and baseline arm (generic prompt) — against the same golden inputs to measure what the plugin buys over plain LLM extraction. The golden set is the common substrate for both the quality gate and the ablation study.
 
 ## Related Concepts
 
-- [[Local Model Quality Gate]] — the gate that uses the golden set for tier evaluation
-- [[Zero-Fabrication Floor]] — the hard floor exercised by the provenance trap
-- [[Approved Local Model]] — the allow-list result of a model passing all golden-set thresholds
-- [[Capability Tier]] — the tier a model is evaluated against
-- [[Scaffolding Ablation]] — the companion eval that uses the same inputs to measure plugin value
+- Local Model Quality Gate — the gate that uses the golden set for tier evaluation
+- Zero-Fabrication Floor — the hard floor exercised by the provenance trap
+- Approved Local Model — the allow-list result of a model passing all golden-set thresholds
+- Capability Tier — the tier a model is evaluated against
+- Scaffolding Ablation — the companion eval that uses the same inputs to measure plugin value

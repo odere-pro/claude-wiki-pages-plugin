@@ -2,10 +2,10 @@
 title: "Maintenance Loop"
 type: concept
 aliases: ["Maintenance Loop", "maintenance loop", "autonomous maintenance", "catch-up loop", "ingest-curator-polish-lint"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[Automation]]", "[[Engine API Skill (SKILL.md)]]", "[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
-related: ["[[Heartbeat]]", "[[Backlog]]", "[[Maintenance Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Scheduled Upkeep]]", "[[Parallel Extract]]"]
+sources: ["[[_sources/automation|Automation]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]", "[[_sources/adr-0026-parallel-extract-and-scheduled-upkeep|ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
+related: ["[[Heartbeat]]", "[[Backlog]]", "[[scheduled-upkeep|Scheduled Upkeep]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -100,7 +100,7 @@ The maintenance loop is not the same as the ingest pipeline step-by-step executi
 
 ## Scheduled (Unattended) Execution (ADR-0026)
 
-[[Scheduled Upkeep]] extends the maintenance loop with a host-owned, hands-off execution path. `scripts/maintenance-run.sh` is the thin wrapper a host OS/cloud cron invokes. The plugin ships no durable cron of its own.
+[[scheduled-upkeep|Scheduled Upkeep]] extends the maintenance loop with a host-owned, hands-off execution path. `scripts/maintenance-run.sh` is the thin wrapper a host OS/cloud cron invokes. The plugin ships no durable cron of its own.
 
 When `maintenance.unattended: true`, the loop enforces a strict subset of the interactive pipeline:
 - Step 3 Optimize is always hard-skipped (non-trivial restructures require human interaction)
@@ -111,8 +111,8 @@ When `maintenance.unattended: true`, the loop enforces a strict subset of the in
 
 - [[Heartbeat]] — the SessionStart probe that detects backlog and recommends running the maintenance loop
 - [[Backlog]] — the unprocessed sources and overdue lint that the maintenance loop clears
-- [[Maintenance Agent]] — the agent that orchestrates the four-phase maintenance loop
-- [[Ingest Agent]] — Phase 1 of the maintenance loop
-- [[Curator Agent]] — Phase 2 of the maintenance loop
-- [[Scheduled Upkeep]] — the host-owned scheduling path for unattended runs
-- [[Parallel Extract]] — optional performance enhancement for the ingest phase
+- Maintenance Agent — the agent that orchestrates the four-phase maintenance loop
+- Ingest Agent — Phase 1 of the maintenance loop
+- Curator Agent — Phase 2 of the maintenance loop
+- [[scheduled-upkeep|Scheduled Upkeep]] — the host-owned scheduling path for unattended runs
+- Parallel Extract — optional performance enhancement for the ingest phase

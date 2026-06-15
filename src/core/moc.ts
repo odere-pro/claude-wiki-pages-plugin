@@ -3,7 +3,7 @@
  * CHECK 3b (orphan source summaries), and the trailing topic-folder check.
  */
 
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, join, relative } from "node:path";
 import {
   listMarkdownRecursive,
   listMarkdownShallow,
@@ -15,7 +15,14 @@ import {
 } from "./fs.ts";
 import { parseFrontmatter, stringList, stripWikilink, titleOf } from "./frontmatter.ts";
 import { declaredSchemaVersion } from "./schema.ts";
+import { buildLinkIndex, resolveLink } from "./link-resolver.ts";
+import { extractRawWikilinkTargets } from "./wikilink-check.ts";
 import type { Finding } from "./report.ts";
+
+/** Wiki-relative path with `/` separators (Obsidian's path form). */
+function toRel(wiki: string, file: string): string {
+  return relative(wiki, file).split(/[\\/]/).join("/");
+}
 
 const SPECIAL_TOPIC_FOLDERS = new Set(["_sources", "_synthesis"]);
 
@@ -27,6 +34,7 @@ function titleAtPath(path: string): string {
 /** CHECK 3: each index file (folder note or legacy `_index.md`) must agree with its folder's pages and subfolders. */
 export function checkIndexConsistency(wiki: string): Finding[] {
   const findings: Finding[] = [];
+  const index = buildLinkIndex(wiki);
   const indexFiles = listMarkdownRecursive(wiki).filter(
     (p) => basename(p) === "_index.md" || isFolderNote(p),
   );
@@ -35,23 +43,38 @@ export function checkIndexConsistency(wiki: string): Finding[] {
     const folder = dirname(indexFile);
     const folderName = basename(folder);
     const indexName = basename(indexFile);
+    const indexRel = toRel(wiki, indexFile);
     const content = readFileSafe(indexFile) ?? "";
     const fm = parseFrontmatter(content);
-    const children = stringList(fm["children"]).map(stripWikilink);
 
-    const actualFiles = listMarkdownShallow(folder)
+    // `children` are `"[[wikilink]]"` values (piped-basename or path-qualified).
+    // Resolve each to the wiki-relative page it points at — comparing by resolved
+    // file, not by title (ADR-0031): a `[[cli-ts|cli.ts]]` child must match the
+    // page whose basename is `cli-ts`, whatever its `title:`.
+    const childTargets = stringList(fm["children"]).map(stripWikilink);
+    const childResolved = new Map<string, string | null>();
+    for (const child of childTargets) {
+      const r = resolveLink(child, indexRel, index);
+      childResolved.set(child, r === null ? null : r.file);
+    }
+    const childResolvedFiles = new Set(
+      [...childResolved.values()].filter((f): f is string => f !== null),
+    );
+
+    // Actual pages in this folder, each as { title, rel } for messaging + matching.
+    const actualPages = listMarkdownShallow(folder)
       .filter((p) => basename(p) !== "_index.md" && !isFolderNote(p))
-      .map(titleAtPath);
+      .map((p) => ({ title: titleAtPath(p), rel: toRel(wiki, p) }));
     const actualSubdirs = listSubdirs(folder).map((d) => basename(d));
 
     // Pages present in the folder but missing from the index children list.
-    for (const title of actualFiles) {
-      if (children.length > 0) {
-        if (!children.includes(title)) {
+    for (const page of actualPages) {
+      if (childTargets.length > 0) {
+        if (!childResolvedFiles.has(page.rel)) {
           findings.push({
             severity: "warn",
             check: "moc",
-            message: `Page "${title}" in ${folderName}/ but not in ${folderName}/${indexName} children`,
+            message: `Page "${page.title}" in ${folderName}/ but not in ${folderName}/${indexName} children`,
             file: indexFile,
           });
         }
@@ -59,28 +82,23 @@ export function checkIndexConsistency(wiki: string): Finding[] {
         findings.push({
           severity: "warn",
           check: "moc",
-          message: `Page "${title}" in ${folderName}/ but ${indexName} has empty children list`,
+          message: `Page "${page.title}" in ${folderName}/ but ${indexName} has empty children list`,
           file: indexFile,
         });
       }
     }
 
-    // Children listed in the index with no matching page on disk.
-    for (const child of children) {
-      if (actualFiles.length > 0) {
-        if (!actualFiles.includes(child)) {
-          findings.push({
-            severity: "error",
-            check: "moc",
-            message: `Index lists "${child}" but no matching page found in ${folderName}/`,
-            file: indexFile,
-          });
-        }
-      } else {
+    // Children listed in the index that resolve to no page anywhere in wiki/.
+    // A child link is an error only when it is genuinely dangling (resolves to
+    // nothing). A child that resolves to a real page — even one outside this
+    // folder, e.g. a path-qualified target — is a valid edge, not a defect.
+    for (const child of childTargets) {
+      const resolved = childResolved.get(child) ?? null;
+      if (resolved === null) {
         findings.push({
           severity: "error",
           check: "moc",
-          message: `Index lists "${child}" but folder ${folderName}/ has no pages`,
+          message: `Index lists "${child}" but no matching page found in ${folderName}/`,
           file: indexFile,
         });
       }
@@ -122,7 +140,22 @@ export function checkOrphanSources(wiki: string): Finding[] {
       basename(p) !== "index.md" &&
       basename(p) !== "log.md",
   );
-  const citingContents = citingPages.map((p) => readFileSafe(p) ?? "");
+
+  // Build the resolution index once, then collect the set of wiki-relative
+  // files every citing wikilink resolves to (path ∪ basename — ADR-0031).
+  // A source is referenced iff some page links to it by path-qualified or
+  // piped-basename form, not just by the bare `[[title]]` string the old
+  // substring scan looked for.
+  const index = buildLinkIndex(wiki);
+  const referenced = new Set<string>();
+  for (const page of citingPages) {
+    const content = readFileSafe(page) ?? "";
+    const sourceRel = toRel(wiki, page);
+    for (const raw of extractRawWikilinkTargets(content)) {
+      const resolved = resolveLink(raw, sourceRel, index);
+      if (resolved !== null) referenced.add(resolved.file);
+    }
+  }
 
   const findings: Finding[] = [];
   // The source manifest (`type: manifest`) is bookkeeping, not a source summary;
@@ -133,9 +166,9 @@ export function checkOrphanSources(wiki: string): Finding[] {
     return fm.type !== "manifest";
   });
   for (const sourceFile of sources) {
-    const title = titleAtPath(sourceFile);
-    const needle = `[[${title}]]`;
-    if (!citingContents.some((c) => c.includes(needle))) {
+    const sourceRel = toRel(wiki, sourceFile);
+    if (!referenced.has(sourceRel)) {
+      const title = titleAtPath(sourceFile);
       findings.push({
         severity: "warn",
         check: "orphan-sources",
@@ -153,6 +186,9 @@ export function checkTopicFolders(wiki: string): Finding[] {
   for (const dir of listSubdirs(wiki)) {
     const name = basename(dir);
     if (SPECIAL_TOPIC_FOLDERS.has(name)) continue;
+    // Dot-directories (e.g. .claude/, .obsidian/) are tooling state, not topic
+    // folders — they are not part of the wiki tree and carry no index file.
+    if (name.startsWith(".")) continue;
     if (indexFileOf(dir) === null) {
       findings.push({
         severity: "error",

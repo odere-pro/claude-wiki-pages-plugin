@@ -2,10 +2,10 @@
 title: "Entity Distribution Model"
 type: concept
 aliases: ["Entity Distribution Model", "entity distribution model", "DRY ingest", "update not duplicate"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[User Guide 03: Update Existing Vault]]", "[[Architecture Documentation]]", "[[Glossary]]"]
-related: ["[[Ingest Pipeline]]", "[[Ingest Agent]]", "[[Schema Authority]]", "[[Lint Rules]]"]
+sources: ["[[llm-wiki-03-update-existing|User Guide 03: Update Existing Vault]]", "[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]"]
+related: ["[[ingest-pipeline|Ingest Pipeline]]", "[[schema-authority|Schema Authority]]", "[[lint-rules|Lint Rules]]"]
 tags: ["concept", "ingest", "dry"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -31,8 +31,8 @@ confidence: 1.0
 
 When ingesting ADR-0022 (Folder Notes and Graph Quality):
 
-- The existing [[Folder Note]] page gains `"[[ADR-0022: Folder Notes and Graph Quality]]"` in its `sources:` and new detail about schema v3 naming conventions.
-- The existing [[Graph Coloring]] page gains the same source and new detail about canonical group order.
+- The existing [[folder-note|Folder Note]] page gains `"[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]"` in its `sources:` and new detail about schema v3 naming conventions.
+- The existing Graph Coloring page gains the same source and new detail about canonical group order.
 - No duplicate page is created for ADR-0022 itself — it is a source summary in `_sources/`, not a new concept page.
 
 ## Definition
@@ -74,15 +74,15 @@ The schema enforces this through lint:
 
 When ingesting ADR-0022 (Folder Notes and Graph Quality):
 
-- The existing [[Folder Note]] page gains ADR-0022 in its `sources:` and new detail about schema v3 naming conventions
-- The existing [[Graph Coloring]] page gains ADR-0022 in its `sources:` and new detail about canonical group order
-- The existing [[Wiki-Only Graph]] page gains ADR-0022 in its `sources:`
+- The existing [[folder-note|Folder Note]] page gains ADR-0022 in its `sources:` and new detail about schema v3 naming conventions
+- The existing Graph Coloring page gains ADR-0022 in its `sources:` and new detail about canonical group order
+- The existing Wiki-Only Graph page gains ADR-0022 in its `sources:`
 - A new page is created only for concepts that had no prior page
 
 When ingesting a source about ADR-0001 (Four-Layer Orchestrator):
 
-- [[Orchestrator Agent]] page gains `sources: ["[[ADR-0001: Four-Layer Orchestrator]]"]` and new context about the state-probing dispatch logic
-- [[Four-Layer Stack]] page gains the source and possibly new text about the rationale for four layers
+- Orchestrator Agent page gains `sources: ["[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]"]` and new context about the state-probing dispatch logic
+- Four-Layer Stack page gains the source and possibly new text about the rationale for four layers
 
 ## What the Ingest Agent Does (13-Step Process)
 
@@ -104,7 +104,7 @@ The full ingest rule, from `vault/CLAUDE.md`:
 
 ## Related Concepts
 
-- [[Ingest Pipeline]] — the 13-step process that enforces this model
-- [[Ingest Agent]] — the agent that applies this model
-- [[Schema Authority]] — `vault/CLAUDE.md` defines the `update_count` semantics and `sources:` format rules
-- [[Lint Rules]] — near-duplicate detection and single-source checks that enforce this rule
+- [[ingest-pipeline|Ingest Pipeline]] — the 13-step process that enforces this model
+- Ingest Agent — the agent that applies this model
+- [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` defines the `update_count` semantics and `sources:` format rules
+- [[lint-rules|Lint Rules]] — near-duplicate detection and single-source checks that enforce this rule

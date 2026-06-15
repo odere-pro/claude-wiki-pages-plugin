@@ -2,10 +2,10 @@
 title: "Query Rules"
 type: concept
 aliases: ["Query Rules", "query rules", "query workflow", "query protocol"]
-parent: "[[Wiki Pages]]"
+parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
-sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]", "[[Analyst Modes Skill (SKILL.md)]]"]
-related: ["[[Analyst Agent]]", "[[Challenge Mode]]", "[[Wiki-Native Recall]]", "[[Synthesis Note]]", "[[NO-RAG Principle]]", "[[Grounded Retrieval]]", "[[Analyst Dashboard Mode]]", "[[Analyst Document Compile Mode]]", "[[Analyst Extract Mode]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[llm-wiki-07-query-the-wiki|User Guide 07: Query the Wiki]]", "[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]", "[[llm-analyst-modes-skill|Analyst Modes Skill (SKILL.md)]]"]
+related: ["[[synthesis-note|Synthesis Note]]", "[[grounded-retrieval|Grounded Retrieval]]"]
 tags: ["concept", "query"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -39,7 +39,7 @@ A well-formed `## Sources` section:
 ## Sources
 
 1. [[Firewall]] — raw/docs/adr/ADR-0009-multi-vault-confinement.md
-2. [[Vault Resolution]] — raw/docs/operations.md
+2. [[vault-resolution|Vault Resolution]] — raw/docs/operations.md
 ```
 
 A gap-acknowledgement `## Sources` section:
@@ -55,7 +55,7 @@ Consider dropping the source document into vault/raw/ and running the pipeline.
 
 The query rules exist to make wiki answers auditable and traceable. An LLM can synthesize an answer from any text in its context window, including material that contradicts the wiki. The query rules enforce that the answer comes from explicit wiki pages and can be checked by reading the cited pages.
 
-The rules apply to both the `/claude-wiki-pages:query` skill and the [[Analyst Agent]]'s Query mode. They are the same protocol — the agent simply has more operating modes around it.
+The rules apply to both the `/claude-wiki-pages:query` skill and the Analyst Agent's Query mode. They are the same protocol — the agent simply has more operating modes around it.
 
 ## The 7-Step Query Workflow
 
@@ -77,7 +77,7 @@ This top-down traversal is more efficient than scanning all pages: the topic tre
 
 ### Step 3 — Read Matching Pages and Follow Wikilinks
 
-Read the most relevant pages. Then follow their `related`, `depends_on`, and `sources` wikilinks to gather cross-topic context. The [[Wiki-Native Recall]] engine assists: for direct query skill use, the engine's `search` verb identifies candidate pages by keyword, synonym, and graph traversal.
+Read the most relevant pages. Then follow their `related`, `depends_on`, and `sources` wikilinks to gather cross-topic context. The Wiki-Native Recall engine assists: for direct query skill use, the engine's `search` verb identifies candidate pages by keyword, synonym, and graph traversal.
 
 When following wikilinks, traverse at most 2 hops from the seed pages (the N≤2 limit from ADR-0008). Pages reached at hop 2 contribute supporting context, not primary evidence.
 
@@ -85,7 +85,7 @@ When following wikilinks, traverse at most 2 hops from the seed pages (the N≤2
 
 Compose the answer from the content on the wiki pages. Every claim must come from a specific page. Inline citations use wikilink syntax:
 
-> The firewall confines all writes to the active vault [[Firewall]] and fails closed on any error [[Vault Resolution]].
+> The firewall confines all writes to the active vault Firewall and fails closed on any error Vault Resolution.
 
 Do not synthesize answers from training knowledge that is not on any wiki page. If the wiki does not have the answer, say so (see "When the Wiki Has No Answer" below).
 
@@ -97,7 +97,7 @@ Do not synthesize answers from training knowledge that is not on any wiki page. 
 ## Sources
 
 1. [[Firewall]] — raw/docs/adr/ADR-0009-multi-vault-confinement.md
-2. [[Vault Resolution]] — raw/docs/operations.md, raw/docs/design/05-claude-config-security.md
+2. [[vault-resolution|Vault Resolution]] — raw/docs/operations.md, raw/docs/design/05-claude-config-security.md
 ```
 
 One entry per consulted wiki page: the wikilink title followed by the raw source file paths from that page's `sources:` frontmatter. If no pages were consulted — a genuine gap — say so explicitly:
@@ -115,7 +115,7 @@ Never omit the `## Sources` section.
 If the synthesized answer is genuinely novel — not a restatement of existing pages, but an insight produced by connecting multiple pages — offer to file it as a synthesis note:
 
 ```
-This answer connects [[Firewall]] and [[Multi-Vault Registry]] in a way that is not explicitly stated on either page. Would you like me to file it as a synthesis note under wiki/_synthesis/?
+This answer connects [[Firewall]] and [[multi-vault-registry|Multi-Vault Registry]] in a way that is not explicitly stated on either page. Would you like me to file it as a synthesis note under wiki/_synthesis/?
 ```
 
 The synthesis note would be `type: synthesis`, with appropriate `synthesis_type` (comparison, theme, contradiction, gap, or timeline), `scope:` listing the contributing pages, and `sources:` reflecting the provenance chain.
@@ -126,7 +126,7 @@ The synthesis note would be `type: synthesis`, with appropriate `synthesis_type`
 ## [YYYY-MM-DD] query | Question summary
 ```
 
-Every query is logged. The log entry records that the wiki was consulted and for what purpose. This is also how the [[Orchestrator Agent]] knows whether the wiki has been queried recently.
+Every query is logged. The log entry records that the wiki was consulted and for what purpose. This is also how the Orchestrator Agent knows whether the wiki has been queried recently.
 
 ## When the Wiki Has No Answer
 
@@ -135,7 +135,7 @@ If the relevant pages do not exist or do not contain the answer, say so explicit
 1. **Add the missing material:** drop the source document into `vault/raw/` and run the pipeline.
 2. **Record the gap:** file a synthesis note with `synthesis_type: gap` even without an answer — a documented gap tells future-you where to look.
 
-The [[Analyst Agent]] in Challenge mode will surface this gap explicitly if the user is making a decision that depends on the missing knowledge.
+The Analyst Agent in Challenge mode will surface this gap explicitly if the user is making a decision that depends on the missing knowledge.
 
 ## Confidence and Citation Discipline
 
@@ -152,7 +152,7 @@ If the answer's key claims come from a single low-confidence page, say so in the
 For questions that span topics, require comparisons, or need document compilation:
 
 ```
-/claude-wiki-pages:claude-wiki-pages-analyst-agent compare [[Firewall]] and [[Vault Resolution]] — produce a side-by-side table.
+/claude-wiki-pages:claude-wiki-pages-analyst-agent compare [[Firewall]] and [[vault-resolution|Vault Resolution]] — produce a side-by-side table.
 ```
 
 For adversarial pre-decision queries:
@@ -161,7 +161,7 @@ For adversarial pre-decision queries:
 /claude-wiki-pages:claude-wiki-pages-analyst-agent challenge mode — I'm about to decide X. Push back.
 ```
 
-See [[Challenge Mode]] for the full adversarial query pattern.
+See Challenge Mode for the full adversarial query pattern.
 
 ## Exporting Answers
 
@@ -175,8 +175,8 @@ The markdown skill runs the same query protocol, then renders the answer without
 
 ## Related Concepts
 
-- [[Analyst Agent]] — executes queries in Query mode and four other modes
-- [[Challenge Mode]] — adversarial query variant for pre-decision pushback
-- [[Wiki-Native Recall]] — the deterministic retrieval the engine uses to find candidate pages
-- [[Synthesis Note]] — the output the agent may produce for novel answers
-- [[NO-RAG Principle]] — the constraint that makes retrieval deterministic
+- Analyst Agent — executes queries in Query mode and four other modes
+- Challenge Mode — adversarial query variant for pre-decision pushback
+- Wiki-Native Recall — the deterministic retrieval the engine uses to find candidate pages
+- [[synthesis-note|Synthesis Note]] — the output the agent may produce for novel answers
+- NO-RAG Principle — the constraint that makes retrieval deterministic

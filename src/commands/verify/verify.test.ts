@@ -114,10 +114,12 @@ describe("verify", () => {
   test("v3: a folder-note vault at schema_version 3 verifies clean", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
-      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
+      // Root index reaches the folder note via child_indexes (hierarchical MOC).
+      "wiki/index.md":
+        '---\ntitle: index\nchild_indexes: ["[[topics|Topics]]"]\n---\n- [[topics|Topics — Index]]\n',
       "wiki/log.md": "---\ntitle: log\n---\n",
       "wiki/topics/topics.md":
-        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[real-page|Real Page]]"]\n---\n',
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
     });
     const report = verify({ target: sb.vault });
@@ -129,13 +131,14 @@ describe("verify", () => {
   test("orphan-sources: the source manifest (type: manifest) is exempt, never flagged", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
-      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
+      "wiki/index.md":
+        '---\ntitle: index\nchild_indexes: ["[[topics|Topics]]"]\n---\n- [[topics|Topics — Index]]\n',
       "wiki/log.md": "---\ntitle: log\n---\n",
       // A manifest in _sources/ that no wiki page cites — must NOT be an orphan.
       "wiki/_sources/manifest.md":
         "---\ntitle: Source Manifest\ntype: manifest\n---\n# Source Manifest\n",
       "wiki/topics/topics.md":
-        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[real-page|Real Page]]"]\n---\n',
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
     });
     const report = verify({ target: sb.vault });
@@ -166,10 +169,13 @@ describe("verify", () => {
   test("v3: a v2 vault with _index.md emits NO legacy-index-filename diagnostic (back-compat)", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 2\n---\n# Vault\n",
-      "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
+      // The legacy _index.md folder note is reached by a path-qualified
+      // child_indexes link (its basename is `_index`, not `topics`).
+      "wiki/index.md":
+        '---\ntitle: index\nchild_indexes: ["[[topics/_index|Topics]]"]\n---\n- [[topics/_index|Topics — Index]]\n',
       "wiki/log.md": "---\ntitle: log\n---\n",
       "wiki/topics/_index.md":
-        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
+        '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[real-page|Real Page]]"]\n---\n',
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
     });
     const report = verify({ target: sb.vault });
@@ -372,9 +378,12 @@ describe("verify", () => {
     // The presence check must not increase the error count beyond the baseline.
     const sb = makeVault(DIRTY_VAULT);
     const report = verify({ target: sb.vault });
-    // Baseline: 5 errors, 5 warnings (verified by the existing dirty-vault test).
+    // Baseline: 5 errors, 4 warnings — pinned against the bash twin by
+    // parity.test.ts. The hierarchical-MOC check (ADR-0031) reports the two
+    // unreachable pages once each ("Page not in MOC"); the old flat check and
+    // the new one agree on this fixture's error count.
     expect(report.errors).toBe(5);
-    expect(report.warnings).toBe(5);
+    expect(report.warnings).toBe(4);
     sb.cleanup();
   });
 

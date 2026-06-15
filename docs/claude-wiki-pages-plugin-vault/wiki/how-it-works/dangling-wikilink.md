@@ -2,13 +2,13 @@
 title: "Dangling Wikilink"
 type: concept
 aliases: ["Dangling Wikilink", "dangling wikilink", "dangling link", "broken wikilink", "empty grey node", "unresolved wikilink"]
-parent: "[[How It Works]]"
+parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
-sources: ["[[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]", "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
-related: ["[[Graph Quality]]", "[[Fill-Gaps Skill]]", "[[Node Concentration]]", "[[Shell-TS Parity]]", "[[Parity Gate]]", "[[Deterministic Engine]]"]
+sources: ["[[_sources/adr-0027-fill-gaps-and-graph-quality|ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]", "[[_sources/adr-0028-dangling-wikilink-verify-check|ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
+related: ["[[graph-quality|Graph Quality]]", "[[fill-gaps-skill|Fill-Gaps Skill]]", "[[node-concentration|Node Concentration]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Graph Quality]]"]
+depends_on: ["[[graph-quality|Graph Quality]]"]
 tags: ["concept", "wikilink", "dangling", "graph", "verify"]
 created: 2026-06-15
 updated: 2026-06-15
@@ -62,7 +62,7 @@ Resolution by an empty stub is **prohibited**. Resolution by fabricating a link 
 
 ## Related Concepts
 
-- [[Graph Quality]] — the detector that scans for dangling wikilinks
-- [[Fill-Gaps Skill]] — the workflow that enforces `danglingCount == 0` as a gate
-- [[Shell-TS Parity]] — gate-05 pins the dangling-wikilink resolution rule between TS and bash twins
-- [[Deterministic Engine]] — the verify command where the check lives
+- [[graph-quality|Graph Quality]] — the detector that scans for dangling wikilinks
+- [[fill-gaps-skill|Fill-Gaps Skill]] — the workflow that enforces `danglingCount == 0` as a gate
+- Shell-TS Parity — gate-05 pins the dangling-wikilink resolution rule between TS and bash twins
+- Deterministic Engine — the verify command where the check lives

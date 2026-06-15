@@ -4,8 +4,8 @@ type: concept
 aliases: ["Analyst Document Compile Mode", "analyst document compile mode", "Document Compile Mode", "Mode 3 Compile", "document compilation"]
 parent: "[[LLM]]"
 path: "llm"
-sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related: ["[[Analyst Agent]]", "[[Analyst Dashboard Mode]]", "[[Analyst Extract Mode]]", "[[Draft Review Surface]]"]
+sources: ["[[llm-analyst-modes-skill|Analyst Modes Skill (SKILL.md)]]", "[[plugin-analyst-agent|Analyst Agent Source]]"]
+related: ["[[analyst-dashboard-mode|Analyst Dashboard Mode]]", "[[analyst-extract-mode|Analyst Extract Mode]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,7 +21,7 @@ confidence: 1.0
 
 ## Definition
 
-Analyst Document Compile Mode is Mode 3 of the five [[Analyst Agent]] operating modes. It reconstructs a full named document (ADR, report, proposal, memo, brief, or runbook) from scattered wiki pages and writes the result to `vault/output/` as plain markdown — never to `vault/wiki/`. The mode is distinct from Query mode (Mode 1): it assembles a structured deliverable from pages, not answers a question. Unlike Mode 4 (Extract), it produces narrative prose rather than tabular data.
+Analyst Document Compile Mode is Mode 3 of the five Analyst Agent operating modes. It reconstructs a full named document (ADR, report, proposal, memo, brief, or runbook) from scattered wiki pages and writes the result to `vault/output/` as plain markdown — never to `vault/wiki/`. The mode is distinct from Query mode (Mode 1): it assembles a structured deliverable from pages, not answers a question. Unlike Mode 4 (Extract), it produces narrative prose rather than tabular data.
 
 ## Key Principles
 
@@ -49,14 +49,14 @@ Analyst Document Compile Mode is Mode 3 of the five [[Analyst Agent]] operating 
 Compile an ADR from existing wiki knowledge:
 
 ```
-/claude-wiki-pages:claude-wiki-pages-analyst-agent compile ADR from [[Four-Layer Stack]], [[Deterministic Engine]], [[Firewall]]
+/claude-wiki-pages:claude-wiki-pages-analyst-agent compile ADR from [[four-layer-stack|Four-Layer Stack]], [[deterministic-engine|Deterministic Engine]], [[Firewall]]
 ```
 
 The analyst declares scope (3 pages, no plan file needed), reads each page, composes a structured ADR with Context/Content/References, runs citation re-verify, writes to `vault/output/adr-draft-YYYY-MM-DD.md`, and appends to `wiki/log.md`.
 
 ## Related Concepts
 
-- [[Analyst Agent]] — the agent that implements all five modes including Document Compile
-- [[Analyst Dashboard Mode]] — Mode 2; produces metrics rather than compiled prose
-- [[Analyst Extract Mode]] — Mode 4; similar scoped read but produces tables rather than narrative
-- [[Draft Review Surface]] — the engine gate that governs promotion of drafts from `_proposed/` into `wiki/`
+- Analyst Agent — the agent that implements all five modes including Document Compile
+- [[analyst-dashboard-mode|Analyst Dashboard Mode]] — Mode 2; produces metrics rather than compiled prose
+- [[analyst-extract-mode|Analyst Extract Mode]] — Mode 4; similar scoped read but produces tables rather than narrative
+- Draft Review Surface — the engine gate that governs promotion of drafts from `_proposed/` into `wiki/`

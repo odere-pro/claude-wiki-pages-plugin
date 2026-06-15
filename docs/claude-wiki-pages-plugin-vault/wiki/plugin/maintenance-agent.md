@@ -3,10 +3,10 @@ title: "Maintenance Agent"
 type: entity
 entity_type: tool
 aliases: ["Maintenance Agent", "maintenance agent", "claude-wiki-pages-maintenance-agent"]
-parent: "[[claude-wiki-pages Plugin]]"
+parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
-sources: ["[[Architecture Documentation]]", "[[Automation]]", "[[Agent Teams]]", "[[Operations Guide]]", "[[Maintenance Agent Source]]"]
-related: ["[[Orchestrator Agent]]", "[[Backlog]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Polish Agent]]"]
+sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/automation|Automation]]", "[[_sources/teams|Agent Teams]]", "[[_sources/operations|Operations Guide]]", "[[plugin-maintenance-agent|Maintenance Agent Source]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[polish-agent|Polish Agent]]"]
 tags: ["agent", "automation"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,13 +18,13 @@ confidence: 1.0
 # Maintenance Agent
 
 > [!summary]
-> The `claude-wiki-pages-maintenance-agent` runs the full catch-up loop — ingest → curator → polish → lint — in one autonomous invocation. It is off by default and gated behind `maintenance.enabled: true` in config. Each step in the loop is git-checkpointed and bounded by `maintenance.maxPerRun`. The [[Backlog]] detection is O(1) via the source manifest. The SessionStart heartbeat recommends a catch-up run but never triggers one automatically.
+> The `claude-wiki-pages-maintenance-agent` runs the full catch-up loop — ingest → curator → polish → lint — in one autonomous invocation. It is off by default and gated behind `maintenance.enabled: true` in config. Each step in the loop is git-checkpointed and bounded by `maintenance.maxPerRun`. The Backlog detection is O(1) via the source manifest. The SessionStart heartbeat recommends a catch-up run but never triggers one automatically.
 
 ## Key Facts
 
 - Type: tool (Layer 3 agent, off by default — requires `maintenance.enabled: true` in config)
 - Agent name: `claude-wiki-pages-maintenance-agent`
-- Dispatched by: [[Orchestrator Agent]] when `maintenance.enabled: true` and `engine backlog` reports pending sources or overdue lint
+- Dispatched by: [[orchestrator-agent|Orchestrator Agent]] when `maintenance.enabled: true` and `engine backlog` reports pending sources or overdue lint
 - Catch-up loop: 4 steps in sequence — Ingest (Step 1), Curator (Step 2), Polish (Step 3), Lint (Step 4)
 - Bounded by `maintenance.maxPerRun`: caps the number of raw sources processed per pass; remaining backlog is reported, not silently skipped
 - Every step creates its own git checkpoint commit for full reversibility
@@ -38,7 +38,7 @@ The agent is **off by default** and must be explicitly enabled. This design refl
 
 ## Dispatch Condition
 
-The [[Orchestrator Agent]] dispatches the maintenance agent when:
+The [[orchestrator-agent|Orchestrator Agent]] dispatches the maintenance agent when:
 
 1. `maintenance.enabled: true` is set in config.
 2. `engine backlog` reports pending sources or overdue lint.
@@ -75,15 +75,15 @@ When dispatched, the maintenance agent runs four steps in sequence:
 
 ### Step 1 — Ingest
 
-Calls the [[Ingest Agent]] for up to `maxPerRun` pending raw sources. Each source processed follows the full 13-step ingest rules. The ingest step is git-checkpointed (snapshot pre/post). If `maxPerRun` is reached before all pending sources are processed, the remaining count is reported as remaining backlog.
+Calls the [[ingest-agent|Ingest Agent]] for up to `maxPerRun` pending raw sources. Each source processed follows the full 13-step ingest rules. The ingest step is git-checkpointed (snapshot pre/post). If `maxPerRun` is reached before all pending sources are processed, the remaining count is reported as remaining backlog.
 
 ### Step 2 — Curator
 
-After ingest, calls the [[Curator Agent]] to run the audit-and-repair pass. The curator runs `engine heal` first (deterministic structural fixes), then auto-heals mechanical issues, then applies judgment fixes under the git checkpoint.
+After ingest, calls the [[curator-agent|Curator Agent]] to run the audit-and-repair pass. The curator runs `engine heal` first (deterministic structural fixes), then auto-heals mechanical issues, then applies judgment fixes under the git checkpoint.
 
 ### Step 3 — Polish
 
-After curator, calls the [[Polish Agent]] to sync the Obsidian-side state: graph colors for any new topic folders, `wiki/index.md` regeneration, folder note reconciliation.
+After curator, calls the [[polish-agent|Polish Agent]] to sync the Obsidian-side state: graph colors for any new topic folders, `wiki/index.md` regeneration, folder note reconciliation.
 
 ### Step 4 — Lint
 
@@ -129,8 +129,8 @@ A raw file is "pending" when no `wiki/_sources/<stem>.md` summary exists for it,
 
 ## Related
 
-- [[Orchestrator Agent]] — dispatches this agent when maintenance is enabled and backlog exists
-- [[Backlog]] — the pending-sources and overdue-lint state this agent clears
-- [[Ingest Agent]] — Step 1 of the catch-up loop
-- [[Curator Agent]] — Step 2 of the catch-up loop
-- [[Polish Agent]] — Step 3 of the catch-up loop
+- [[orchestrator-agent|Orchestrator Agent]] — dispatches this agent when maintenance is enabled and backlog exists
+- Backlog — the pending-sources and overdue-lint state this agent clears
+- [[ingest-agent|Ingest Agent]] — Step 1 of the catch-up loop
+- [[curator-agent|Curator Agent]] — Step 2 of the catch-up loop
+- [[polish-agent|Polish Agent]] — Step 3 of the catch-up loop
