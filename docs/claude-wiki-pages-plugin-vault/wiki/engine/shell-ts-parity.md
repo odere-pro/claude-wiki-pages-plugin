@@ -1,15 +1,7 @@
 ---
 title: "Shell-TS Parity"
 type: concept
-aliases:
-  [
-    "Shell-TS Parity",
-    "shell-ts parity",
-    "bash-TypeScript parity",
-    "firewall parity",
-    "verify parity",
-    "parity gates",
-  ]
+aliases: ["Shell-TS Parity", "shell-ts parity", "bash-TypeScript parity", "firewall parity", "verify parity", "parity gates"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[Engine Scripts Layer (CLAUDE.md)]]", "[[firewall.ts Source]]", "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]

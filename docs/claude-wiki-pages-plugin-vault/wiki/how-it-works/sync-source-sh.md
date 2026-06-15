@@ -6,15 +6,7 @@ aliases: ["sync-source.sh", "sync-source", "sync source script"]
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[Sync Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related:
-  [
-    "[[Sync Skill]]",
-    "[[Wired Source]]",
-    "[[Sync Workflow]]",
-    "[[Git Checkpoint]]",
-    "[[Ingest Pipeline]]",
-    "[[Scripts Layer]]",
-  ]
+related: ["[[Sync Skill]]", "[[Wired Source]]", "[[Sync Workflow]]", "[[Git Checkpoint]]", "[[Ingest Pipeline]]", "[[Scripts Layer]]"]
 tags: ["entity", "tool", "script", "sync"]
 created: 2026-06-13
 updated: 2026-06-14

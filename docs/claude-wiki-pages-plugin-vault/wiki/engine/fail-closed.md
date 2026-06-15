@@ -4,10 +4,8 @@ type: concept
 aliases: ["Fail-Closed", "fail-closed", "fail closed", "fail-safe", "deny by default"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources:
-  ["[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Design: Claude Config and Security]]"]
-related:
-  ["[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Firewall]]", "[[Local Model Quality Gate]]"]
+sources: ["[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Design: Claude Config and Security]]"]
+related: ["[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Firewall]]", "[[Local Model Quality Gate]]"]
 contradicts: []
 supersedes: []
 depends_on: []

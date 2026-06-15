@@ -1,19 +1,11 @@
 ---
 title: "Maintenance Loop"
 type: concept
-aliases:
-  [
-    "Maintenance Loop",
-    "maintenance loop",
-    "autonomous maintenance",
-    "catch-up loop",
-    "ingest-curator-polish-lint",
-  ]
+aliases: ["Maintenance Loop", "maintenance loop", "autonomous maintenance", "catch-up loop", "ingest-curator-polish-lint"]
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[Automation]]", "[[Engine API Skill (SKILL.md)]]", "[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
-related:
-  ["[[Heartbeat]]", "[[Backlog]]", "[[Maintenance Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Scheduled Upkeep]]", "[[Parallel Extract]]"]
+related: ["[[Heartbeat]]", "[[Backlog]]", "[[Maintenance Agent]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Scheduled Upkeep]]", "[[Parallel Extract]]"]
 contradicts: []
 supersedes: []
 depends_on: []

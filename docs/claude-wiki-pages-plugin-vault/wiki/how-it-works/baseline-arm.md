@@ -5,8 +5,7 @@ aliases: ["Baseline Arm", "baseline arm", "no-scaffolding arm", "generic prompt 
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[ADR-0020: The Scaffolding Ablation]]", "[[Features]]"]
-related:
-  ["[[Plugin Arm]]", "[[Scaffolding Ablation]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]"]
+related: ["[[Plugin Arm]]", "[[Scaffolding Ablation]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]"]
 contradicts: []
 supersedes: []
 depends_on: []

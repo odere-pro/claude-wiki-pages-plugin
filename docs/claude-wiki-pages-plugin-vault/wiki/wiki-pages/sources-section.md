@@ -5,14 +5,7 @@ aliases: ["Sources Section", "sources section", "## Sources", "sources grounding
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[ADR-0022: Folder Notes and Graph Quality]]", "[[User Guide 07: Query the Wiki]]"]
-related:
-  [
-    "[[Query Rules]]",
-    "[[Grounded Retrieval]]",
-    "[[Analyst Agent]]",
-    "[[Synthesis Note]]",
-    "[[Challenge Mode]]",
-  ]
+related: ["[[Query Rules]]", "[[Grounded Retrieval]]", "[[Analyst Agent]]", "[[Synthesis Note]]", "[[Challenge Mode]]"]
 contradicts: []
 supersedes: []
 depends_on: []

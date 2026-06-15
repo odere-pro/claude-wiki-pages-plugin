@@ -5,15 +5,7 @@ aliases: ["Dangling Wikilink", "dangling wikilink", "dangling link", "broken wik
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]", "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
-related:
-  [
-    "[[Graph Quality]]",
-    "[[Fill-Gaps Skill]]",
-    "[[Node Concentration]]",
-    "[[Shell-TS Parity]]",
-    "[[Parity Gate]]",
-    "[[Deterministic Engine]]",
-  ]
+related: ["[[Graph Quality]]", "[[Fill-Gaps Skill]]", "[[Node Concentration]]", "[[Shell-TS Parity]]", "[[Parity Gate]]", "[[Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Graph Quality]]"]

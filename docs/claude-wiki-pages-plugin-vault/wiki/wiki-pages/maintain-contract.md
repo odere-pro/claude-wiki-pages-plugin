@@ -1,21 +1,11 @@
 ---
 title: "Maintain Contract"
 type: concept
-aliases:
-  ["Maintain Contract", "maintain-contract", "wiki operating contract", "vault operating contract"]
+aliases: ["Maintain Contract", "maintain-contract", "wiki operating contract", "vault operating contract"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related:
-  [
-    "[[Ingest Pipeline]]",
-    "[[Auto-Heal]]",
-    "[[Query Rules]]",
-    "[[Git Checkpoint]]",
-    "[[Grounded Retrieval]]",
-    "[[Multi-Vault Operating Rules]]",
-    "[[Schema Authority]]",
-  ]
+related: ["[[Ingest Pipeline]]", "[[Auto-Heal]]", "[[Query Rules]]", "[[Git Checkpoint]]", "[[Grounded Retrieval]]", "[[Multi-Vault Operating Rules]]", "[[Schema Authority]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Git Checkpoint]]", "[[Deterministic Engine]]"]

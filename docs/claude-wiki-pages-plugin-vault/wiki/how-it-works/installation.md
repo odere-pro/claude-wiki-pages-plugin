@@ -4,20 +4,8 @@ type: concept
 aliases: ["Installation", "installation", "install", "plugin install"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources:
-  [
-    "[[Installation Guide]]",
-    "[[Getting Started (CLI Quickstart)]]",
-    "[[User Guide 01: Getting Started]]",
-    "[[Features]]",
-  ]
-related:
-  [
-    "[[Onboarding Wizard]]",
-    "[[Doctor Command]]",
-    "[[claude-wiki-pages Plugin]]",
-    "[[Git Checkpoint]]",
-  ]
+sources: ["[[Installation Guide]]", "[[Getting Started (CLI Quickstart)]]", "[[User Guide 01: Getting Started]]", "[[Features]]"]
+related: ["[[Onboarding Wizard]]", "[[Doctor Command]]", "[[claude-wiki-pages Plugin]]", "[[Git Checkpoint]]"]
 tags: ["concept", "install", "reference"]
 created: 2026-06-13
 updated: 2026-06-13

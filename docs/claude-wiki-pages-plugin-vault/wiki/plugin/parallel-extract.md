@@ -5,15 +5,7 @@ aliases: ["Parallel Extract", "parallel extract", "map-only parallel extract", "
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
-related:
-  [
-    "[[Ingest Agent]]",
-    "[[Ingest Pipeline]]",
-    "[[Orchestrator Agent]]",
-    "[[Deterministic Engine]]",
-    "[[Draft Review Surface]]",
-    "[[Git Checkpoint]]",
-  ]
+related: ["[[Ingest Agent]]", "[[Ingest Pipeline]]", "[[Orchestrator Agent]]", "[[Deterministic Engine]]", "[[Draft Review Surface]]", "[[Git Checkpoint]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Ingest Pipeline]]", "[[Ingest Agent]]"]

@@ -4,16 +4,8 @@ type: concept
 aliases: ["Folder Note", "folder note", "per-folder index", "MOC", "Map of Content"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources:
-  ["[[ADR-0022: Folder Notes and Graph Quality]]", "[[Architecture Documentation]]", "[[Glossary]]"]
-related:
-  [
-    "[[Ingest Pipeline]]",
-    "[[Polish Agent]]",
-    "[[Wiki-Only Graph]]",
-    "[[Schema Authority]]",
-    "[[Auto-Heal]]",
-  ]
+sources: ["[[ADR-0022: Folder Notes and Graph Quality]]", "[[Architecture Documentation]]", "[[Glossary]]"]
+related: ["[[Ingest Pipeline]]", "[[Polish Agent]]", "[[Wiki-Only Graph]]", "[[Schema Authority]]", "[[Auto-Heal]]"]
 tags: ["concept", "schema", "moc"]
 created: 2026-06-13
 updated: 2026-06-13

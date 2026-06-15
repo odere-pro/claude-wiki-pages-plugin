@@ -4,20 +4,8 @@ type: concept
 aliases: ["Design Diagrams", "design diagrams", "C4 diagrams", "mermaid diagrams"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[Design README]]",
-    "[[Design: System Context]]",
-    "[[Design: Component Design]]",
-    "[[Design: Sequences]]",
-    "[[Design: Teams and Agents]]",
-    "[[Design: Claude Config and Security]]",
-    "[[Design: Feature Relations]]",
-    "[[Design: Ontology]]",
-    "[[Design Diagram Template]]",
-  ]
-related:
-  ["[[Four-Layer Stack]]", "[[Design-Drift Gate]]", "[[Hook System]]", "[[Orchestrator Agent]]"]
+sources: ["[[Design README]]", "[[Design: System Context]]", "[[Design: Component Design]]", "[[Design: Sequences]]", "[[Design: Teams and Agents]]", "[[Design: Claude Config and Security]]", "[[Design: Feature Relations]]", "[[Design: Ontology]]", "[[Design Diagram Template]]"]
+related: ["[[Four-Layer Stack]]", "[[Design-Drift Gate]]", "[[Hook System]]", "[[Orchestrator Agent]]"]
 tags: ["concept", "design"]
 created: 2026-06-13
 updated: 2026-06-13

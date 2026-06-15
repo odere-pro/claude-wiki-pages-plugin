@@ -1,20 +1,11 @@
 ---
 title: "Grounded Retrieval"
 type: concept
-aliases:
-  ["Grounded Retrieval", "grounded retrieval", "ground-then-judge", "engine-grounded retrieval"]
+aliases: ["Grounded Retrieval", "grounded retrieval", "ground-then-judge", "engine-grounded retrieval"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related:
-  [
-    "[[Maintain Contract]]",
-    "[[Query Rules]]",
-    "[[Deterministic Engine]]",
-    "[[NO-RAG Principle]]",
-    "[[Wiki-Native Recall]]",
-    "[[Provenance Checks]]",
-  ]
+related: ["[[Maintain Contract]]", "[[Query Rules]]", "[[Deterministic Engine]]", "[[NO-RAG Principle]]", "[[Wiki-Native Recall]]", "[[Provenance Checks]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Deterministic Engine]]", "[[NO-RAG Principle]]"]

@@ -5,13 +5,7 @@ aliases: ["Wikilink Extractor", "wikilink extractor", "extractWikilinks", "markd
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[Wikilink Extractor (wikilinks.ts)]]"]
-related:
-  [
-    "[[Frontmatter Parser]]",
-    "[[Provenance Checks]]",
-    "[[MOC Repair Primitives]]",
-    "[[Graph Walk Algorithm]]",
-  ]
+related: ["[[Frontmatter Parser]]", "[[Provenance Checks]]", "[[MOC Repair Primitives]]", "[[Graph Walk Algorithm]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Frontmatter Parser]]"]

@@ -5,14 +5,7 @@ aliases: ["Node Concentration", "node concentration", "Cn", "Ce", "Ch", "edge co
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]"]
-related:
-  [
-    "[[Graph Quality]]",
-    "[[Fill-Gaps Skill]]",
-    "[[Dangling Wikilink]]",
-    "[[Wiki-Only Graph]]",
-    "[[Folder Note]]",
-  ]
+related: ["[[Graph Quality]]", "[[Fill-Gaps Skill]]", "[[Dangling Wikilink]]", "[[Wiki-Only Graph]]", "[[Folder Note]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Graph Quality]]"]

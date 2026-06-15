@@ -5,15 +5,7 @@ aliases: ["Graph Quality", "graph quality", "graph-quality.sh", "graph quality d
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]", "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
-related:
-  [
-    "[[Fill-Gaps Skill]]",
-    "[[Dangling Wikilink]]",
-    "[[Node Concentration]]",
-    "[[Wiki-Only Graph]]",
-    "[[Folder Note]]",
-    "[[Deterministic Engine]]",
-  ]
+related: ["[[Fill-Gaps Skill]]", "[[Dangling Wikilink]]", "[[Node Concentration]]", "[[Wiki-Only Graph]]", "[[Folder Note]]", "[[Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Wiki-Only Graph]]"]

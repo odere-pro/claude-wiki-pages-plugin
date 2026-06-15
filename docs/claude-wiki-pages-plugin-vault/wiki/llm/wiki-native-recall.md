@@ -4,21 +4,8 @@ type: concept
 aliases: ["Wiki-Native Recall", "wiki-native recall", "deterministic retrieval", "keyword search"]
 parent: "[[LLM]]"
 path: "llm"
-sources:
-  [
-    "[[ADR-0007: Wiki-Native Recall]]",
-    "[[ADR-0006: One Search Score Object]]",
-    "[[ADR-0008: One Graph-Traversal Primitive]]",
-    "[[Glossary]]",
-  ]
-related:
-  [
-    "[[NO-RAG Principle]]",
-    "[[Deterministic Engine]]",
-    "[[Graph Traversal Primitive]]",
-    "[[Search Score Object]]",
-    "[[Analyst Agent]]",
-  ]
+sources: ["[[ADR-0007: Wiki-Native Recall]]", "[[ADR-0006: One Search Score Object]]", "[[ADR-0008: One Graph-Traversal Primitive]]", "[[Glossary]]"]
+related: ["[[NO-RAG Principle]]", "[[Deterministic Engine]]", "[[Graph Traversal Primitive]]", "[[Search Score Object]]", "[[Analyst Agent]]"]
 tags: ["concept", "retrieval", "search"]
 created: 2026-06-13
 updated: 2026-06-13

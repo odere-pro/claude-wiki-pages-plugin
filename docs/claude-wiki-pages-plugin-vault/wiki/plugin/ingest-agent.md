@@ -5,29 +5,8 @@ entity_type: tool
 aliases: ["Ingest Agent", "ingest agent", "claude-wiki-pages-ingest-agent", "pipeline"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[ADR-0002: Agent Naming Convention]]",
-    "[[ADR-0010: Durable-Memory Carve-Out]]",
-    "[[User Guide 03: Update Existing Vault]]",
-    "[[Operations Guide]]",
-    "[[Ingest Agent Source]]",
-    "[[ADR-0024: Host-Project Intake]]",
-    "[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]",
-  ]
-related:
-  [
-    "[[Orchestrator Agent]]",
-    "[[Curator Agent]]",
-    "[[Polish Agent]]",
-    "[[Ingest Pipeline]]",
-    "[[Git Checkpoint]]",
-    "[[Entity Distribution Model]]",
-    "[[Agent Tool Restriction]]",
-    "[[Host-Project Intake]]",
-    "[[Parallel Extract]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[ADR-0002: Agent Naming Convention]]", "[[ADR-0010: Durable-Memory Carve-Out]]", "[[User Guide 03: Update Existing Vault]]", "[[Operations Guide]]", "[[Ingest Agent Source]]", "[[ADR-0024: Host-Project Intake]]", "[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
+related: ["[[Orchestrator Agent]]", "[[Curator Agent]]", "[[Polish Agent]]", "[[Ingest Pipeline]]", "[[Git Checkpoint]]", "[[Entity Distribution Model]]", "[[Agent Tool Restriction]]", "[[Host-Project Intake]]", "[[Parallel Extract]]"]
 tags: ["agent", "ingest"]
 created: 2026-06-13
 updated: 2026-06-15

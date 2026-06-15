@@ -5,27 +5,8 @@ entity_type: tool
 aliases: ["Analyst Agent", "analyst agent", "claude-wiki-pages-analyst-agent", "analyst"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[User Guide 07: Query the Wiki]]",
-    "[[User Guide 05: Export Outputs]]",
-    "[[Operations Guide]]",
-    "[[Analyst Agent Source]]",
-    "[[Analyst Modes Skill (SKILL.md)]]",
-  ]
-related:
-  [
-    "[[Orchestrator Agent]]",
-    "[[Query Rules]]",
-    "[[Challenge Mode]]",
-    "[[Synthesis Note]]",
-    "[[Wiki-Native Recall]]",
-    "[[Analyst Dashboard Mode]]",
-    "[[Analyst Document Compile Mode]]",
-    "[[Analyst Extract Mode]]",
-    "[[Dashboard Write Gate]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[User Guide 05: Export Outputs]]", "[[Operations Guide]]", "[[Analyst Agent Source]]", "[[Analyst Modes Skill (SKILL.md)]]"]
+related: ["[[Orchestrator Agent]]", "[[Query Rules]]", "[[Challenge Mode]]", "[[Synthesis Note]]", "[[Wiki-Native Recall]]", "[[Analyst Dashboard Mode]]", "[[Analyst Document Compile Mode]]", "[[Analyst Extract Mode]]", "[[Dashboard Write Gate]]"]
 tags: ["agent", "analyst"]
 created: 2026-06-13
 updated: 2026-06-13

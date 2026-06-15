@@ -4,23 +4,8 @@ type: concept
 aliases: ["NO-RAG Principle", "NO-RAG", "no embeddings", "no-rag", "wiki-native recall"]
 parent: "[[LLM]]"
 path: "llm"
-sources:
-  [
-    "[[ADR-0007: Wiki-Native Recall]]",
-    "[[ADR-0019: Query Tier and Answer Verification]]",
-    "[[Architecture Documentation]]",
-    "[[Glossary]]",
-  ]
-related:
-  [
-    "[[Wiki-Native Recall]]",
-    "[[Deterministic Engine]]",
-    "[[Query Rules]]",
-    "[[Search Score Object]]",
-    "[[Ingest Pipeline]]",
-    "[[Approved Local Model]]",
-    "[[Local Model Quality Gate]]",
-  ]
+sources: ["[[ADR-0007: Wiki-Native Recall]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Architecture Documentation]]", "[[Glossary]]"]
+related: ["[[Wiki-Native Recall]]", "[[Deterministic Engine]]", "[[Query Rules]]", "[[Search Score Object]]", "[[Ingest Pipeline]]", "[[Approved Local Model]]", "[[Local Model Quality Gate]]"]
 contradicts: []
 tags: ["concept", "retrieval", "non-negotiable"]
 created: 2026-06-13

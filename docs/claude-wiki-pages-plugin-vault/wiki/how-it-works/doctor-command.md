@@ -1,29 +1,11 @@
 ---
 title: "Doctor Command"
 type: concept
-aliases:
-  [
-    "Doctor Command",
-    "doctor command",
-    "/claude-wiki-pages:doctor",
-    "doctor",
-    "health check command",
-  ]
+aliases: ["Doctor Command", "doctor command", "/claude-wiki-pages:doctor", "doctor", "health check command"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources:
-  [
-    "[[Installation Guide]]",
-    "[[User Guide 01: Getting Started]]",
-    "[[Getting Started (CLI Quickstart)]]",
-  ]
-related:
-  [
-    "[[Installation]]",
-    "[[Onboarding Wizard]]",
-    "[[claude-wiki-pages Plugin]]",
-    "[[Time-to-First-Value]]",
-  ]
+sources: ["[[Installation Guide]]", "[[User Guide 01: Getting Started]]", "[[Getting Started (CLI Quickstart)]]"]
+related: ["[[Installation]]", "[[Onboarding Wizard]]", "[[claude-wiki-pages Plugin]]", "[[Time-to-First-Value]]"]
 contradicts: []
 supersedes: []
 depends_on: []

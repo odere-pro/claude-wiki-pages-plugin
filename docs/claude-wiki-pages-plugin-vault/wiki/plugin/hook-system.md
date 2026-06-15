@@ -4,22 +4,8 @@ type: concept
 aliases: ["Hook System", "hook system", "hooks", "lifecycle hooks"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[Design: Component Design]]",
-    "[[Operations Guide]]",
-    "[[Design: Feature Relations]]",
-  ]
-related:
-  [
-    "[[Four-Layer Stack]]",
-    "[[Firewall]]",
-    "[[Git Checkpoint]]",
-    "[[Deterministic Engine]]",
-    "[[Ingest Agent]]",
-    "[[Curator Agent]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[Design: Component Design]]", "[[Operations Guide]]", "[[Design: Feature Relations]]"]
+related: ["[[Four-Layer Stack]]", "[[Firewall]]", "[[Git Checkpoint]]", "[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
 tags: ["concept", "hooks"]
 created: 2026-06-13
 updated: 2026-06-13

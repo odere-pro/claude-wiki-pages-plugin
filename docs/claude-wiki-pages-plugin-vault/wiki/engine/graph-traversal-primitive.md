@@ -1,26 +1,11 @@
 ---
 title: "Graph Traversal Primitive"
 type: concept
-aliases:
-  [
-    "Graph Traversal Primitive",
-    "graph traversal primitive",
-    "walk()",
-    "graph walk",
-    "BFS walk",
-    "N-hop BFS",
-  ]
+aliases: ["Graph Traversal Primitive", "graph traversal primitive", "walk()", "graph walk", "BFS walk", "N-hop BFS"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[ADR-0008: One Graph-Traversal Primitive]]", "[[graph.ts Source]]"]
-related:
-  [
-    "[[Graph Walk Algorithm]]",
-    "[[Wiki-Native Recall]]",
-    "[[Search Scoring Algorithm]]",
-    "[[Tier-2 Deterministic Recall]]",
-    "[[NO-RAG Principle]]",
-  ]
+related: ["[[Graph Walk Algorithm]]", "[[Wiki-Native Recall]]", "[[Search Scoring Algorithm]]", "[[Tier-2 Deterministic Recall]]", "[[NO-RAG Principle]]"]
 contradicts: []
 supersedes: []
 depends_on: []

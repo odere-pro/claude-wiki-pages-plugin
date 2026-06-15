@@ -4,21 +4,8 @@ type: concept
 aliases: ["Offline Policy", "offline policy", "offlinePolicy", "degraded mode", "prefer-local"]
 parent: "[[LLM]]"
 path: "llm"
-sources:
-  [
-    "[[ADR-0018: Offline Policy and Degraded-Mode Routing]]",
-    "[[ADR-0019: Query Tier and Answer Verification]]",
-    "[[Operations Guide]]",
-    "[[Local Models]]",
-  ]
-related:
-  [
-    "[[Approved Local Model]]",
-    "[[Capability Tier]]",
-    "[[Vault Resolution]]",
-    "[[Hook System]]",
-    "[[NO-RAG Principle]]",
-  ]
+sources: ["[[ADR-0018: Offline Policy and Degraded-Mode Routing]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Operations Guide]]", "[[Local Models]]"]
+related: ["[[Approved Local Model]]", "[[Capability Tier]]", "[[Vault Resolution]]", "[[Hook System]]", "[[NO-RAG Principle]]"]
 tags: ["concept", "offline", "local-model"]
 created: 2026-06-13
 updated: 2026-06-13

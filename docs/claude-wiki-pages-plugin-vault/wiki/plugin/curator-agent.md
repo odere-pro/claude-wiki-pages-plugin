@@ -5,24 +5,8 @@ entity_type: tool
 aliases: ["Curator Agent", "curator agent", "claude-wiki-pages-curator-agent", "curator"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[ADR-0002: Agent Naming Convention]]",
-    "[[User Guide 04: Review Validate Fix]]",
-    "[[Operations Guide]]",
-    "[[Curator Agent Source]]",
-  ]
-related:
-  [
-    "[[Orchestrator Agent]]",
-    "[[Polish Agent]]",
-    "[[Ingest Agent]]",
-    "[[Lint Rules]]",
-    "[[Auto-Heal]]",
-    "[[Git Checkpoint]]",
-    "[[Deterministic Engine]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[ADR-0002: Agent Naming Convention]]", "[[User Guide 04: Review Validate Fix]]", "[[Operations Guide]]", "[[Curator Agent Source]]"]
+related: ["[[Orchestrator Agent]]", "[[Polish Agent]]", "[[Ingest Agent]]", "[[Lint Rules]]", "[[Auto-Heal]]", "[[Git Checkpoint]]", "[[Deterministic Engine]]"]
 tags: ["agent", "curator"]
 created: 2026-06-13
 updated: 2026-06-13

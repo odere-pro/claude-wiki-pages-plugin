@@ -4,13 +4,7 @@ type: concept
 aliases: ["Obsidian Experience", "obsidian experience", "Obsidian integration", "graph view"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources:
-  [
-    "[[User Guide: Obsidian Experience]]",
-    "[[ADR-0023: Wiki-Only Graph]]",
-    "[[ADR-0022: Folder Notes and Graph Quality]]",
-    "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]",
-  ]
+sources: ["[[User Guide: Obsidian Experience]]", "[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]"]
 related: ["[[Polish Agent]]", "[[Wiki-Only Graph]]", "[[Folder Note]]", "[[Vault Resolution]]"]
 tags: ["concept", "obsidian", "guide"]
 created: 2026-06-13

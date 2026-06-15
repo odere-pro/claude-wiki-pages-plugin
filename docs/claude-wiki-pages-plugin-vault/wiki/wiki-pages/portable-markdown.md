@@ -1,14 +1,7 @@
 ---
 title: "Portable Markdown"
 type: concept
-aliases:
-  [
-    "Portable Markdown",
-    "portable markdown",
-    "markdown export",
-    "vault/output/",
-    "deliverable markdown",
-  ]
+aliases: ["Portable Markdown", "portable markdown", "markdown export", "vault/output/", "deliverable markdown"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Getting Started (CLI Quickstart)]]", "[[User Guide 05: Export Outputs]]"]

@@ -2,34 +2,11 @@
 title: "Orchestrator Agent"
 type: entity
 entity_type: tool
-aliases:
-  [
-    "Orchestrator Agent",
-    "orchestrator agent",
-    "claude-wiki-pages-orchestrator-agent",
-    "orchestrator",
-  ]
+aliases: ["Orchestrator Agent", "orchestrator agent", "claude-wiki-pages-orchestrator-agent", "orchestrator"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[ADR-0001: Four-Layer Orchestrator]]",
-    "[[ADR-0002: Agent Naming Convention]]",
-    "[[Operations Guide]]",
-    "[[Orchestrator Agent Source]]",
-  ]
-related:
-  [
-    "[[Ingest Agent]]",
-    "[[Curator Agent]]",
-    "[[Analyst Agent]]",
-    "[[Polish Agent]]",
-    "[[Maintenance Agent]]",
-    "[[Four-Layer Stack]]",
-    "[[Vault Resolution]]",
-    "[[Single-Pass Dispatch]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[ADR-0001: Four-Layer Orchestrator]]", "[[ADR-0002: Agent Naming Convention]]", "[[Operations Guide]]", "[[Orchestrator Agent Source]]"]
+related: ["[[Ingest Agent]]", "[[Curator Agent]]", "[[Analyst Agent]]", "[[Polish Agent]]", "[[Maintenance Agent]]", "[[Four-Layer Stack]]", "[[Vault Resolution]]", "[[Single-Pass Dispatch]]"]
 tags: ["agent", "orchestrator"]
 created: 2026-06-13
 updated: 2026-06-13

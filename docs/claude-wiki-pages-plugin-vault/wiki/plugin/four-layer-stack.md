@@ -4,22 +4,8 @@ type: concept
 aliases: ["Four-Layer Stack", "four-layer stack", "four-layer architecture", "plugin stack"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[Glossary]]",
-    "[[Design: System Context]]",
-    "[[Design: Feature Relations]]",
-    "[[ADR-0001: Four-Layer Orchestrator]]",
-  ]
-related:
-  [
-    "[[claude-wiki-pages Plugin]]",
-    "[[Deterministic Engine]]",
-    "[[Orchestrator Agent]]",
-    "[[Hook System]]",
-    "[[Git Checkpoint]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[Design: System Context]]", "[[Design: Feature Relations]]", "[[ADR-0001: Four-Layer Orchestrator]]"]
+related: ["[[claude-wiki-pages Plugin]]", "[[Deterministic Engine]]", "[[Orchestrator Agent]]", "[[Hook System]]", "[[Git Checkpoint]]"]
 tags: ["architecture", "concept"]
 created: 2026-06-13
 updated: 2026-06-13

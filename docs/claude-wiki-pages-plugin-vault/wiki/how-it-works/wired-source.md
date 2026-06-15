@@ -5,17 +5,7 @@ aliases: ["Wired Source", "wired source", "wired repo", "wired source repository
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[Sync Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]", "[[ADR-0024: Host-Project Intake]]"]
-related:
-  [
-    "[[Sync Skill]]",
-    "[[Sync Workflow]]",
-    "[[sync-source.sh]]",
-    "[[Ingest Pipeline]]",
-    "[[Firewall]]",
-    "[[Git Checkpoint]]",
-    "[[Vault Resolution]]",
-    "[[Host-Project Intake]]",
-  ]
+related: ["[[Sync Skill]]", "[[Sync Workflow]]", "[[sync-source.sh]]", "[[Ingest Pipeline]]", "[[Firewall]]", "[[Git Checkpoint]]", "[[Vault Resolution]]", "[[Host-Project Intake]]"]
 contradicts: []
 supersedes: []
 depends_on: []

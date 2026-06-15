@@ -1,14 +1,7 @@
 ---
 title: "Banned Strings"
 type: concept
-aliases:
-  [
-    "Banned Strings",
-    "banned strings",
-    "retired terminology",
-    "banned terms",
-    "validate-docs banned",
-  ]
+aliases: ["Banned Strings", "banned strings", "retired terminology", "banned terms", "validate-docs banned"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Glossary]]"]

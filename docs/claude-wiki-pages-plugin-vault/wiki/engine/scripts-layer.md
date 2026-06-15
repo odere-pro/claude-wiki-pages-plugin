@@ -1,20 +1,11 @@
 ---
 title: "Scripts Layer"
 type: concept
-aliases:
-  ["Scripts Layer", "Layer 4 shell", "scripts directory", "hook scripts", "shell orchestration"]
+aliases: ["Scripts Layer", "Layer 4 shell", "scripts directory", "hook scripts", "shell orchestration"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[Engine Scripts Layer (CLAUDE.md)]]", "[[Engine API Skill (SKILL.md)]]"]
-related:
-  [
-    "[[engine.sh]]",
-    "[[Hook System]]",
-    "[[Firewall]]",
-    "[[Vault Resolution]]",
-    "[[Deterministic Engine]]",
-    "[[Git Checkpoint]]",
-  ]
+related: ["[[engine.sh]]", "[[Hook System]]", "[[Firewall]]", "[[Vault Resolution]]", "[[Deterministic Engine]]", "[[Git Checkpoint]]"]
 contradicts: []
 supersedes: []
 depends_on: []

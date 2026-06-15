@@ -4,23 +4,8 @@ type: concept
 aliases: ["Agent Contract Table", "agent contract table", "contract table", "agent contract"]
 parent: "[[Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[Orchestrator Agent Source]]",
-    "[[Ingest Agent Source]]",
-    "[[Curator Agent Source]]",
-    "[[Analyst Agent Source]]",
-    "[[Onboarding Agent Source]]",
-    "[[Maintenance Agent Source]]",
-    "[[Polish Agent Source]]",
-  ]
-related:
-  [
-    "[[Agent Tool Restriction]]",
-    "[[Single-Pass Dispatch]]",
-    "[[Orchestrator Agent]]",
-    "[[Ingest Agent]]",
-  ]
+sources: ["[[Orchestrator Agent Source]]", "[[Ingest Agent Source]]", "[[Curator Agent Source]]", "[[Analyst Agent Source]]", "[[Onboarding Agent Source]]", "[[Maintenance Agent Source]]", "[[Polish Agent Source]]"]
+related: ["[[Agent Tool Restriction]]", "[[Single-Pass Dispatch]]", "[[Orchestrator Agent]]", "[[Ingest Agent]]"]
 contradicts: []
 supersedes: []
 depends_on: []

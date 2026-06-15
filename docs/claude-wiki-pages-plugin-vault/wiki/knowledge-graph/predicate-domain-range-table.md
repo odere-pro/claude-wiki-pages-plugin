@@ -1,24 +1,11 @@
 ---
 title: "Predicate Domain-Range Table"
 type: concept
-aliases:
-  [
-    "Predicate Domain-Range Table",
-    "predicate domain-range table",
-    "predicate table",
-    "domain-range table",
-    "ontology predicates",
-  ]
+aliases: ["Predicate Domain-Range Table", "predicate domain-range table", "predicate table", "domain-range table", "ontology predicates"]
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[ADR-0004: Ontology Profile v1]]", "[[Design: Ontology]]"]
-related:
-  [
-    "[[Ontology Profile v1]]",
-    "[[Schema Authority]]",
-    "[[Required Fields]]",
-    "[[Graph Traversal Primitive]]",
-  ]
+related: ["[[Ontology Profile v1]]", "[[Schema Authority]]", "[[Required Fields]]", "[[Graph Traversal Primitive]]"]
 contradicts: []
 supersedes: []
 depends_on: []

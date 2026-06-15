@@ -1,24 +1,11 @@
 ---
 title: "Dual Entry Point"
 type: concept
-aliases:
-  [
-    "Dual Entry Point",
-    "dual entry point",
-    "SOFTWARE-3-0 pattern",
-    "front door pattern",
-    "dual reader",
-  ]
+aliases: ["Dual Entry Point", "dual entry point", "SOFTWARE-3-0 pattern", "front door pattern", "dual reader"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[SOFTWARE-3-0: Dual Entry Point]]"]
-related:
-  [
-    "[[Six Surfaces Dual-Reader Contract]]",
-    "[[Plugin Dev-Time vs Runtime]]",
-    "[[Draft Review Surface]]",
-    "[[Ingest Pipeline]]",
-  ]
+related: ["[[Six Surfaces Dual-Reader Contract]]", "[[Plugin Dev-Time vs Runtime]]", "[[Draft Review Surface]]", "[[Ingest Pipeline]]"]
 contradicts: []
 supersedes: []
 depends_on: []

@@ -1,21 +1,10 @@
 ---
 title: "Vault Lifecycle"
 type: concept
-aliases:
-  [
-    "Vault Lifecycle",
-    "vault lifecycle",
-    "vault lifecycle commands",
-    "vault init add switch remove merge",
-  ]
+aliases: ["Vault Lifecycle", "vault lifecycle", "vault lifecycle commands", "vault init add switch remove merge"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources:
-  [
-    "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]",
-    "[[ADR-0012: Vault Merge Conflict Resolution]]",
-    "[[ADR-0016: Simultaneous Multi-Vault Management]]",
-  ]
+sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0012: Vault Merge Conflict Resolution]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]"]
 related: ["[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Firewall]]", "[[Vault Resolution]]"]
 contradicts: []
 supersedes: []

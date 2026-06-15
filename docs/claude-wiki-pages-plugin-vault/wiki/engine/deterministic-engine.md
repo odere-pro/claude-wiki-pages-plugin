@@ -5,35 +5,8 @@ entity_type: tool
 aliases: ["Deterministic Engine", "deterministic engine", "Bun CLI", "engine"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[Glossary]]",
-    "[[ADR-0015: Engine Self-Description Surfaces]]",
-    "[[ADR-0005: Git Required Per-Vault Init]]",
-    "[[cli.ts Source]]",
-    "[[engine.sh Source]]",
-    "[[Engine API Skill (SKILL.md)]]",
-    "[[verify.ts Source]]",
-    "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]",
-  ]
-related:
-  [
-    "[[Four-Layer Stack]]",
-    "[[Wiki-Native Recall]]",
-    "[[Graph Traversal Primitive]]",
-    "[[Firewall]]",
-    "[[Auto-Heal]]",
-    "[[Lint Rules]]",
-    "[[Local Model Quality Gate]]",
-    "[[Engine Verb Surface]]",
-    "[[Engine CLI Router]]",
-    "[[Scripts Layer]]",
-    "[[engine.sh]]",
-    "[[cli.ts]]",
-    "[[Dangling Wikilink]]",
-    "[[Shell-TS Parity]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0015: Engine Self-Description Surfaces]]", "[[ADR-0005: Git Required Per-Vault Init]]", "[[cli.ts Source]]", "[[engine.sh Source]]", "[[Engine API Skill (SKILL.md)]]", "[[verify.ts Source]]", "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
+related: ["[[Four-Layer Stack]]", "[[Wiki-Native Recall]]", "[[Graph Traversal Primitive]]", "[[Firewall]]", "[[Auto-Heal]]", "[[Lint Rules]]", "[[Local Model Quality Gate]]", "[[Engine Verb Surface]]", "[[Engine CLI Router]]", "[[Scripts Layer]]", "[[engine.sh]]", "[[cli.ts]]", "[[Dangling Wikilink]]", "[[Shell-TS Parity]]"]
 tags: ["tool", "engine"]
 created: 2026-06-13
 updated: 2026-06-15

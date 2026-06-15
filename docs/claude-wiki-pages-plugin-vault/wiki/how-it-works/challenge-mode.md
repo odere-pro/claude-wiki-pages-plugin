@@ -4,20 +4,8 @@ type: concept
 aliases: ["Challenge Mode", "challenge mode", "adversarial query", "challenge framing"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[User Guide 07: Query the Wiki]]",
-    "[[Analyst Modes Skill (SKILL.md)]]",
-  ]
-related:
-  [
-    "[[Analyst Agent]]",
-    "[[Query Rules]]",
-    "[[Synthesis Note]]",
-    "[[Architecture Decision Record]]",
-    "[[NO-RAG Principle]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[User Guide 07: Query the Wiki]]", "[[Analyst Modes Skill (SKILL.md)]]"]
+related: ["[[Analyst Agent]]", "[[Query Rules]]", "[[Synthesis Note]]", "[[Architecture Decision Record]]", "[[NO-RAG Principle]]"]
 tags: ["concept", "query", "analyst"]
 created: 2026-06-13
 updated: 2026-06-13

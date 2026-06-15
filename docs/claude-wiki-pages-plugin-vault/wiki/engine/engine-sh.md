@@ -5,21 +5,8 @@ entity_type: tool
 aliases: ["engine.sh", "engine shell bridge", "bash-to-Bun bridge"]
 parent: "[[Engine — Index]]"
 path: "engine"
-sources:
-  [
-    "[[engine.sh Source]]",
-    "[[Engine Scripts Layer (CLAUDE.md)]]",
-    "[[Engine API Skill (SKILL.md)]]",
-  ]
-related:
-  [
-    "[[cli.ts]]",
-    "[[Deterministic Engine]]",
-    "[[Scripts Layer]]",
-    "[[Engine CLI Router]]",
-    "[[Degraded-Mode Routing]]",
-    "[[Shell-TS Parity]]",
-  ]
+sources: ["[[engine.sh Source]]", "[[Engine Scripts Layer (CLAUDE.md)]]", "[[Engine API Skill (SKILL.md)]]"]
+related: ["[[cli.ts]]", "[[Deterministic Engine]]", "[[Scripts Layer]]", "[[Engine CLI Router]]", "[[Degraded-Mode Routing]]", "[[Shell-TS Parity]]"]
 tags: ["tool", "bash", "engine"]
 created: 2026-06-13
 updated: 2026-06-13

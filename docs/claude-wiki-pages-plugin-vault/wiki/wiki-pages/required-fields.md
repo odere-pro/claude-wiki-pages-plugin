@@ -1,19 +1,11 @@
 ---
 title: "Required Fields"
 type: concept
-aliases:
-  [
-    "Required Fields",
-    "required fields",
-    "required frontmatter",
-    "per-type required fields",
-    "frontmatter requirements",
-  ]
+aliases: ["Required Fields", "required fields", "required frontmatter", "per-type required fields", "frontmatter requirements"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[ADR-0014: Single-Source Required Fields]]"]
-related:
-  ["[[Schema Authority]]", "[[Frontmatter Validation]]", "[[Lint Rules]]", "[[Glossary Terms]]"]
+related: ["[[Schema Authority]]", "[[Frontmatter Validation]]", "[[Lint Rules]]", "[[Glossary Terms]]"]
 contradicts: []
 supersedes: []
 depends_on: []

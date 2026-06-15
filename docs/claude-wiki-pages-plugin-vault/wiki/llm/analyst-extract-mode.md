@@ -1,24 +1,11 @@
 ---
 title: "Analyst Extract Mode"
 type: concept
-aliases:
-  [
-    "Analyst Extract Mode",
-    "analyst extract mode",
-    "Extract Mode",
-    "Mode 4 Extract",
-    "structured data extraction",
-  ]
+aliases: ["Analyst Extract Mode", "analyst extract mode", "Extract Mode", "Mode 4 Extract", "structured data extraction"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related:
-  [
-    "[[Analyst Agent]]",
-    "[[Analyst Dashboard Mode]]",
-    "[[Analyst Document Compile Mode]]",
-    "[[Query Rules]]",
-  ]
+related: ["[[Analyst Agent]]", "[[Analyst Dashboard Mode]]", "[[Analyst Document Compile Mode]]", "[[Query Rules]]"]
 contradicts: []
 supersedes: []
 depends_on: []

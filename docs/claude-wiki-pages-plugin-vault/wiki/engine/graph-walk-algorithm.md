@@ -1,18 +1,11 @@
 ---
 title: "Graph Walk Algorithm"
 type: concept
-aliases:
-  ["Graph Walk Algorithm", "graph walk", "BFS walk", "walk()", "graph traversal implementation"]
+aliases: ["Graph Walk Algorithm", "graph walk", "BFS walk", "walk()", "graph traversal implementation"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[graph.ts Source]]", "[[search.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
-related:
-  [
-    "[[Search Scoring Algorithm]]",
-    "[[Tier-2 Deterministic Recall]]",
-    "[[Wiki-Native Recall]]",
-    "[[Deterministic Engine]]",
-  ]
+related: ["[[Search Scoring Algorithm]]", "[[Tier-2 Deterministic Recall]]", "[[Wiki-Native Recall]]", "[[Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: []

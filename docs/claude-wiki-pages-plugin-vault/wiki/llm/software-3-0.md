@@ -1,8 +1,7 @@
 ---
 title: "Software 3.0"
 type: concept
-aliases:
-  ["Software 3.0", "software 3.0", "Software3.0", "agent-first design", "human-agent symmetry"]
+aliases: ["Software 3.0", "software 3.0", "Software3.0", "agent-first design", "human-agent symmetry"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design README]]"]

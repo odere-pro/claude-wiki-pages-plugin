@@ -5,15 +5,7 @@ aliases: ["Config Schema", "config schema", "config.schema.json", "plugin config
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[Config Schema (config.schema.json)]]"]
-related:
-  [
-    "[[Auto-Heal]]",
-    "[[Git Checkpoint]]",
-    "[[Firewall]]",
-    "[[Offline Policy]]",
-    "[[Local Model Quality Gate]]",
-    "[[Degraded-Mode Routing]]",
-  ]
+related: ["[[Auto-Heal]]", "[[Git Checkpoint]]", "[[Firewall]]", "[[Offline Policy]]", "[[Local Model Quality Gate]]", "[[Degraded-Mode Routing]]"]
 contradicts: []
 supersedes: []
 depends_on: []

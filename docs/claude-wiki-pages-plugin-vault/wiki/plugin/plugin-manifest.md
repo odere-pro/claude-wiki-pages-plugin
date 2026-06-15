@@ -5,15 +5,8 @@ entity_type: product
 aliases: ["Plugin Manifest", "plugin manifest", "plugin.json", "claude-wiki-pages manifest"]
 parent: "[[Plugin]]"
 path: "plugin"
-sources:
-  ["[[Plugin Manifest (plugin.json)]]", "[[Plugin README]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related:
-  [
-    "[[claude-wiki-pages Plugin]]",
-    "[[Plugin Dev-Time vs Runtime]]",
-    "[[Hook System]]",
-    "[[Schema Version Gate]]",
-  ]
+sources: ["[[Plugin Manifest (plugin.json)]]", "[[Plugin README]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
+related: ["[[claude-wiki-pages Plugin]]", "[[Plugin Dev-Time vs Runtime]]", "[[Hook System]]", "[[Schema Version Gate]]"]
 tags: ["plugin", "manifest", "metadata"]
 created: 2026-06-13
 updated: 2026-06-13

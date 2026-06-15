@@ -1,31 +1,11 @@
 ---
 title: "Graph Coloring"
 type: concept
-aliases:
-  [
-    "Graph Coloring",
-    "graph coloring",
-    "color groups",
-    "graph color groups",
-    "Obsidian graph colors",
-  ]
+aliases: ["Graph Coloring", "graph coloring", "color groups", "graph color groups", "Obsidian graph colors"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources:
-  [
-    "[[ADR-0022: Folder Notes and Graph Quality]]",
-    "[[ADR-0023: Wiki-Only Graph]]",
-    "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]",
-    "[[User Guide: Obsidian Experience]]",
-  ]
-related:
-  [
-    "[[Wiki-Only Graph]]",
-    "[[Graph Config Cache]]",
-    "[[Polish Agent]]",
-    "[[Folder Note]]",
-    "[[Obsidian Experience]]",
-  ]
+sources: ["[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[User Guide: Obsidian Experience]]"]
+related: ["[[Wiki-Only Graph]]", "[[Graph Config Cache]]", "[[Polish Agent]]", "[[Folder Note]]", "[[Obsidian Experience]]"]
 contradicts: []
 supersedes: []
 depends_on: []

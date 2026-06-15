@@ -5,16 +5,7 @@ aliases: ["Scheduled Upkeep", "scheduled upkeep", "autonomous upkeep", "host-own
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
-related:
-  [
-    "[[Maintenance Loop]]",
-    "[[Maintenance Agent]]",
-    "[[Heartbeat]]",
-    "[[Backlog]]",
-    "[[Draft Review Surface]]",
-    "[[Git Checkpoint]]",
-    "[[Wired Source]]",
-  ]
+related: ["[[Maintenance Loop]]", "[[Maintenance Agent]]", "[[Heartbeat]]", "[[Backlog]]", "[[Draft Review Surface]]", "[[Git Checkpoint]]", "[[Wired Source]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Maintenance Loop]]", "[[Git Checkpoint]]"]

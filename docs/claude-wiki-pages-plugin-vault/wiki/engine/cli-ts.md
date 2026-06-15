@@ -5,17 +5,8 @@ entity_type: tool
 aliases: ["cli.ts", "CLI entry point", "TypeScript CLI router", "src/cli/cli.ts"]
 parent: "[[Engine — Index]]"
 path: "engine"
-sources:
-  ["[[cli.ts Source]]", "[[Engine API Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related:
-  [
-    "[[engine.sh]]",
-    "[[Deterministic Engine]]",
-    "[[Engine CLI Router]]",
-    "[[Engine Verb Surface]]",
-    "[[Shell-TS Parity]]",
-    "[[Degraded-Mode Routing]]",
-  ]
+sources: ["[[cli.ts Source]]", "[[Engine API Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
+related: ["[[engine.sh]]", "[[Deterministic Engine]]", "[[Engine CLI Router]]", "[[Engine Verb Surface]]", "[[Shell-TS Parity]]", "[[Degraded-Mode Routing]]"]
 tags: ["tool", "typescript", "engine"]
 created: 2026-06-13
 updated: 2026-06-13

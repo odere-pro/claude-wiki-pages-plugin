@@ -1,12 +1,10 @@
 ---
 title: "Entity Distribution Model"
 type: concept
-aliases:
-  ["Entity Distribution Model", "entity distribution model", "DRY ingest", "update not duplicate"]
+aliases: ["Entity Distribution Model", "entity distribution model", "DRY ingest", "update not duplicate"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources:
-  ["[[User Guide 03: Update Existing Vault]]", "[[Architecture Documentation]]", "[[Glossary]]"]
+sources: ["[[User Guide 03: Update Existing Vault]]", "[[Architecture Documentation]]", "[[Glossary]]"]
 related: ["[[Ingest Pipeline]]", "[[Ingest Agent]]", "[[Schema Authority]]", "[[Lint Rules]]"]
 tags: ["concept", "ingest", "dry"]
 created: 2026-06-13

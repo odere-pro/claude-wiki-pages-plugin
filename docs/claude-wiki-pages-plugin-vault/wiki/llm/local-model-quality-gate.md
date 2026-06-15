@@ -4,21 +4,8 @@ type: concept
 aliases: ["Local Model Quality Gate", "local model quality gate", "quality gate", "ADR-0011 gate"]
 parent: "[[LLM]]"
 path: "llm"
-sources:
-  [
-    "[[ADR-0011: Local-Model Quality Gate]]",
-    "[[ADR-0017: Fabrication Floor — Verbatim Partition]]",
-    "[[Local Models]]",
-  ]
-related:
-  [
-    "[[Golden Set]]",
-    "[[Zero-Fabrication Floor]]",
-    "[[Approved Local Model]]",
-    "[[Capability Tier]]",
-    "[[Offline Policy]]",
-    "[[Scaffolding Ablation]]",
-  ]
+sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[Local Models]]"]
+related: ["[[Golden Set]]", "[[Zero-Fabrication Floor]]", "[[Approved Local Model]]", "[[Capability Tier]]", "[[Offline Policy]]", "[[Scaffolding Ablation]]"]
 tags: ["concept", "local-model", "quality"]
 created: 2026-06-13
 updated: 2026-06-13

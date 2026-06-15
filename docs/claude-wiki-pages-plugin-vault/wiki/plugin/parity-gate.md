@@ -1,14 +1,7 @@
 ---
 title: "Parity Gate"
 type: concept
-aliases:
-  [
-    "Parity Gate",
-    "parity gate",
-    "dual-entry parity",
-    "human-agent parity check",
-    "router table parity",
-  ]
+aliases: ["Parity Gate", "parity gate", "dual-entry parity", "human-agent parity check", "router table parity"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design: Sequences]]"]

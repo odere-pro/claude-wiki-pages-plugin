@@ -5,13 +5,7 @@ aliases: ["Glossary Terms", "glossary terms", "terminology", "canonical terms"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Glossary]]", "[[Architecture Documentation]]"]
-related:
-  [
-    "[[Schema Authority]]",
-    "[[Design-Drift Gate]]",
-    "[[Banned Strings]]",
-    "[[claude-wiki-pages Plugin]]",
-  ]
+related: ["[[Schema Authority]]", "[[Design-Drift Gate]]", "[[Banned Strings]]", "[[claude-wiki-pages Plugin]]"]
 tags: ["concept", "glossary", "reference"]
 created: 2026-06-13
 updated: 2026-06-13

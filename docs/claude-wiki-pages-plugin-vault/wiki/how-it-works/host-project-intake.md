@@ -5,15 +5,7 @@ aliases: ["Host-Project Intake", "host project intake", "project intake", "gener
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[ADR-0024: Host-Project Intake]]"]
-related:
-  [
-    "[[Wired Source]]",
-    "[[Ingest Pipeline]]",
-    "[[Ingest Agent]]",
-    "[[Orchestrator Agent]]",
-    "[[Backlog]]",
-    "[[Sync Workflow]]",
-  ]
+related: ["[[Wired Source]]", "[[Ingest Pipeline]]", "[[Ingest Agent]]", "[[Orchestrator Agent]]", "[[Backlog]]", "[[Sync Workflow]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Wired Source]]", "[[Ingest Pipeline]]"]

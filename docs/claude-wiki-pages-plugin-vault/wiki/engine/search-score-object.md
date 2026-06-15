@@ -1,24 +1,11 @@
 ---
 title: "Search Score Object"
 type: concept
-aliases:
-  [
-    "Search Score Object",
-    "search score object",
-    "SearchHit",
-    "matched[] breakdown",
-    "score invariant",
-  ]
+aliases: ["Search Score Object", "search score object", "SearchHit", "matched[] breakdown", "score invariant"]
 parent: "[[Wiki Engine]]"
 path: "engine"
 sources: ["[[ADR-0006: One Search Score Object]]", "[[search.ts Source]]"]
-related:
-  [
-    "[[Wiki-Native Recall]]",
-    "[[Search Scoring Algorithm]]",
-    "[[Tier-2 Deterministic Recall]]",
-    "[[NO-RAG Principle]]",
-  ]
+related: ["[[Wiki-Native Recall]]", "[[Search Scoring Algorithm]]", "[[Tier-2 Deterministic Recall]]", "[[NO-RAG Principle]]"]
 contradicts: []
 supersedes: []
 depends_on: []
