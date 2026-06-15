@@ -12,7 +12,7 @@ tags: ["agent", "maintenance", "plugin"]
 aliases: ["Maintenance Agent Source", "plugin-maintenance-agent", "claude-wiki-pages-maintenance-agent source"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -41,4 +41,21 @@ The canonical agent definition file for `claude-wiki-pages-maintenance-agent`. D
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[Maintenance Agent]]
+
+## Concepts Covered
+
+- [[Agent Contract Table]]
+- [[Agent Tool Restriction]]
+- [[Maintenance Loop]]
+- [[Heartbeat]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Maintenance Agent]] — primary source for agent definition, budget, and three-step contract
+- [[Agent Contract Table]] — per-agent contract pattern sourced here
+- [[Agent Tool Restriction]] — tool restriction (no Write/Edit)
+- [[Maintenance Loop]] — catch-up loop sequence (ingest → curator → polish → lint)
+- [[Heartbeat]] — heartbeat recommends catch-up; this agent performs it

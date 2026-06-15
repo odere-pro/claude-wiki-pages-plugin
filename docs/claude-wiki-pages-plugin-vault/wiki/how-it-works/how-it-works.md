@@ -27,6 +27,7 @@ children:
   - "[[Graph Quality]]"
   - "[[Dangling Wikilink]]"
   - "[[Node Concentration]]"
+  - "[[Operations Log]]"
 child_indexes: []
 tags: ["how-it-works", "sync", "wired-source", "skills", "workflows", "fill-gaps", "graph-quality"]
 created: 2026-06-13
@@ -59,6 +60,8 @@ Two invariants govern the sync subsystem. **Raw is immutable:** an updated doc n
 [[Sync Workflow]] provides the step-by-step breakdown of all eight sync steps: (1) detect wired sources; (2) `sync-source.sh status` to find changed files; (3) show the diff to the user; (4) await confirmation; (5) `sync-source.sh pull` to copy new versioned snapshots; (6) mark old source notes as superseded; (7) update `log.md`; (8) recommend re-running `/claude-wiki-pages:wiki`.
 
 [[sync-source.sh]] is the deterministic bash script that implements wired-source detection and file copying. It reads the last-synced SHA from `settings.json`, diffs `HEAD` against that SHA to find changed docs, and copies each changed file as a new versioned snapshot (`<stem>--<date>-<sha8>`). It never overwrites existing snapshots.
+
+[[Operations Log]] is the chronological record of every wiki operation — ingest, lint, snapshot, query, and sync. The log is appended at the end of each skill run and is the authoritative provenance trail for the vault's history.
 
 ## Open Questions
 

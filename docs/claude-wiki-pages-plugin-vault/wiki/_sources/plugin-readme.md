@@ -12,7 +12,7 @@ tags: ["plugin", "readme", "overview"]
 aliases: ["Plugin README", "plugin-readme", "README"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -41,4 +41,20 @@ The main README for the `claude-wiki-pages` Claude Code plugin. Describes the fo
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[claude-wiki-pages (Plugin)]]
+- [[Orchestrator Agent]]
+
+## Concepts Covered
+
+- [[Four-Layer Stack]]
+- [[Hook System]]
+- [[Plugin Dev-Time vs Runtime]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[claude-wiki-pages (Plugin)]] — plugin identity, entry verb, prerequisites, and license
+- [[Four-Layer Stack]] — four-layer model overview (Data/Skills/Agents/Orchestration)
+- [[Hook System]] — hooks mentioned (15 hooks shipped)
+- [[Plugin Dev-Time vs Runtime]] — install boundary (only skills/agents/hooks/scripts/rules)

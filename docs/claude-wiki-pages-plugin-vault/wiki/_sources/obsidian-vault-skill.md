@@ -12,7 +12,7 @@ tags: ["obsidian", "skill", "vault-scoping"]
 aliases: ["Obsidian Vault Skill (SKILL.md)"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -40,11 +40,20 @@ The `obsidian-vault` skill is a guard contract for driving the Obsidian CLI safe
 
 ## Entities Mentioned
 
-- `obsidian-vault` skill (this skill itself)
-- Obsidian CLI (`obsidian`)
+- [[obsidian-vault Skill]]
+- [[Vault Resolution]]
 
-## Concepts Mentioned
+## Concepts Covered
 
-- Obsidian CLI vault scoping (always resolve + always pass `--vault`)
-- Defense-in-depth scoping (skill = intent, hook = enforcement)
-- `firewall.allowPaths` configuration
+- [[Obsidian CLI Vault Scoping]]
+- [[Defense-in-Depth Scoping]]
+- [[Firewall]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[obsidian-vault Skill]] — primary source for the four scoping rules
+- [[Obsidian CLI Vault Scoping]] — always resolve + always pass `--vault "$VAULT"` contract
+- [[Defense-in-Depth Scoping]] — skill (intent layer) + firewall (enforcement layer) pair
+- [[Vault Resolution]] — four-tier resolution is the canonical source of truth

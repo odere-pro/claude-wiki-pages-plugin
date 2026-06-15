@@ -12,7 +12,7 @@ tags: ["plugin", "schema", "architecture"]
 aliases: ["Plugin CLAUDE.md", "plugin-claude-md", "plugin repo instructions"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -40,4 +40,20 @@ The root `CLAUDE.md` for the plugin repository itself (not the vault schema). De
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[claude-wiki-pages (Plugin)]]
+- [[Vault Resolution]]
+
+## Concepts Covered
+
+- [[Four-Layer Stack]]
+- [[Plugin Dev-Time vs Runtime]]
+- [[Schema Authority]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Four-Layer Stack]] — four-layer model described here
+- [[Plugin Dev-Time vs Runtime]] — dev/runtime install boundary
+- [[Vault Resolution]] — four-tier resolution contract
+- [[Schema Authority]] — schema authority chain (vault CLAUDE.md wins)

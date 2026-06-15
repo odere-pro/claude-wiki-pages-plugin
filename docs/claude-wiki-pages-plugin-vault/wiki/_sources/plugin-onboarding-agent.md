@@ -12,7 +12,7 @@ tags: ["agent", "onboarding", "plugin"]
 aliases: ["Onboarding Agent Source", "plugin-onboarding-agent", "claude-wiki-pages-onboarding-agent source"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -41,4 +41,18 @@ The canonical agent definition file for `claude-wiki-pages-onboarding-agent`. De
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[Onboarding Wizard]]
+
+## Concepts Covered
+
+- [[Agent Tool Restriction]]
+- [[Wired Source]]
+- [[Ingest Pipeline]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Onboarding Wizard]] — primary source for five-step guided first-run flow
+- [[Agent Tool Restriction]] — no Write/Edit constraint for onboarding agent
+- [[Wired Source]] — wire-source.sh snapshots docs into raw/wired/ as the project intake path

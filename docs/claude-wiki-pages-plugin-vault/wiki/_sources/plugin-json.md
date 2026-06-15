@@ -12,7 +12,7 @@ tags: ["plugin", "manifest", "metadata"]
 aliases: ["Plugin Manifest (plugin.json)", "plugin-json", "plugin.json source"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -40,4 +40,19 @@ The `plugin.json` manifest file that Claude Code reads to register the plugin. D
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[claude-wiki-pages (Plugin)]]
+- [[Plugin Manifest]]
+
+## Concepts Covered
+
+- [[Hook System]]
+- [[Plugin Dev-Time vs Runtime]]
+- [[Schema Authority]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Plugin Manifest]] — primary source for manifest fields (name, version, license, hook entry point)
+- [[claude-wiki-pages (Plugin)]] — plugin identity declared here
+- [[Hook System]] — hook entry point `./hooks/hooks.json` declared in this manifest

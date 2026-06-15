@@ -12,7 +12,7 @@ tags: ["agent", "curator", "plugin"]
 aliases: ["Curator Agent Source", "plugin-curator-agent", "claude-wiki-pages-curator-agent source"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -41,4 +41,21 @@ The canonical agent definition file for `claude-wiki-pages-curator-agent`. Decla
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[Curator Agent]]
+
+## Concepts Covered
+
+- [[Agent Contract Table]]
+- [[Agent Tool Restriction]]
+- [[Git Checkpoint]]
+- [[Auto-Heal]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Curator Agent]] — primary source for agent definition, six phases, and safety model
+- [[Agent Contract Table]] — per-agent contract pattern sourced here
+- [[Agent Tool Restriction]] — tool restriction (no Task)
+- [[Git Checkpoint]] — checkpoint safety model (git checkpoint, not approval)
+- [[Auto-Heal]] — nine ordered auto-fixes behavior

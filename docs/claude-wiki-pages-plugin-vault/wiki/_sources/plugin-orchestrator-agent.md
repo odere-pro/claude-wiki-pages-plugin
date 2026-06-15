@@ -12,7 +12,7 @@ tags: ["agent", "orchestrator", "plugin"]
 aliases: ["Orchestrator Agent Source", "plugin-orchestrator-agent", "claude-wiki-pages-orchestrator-agent source"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -42,4 +42,21 @@ The canonical agent definition file for `claude-wiki-pages-orchestrator-agent`. 
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[Orchestrator Agent]]
+
+## Concepts Covered
+
+- [[Single-Pass Dispatch]]
+- [[Agent Contract Table]]
+- [[Degraded-Mode Routing]]
+- [[Polish Agent]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Orchestrator Agent]] — primary source for dispatch contract, routing table, and hand-off invariants
+- [[Single-Pass Dispatch]] — single-pass routing invariant documented here
+- [[Agent Contract Table]] — per-agent contract pattern sourced here
+- [[Degraded-Mode Routing]] — ADR-0018 degraded-mode offline probe
+- [[Polish Agent]] — tail-of-write step invoked after ingest or curator

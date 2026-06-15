@@ -28,6 +28,7 @@ children:
   - "[[Plugin Arm]]"
   - "[[Multi-Vault Registry]]"
   - "[[Parallel Extract]]"
+  - "[[Operations Log]]"
 child_indexes: []
 tags: ["plugin", "architecture", "agents"]
 created: 2026-06-13
@@ -68,6 +69,10 @@ Three structural patterns govern how the plugin's agents behave:
 ### Install Boundary
 
 [[Plugin Dev-Time vs Runtime]] documents what ships at install versus what is dev-only. Runtime surfaces: `skills/`, `agents/`, `hooks/`, `scripts/`, `rules/`. Dev-only: `docs/`, `tests/`, `.github/`, root `CLAUDE.md`, `NOTICE`, `LICENSE`, `CHANGELOG.md`. End-users interact through skills, agents, hooks, and scripts; they never directly load the plugin repo's docs.
+
+### Audit Trail
+
+[[Operations Log]] is the vault's paper trail: every ingest, curator pass, polish run, snapshot, query, and sync appends an entry with the operation type, date, and summary. It is the authoritative provenance trail for the vault's history, maintained by every write-path skill.
 
 ## Open Questions
 
