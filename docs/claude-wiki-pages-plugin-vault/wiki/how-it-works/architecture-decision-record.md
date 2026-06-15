@@ -5,14 +5,7 @@ aliases: ["Architecture Decision Record", "ADR", "ADRs", "architecture decision 
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[ADR Index]]", "[[Architecture Documentation]]"]
-related:
-  [
-    "[[Design-Drift Gate]]",
-    "[[Four-Layer Stack]]",
-    "[[Deterministic Engine]]",
-    "[[Schema Authority]]",
-    "[[Lint Rules]]",
-  ]
+related: ["[[Design-Drift Gate]]", "[[Four-Layer Stack]]", "[[Deterministic Engine]]", "[[Schema Authority]]", "[[Lint Rules]]"]
 tags: ["concept", "adr", "governance"]
 created: 2026-06-13
 updated: 2026-06-13

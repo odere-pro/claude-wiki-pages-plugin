@@ -1,18 +1,11 @@
 ---
 title: "Defense-in-Depth Scoping"
 type: concept
-aliases:
-  [
-    "Defense-in-Depth Scoping",
-    "defense-in-depth scoping",
-    "defense in depth scoping",
-    "skill-hook defense pair",
-  ]
+aliases: ["Defense-in-Depth Scoping", "defense-in-depth scoping", "defense in depth scoping", "skill-hook defense pair"]
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[Obsidian Vault Skill (SKILL.md)]]"]
-related:
-  ["[[obsidian-vault Skill]]", "[[Obsidian CLI Vault Scoping]]", "[[Firewall]]", "[[Hook System]]"]
+related: ["[[obsidian-vault Skill]]", "[[Obsidian CLI Vault Scoping]]", "[[Firewall]]", "[[Hook System]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Firewall]]", "[[Hook System]]"]

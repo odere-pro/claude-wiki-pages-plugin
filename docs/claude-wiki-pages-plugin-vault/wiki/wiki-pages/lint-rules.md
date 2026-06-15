@@ -4,20 +4,8 @@ type: concept
 aliases: ["Lint Rules", "lint rules", "linting", "vault lint", "audit rules"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[User Guide 04: Review Validate Fix]]",
-    "[[ADR-0014: Single-Source Required Fields]]",
-  ]
-related:
-  [
-    "[[Curator Agent]]",
-    "[[Auto-Heal]]",
-    "[[Git Checkpoint]]",
-    "[[Schema Authority]]",
-    "[[Deterministic Engine]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[User Guide 04: Review Validate Fix]]", "[[ADR-0014: Single-Source Required Fields]]"]
+related: ["[[Curator Agent]]", "[[Auto-Heal]]", "[[Git Checkpoint]]", "[[Schema Authority]]", "[[Deterministic Engine]]"]
 tags: ["concept", "lint", "quality"]
 created: 2026-06-13
 updated: 2026-06-13

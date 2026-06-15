@@ -5,13 +5,7 @@ aliases: ["Frontmatter Parser", "frontmatter parser", "splitFrontmatter", "parse
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[Frontmatter Parser (frontmatter.ts)]]"]
-related:
-  [
-    "[[Wikilink Extractor]]",
-    "[[Provenance Checks]]",
-    "[[Schema Version Gate]]",
-    "[[Schema Authority]]",
-  ]
+related: ["[[Wikilink Extractor]]", "[[Provenance Checks]]", "[[Schema Version Gate]]", "[[Schema Authority]]"]
 contradicts: []
 supersedes: []
 depends_on: []

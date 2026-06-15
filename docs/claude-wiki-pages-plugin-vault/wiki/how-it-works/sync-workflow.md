@@ -5,14 +5,7 @@ aliases: ["Sync Workflow", "sync workflow", "sync procedure", "sync steps"]
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[Sync Skill (SKILL.md)]]"]
-related:
-  [
-    "[[Sync Skill]]",
-    "[[Wired Source]]",
-    "[[sync-source.sh]]",
-    "[[Git Checkpoint]]",
-    "[[Ingest Pipeline]]",
-  ]
+related: ["[[Sync Skill]]", "[[Wired Source]]", "[[sync-source.sh]]", "[[Git Checkpoint]]", "[[Ingest Pipeline]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Wired Source]]", "[[Git Checkpoint]]"]

@@ -1,26 +1,10 @@
 ---
 title: "Agent Tool Restriction"
 type: concept
-aliases:
-  [
-    "Agent Tool Restriction",
-    "agent tool restriction",
-    "tool restriction",
-    "tools field",
-    "tool set boundary",
-  ]
+aliases: ["Agent Tool Restriction", "agent tool restriction", "tool restriction", "tools field", "tool set boundary"]
 parent: "[[Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[Orchestrator Agent Source]]",
-    "[[Ingest Agent Source]]",
-    "[[Curator Agent Source]]",
-    "[[Analyst Agent Source]]",
-    "[[Onboarding Agent Source]]",
-    "[[Maintenance Agent Source]]",
-    "[[Polish Agent Source]]",
-  ]
+sources: ["[[Orchestrator Agent Source]]", "[[Ingest Agent Source]]", "[[Curator Agent Source]]", "[[Analyst Agent Source]]", "[[Onboarding Agent Source]]", "[[Maintenance Agent Source]]", "[[Polish Agent Source]]"]
 related: ["[[Agent Contract Table]]", "[[Firewall]]", "[[Ingest Agent]]"]
 contradicts: []
 supersedes: []

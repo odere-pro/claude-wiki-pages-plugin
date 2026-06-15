@@ -5,13 +5,7 @@ aliases: ["Porter Stemmer", "Porter 1980 stemmer", "stem()", "stemTokens()", "st
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[stem.ts Source]]", "[[search.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
-related:
-  [
-    "[[Tier-2 Deterministic Recall]]",
-    "[[Search Scoring Algorithm]]",
-    "[[Synonym Lexicon]]",
-    "[[Wiki-Native Recall]]",
-  ]
+related: ["[[Tier-2 Deterministic Recall]]", "[[Search Scoring Algorithm]]", "[[Synonym Lexicon]]", "[[Wiki-Native Recall]]"]
 contradicts: []
 supersedes: []
 depends_on: []

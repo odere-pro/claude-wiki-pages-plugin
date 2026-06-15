@@ -1,14 +1,7 @@
 ---
 title: "Schema Version Gate"
 type: concept
-aliases:
-  [
-    "Schema Version Gate",
-    "schema_version check",
-    "CHECK 0",
-    "SUPPORTED_SCHEMA_VERSIONS",
-    "declaredSchemaVersion",
-  ]
+aliases: ["Schema Version Gate", "schema_version check", "CHECK 0", "SUPPORTED_SCHEMA_VERSIONS", "declaredSchemaVersion"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[schema.ts Source]]", "[[verify.ts Source]]"]

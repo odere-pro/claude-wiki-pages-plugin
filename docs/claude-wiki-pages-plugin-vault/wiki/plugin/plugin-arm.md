@@ -5,14 +5,7 @@ aliases: ["Plugin Arm", "plugin arm", "plugin scaffolding arm", "full scaffoldin
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[ADR-0020: The Scaffolding Ablation]]", "[[Features]]"]
-related:
-  [
-    "[[Baseline Arm]]",
-    "[[Scaffolding Ablation]]",
-    "[[Golden Set]]",
-    "[[Zero-Fabrication Floor]]",
-    "[[Local Model Quality Gate]]",
-  ]
+related: ["[[Baseline Arm]]", "[[Scaffolding Ablation]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]", "[[Local Model Quality Gate]]"]
 contradicts: []
 supersedes: []
 depends_on: []

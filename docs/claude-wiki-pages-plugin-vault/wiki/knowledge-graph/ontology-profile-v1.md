@@ -5,13 +5,7 @@ aliases: ["Ontology Profile v1", "ontology-profile-v1", "ontology profile", "pre
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[ADR-0004: Ontology Profile v1]]", "[[Design: Ontology]]", "[[Glossary]]"]
-related:
-  [
-    "[[Schema Authority]]",
-    "[[Graph Traversal Primitive]]",
-    "[[Deterministic Engine]]",
-    "[[NO-RAG Principle]]",
-  ]
+related: ["[[Schema Authority]]", "[[Graph Traversal Primitive]]", "[[Deterministic Engine]]", "[[NO-RAG Principle]]"]
 tags: ["concept", "ontology", "schema"]
 created: 2026-06-13
 updated: 2026-06-13

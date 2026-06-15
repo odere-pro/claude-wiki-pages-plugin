@@ -1,19 +1,11 @@
 ---
 title: "Analyst Dashboard Mode"
 type: concept
-aliases:
-  [
-    "Analyst Dashboard Mode",
-    "analyst dashboard mode",
-    "Dashboard Mode",
-    "Mode 2 Dashboard",
-    "vault health dashboard",
-  ]
+aliases: ["Analyst Dashboard Mode", "analyst dashboard mode", "Dashboard Mode", "Mode 2 Dashboard", "vault health dashboard"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related:
-  ["[[Analyst Agent]]", "[[Dashboard Write Gate]]", "[[Analyst Extract Mode]]", "[[Query Rules]]"]
+related: ["[[Analyst Agent]]", "[[Dashboard Write Gate]]", "[[Analyst Extract Mode]]", "[[Query Rules]]"]
 contradicts: []
 supersedes: []
 depends_on: []

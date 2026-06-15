@@ -4,24 +4,8 @@ type: concept
 aliases: ["Ingest Pipeline", "ingest pipeline", "ingest workflow", "13-step ingest"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[User Guide 02: Create a New Vault]]",
-    "[[User Guide 03: Update Existing Vault]]",
-    "[[ADR-0001: Four-Layer Orchestrator]]",
-    "[[Wiki Pages Skill (maintain-contract SKILL.md)]]",
-  ]
-related:
-  [
-    "[[Ingest Agent]]",
-    "[[Entity Distribution Model]]",
-    "[[Git Checkpoint]]",
-    "[[Folder Note]]",
-    "[[Auto-Heal]]",
-    "[[Schema Authority]]",
-    "[[Maintain Contract]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[User Guide 02: Create a New Vault]]", "[[User Guide 03: Update Existing Vault]]", "[[ADR-0001: Four-Layer Orchestrator]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[Ingest Agent]]", "[[Entity Distribution Model]]", "[[Git Checkpoint]]", "[[Folder Note]]", "[[Auto-Heal]]", "[[Schema Authority]]", "[[Maintain Contract]]"]
 tags: ["concept", "ingest", "workflow"]
 created: 2026-06-13
 updated: 2026-06-13

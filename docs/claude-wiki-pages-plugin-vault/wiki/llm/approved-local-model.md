@@ -1,26 +1,11 @@
 ---
 title: "Approved Local Model"
 type: concept
-aliases:
-  ["Approved Local Model", "approved local model", "qwen3-coder:30b", "APPROVED_LOCAL_MODELS"]
+aliases: ["Approved Local Model", "approved local model", "qwen3-coder:30b", "APPROVED_LOCAL_MODELS"]
 parent: "[[LLM]]"
 path: "llm"
-sources:
-  [
-    "[[ADR-0011: Local-Model Quality Gate]]",
-    "[[ADR-0017: Fabrication Floor — Verbatim Partition]]",
-    "[[ADR-0019: Query Tier and Answer Verification]]",
-    "[[Local Models]]",
-  ]
-related:
-  [
-    "[[Local Model Quality Gate]]",
-    "[[Capability Tier]]",
-    "[[Offline Policy]]",
-    "[[Golden Set]]",
-    "[[Zero-Fabrication Floor]]",
-    "[[Scaffolding Ablation]]",
-  ]
+sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Local Models]]"]
+related: ["[[Local Model Quality Gate]]", "[[Capability Tier]]", "[[Offline Policy]]", "[[Golden Set]]", "[[Zero-Fabrication Floor]]", "[[Scaffolding Ablation]]"]
 tags: ["concept", "local-model"]
 created: 2026-06-13
 updated: 2026-06-13

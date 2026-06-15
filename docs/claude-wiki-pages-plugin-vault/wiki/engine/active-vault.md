@@ -4,12 +4,7 @@ type: concept
 aliases: ["Active Vault", "active vault", "current vault", "current_vault_path"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources:
-  [
-    "[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]",
-    "[[ADR-0016: Simultaneous Multi-Vault Management]]",
-    "[[Operations Guide]]",
-  ]
+sources: ["[[ADR-0009: Multi-Vault Registry and Per-Vault Write Confinement]]", "[[ADR-0016: Simultaneous Multi-Vault Management]]", "[[Operations Guide]]"]
 related: ["[[Multi-Vault Registry]]", "[[Vault Lifecycle]]", "[[Firewall]]", "[[Vault Resolution]]"]
 contradicts: []
 supersedes: []

@@ -1,8 +1,7 @@
 ---
 title: "Provenance Checks"
 type: concept
-aliases:
-  ["Provenance Checks", "CHECK 5a", "CHECK 5b", "provenance-completeness", "provenance-consistency"]
+aliases: ["Provenance Checks", "CHECK 5a", "CHECK 5b", "provenance-completeness", "provenance-consistency"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[provenance.ts Source]]", "[[verify.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]

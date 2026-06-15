@@ -1,24 +1,11 @@
 ---
 title: "Analyst Document Compile Mode"
 type: concept
-aliases:
-  [
-    "Analyst Document Compile Mode",
-    "analyst document compile mode",
-    "Document Compile Mode",
-    "Mode 3 Compile",
-    "document compilation",
-  ]
+aliases: ["Analyst Document Compile Mode", "analyst document compile mode", "Document Compile Mode", "Mode 3 Compile", "document compilation"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related:
-  [
-    "[[Analyst Agent]]",
-    "[[Analyst Dashboard Mode]]",
-    "[[Analyst Extract Mode]]",
-    "[[Draft Review Surface]]",
-  ]
+related: ["[[Analyst Agent]]", "[[Analyst Dashboard Mode]]", "[[Analyst Extract Mode]]", "[[Draft Review Surface]]"]
 contradicts: []
 supersedes: []
 depends_on: []

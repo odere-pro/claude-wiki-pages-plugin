@@ -21,10 +21,16 @@ children:
   - "[[Heartbeat]]"
   - "[[Installation]]"
   - "[[Maintenance Loop]]"
+  - "[[Host-Project Intake]]"
+  - "[[Scheduled Upkeep]]"
+  - "[[Fill-Gaps Skill]]"
+  - "[[Graph Quality]]"
+  - "[[Dangling Wikilink]]"
+  - "[[Node Concentration]]"
 child_indexes: []
-tags: ["how-it-works", "sync", "wired-source", "skills", "workflows"]
+tags: ["how-it-works", "sync", "wired-source", "skills", "workflows", "fill-gaps", "graph-quality"]
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 ---
 
 # How It Works

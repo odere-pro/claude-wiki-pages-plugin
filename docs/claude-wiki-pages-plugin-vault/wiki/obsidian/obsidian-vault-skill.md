@@ -6,15 +6,7 @@ aliases: ["obsidian-vault Skill", "obsidian-vault skill", "obsidian-vault", "vau
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[Obsidian Vault Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related:
-  [
-    "[[Obsidian CLI Vault Scoping]]",
-    "[[Defense-in-Depth Scoping]]",
-    "[[Firewall]]",
-    "[[Vault Resolution]]",
-    "[[Hook System]]",
-    "[[Graph Coloring]]",
-  ]
+related: ["[[Obsidian CLI Vault Scoping]]", "[[Defense-in-Depth Scoping]]", "[[Firewall]]", "[[Vault Resolution]]", "[[Hook System]]", "[[Graph Coloring]]"]
 tags: ["tool", "obsidian", "skill"]
 created: 2026-06-13
 updated: 2026-06-13

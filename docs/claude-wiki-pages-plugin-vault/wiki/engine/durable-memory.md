@@ -1,25 +1,11 @@
 ---
 title: "Durable Memory"
 type: concept
-aliases:
-  [
-    "Durable Memory",
-    "durable memory",
-    "durable-memory carve-out",
-    "agent session memory",
-    "persistent agent memory",
-  ]
+aliases: ["Durable Memory", "durable memory", "durable-memory carve-out", "agent session memory", "persistent agent memory"]
 parent: "[[Wiki Engine]]"
 path: "engine"
 sources: ["[[ADR-0010: Durable-Memory Carve-Out]]", "[[Design: Sequences]]"]
-related:
-  [
-    "[[Ingest Agent]]",
-    "[[Curator Agent]]",
-    "[[Firewall]]",
-    "[[Draft Review Surface]]",
-    "[[Active Vault]]",
-  ]
+related: ["[[Ingest Agent]]", "[[Curator Agent]]", "[[Firewall]]", "[[Draft Review Surface]]", "[[Active Vault]]"]
 contradicts: []
 supersedes: []
 depends_on: []

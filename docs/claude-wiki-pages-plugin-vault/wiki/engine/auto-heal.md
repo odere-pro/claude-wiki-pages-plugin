@@ -4,22 +4,8 @@ type: concept
 aliases: ["Auto-Heal", "auto-heal", "automatic repair", "self-heal"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources:
-  [
-    "[[User Guide 04: Review Validate Fix]]",
-    "[[Architecture Documentation]]",
-    "[[Features]]",
-    "[[Operations Guide]]",
-    "[[Wiki Pages Skill (maintain-contract SKILL.md)]]",
-  ]
-related:
-  [
-    "[[Curator Agent]]",
-    "[[Lint Rules]]",
-    "[[Git Checkpoint]]",
-    "[[Deterministic Engine]]",
-    "[[Maintain Contract]]",
-  ]
+sources: ["[[User Guide 04: Review Validate Fix]]", "[[Architecture Documentation]]", "[[Features]]", "[[Operations Guide]]", "[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
+related: ["[[Curator Agent]]", "[[Lint Rules]]", "[[Git Checkpoint]]", "[[Deterministic Engine]]", "[[Maintain Contract]]"]
 tags: ["concept", "curator", "repair"]
 created: 2026-06-13
 updated: 2026-06-13

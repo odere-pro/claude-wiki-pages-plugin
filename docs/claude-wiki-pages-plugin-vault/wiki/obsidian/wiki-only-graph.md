@@ -4,22 +4,8 @@ type: concept
 aliases: ["Wiki-Only Graph", "wiki-only graph", "graph exclusions", "Obsidian graph"]
 parent: "[[Obsidian]]"
 path: "obsidian"
-sources:
-  [
-    "[[ADR-0023: Wiki-Only Graph]]",
-    "[[ADR-0022: Folder Notes and Graph Quality]]",
-    "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]",
-    "[[User Guide: Obsidian Experience]]",
-    "[[Glossary]]",
-  ]
-related:
-  [
-    "[[Graph Coloring]]",
-    "[[Graph Config Cache]]",
-    "[[Polish Agent]]",
-    "[[Folder Note]]",
-    "[[Obsidian Experience]]",
-  ]
+sources: ["[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[User Guide: Obsidian Experience]]", "[[Glossary]]"]
+related: ["[[Graph Coloring]]", "[[Graph Config Cache]]", "[[Polish Agent]]", "[[Folder Note]]", "[[Obsidian Experience]]"]
 tags: ["concept", "graph", "obsidian"]
 created: 2026-06-13
 updated: 2026-06-13

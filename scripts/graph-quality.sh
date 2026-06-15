@@ -81,6 +81,29 @@ CLUSTERS = ["plugin", "wiki-pages", "llm", "obsidian", "engine", "knowledge-grap
 
 LINK_RE = re.compile(r"\[\[([^\[\]]+?)\]\]")
 
+def strip_code(text):
+    # Drop fenced code blocks (``` / ~~~) and inline code spans (`…`) before
+    # scanning for [[wikilinks]] — Obsidian does not render links inside code,
+    # so a `[[Target]]` written as a documentation example is not a real link.
+    # Twin of strip_code in scripts/verify-ingest.sh and stripCode in
+    # src/core/wikilink-check.ts (pinned by gate-05).
+    out = []
+    in_fence = False
+    marker = ""
+    for line in text.splitlines():
+        s = line.lstrip()
+        if not in_fence and (s.startswith("```") or s.startswith("~~~")):
+            in_fence = True
+            marker = s[:3]
+            continue
+        if in_fence:
+            if s.startswith(marker):
+                in_fence = False
+                marker = ""
+            continue
+        out.append(re.sub(r"`[^`]*`", "", line))
+    return "\n".join(out)
+
 def norm(s):
     return s.strip().lower()
 
@@ -165,7 +188,7 @@ for dirpath, _dirs, files in os.walk(wiki):
         for a in aliases:
             resolvable.add(norm(a))
 
-        links = [link_target(m) for m in LINK_RE.findall(text)]
+        links = [link_target(m) for m in LINK_RE.findall(strip_code(text))]
 
         top = parts[0] if len(parts) > 1 else ""
         is_special = top in ("_sources", "_synthesis") or (len(parts) == 1 and stem in ("index", "log", "manifest"))

@@ -1,13 +1,11 @@
 ---
 title: "Time-to-First-Value"
 type: concept
-aliases:
-  ["Time-to-First-Value", "time-to-first-value", "TTFV", "first cited answer", "quickstart path"]
+aliases: ["Time-to-First-Value", "time-to-first-value", "TTFV", "first cited answer", "quickstart path"]
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[Getting Started (CLI Quickstart)]]", "[[User Guide 01: Getting Started]]"]
-related:
-  ["[[Onboarding Wizard]]", "[[Doctor Command]]", "[[Installation]]", "[[Portable Markdown]]"]
+related: ["[[Onboarding Wizard]]", "[[Doctor Command]]", "[[Installation]]", "[[Portable Markdown]]"]
 contradicts: []
 supersedes: []
 depends_on: []

@@ -5,15 +5,7 @@ aliases: ["Search Scoring Algorithm", "search scoring", "scoring channels", "Mat
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[search.ts Source]]", "[[Engine API Skill (SKILL.md)]]", "[[graph.ts Source]]"]
-related:
-  [
-    "[[Tier-2 Deterministic Recall]]",
-    "[[Graph Walk Algorithm]]",
-    "[[Synonym Lexicon]]",
-    "[[Porter Stemmer]]",
-    "[[Wiki-Native Recall]]",
-    "[[Deterministic Engine]]",
-  ]
+related: ["[[Tier-2 Deterministic Recall]]", "[[Graph Walk Algorithm]]", "[[Synonym Lexicon]]", "[[Porter Stemmer]]", "[[Wiki-Native Recall]]", "[[Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Tier-2 Deterministic Recall]]", "[[Graph Walk Algorithm]]"]

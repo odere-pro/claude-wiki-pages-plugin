@@ -1,20 +1,11 @@
 ---
 title: "Scaffolding Ablation"
 type: concept
-aliases:
-  ["Scaffolding Ablation", "scaffolding ablation", "ablation eval", "plugin arm vs baseline arm"]
+aliases: ["Scaffolding Ablation", "scaffolding ablation", "ablation eval", "plugin arm vs baseline arm"]
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[ADR-0020: The Scaffolding Ablation]]", "[[Features]]"]
-related:
-  [
-    "[[Local Model Quality Gate]]",
-    "[[Golden Set]]",
-    "[[claude-wiki-pages Plugin]]",
-    "[[Ingest Pipeline]]",
-    "[[Approved Local Model]]",
-    "[[NO-RAG Principle]]",
-  ]
+related: ["[[Local Model Quality Gate]]", "[[Golden Set]]", "[[claude-wiki-pages Plugin]]", "[[Ingest Pipeline]]", "[[Approved Local Model]]", "[[NO-RAG Principle]]"]
 tags: ["concept", "eval", "quality"]
 created: 2026-06-13
 updated: 2026-06-13

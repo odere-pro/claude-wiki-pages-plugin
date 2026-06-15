@@ -1,30 +1,11 @@
 ---
 title: "Zero-Fabrication Floor"
 type: concept
-aliases:
-  [
-    "Zero-Fabrication Floor",
-    "zero-fabrication floor",
-    "fabrication floor",
-    "zero fabrication",
-    "anti-fabrication",
-  ]
+aliases: ["Zero-Fabrication Floor", "zero-fabrication floor", "fabrication floor", "zero fabrication", "anti-fabrication"]
 parent: "[[LLM]]"
 path: "llm"
-sources:
-  [
-    "[[ADR-0011: Local-Model Quality Gate]]",
-    "[[ADR-0017: Fabrication Floor — Verbatim Partition]]",
-    "[[Local Models]]",
-  ]
-related:
-  [
-    "[[Local Model Quality Gate]]",
-    "[[Golden Set]]",
-    "[[Approved Local Model]]",
-    "[[Capability Tier]]",
-    "[[Verbatim Partition]]",
-  ]
+sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[Local Models]]"]
+related: ["[[Local Model Quality Gate]]", "[[Golden Set]]", "[[Approved Local Model]]", "[[Capability Tier]]", "[[Verbatim Partition]]"]
 contradicts: []
 supersedes: []
 depends_on: []

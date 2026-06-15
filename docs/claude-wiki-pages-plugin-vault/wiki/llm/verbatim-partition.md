@@ -1,24 +1,11 @@
 ---
 title: "Verbatim Partition"
 type: concept
-aliases:
-  [
-    "Verbatim Partition",
-    "verbatim partition",
-    "verbatim test",
-    "over-citation vs fabrication",
-    "substring test",
-  ]
+aliases: ["Verbatim Partition", "verbatim partition", "verbatim test", "over-citation vs fabrication", "substring test"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[ADR-0017: Fabrication Floor — Verbatim Partition]]"]
-related:
-  [
-    "[[Zero-Fabrication Floor]]",
-    "[[Local Model Quality Gate]]",
-    "[[Golden Set]]",
-    "[[Approved Local Model]]",
-  ]
+related: ["[[Zero-Fabrication Floor]]", "[[Local Model Quality Gate]]", "[[Golden Set]]", "[[Approved Local Model]]"]
 contradicts: []
 supersedes: []
 depends_on: []

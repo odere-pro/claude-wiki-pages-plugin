@@ -4,21 +4,8 @@ type: concept
 aliases: ["Vault Resolution", "vault resolution", "resolve-vault", "four-tier resolution"]
 parent: "[[Wiki Engine]]"
 path: "engine"
-sources:
-  [
-    "[[Architecture Documentation]]",
-    "[[Operations Guide]]",
-    "[[Design: Claude Config and Security]]",
-  ]
-related:
-  [
-    "[[Firewall]]",
-    "[[Multi-Vault Registry]]",
-    "[[Active Vault]]",
-    "[[Installation]]",
-    "[[Onboarding Wizard]]",
-    "[[Hook System]]",
-  ]
+sources: ["[[Architecture Documentation]]", "[[Operations Guide]]", "[[Design: Claude Config and Security]]"]
+related: ["[[Firewall]]", "[[Multi-Vault Registry]]", "[[Active Vault]]", "[[Installation]]", "[[Onboarding Wizard]]", "[[Hook System]]"]
 tags: ["concept", "vault"]
 created: 2026-06-13
 updated: 2026-06-13

@@ -1,18 +1,11 @@
 ---
 title: "Dashboard Write Gate"
 type: concept
-aliases:
-  ["Dashboard Write Gate", "dashboard write gate", "dashboard gate", "dashboard approval gate"]
+aliases: ["Dashboard Write Gate", "dashboard write gate", "dashboard gate", "dashboard approval gate"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[Analyst Modes Skill (SKILL.md)]]", "[[Analyst Agent Source]]"]
-related:
-  [
-    "[[Analyst Agent]]",
-    "[[Analyst Dashboard Mode]]",
-    "[[Git Checkpoint]]",
-    "[[Draft Review Surface]]",
-  ]
+related: ["[[Analyst Agent]]", "[[Analyst Dashboard Mode]]", "[[Git Checkpoint]]", "[[Draft Review Surface]]"]
 contradicts: []
 supersedes: []
 depends_on: []

@@ -1,13 +1,7 @@
 ---
 title: "Frontmatter Validation"
 type: concept
-aliases:
-  [
-    "Frontmatter Validation",
-    "frontmatter validation",
-    "validate-frontmatter.sh",
-    "frontmatter checker",
-  ]
+aliases: ["Frontmatter Validation", "frontmatter validation", "validate-frontmatter.sh", "frontmatter checker"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[ADR-0014: Single-Source Required Fields]]"]

@@ -1,14 +1,7 @@
 ---
 title: "Node Grounding"
 type: concept
-aliases:
-  [
-    "Node Grounding",
-    "node grounding",
-    "mermaid node grounding",
-    "grounded node",
-    "speculative marker",
-  ]
+aliases: ["Node Grounding", "node grounding", "mermaid node grounding", "grounded node", "speculative marker"]
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design README]]", "[[Design Diagram Template]]"]

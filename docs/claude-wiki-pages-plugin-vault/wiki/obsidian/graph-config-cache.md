@@ -1,14 +1,7 @@
 ---
 title: "Graph Config Cache"
 type: concept
-aliases:
-  [
-    "Graph Config Cache",
-    "graph config cache",
-    "regenerable cache",
-    ".obsidian/ cache",
-    "graph.json cache",
-  ]
+aliases: ["Graph Config Cache", "graph config cache", "regenerable cache", ".obsidian/ cache", "graph.json cache"]
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[ADR-0023: Wiki-Only Graph]]", "[[User Guide: Obsidian Experience]]"]

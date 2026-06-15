@@ -4,15 +4,8 @@ type: concept
 aliases: ["Design-Drift Gate", "design-drift gate", "validate-docs Check 5", "drift gate"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
-sources:
-  [
-    "[[ADR-0013: Design-Drift Gate]]",
-    "[[Design README]]",
-    "[[Design Diagram Template]]",
-    "[[Design: Feature Relations]]",
-  ]
-related:
-  ["[[Node Grounding]]", "[[Parity Gate]]", "[[Software 3.0]]", "[[Architecture Decision Record]]"]
+sources: ["[[ADR-0013: Design-Drift Gate]]", "[[Design README]]", "[[Design Diagram Template]]", "[[Design: Feature Relations]]"]
+related: ["[[Node Grounding]]", "[[Parity Gate]]", "[[Software 3.0]]", "[[Architecture Decision Record]]"]
 contradicts: []
 supersedes: []
 depends_on: []

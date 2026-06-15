@@ -4,22 +4,8 @@ type: concept
 aliases: ["Tier-2 Deterministic Recall", "Tier-2 recall", "synonym+stemming expansion", "tier 2"]
 parent: "[[Engine — Index]]"
 path: "engine"
-sources:
-  [
-    "[[search.ts Source]]",
-    "[[vocabulary.ts Source]]",
-    "[[stem.ts Source]]",
-    "[[Engine API Skill (SKILL.md)]]",
-  ]
-related:
-  [
-    "[[Search Scoring Algorithm]]",
-    "[[Synonym Lexicon]]",
-    "[[Porter Stemmer]]",
-    "[[Wiki-Native Recall]]",
-    "[[Deterministic Engine]]",
-    "[[Graph Traversal Primitive]]",
-  ]
+sources: ["[[search.ts Source]]", "[[vocabulary.ts Source]]", "[[stem.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]
+related: ["[[Search Scoring Algorithm]]", "[[Synonym Lexicon]]", "[[Porter Stemmer]]", "[[Wiki-Native Recall]]", "[[Deterministic Engine]]", "[[Graph Traversal Primitive]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Synonym Lexicon]]", "[[Porter Stemmer]]"]

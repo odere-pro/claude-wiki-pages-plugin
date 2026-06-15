@@ -1,24 +1,11 @@
 ---
 title: "Six Surfaces Dual-Reader Contract"
 type: concept
-aliases:
-  [
-    "Six Surfaces Dual-Reader Contract",
-    "six surfaces dual-reader contract",
-    "six surfaces",
-    "dual-reader contract",
-    "six-surfaces table",
-  ]
+aliases: ["Six Surfaces Dual-Reader Contract", "six surfaces dual-reader contract", "six surfaces", "dual-reader contract", "six-surfaces table"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[SOFTWARE-3-0: Dual Entry Point]]"]
-related:
-  [
-    "[[Dual Entry Point]]",
-    "[[Plugin Dev-Time vs Runtime]]",
-    "[[Plugin Manifest]]",
-    "[[Analyst Agent]]",
-  ]
+related: ["[[Dual Entry Point]]", "[[Plugin Dev-Time vs Runtime]]", "[[Plugin Manifest]]", "[[Analyst Agent]]"]
 contradicts: []
 supersedes: []
 depends_on: []

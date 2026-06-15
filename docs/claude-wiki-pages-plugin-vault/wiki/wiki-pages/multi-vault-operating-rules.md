@@ -1,18 +1,11 @@
 ---
 title: "Multi-Vault Operating Rules"
 type: concept
-aliases:
-  [
-    "Multi-Vault Operating Rules",
-    "multi-vault operating rules",
-    "multi-vault agent rules",
-    "vault operating rules",
-  ]
+aliases: ["Multi-Vault Operating Rules", "multi-vault operating rules", "multi-vault agent rules", "vault operating rules"]
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related:
-  ["[[Maintain Contract]]", "[[Multi-Vault Registry]]", "[[Firewall]]", "[[Vault Resolution]]"]
+related: ["[[Maintain Contract]]", "[[Multi-Vault Registry]]", "[[Firewall]]", "[[Vault Resolution]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Multi-Vault Registry]]", "[[Firewall]]", "[[Vault Resolution]]"]

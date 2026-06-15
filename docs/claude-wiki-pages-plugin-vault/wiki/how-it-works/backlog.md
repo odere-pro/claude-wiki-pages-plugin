@@ -4,15 +4,8 @@ type: concept
 aliases: ["Backlog", "backlog", "pending sources", "catch-up", "engine backlog"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources:
-  [
-    "[[Automation]]",
-    "[[Glossary]]",
-    "[[User Guide 06: Check the Dashboard]]",
-    "[[Operations Guide]]",
-  ]
-related:
-  ["[[Maintenance Agent]]", "[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
+sources: ["[[Automation]]", "[[Glossary]]", "[[User Guide 06: Check the Dashboard]]", "[[Operations Guide]]"]
+related: ["[[Maintenance Agent]]", "[[Deterministic Engine]]", "[[Ingest Agent]]", "[[Curator Agent]]"]
 tags: ["concept", "automation", "maintenance"]
 created: 2026-06-13
 updated: 2026-06-13

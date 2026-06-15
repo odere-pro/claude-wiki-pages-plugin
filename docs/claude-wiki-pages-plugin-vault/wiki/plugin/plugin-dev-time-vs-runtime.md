@@ -1,26 +1,11 @@
 ---
 title: "Plugin Dev-Time vs Runtime"
 type: concept
-aliases:
-  [
-    "Plugin Dev-Time vs Runtime",
-    "plugin dev-time vs runtime",
-    "dev-time runtime boundary",
-    "plugin session context boundary",
-    "install boundary",
-  ]
+aliases: ["Plugin Dev-Time vs Runtime", "plugin dev-time vs runtime", "dev-time runtime boundary", "plugin session context boundary", "install boundary"]
 parent: "[[Plugin]]"
 path: "plugin"
 sources: ["[[Plugin CLAUDE.md]]", "[[Plugin README]]", "[[SOFTWARE-3-0: Dual Entry Point]]"]
-related:
-  [
-    "[[Plugin Manifest]]",
-    "[[claude-wiki-pages Plugin]]",
-    "[[Vault Resolution]]",
-    "[[Schema Authority]]",
-    "[[Dual Entry Point]]",
-    "[[Six Surfaces Dual-Reader Contract]]",
-  ]
+related: ["[[Plugin Manifest]]", "[[claude-wiki-pages Plugin]]", "[[Vault Resolution]]", "[[Schema Authority]]", "[[Dual Entry Point]]", "[[Six Surfaces Dual-Reader Contract]]"]
 contradicts: []
 supersedes: []
 depends_on: []

@@ -5,15 +5,7 @@ aliases: ["Sync Skill", "sync skill", "sync", "/claude-wiki-pages:sync"]
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[Sync Skill (SKILL.md)]]"]
-related:
-  [
-    "[[Wired Source]]",
-    "[[Sync Workflow]]",
-    "[[sync-source.sh]]",
-    "[[Ingest Pipeline]]",
-    "[[Git Checkpoint]]",
-    "[[Ingest Agent]]",
-  ]
+related: ["[[Wired Source]]", "[[Sync Workflow]]", "[[sync-source.sh]]", "[[Ingest Pipeline]]", "[[Git Checkpoint]]", "[[Ingest Agent]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[Wired Source]]", "[[Git Checkpoint]]"]

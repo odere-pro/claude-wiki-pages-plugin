@@ -5,14 +5,7 @@ aliases: ["Review Gate", "review gate", "_proposed/ gate", "proposed gate", "dra
 parent: "[[Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[ADR-0010: Durable-Memory Carve-Out]]", "[[Design: Sequences]]"]
-related:
-  [
-    "[[Durable Memory]]",
-    "[[Draft Review Surface]]",
-    "[[Ingest Agent]]",
-    "[[Curator Agent]]",
-    "[[Firewall]]",
-  ]
+related: ["[[Durable Memory]]", "[[Draft Review Surface]]", "[[Ingest Agent]]", "[[Curator Agent]]", "[[Firewall]]"]
 contradicts: []
 supersedes: []
 depends_on: []

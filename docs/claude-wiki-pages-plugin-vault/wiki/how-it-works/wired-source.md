@@ -4,24 +4,15 @@ type: concept
 aliases: ["Wired Source", "wired source", "wired repo", "wired source repository"]
 parent: "[[How It Works]]"
 path: "how-it-works"
-sources: ["[[Sync Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]"]
-related:
-  [
-    "[[Sync Skill]]",
-    "[[Sync Workflow]]",
-    "[[sync-source.sh]]",
-    "[[Ingest Pipeline]]",
-    "[[Firewall]]",
-    "[[Git Checkpoint]]",
-    "[[Vault Resolution]]",
-  ]
+sources: ["[[Sync Skill (SKILL.md)]]", "[[Engine Scripts Layer (CLAUDE.md)]]", "[[ADR-0024: Host-Project Intake]]"]
+related: ["[[Sync Skill]]", "[[Sync Workflow]]", "[[sync-source.sh]]", "[[Ingest Pipeline]]", "[[Firewall]]", "[[Git Checkpoint]]", "[[Vault Resolution]]", "[[Host-Project Intake]]"]
 contradicts: []
 supersedes: []
 depends_on: []
 tags: ["concept", "sync", "wired-source"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 2
+updated: 2026-06-15
+update_count: 3
 status: active
 confidence: 1.0
 ---

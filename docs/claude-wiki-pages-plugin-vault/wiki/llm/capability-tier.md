@@ -1,33 +1,11 @@
 ---
 title: "Capability Tier"
 type: concept
-aliases:
-  [
-    "Capability Tier",
-    "capability tier",
-    "capability tiers",
-    "model tier",
-    "ingest-extract tier",
-    "query tier",
-    "draft tier",
-  ]
+aliases: ["Capability Tier", "capability tier", "capability tiers", "model tier", "ingest-extract tier", "query tier", "draft tier"]
 parent: "[[LLM]]"
 path: "llm"
-sources:
-  [
-    "[[ADR-0011: Local-Model Quality Gate]]",
-    "[[ADR-0018: Offline Policy and Degraded-Mode Routing]]",
-    "[[ADR-0019: Query Tier and Answer Verification]]",
-    "[[Local Models]]",
-  ]
-related:
-  [
-    "[[Local Model Quality Gate]]",
-    "[[Approved Local Model]]",
-    "[[Zero-Fabrication Floor]]",
-    "[[Offline Policy]]",
-    "[[Golden Set]]",
-  ]
+sources: ["[[ADR-0011: Local-Model Quality Gate]]", "[[ADR-0018: Offline Policy and Degraded-Mode Routing]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Local Models]]"]
+related: ["[[Local Model Quality Gate]]", "[[Approved Local Model]]", "[[Zero-Fabrication Floor]]", "[[Offline Policy]]", "[[Golden Set]]"]
 contradicts: []
 supersedes: []
 depends_on: []
