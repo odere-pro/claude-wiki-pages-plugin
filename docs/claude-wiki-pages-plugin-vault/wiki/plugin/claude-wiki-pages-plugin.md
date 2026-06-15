@@ -2,7 +2,7 @@
 title: "claude-wiki-pages (Plugin)"
 type: entity
 entity_type: product
-aliases: ["claude-wiki-pages (Plugin)", "claude-wiki-pages Plugin", "claude-wiki-pages", "the plugin"]
+aliases: ["claude-wiki-pages (Plugin)", "claude-wiki-pages", "the plugin"]
 parent: "[[claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[Installation Guide]]", "[[Features]]", "[[Getting Started (CLI Quickstart)]]", "[[Plugin README]]", "[[Plugin Manifest (plugin.json)]]"]

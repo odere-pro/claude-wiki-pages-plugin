@@ -1,7 +1,7 @@
 ---
 title: "Graph Walk Algorithm"
 type: concept
-aliases: ["Graph Walk Algorithm", "graph walk", "BFS walk", "walk()", "graph traversal implementation"]
+aliases: ["Graph Walk Algorithm", "graph walk", "graph traversal implementation"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[graph.ts Source]]", "[[search.ts Source]]", "[[Engine API Skill (SKILL.md)]]"]

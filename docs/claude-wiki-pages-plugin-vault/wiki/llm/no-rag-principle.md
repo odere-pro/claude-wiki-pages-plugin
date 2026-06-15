@@ -1,7 +1,7 @@
 ---
 title: "NO-RAG Principle"
 type: concept
-aliases: ["NO-RAG Principle", "NO-RAG", "no embeddings", "no-rag", "wiki-native recall"]
+aliases: ["NO-RAG Principle", "NO-RAG", "no embeddings", "no-rag"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[ADR-0007: Wiki-Native Recall]]", "[[ADR-0019: Query Tier and Answer Verification]]", "[[Architecture Documentation]]", "[[Glossary]]"]

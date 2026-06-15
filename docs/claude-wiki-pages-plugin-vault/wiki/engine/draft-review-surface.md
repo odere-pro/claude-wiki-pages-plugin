@@ -1,7 +1,7 @@
 ---
 title: "Draft Review Surface"
 type: concept
-aliases: ["Draft Review Surface", "_proposed/ gate", "propose verb", "review approve reject", "draft promotion"]
+aliases: ["Draft Review Surface", "propose verb", "review approve reject", "draft promotion"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[propose.ts Source]]", "[[Engine API Skill (SKILL.md)]]", "[[SOFTWARE-3-0: Dual Entry Point]]"]

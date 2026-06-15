@@ -1,7 +1,7 @@
 ---
 title: "Installation"
 type: concept
-aliases: ["Installation", "installation", "install", "plugin install"]
+aliases: ["Installation", "installation", "plugin install"]
 parent: "[[How It Works]]"
 path: "how-it-works"
 sources: ["[[Installation Guide]]", "[[Getting Started (CLI Quickstart)]]", "[[User Guide 01: Getting Started]]", "[[Features]]"]
