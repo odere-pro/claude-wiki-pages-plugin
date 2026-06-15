@@ -6,7 +6,7 @@ aliases: ["Engineering Team", "engineering team", "wiki-dev", "wiki-dev team"]
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[design-04-teams-and-agents|Design: Teams and Agents]]", "[[_sources/teams|Agent Teams]]"]
-related: ["[[brainstorming-team|Brainstorming Team]]", "[[four-layer-stack|Four-Layer Stack]]", "[[architecture-decision-record|Architecture Decision Record]]"]
+related: ["[[brainstorming-team|Brainstorming Team]]", "[[four-layer-stack|Four-Layer Stack]]"]
 tags: ["entity", "organization", "dev-team"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -50,4 +50,4 @@ The engineering team is the team that builds and maintains the plugin's 7 runtim
 
 - [[brainstorming-team|Brainstorming Team]] — the ideation team whose proposals the engineering team implements
 - [[four-layer-stack|Four-Layer Stack]] — the architecture the engineering team maintains
-- [[architecture-decision-record|Architecture Decision Record]] — the ADR format that governs the engineering team's design decisions
+- Architecture Decision Record — the ADR format that governs the engineering team's design decisions

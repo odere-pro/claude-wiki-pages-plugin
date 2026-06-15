@@ -300,12 +300,14 @@ Because `_proposed/` is a sibling of `wiki/`, drafts are **outside every wiki-sc
 
 Topic branches are color-coded in Obsidian's graph view via the internal graph plugin API. The `/claude-wiki-pages:obsidian-graph-colors` skill manages this programmatically using `obsidian eval`. No frontmatter field needed — colors are applied at the Obsidian graph engine level.
 
-The canonical group order (first match wins, top-down) is **topics → specials**:
+The canonical group order (first match wins, top-down) is the seven **topics**:
 
 1. **Topics** — one `path:wiki/<topic>` query per top-level topic folder, each a unique color. Folder notes inherit their topic's color (there is no `file:_index` catch-all group).
-2. **Specials** — `_sources` gray, `_synthesis` yellow.
 
-The graph shows **only generated wiki pages**: `raw/`, `_templates/`, and `_proposed/` are excluded from Obsidian's index via the Excluded files setting (`.obsidian/app.json` → `userIgnoreFilters: ["raw/", "_templates/", "_proposed/"]`), so they never appear in the graph, search, or link autocomplete — and never get color groups.
+The graph draws **only topic pages, as topic islands** (ADR-0033). Two exclusion layers produce that shape:
+
+- **Excluded from Obsidian's index** (`.obsidian/app.json` → `userIgnoreFilters: ["raw/", "_templates/", "_proposed/", "_inbox/"]`): `raw/` provenance, `_templates/`, draft `_proposed/`, and the `_inbox/` stub quarantine never appear in the graph, search, or autocomplete.
+- **Excluded from the topic graph view** (`.obsidian/graph.json` → `search`): the connective scaffolding — `wiki/_sources/`, `wiki/_synthesis/`, `wiki/index.md`, `wiki/log.md` — is filtered out so the topics render as clean islands instead of one hairball fused through shared sources and the MOC. These pages stay in the vault (provenance, synthesis, MOC, log are intact); they are simply not drawn. `_sources`/`_synthesis` therefore get **no color group** — they are not shown.
 
 When `obsidian eval` is unavailable (no CLI, no running Obsidian), the skill's documented HEADLESS FALLBACK writes `.obsidian/graph.json` directly, touching only `colorGroups`/`collapse-color-groups`. Trade-off: a running Obsidian can clobber a direct file write with its in-memory state — restart Obsidian after a headless write.
 
@@ -381,6 +383,8 @@ Each row states: which predicate, which page class may originate the link (domai
 | `child_indexes` | `index` | `index` | directed, 0..N |
 
 > The graph-traversal primitive (Brief §6) takes its edge set from this table. R2 `--graph` walks the provenance/association core — `sources`+`related`+`depends_on` — to N≤2; the remaining rows (`key_pages`, `members`, `scope`, `children`, `child_indexes`, `parent`) are the MOC/descent edges C1 uses. `contradicts`/`supersedes` are available to R3/synthesis. An edge violating a row's domain/range is a future S1-check lint finding, NOT a traversal the engine follows.
+>
+> **Topic-locality (ADR-0033).** The association predicates `related`, `depends_on`, `key_pages`, `members`, `scope`, `contradicts`, and `supersedes` are additionally constrained: both endpoints must live in the **same top-level topic folder**. A cross-topic association is written as prose, not a typed link, so the graph stays a set of topic islands. `parent`/`sources`/`children`/`child_indexes` are exempt (they target the navigation spine or `_sources/`, which the topic graph excludes from view).
 
 ### Enum list
 
@@ -441,6 +445,7 @@ Check for:
 - **Index aliases** — every folder note must have `aliases` reflecting the topic (slug, title case, abbreviations).
 - **Legacy index filename** — a `_index.md` in a schema_version 3 vault (verify WARN `legacy-index-filename`; remediation: run `bash scripts/engine.sh migrate --write`).
 - **Plain-string hierarchy links** — `parent`/`children`/`child_indexes` values that are not quoted `"[[wikilink]]"`s (no graph edge is produced).
+- **Cross-topic links** — a `[[wikilink]]` or association field (`related`/`depends_on`/`key_pages`/`members`/`scope`) pointing from a topic page to a page in a **different** top-level topic folder (ADR-0033 topic-locality). Info-level; remediate with `bash scripts/disentangle-links.sh --apply`. The spine (`parent`), provenance (`sources`), and folder-note `children`/`child_indexes` are exempt.
 - **Missing parent/path** — notes with missing or incorrect `parent`/`path` fields.
 - **Excessive nesting** — folders deeper than four levels (signal to refactor).
 - **Index consistency** — `wiki/index.md` matches actual wiki contents.
@@ -477,6 +482,11 @@ These rules keep pages scannable in Obsidian and in plain-markdown viewers. They
 - `aliases` aid search/autocomplete discovery only — they are not a resolution mechanism. Do not rely on an alias to make a written link resolve; write the piped basename form instead.
 - In frontmatter, use typed relationship fields (`contradicts`, `supersedes`, `depends_on`) for semantic links — also in piped basename form.
 - Wikilink display text uses Title Case page titles; the link target is always the file basename (or wiki-relative path), never the title.
+
+> [!important] Topic-local linking — keep the graph as topic islands (ADR-0033)
+> A `[[wikilink]]` between two **topic pages** must stay **within the same top-level topic folder**. Do not link a page in one topic folder to a page in another: a cross-topic `[[link]]` fuses the two topics in the graph and, repeated across the tree, collapses the topic islands into a hairball. Write a cross-topic reference as **plain prose** (the page's title as text), not a wikilink.
+> Exempt — these never count against topic-locality: the navigation spine `parent:` (up to the folder note, then `index.md`), provenance `sources:` → `_sources/**`, and a folder note's `children:`/`child_indexes:` (its own pages). The association fields `related`/`depends_on`/`key_pages`/`members`/`scope`/`contradicts`/`supersedes` must point only to same-topic pages.
+> Rule of thumb: **a link is allowed unless both endpoints are topic pages in different top-level folders.** Remediate an existing vault with `bash scripts/disentangle-links.sh --apply` (dry-run by default).
 
 ## Naming conventions
 

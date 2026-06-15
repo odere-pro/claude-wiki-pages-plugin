@@ -5,7 +5,7 @@ aliases: ["Sources Section", "sources section", "## Sources", "sources grounding
 parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[llm-wiki-07-query-the-wiki|User Guide 07: Query the Wiki]]"]
-related: ["[[query-rules|Query Rules]]", "[[grounded-retrieval|Grounded Retrieval]]", "[[analyst-agent|Analyst Agent]]", "[[synthesis-note|Synthesis Note]]", "[[challenge-mode|Challenge Mode]]"]
+related: ["[[query-rules|Query Rules]]", "[[grounded-retrieval|Grounded Retrieval]]", "[[synthesis-note|Synthesis Note]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -53,7 +53,7 @@ Consider adding source material to vault/raw/ and running /claude-wiki-pages:wik
 
 ## Definition
 
-ADR-0022 established the Sources Section grounding contract: every answer produced by the [[analyst-agent|Analyst Agent]] or the `/claude-wiki-pages:query` skill must end with a numbered `## Sources` section that cites the wiki pages consulted. This is modeled on research-paper citation practice, adapted for wiki-native wikilinks.
+ADR-0022 established the Sources Section grounding contract: every answer produced by the Analyst Agent or the `/claude-wiki-pages:query` skill must end with a numbered `## Sources` section that cites the wiki pages consulted. This is modeled on research-paper citation practice, adapted for wiki-native wikilinks.
 
 Format:
 
@@ -94,6 +94,6 @@ When a query answer reveals a cross-cutting insight not yet captured in the wiki
 
 - [[query-rules|Query Rules]] — the full query workflow; the Sources Section is the terminal step
 - [[grounded-retrieval|Grounded Retrieval]] — the retrieval discipline that ensures the Sources Section lists pages actually consulted
-- [[analyst-agent|Analyst Agent]] — the agent that produces Sources Sections as part of every answer
+- Analyst Agent — the agent that produces Sources Sections as part of every answer
 - [[synthesis-note|Synthesis Note]] — a permanent wiki page that extends the Sources Section grounding to a stored analysis
-- [[challenge-mode|Challenge Mode]] — a query mode that explicitly surfaces contradictions; the Sources Section includes pages on both sides of a contradiction
+- Challenge Mode — a query mode that explicitly surfaces contradictions; the Sources Section includes pages on both sides of a contradiction

@@ -5,7 +5,7 @@ aliases: ["MOC Repair Primitives", "moc-build", "replaceYamlListField", "syncChi
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[moc-build-ts-source|moc-build.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
-related: ["[[deterministic-engine|Deterministic Engine]]", "[[folder-note|Folder Note]]", "[[lint-rules|Lint Rules]]"]
+related: ["[[deterministic-engine|Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -48,5 +48,5 @@ const stub = buildIndexStub("my-topic", ["Concept A", "Concept B"], "2026-06-13"
 ## Related Concepts
 
 - [[deterministic-engine|Deterministic Engine]] — the `fix` and `heal` verbs that call these primitives
-- [[folder-note|Folder Note]] — the index page type these primitives maintain
-- [[lint-rules|Lint Rules]] — the consistency checks that `fix` repairs deterministically
+- Folder Note — the index page type these primitives maintain
+- Lint Rules — the consistency checks that `fix` repairs deterministically

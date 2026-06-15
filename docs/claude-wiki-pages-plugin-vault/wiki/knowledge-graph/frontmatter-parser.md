@@ -5,7 +5,7 @@ aliases: ["Frontmatter Parser", "frontmatter parser", "splitFrontmatter", "parse
 parent: "[[knowledge-graph|Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[frontmatter-ts|Frontmatter Parser (frontmatter.ts)]]"]
-related: ["[[wikilink-extractor|Wikilink Extractor]]", "[[provenance-checks|Provenance Checks]]", "[[schema-version-gate|Schema Version Gate]]", "[[schema-authority|Schema Authority]]"]
+related: ["[[wikilink-extractor|Wikilink Extractor]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -64,6 +64,6 @@ The five exported functions and their roles:
 ## Related Concepts
 
 - [[wikilink-extractor|Wikilink Extractor]] — sibling module; imports `splitFrontmatter` to isolate body before scanning
-- [[provenance-checks|Provenance Checks]] — uses `parseFrontmatter` to read `sources:` and `derived:` fields
-- [[schema-version-gate|Schema Version Gate]] — uses `parseFrontmatter` to read `schema_version:`
-- [[schema-authority|Schema Authority]] — defines the frontmatter schema that this parser reads
+- Provenance Checks — uses `parseFrontmatter` to read `sources:` and `derived:` fields
+- Schema Version Gate — uses `parseFrontmatter` to read `schema_version:`
+- Schema Authority — defines the frontmatter schema that this parser reads

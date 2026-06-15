@@ -5,7 +5,7 @@ aliases: ["Installation", "installation", "plugin install"]
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/install|Installation Guide]]", "[[_sources/getting-started|Getting Started (CLI Quickstart)]]", "[[llm-wiki-01-getting-started|User Guide 01: Getting Started]]", "[[_sources/features|Features]]"]
-related: ["[[onboarding-wizard|Onboarding Wizard]]", "[[doctor-command|Doctor Command]]", "[[plugin|claude-wiki-pages Plugin]]", "[[git-checkpoint|Git Checkpoint]]"]
+related: ["[[onboarding-wizard|Onboarding Wizard]]", "[[doctor-command|Doctor Command]]"]
 tags: ["concept", "install", "reference"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -152,5 +152,5 @@ This means structural validation, source protection, and write isolation all hol
 
 - [[onboarding-wizard|Onboarding Wizard]] — the `/claude-wiki-pages:init` step that scaffolds the vault
 - [[doctor-command|Doctor Command]] — the health check after install
-- [[plugin|claude-wiki-pages Plugin]] — what gets installed
-- [[git-checkpoint|Git Checkpoint]] — the safety mechanism that requires git per vault (ADR-0005)
+- claude-wiki-pages Plugin — what gets installed
+- Git Checkpoint — the safety mechanism that requires git per vault (ADR-0005)

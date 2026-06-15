@@ -5,7 +5,7 @@ aliases: ["Heartbeat", "heartbeat", "heartbeat.sh", "SessionStart heartbeat", "b
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/automation|Automation]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
-related: ["[[maintenance-loop|Maintenance Loop]]", "[[Backlog]]", "[[maintenance-agent|Maintenance Agent]]", "[[hook-system|Hook System]]"]
+related: ["[[maintenance-loop|Maintenance Loop]]", "[[Backlog]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -110,5 +110,5 @@ User invokes /claude-wiki-pages:wiki
 
 - [[maintenance-loop|Maintenance Loop]] — the autonomous agent the heartbeat recommends running
 - [[Backlog]] — the source and lint overdue state that the heartbeat detects
-- [[maintenance-agent|Maintenance Agent]] — the agent that runs the maintenance loop
-- [[hook-system|Hook System]] — the event system that fires the heartbeat at SessionStart
+- Maintenance Agent — the agent that runs the maintenance loop
+- Hook System — the event system that fires the heartbeat at SessionStart

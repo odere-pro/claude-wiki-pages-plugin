@@ -5,7 +5,7 @@ aliases: ["Doctor Command", "doctor command", "/claude-wiki-pages:doctor", "doct
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/install|Installation Guide]]", "[[llm-wiki-01-getting-started|User Guide 01: Getting Started]]", "[[_sources/getting-started|Getting Started (CLI Quickstart)]]"]
-related: ["[[Installation]]", "[[onboarding-wizard|Onboarding Wizard]]", "[[plugin|claude-wiki-pages Plugin]]", "[[Time-to-First-Value]]"]
+related: ["[[Installation]]", "[[onboarding-wizard|Onboarding Wizard]]", "[[Time-to-First-Value]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -98,5 +98,5 @@ The [[onboarding-wizard|Onboarding Wizard]] (`/claude-wiki-pages:init`) scaffold
 
 - [[Installation]] — the three installation paths (marketplace, local, update) that doctor validates
 - [[onboarding-wizard|Onboarding Wizard]] — the wizard that scaffolds the vault; doctor is the recommended follow-up
-- [[plugin|claude-wiki-pages Plugin]] — the plugin whose installation state doctor checks
+- claude-wiki-pages Plugin — the plugin whose installation state doctor checks
 - [[Time-to-First-Value]] — the condensed path from install to first cited answer; doctor is the verification gate

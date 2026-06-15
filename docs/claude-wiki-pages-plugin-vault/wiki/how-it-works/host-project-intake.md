@@ -5,10 +5,10 @@ aliases: ["Host-Project Intake", "host project intake", "project intake", "gener
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/adr-0024-host-project-intake|ADR-0024: Host-Project Intake]]"]
-related: ["[[wired-source|Wired Source]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[ingest-agent|Ingest Agent]]", "[[orchestrator-agent|Orchestrator Agent]]", "[[Backlog]]", "[[sync-workflow|Sync Workflow]]"]
+related: ["[[wired-source|Wired Source]]", "[[Backlog]]", "[[sync-workflow|Sync Workflow]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[wired-source|Wired Source]]", "[[ingest-pipeline|Ingest Pipeline]]"]
+depends_on: ["[[wired-source|Wired Source]]"]
 tags: ["concept", "intake", "ingest", "host-project"]
 created: 2026-06-15
 updated: 2026-06-15
@@ -63,6 +63,6 @@ Manual ingest requires the user to copy or wire individual source files into `ra
 ## Related Concepts
 
 - [[wired-source|Wired Source]] — the registered git work tree that supplies docs
-- [[ingest-pipeline|Ingest Pipeline]] — the 13-step processing that turns raw/ files into wiki pages
+- Ingest Pipeline — the 13-step processing that turns raw/ files into wiki pages
 - [[Backlog]] — the list of pending raw/ sources the engine tracks
-- [[ingest-agent|Ingest Agent]] — the specialist that executes intake, including the recursive enumeration fix
+- Ingest Agent — the specialist that executes intake, including the recursive enumeration fix

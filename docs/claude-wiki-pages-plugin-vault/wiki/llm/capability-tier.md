@@ -5,7 +5,7 @@ aliases: ["Capability Tier", "capability tier", "capability tiers", "model tier"
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[_sources/adr-0011-local-model-quality-gate|ADR-0011: Local-Model Quality Gate]]", "[[adr-0018-offline-policy|ADR-0018: Offline Policy and Degraded-Mode Routing]]", "[[adr-0019-query-tier|ADR-0019: Query Tier and Answer Verification]]", "[[_sources/local-models|Local Models]]"]
-related: ["[[local-model-quality-gate|Local Model Quality Gate]]", "[[approved-local-model|Approved Local Model]]", "[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[offline-policy|Offline Policy]]", "[[golden-set|Golden Set]]"]
+related: ["[[local-model-quality-gate|Local Model Quality Gate]]", "[[approved-local-model|Approved Local Model]]", "[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[offline-policy|Offline Policy]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -84,4 +84,4 @@ The `route` command is pure: it reads config and Bun/Claude/Ollama availability 
 - [[approved-local-model|Approved Local Model]] — the allow-list result of a passed gate
 - [[zero-fabrication-floor|Zero-Fabrication Floor]] — the hard floor all tier evaluations enforce
 - [[offline-policy|Offline Policy]] — the config dimension that activates local-model routing
-- [[golden-set|Golden Set]] — the fixtures used to evaluate a model against a tier
+- Golden Set — the fixtures used to evaluate a model against a tier

@@ -5,7 +5,7 @@ aliases: ["NO-RAG Principle", "NO-RAG", "no embeddings", "no-rag"]
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[_sources/adr-0007-wiki-native-recall|ADR-0007: Wiki-Native Recall]]", "[[adr-0019-query-tier|ADR-0019: Query Tier and Answer Verification]]", "[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]"]
-related: ["[[wiki-native-recall|Wiki-Native Recall]]", "[[deterministic-engine|Deterministic Engine]]", "[[query-rules|Query Rules]]", "[[search-score-object|Search Score Object]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[approved-local-model|Approved Local Model]]", "[[local-model-quality-gate|Local Model Quality Gate]]"]
+related: ["[[wiki-native-recall|Wiki-Native Recall]]", "[[approved-local-model|Approved Local Model]]", "[[local-model-quality-gate|Local Model Quality Gate]]"]
 contradicts: []
 tags: ["concept", "retrieval", "non-negotiable"]
 created: 2026-06-13
@@ -111,7 +111,7 @@ ADR-0011 explicitly addresses this: the golden-set eval scores candidate output 
 ## Related Concepts
 
 - [[wiki-native-recall|Wiki-Native Recall]] — the positive, deterministic retrieval alternative
-- [[deterministic-engine|Deterministic Engine]] — the Bun CLI that implements NO-RAG in code
-- [[query-rules|Query Rules]] — the structured query workflow for agents
-- [[search-score-object|Search Score Object]] — the `SearchHit.matched[]` breakdown showing exactly why a page ranked
+- Deterministic Engine — the Bun CLI that implements NO-RAG in code
+- Query Rules — the structured query workflow for agents
+- Search Score Object — the `SearchHit.matched[]` breakdown showing exactly why a page ranked
 - [[local-model-quality-gate|Local Model Quality Gate]] — the gate that enforces NO-RAG in the eval layer too

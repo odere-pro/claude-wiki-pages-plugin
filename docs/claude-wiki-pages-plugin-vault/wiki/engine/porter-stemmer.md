@@ -5,7 +5,7 @@ aliases: ["Porter Stemmer", "Porter 1980 stemmer", "stem()", "stemTokens()", "st
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[stem-ts-source|stem.ts Source]]", "[[search-ts-source|search.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
-related: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[synonym-lexicon|Synonym Lexicon]]", "[[wiki-native-recall|Wiki-Native Recall]]"]
+related: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[synonym-lexicon|Synonym Lexicon]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -72,4 +72,4 @@ In the scoring loop (`search.ts`), the stem channel:
 - [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] — the search layer that uses stemTokens() for the stem channel
 - [[search-scoring-algorithm|Search Scoring Algorithm]] — the broader scoring framework the stem channel feeds into
 - [[synonym-lexicon|Synonym Lexicon]] — the complementary expansion mechanism (curated synonyms vs algorithmic stems)
-- [[wiki-native-recall|Wiki-Native Recall]] — the no-RAG retrieval design that the Porter Stemmer serves
+- Wiki-Native Recall — the no-RAG retrieval design that the Porter Stemmer serves

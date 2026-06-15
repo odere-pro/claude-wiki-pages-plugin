@@ -6,7 +6,7 @@ aliases: ["Curator Agent", "curator agent", "claude-wiki-pages-curator-agent", "
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/adr-0002-agent-naming-convention|ADR-0002: Agent Naming Convention]]", "[[llm-wiki-04-review-validate-fix|User Guide 04: Review Validate Fix]]", "[[_sources/operations|Operations Guide]]", "[[plugin-curator-agent|Curator Agent Source]]"]
-related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[polish-agent|Polish Agent]]", "[[ingest-agent|Ingest Agent]]", "[[lint-rules|Lint Rules]]", "[[Auto-Heal]]", "[[git-checkpoint|Git Checkpoint]]", "[[deterministic-engine|Deterministic Engine]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[polish-agent|Polish Agent]]", "[[ingest-agent|Ingest Agent]]", "[[git-checkpoint|Git Checkpoint]]"]
 tags: ["agent", "curator"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -129,7 +129,7 @@ Use for an audit-and-repair pass without an ingest beforehand — for example, a
 
 - [[orchestrator-agent|Orchestrator Agent]] — dispatches to this agent after ingest or when lint is overdue
 - [[polish-agent|Polish Agent]] — runs as the tail step after curator completes
-- [[deterministic-engine|Deterministic Engine]] — the `engine.sh heal` command the curator runs first
-- [[lint-rules|Lint Rules]] — the full set of checks the curator performs
-- [[Auto-Heal]] — the mechanical fixes applied automatically in Phase 2
+- Deterministic Engine — the `engine.sh heal` command the curator runs first
+- Lint Rules — the full set of checks the curator performs
+- Auto-Heal — the mechanical fixes applied automatically in Phase 2
 - [[git-checkpoint|Git Checkpoint]] — every change lands in a reversible commit

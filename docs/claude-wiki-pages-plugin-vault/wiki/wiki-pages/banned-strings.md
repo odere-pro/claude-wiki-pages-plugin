@@ -5,7 +5,7 @@ aliases: ["Banned Strings", "banned strings", "retired terminology", "banned ter
 parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[_sources/glossary|Glossary]]"]
-related: ["[[glossary-terms|Glossary Terms]]", "[[schema-authority|Schema Authority]]", "[[design-drift-gate|Design-Drift Gate]]"]
+related: ["[[glossary-terms|Glossary Terms]]", "[[schema-authority|Schema Authority]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -79,4 +79,4 @@ The Glossary is semver: additions are minor bumps (new terms added), renames or 
 
 - [[glossary-terms|Glossary Terms]] — the full glossary including the banned strings list and the two registers (Technical, Discoverability)
 - [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` as the schema authority; the glossary is authoritative for terminology while CLAUDE.md is authoritative for frontmatter
-- [[design-drift-gate|Design-Drift Gate]] — Check 5 of `validate-docs.sh`; the glossary gate (Check 1) is a sibling check in the same script
+- Design-Drift Gate — Check 5 of `validate-docs.sh`; the glossary gate (Check 1) is a sibling check in the same script

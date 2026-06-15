@@ -5,7 +5,7 @@ aliases: ["Time-to-First-Value", "time-to-first-value", "TTFV", "first cited ans
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/getting-started|Getting Started (CLI Quickstart)]]", "[[llm-wiki-01-getting-started|User Guide 01: Getting Started]]"]
-related: ["[[onboarding-wizard|Onboarding Wizard]]", "[[doctor-command|Doctor Command]]", "[[Installation]]", "[[portable-markdown|Portable Markdown]]"]
+related: ["[[onboarding-wizard|Onboarding Wizard]]", "[[doctor-command|Doctor Command]]", "[[Installation]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -85,11 +85,11 @@ The [[doctor-command|Doctor Command]] (`/claude-wiki-pages:doctor`) is positione
 
 ## Relationship to Portable Markdown
 
-Step 5 (query) produces an Obsidian-native cited answer. A related value is the ability to export that answer as [[portable-markdown|Portable Markdown]] for use outside Obsidian — `/claude-wiki-pages:markdown` renders a query answer as plain markdown in `vault/output/`. This extends the value proposition to users who are not using Obsidian.
+Step 5 (query) produces an Obsidian-native cited answer. A related value is the ability to export that answer as Portable Markdown for use outside Obsidian — `/claude-wiki-pages:markdown` renders a query answer as plain markdown in `vault/output/`. This extends the value proposition to users who are not using Obsidian.
 
 ## Related Concepts
 
 - [[onboarding-wizard|Onboarding Wizard]] — the wizard that covers Steps 1–2 of the TTFV path
 - [[doctor-command|Doctor Command]] — the health check that verifies the install before ingest
 - [[Installation]] — the three installation paths that lead to Step 1
-- [[portable-markdown|Portable Markdown]] — the value extension for non-Obsidian users
+- Portable Markdown — the value extension for non-Obsidian users

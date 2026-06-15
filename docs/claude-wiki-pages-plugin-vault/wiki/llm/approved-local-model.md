@@ -5,7 +5,7 @@ aliases: ["Approved Local Model", "approved local model", "qwen3-coder:30b", "AP
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[_sources/adr-0011-local-model-quality-gate|ADR-0011: Local-Model Quality Gate]]", "[[adr-0017-fabrication-floor|ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[adr-0019-query-tier|ADR-0019: Query Tier and Answer Verification]]", "[[_sources/local-models|Local Models]]"]
-related: ["[[local-model-quality-gate|Local Model Quality Gate]]", "[[capability-tier|Capability Tier]]", "[[offline-policy|Offline Policy]]", "[[golden-set|Golden Set]]", "[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[scaffolding-ablation|Scaffolding Ablation]]"]
+related: ["[[local-model-quality-gate|Local Model Quality Gate]]", "[[capability-tier|Capability Tier]]", "[[offline-policy|Offline Policy]]", "[[zero-fabrication-floor|Zero-Fabrication Floor]]"]
 tags: ["concept", "local-model"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -120,5 +120,5 @@ For the `query` tier, every local model answer is checked by runtime answer veri
 - [[local-model-quality-gate|Local Model Quality Gate]] — the evaluation methodology
 - [[capability-tier|Capability Tier]] — the tier a model is approved for (independent per tier)
 - [[offline-policy|Offline Policy]] — governs when local models stand in for Claude
-- [[golden-set|Golden Set]] — the eval fixtures used to score the model
+- Golden Set — the eval fixtures used to score the model
 - [[zero-fabrication-floor|Zero-Fabrication Floor]] — the hard floor a model must clear (no sourced fabrications)

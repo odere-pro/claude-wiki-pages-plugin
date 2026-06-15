@@ -5,7 +5,7 @@ aliases: ["Wikilink Extractor", "wikilink extractor", "extractWikilinks", "markd
 parent: "[[knowledge-graph|Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[wikilinks-ts|Wikilink Extractor (wikilinks.ts)]]"]
-related: ["[[frontmatter-parser|Frontmatter Parser]]", "[[provenance-checks|Provenance Checks]]", "[[moc-repair-primitives|MOC Repair Primitives]]", "[[graph-walk-algorithm|Graph Walk Algorithm]]"]
+related: ["[[frontmatter-parser|Frontmatter Parser]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[frontmatter-parser|Frontmatter Parser]]"]
@@ -69,6 +69,6 @@ time via the PostToolUse hook to prevent markdown links from entering the vault.
 ## Related Concepts
 
 - [[frontmatter-parser|Frontmatter Parser]] — `splitFrontmatter` is imported to separate body from frontmatter
-- [[provenance-checks|Provenance Checks]] — uses extracted wikilinks to verify `sources:` presence
-- [[moc-repair-primitives|MOC Repair Primitives]] — uses `duplicates` to detect and clean repeated `children:` entries
-- [[graph-walk-algorithm|Graph Walk Algorithm]] — consumes `extractWikilinks` output as the edge set for BFS traversal
+- Provenance Checks — uses extracted wikilinks to verify `sources:` presence
+- MOC Repair Primitives — uses `duplicates` to detect and clean repeated `children:` entries
+- Graph Walk Algorithm — consumes `extractWikilinks` output as the edge set for BFS traversal

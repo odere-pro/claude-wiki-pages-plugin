@@ -5,7 +5,7 @@ aliases: ["Node Grounding", "node grounding", "mermaid node grounding", "grounde
 parent: "[[knowledge-graph|Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[_sources/adr-0013-design-drift-gate|ADR-0013: Design-Drift Gate]]", "[[design-readme|Design README]]", "[[design-template|Design Diagram Template]]"]
-related: ["[[design-drift-gate|Design-Drift Gate]]", "[[parity-gate|Parity Gate]]", "[[llm/software-3-0|Software 3.0]]"]
+related: ["[[llm/software-3-0|Software 3.0]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -93,7 +93,7 @@ The check uses only `grep`, `awk`, and `bash` — no mermaid parser library. Thi
 
 ## Relationship to the Design-Drift Gate
 
-Node grounding is one of five categories in the [[design-drift-gate|Design-Drift Gate]] (ADR-0013):
+Node grounding is one of five categories in the Design-Drift Gate (ADR-0013):
 
 1. Mermaid node grounding ← this page
 2. Dead relative links
@@ -103,6 +103,6 @@ Node grounding is one of five categories in the [[design-drift-gate|Design-Drift
 
 ## Related Concepts
 
-- [[design-drift-gate|Design-Drift Gate]] — the overall CI check that enforces node grounding among other drift categories
-- [[parity-gate|Parity Gate]] — a companion check that enforces human/agent symmetry in the dual-entry router table
+- Design-Drift Gate — the overall CI check that enforces node grounding among other drift categories
+- Parity Gate — a companion check that enforces human/agent symmetry in the dual-entry router table
 - [[llm/software-3-0|Software 3.0]] — the design posture that all project surfaces must be equally usable by humans and agents

@@ -5,7 +5,7 @@ aliases: ["Graph Walk Algorithm", "graph walk", "graph traversal implementation"
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[graph-ts-source|graph.ts Source]]", "[[search-ts-source|search.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
-related: ["[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[wiki-native-recall|Wiki-Native Recall]]", "[[deterministic-engine|Deterministic Engine]]"]
+related: ["[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[deterministic-engine|Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -24,7 +24,7 @@ confidence: 0.9
 The Graph Walk Algorithm is the ONE deterministic link-walk in the engine, implemented as `walk()` in `src/core/graph.ts`. It performs a breadth-first search (BFS) of at most N=2 hops over typed frontmatter wikilinks, starting from seed pages and returning scored `GraphRef` objects. It reads only frontmatter — `splitFrontmatter().body` is never called here. No vectors, no network, no embeddings.
 
 > [!note]
-> This page covers the **implementation** of the graph walk. See the existing [[deterministic-engine|Deterministic Engine]] page for the design-level context and [[wiki-native-recall|Wiki-Native Recall]] for the NO-RAG principle it serves. The architecture-level design pattern is also discussed in the architecture wiki.
+> This page covers the **implementation** of the graph walk. See the existing [[deterministic-engine|Deterministic Engine]] page for the design-level context and Wiki-Native Recall for the NO-RAG principle it serves. The architecture-level design pattern is also discussed in the architecture wiki.
 
 ## Key Principles
 
@@ -52,5 +52,5 @@ const { refs } = walk({
 
 - [[search-scoring-algorithm|Search Scoring Algorithm]] — the graph-edge channel is appended to search hits via this algorithm
 - [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] — the other expansion mechanism in search; graph is opt-in on top of it
-- [[wiki-native-recall|Wiki-Native Recall]] — the design principle motivating deterministic graph traversal
+- Wiki-Native Recall — the design principle motivating deterministic graph traversal
 - [[deterministic-engine|Deterministic Engine]] — the engine whose only graph walk is this function

@@ -5,7 +5,7 @@ aliases: ["Schema Authority", "schema authority", "vault schema", "CLAUDE.md"]
 parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]", "[[adr-0014-single-source-required-fields|ADR-0014: Single-Source Required Fields]]", "[[llm-wiki-02-create-new-vault|User Guide 02: Create a New Vault]]", "[[knowledge-graph-claude-md|Knowledge Graph Schema (CLAUDE.md)]]", "[[_sources/adr-0029-drop-vault-example|ADR-0029: Drop docs/vault-example]]"]
-related: ["[[ontology-profile-v1|Ontology Profile v1]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[lint-rules|Lint Rules]]", "[[hook-system|Hook System]]", "[[folder-note|Folder Note]]", "[[golden-set|Golden Set]]", "[[parity-gate|Parity Gate]]"]
+related: ["[[ingest-pipeline|Ingest Pipeline]]", "[[lint-rules|Lint Rules]]", "[[folder-note|Folder Note]]"]
 tags: ["concept", "schema", "authority"]
 created: 2026-06-13
 updated: 2026-06-15
@@ -17,7 +17,7 @@ confidence: 1.0
 # Schema Authority
 
 > [!summary]
-> The schema authority is `vault/CLAUDE.md` — the single authoritative source for the vault's frontmatter schema, required fields, hierarchy rules, ingest rules, query rules, lint rules, and [[ontology-profile-v1|Ontology Profile v1]]. Every skill and agent reads it at the start of every operation. CLAUDE.md wins all conflicts: when any skill's default behavior contradicts these rules, CLAUDE.md takes precedence. The machine-readable `### Required fields by type` table is parsed by `validate-frontmatter.sh` (grep/awk only — no Bun dependency).
+> The schema authority is `vault/CLAUDE.md` — the single authoritative source for the vault's frontmatter schema, required fields, hierarchy rules, ingest rules, query rules, lint rules, and Ontology Profile v1. Every skill and agent reads it at the start of every operation. CLAUDE.md wins all conflicts: when any skill's default behavior contradicts these rules, CLAUDE.md takes precedence. The machine-readable `### Required fields by type` table is parsed by `validate-frontmatter.sh` (grep/awk only — no Bun dependency).
 
 ## Key Principles
 
@@ -57,7 +57,7 @@ The schema authority file covers:
 2. **Purpose and data layer layout** — what belongs in `raw/`, `wiki/`, `output/`, `_proposed/`.
 3. **Frontmatter schema** — the complete type system: `type` values, required fields per type, allowed field values.
 4. **`### Required fields by type` table** (ADR-0014) — the machine-readable single source of truth that `validate-frontmatter.sh` parses.
-5. **[[ontology-profile-v1|Ontology Profile v1]]** — two markdown tables: predicate domain→range and enum list.
+5. **Ontology Profile v1** — two markdown tables: predicate domain→range and enum list.
 6. **Ingest rules** — the 13-step [[ingest-pipeline|Ingest Pipeline]].
 7. **Query rules** — the 7-step [[query-rules|Query Rules]].
 8. **[[lint-rules|Lint Rules]]** — the full check set.
@@ -128,7 +128,7 @@ The schema lives in a markdown file rather than a structured config file for thr
 
 1. **The LLM reads it directly.** The LLM reads CLAUDE.md at the start of every operation. A YAML schema would require the LLM to parse the schema in a separate step — adding indirection and failure modes.
 2. **The required-fields table is both human-readable and machine-parseable.** `validate-frontmatter.sh` parses the markdown table with grep/awk; humans read it as a table. No translation step.
-3. **The [[ontology-profile-v1|Ontology Profile v1]] tables are authoritative prose.** The instruction "read these two tables and no other source" works in a human-readable file; it would be awkward in a pure config schema.
+3. **The Ontology Profile v1 tables are authoritative prose.** The instruction "read these two tables and no other source" works in a human-readable file; it would be awkward in a pure config schema.
 
 ## Consolidated Home After ADR-0029
 
@@ -137,14 +137,14 @@ ADR-0029 deleted `docs/vault-example/` and established `skills/init/template/CLA
 After ADR-0029:
 - `validate-frontmatter.sh`, `validate-docs.sh`, and the eval harness all read `skills/init/template/CLAUDE.md` directly.
 - Golden/parity/lint tests target `tests/fixtures/reference-vault/` — a small, schema-v3, deliberately clean vault. Its `CLAUDE.md` is pinned to the template by `ontology-profile.bats`.
-- The [[golden-set|Golden Set]] moves from `docs/vault-example/` to `tests/fixtures/reference-vault/`.
+- The Golden Set moves from `docs/vault-example/` to `tests/fixtures/reference-vault/`.
 
 ## Related Concepts
 
-- [[ontology-profile-v1|Ontology Profile v1]] — the named ontology block within this file
+- Ontology Profile v1 — the named ontology block within this file
 - [[lint-rules|Lint Rules]] — the checks this file defines
 - [[ingest-pipeline|Ingest Pipeline]] — follows the 13-step rules in this file
-- [[hook-system|Hook System]] — `validate-frontmatter.sh` parses the required-fields table from this file
+- Hook System — `validate-frontmatter.sh` parses the required-fields table from this file
 - [[folder-note|Folder Note]] — the schema for per-folder index files defined in this file
-- [[golden-set|Golden Set]] — the reference vault that exercises the schema (now at `tests/fixtures/reference-vault/`)
-- [[parity-gate|Parity Gate]] — `ontology-profile.bats` pins fixture↔template after ADR-0029
+- Golden Set — the reference vault that exercises the schema (now at `tests/fixtures/reference-vault/`)
+- Parity Gate — `ontology-profile.bats` pins fixture↔template after ADR-0029

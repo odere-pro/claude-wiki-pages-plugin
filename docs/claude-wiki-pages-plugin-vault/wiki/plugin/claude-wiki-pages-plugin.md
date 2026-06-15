@@ -6,7 +6,7 @@ aliases: ["claude-wiki-pages (Plugin)", "claude-wiki-pages", "the plugin"]
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]", "[[_sources/install|Installation Guide]]", "[[_sources/features|Features]]", "[[_sources/getting-started|Getting Started (CLI Quickstart)]]", "[[plugin-readme|Plugin README]]", "[[plugin-json|Plugin Manifest (plugin.json)]]"]
-related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[deterministic-engine|Deterministic Engine]]", "[[four-layer-stack|Four-Layer Stack]]", "[[hook-system|Hook System]]", "[[Installation]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[four-layer-stack|Four-Layer Stack]]", "[[hook-system|Hook System]]"]
 tags: ["plugin", "product"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -65,7 +65,7 @@ Most LLM-wiki implementations are one layer: a prompt and a folder convention. `
 
 ## What the Scaffolding Buys (Measured)
 
-The [[scaffolding-ablation|Scaffolding Ablation]] (ADR-0020) runs the same model through two prompt arms — the plugin's full prompts vs a generic "extract the knowledge into well-organized notes" prompt. Key measured results (`qwen3-coder:30b`):
+The Scaffolding Ablation (ADR-0020) runs the same model through two prompt arms — the plugin's full prompts vs a generic "extract the knowledge into well-organized notes" prompt. Key measured results (`qwen3-coder:30b`):
 
 | Capability               | With plugin | Without plugin                    |
 | ------------------------ | ----------- | --------------------------------- |
@@ -74,11 +74,23 @@ The [[scaffolding-ablation|Scaffolding Ablation]] (ADR-0020) runs the same model
 | `dedup_correctness`      | 1.00        | 0.00                              |
 | Answer citation protocol | PASS        | Unscorable (drifted off-protocol) |
 
+## Topic Map
+
+This page is the wiki's **root entry point**: every top-level topic in the vault is a facet of this one plugin. Start here and descend into the topic that matches your question.
+
+- [[plugin|claude-wiki-pages Plugin]] — the plugin's own agents, hooks, and packaging
+- [[engine|Wiki Engine]] — the deterministic TypeScript engine and its verbs
+- [[wiki-pages|Wiki Pages]] — the page schema, ingest pipeline, and retrieval contract
+- [[llm|LLM]] — the LLM-wiki pattern, NO-RAG stance, and local-model tiers
+- [[obsidian|Obsidian]] — the Obsidian experience: graph, vault scoping, CLI
+- [[knowledge-graph|Knowledge Graph]] — the ontology profile and graph model
+- [[how-it-works|How It Works]] — lifecycle, maintenance, and operational flows
+
 ## Related
 
 - [[four-layer-stack|Four-Layer Stack]] — the architectural model this plugin implements
 - [[orchestrator-agent|Orchestrator Agent]] — sole user-facing entry agent; dispatches all work
-- [[deterministic-engine|Deterministic Engine]] — validates the vault with no embeddings or inference
-- [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` wins every frontmatter conflict
+- Deterministic Engine — validates the vault with no embeddings or inference
+- Schema Authority — `vault/CLAUDE.md` wins every frontmatter conflict
 - [[hook-system|Hook System]] — how the plugin enforces its contracts at every tool call
-- [[Installation]] — how to install and verify the plugin
+- Installation — how to install and verify the plugin

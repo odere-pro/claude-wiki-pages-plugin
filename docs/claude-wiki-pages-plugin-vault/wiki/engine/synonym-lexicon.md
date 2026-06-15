@@ -5,7 +5,7 @@ aliases: ["Synonym Lexicon", "_vocabulary.md", "synonym lexicon", "loadLexicon",
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[vocabulary-ts-source|vocabulary.ts Source]]", "[[search-ts-source|search.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
-related: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[porter-stemmer|Porter Stemmer]]", "[[wiki-native-recall|Wiki-Native Recall]]"]
+related: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[porter-stemmer|Porter Stemmer]]"]
 contradicts: []
 supersedes: []
 depends_on: []

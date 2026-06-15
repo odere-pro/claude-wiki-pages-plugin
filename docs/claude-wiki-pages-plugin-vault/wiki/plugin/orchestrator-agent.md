@@ -6,7 +6,7 @@ aliases: ["Orchestrator Agent", "orchestrator agent", "claude-wiki-pages-orchest
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]", "[[_sources/adr-0002-agent-naming-convention|ADR-0002: Agent Naming Convention]]", "[[_sources/operations|Operations Guide]]", "[[plugin-orchestrator-agent|Orchestrator Agent Source]]"]
-related: ["[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[analyst-agent|Analyst Agent]]", "[[polish-agent|Polish Agent]]", "[[maintenance-agent|Maintenance Agent]]", "[[four-layer-stack|Four-Layer Stack]]", "[[vault-resolution|Vault Resolution]]", "[[single-pass-dispatch|Single-Pass Dispatch]]"]
+related: ["[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[analyst-agent|Analyst Agent]]", "[[polish-agent|Polish Agent]]", "[[maintenance-agent|Maintenance Agent]]", "[[four-layer-stack|Four-Layer Stack]]", "[[single-pass-dispatch|Single-Pass Dispatch]]"]
 tags: ["agent", "orchestrator"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -122,4 +122,4 @@ Bypassing the orchestrator also bypasses the polish tail step. Run `/claude-wiki
 - [[polish-agent|Polish Agent]] — tail-of-write step after ingest or curator
 - [[maintenance-agent|Maintenance Agent]] — dispatched for autonomous backlog catch-up
 - [[four-layer-stack|Four-Layer Stack]] — the orchestrator is Layer 3's user-facing entry
-- [[vault-resolution|Vault Resolution]] — the resolver the orchestrator uses to find the active vault
+- Vault Resolution — the resolver the orchestrator uses to find the active vault

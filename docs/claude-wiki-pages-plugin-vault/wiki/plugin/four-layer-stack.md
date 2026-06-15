@@ -5,7 +5,7 @@ aliases: ["Four-Layer Stack", "four-layer stack", "four-layer architecture", "pl
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]", "[[design-01-system-context|Design: System Context]]", "[[design-06-feature-relations|Design: Feature Relations]]", "[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]"]
-related: ["[[plugin|claude-wiki-pages Plugin]]", "[[deterministic-engine|Deterministic Engine]]", "[[orchestrator-agent|Orchestrator Agent]]", "[[hook-system|Hook System]]", "[[git-checkpoint|Git Checkpoint]]"]
+related: ["[[plugin|claude-wiki-pages Plugin]]", "[[orchestrator-agent|Orchestrator Agent]]", "[[hook-system|Hook System]]", "[[git-checkpoint|Git Checkpoint]]"]
 tags: ["architecture", "concept"]
 created: 2026-06-13
 updated: 2026-06-15
@@ -118,6 +118,6 @@ Running the full ingest-to-verify cycle via the single entry verb:
 
 - [[plugin|claude-wiki-pages Plugin]] — the product implementing this stack
 - [[orchestrator-agent|Orchestrator Agent]] — the Layer 4 entry agent
-- [[deterministic-engine|Deterministic Engine]] — the Layer 4 validation peer
+- Deterministic Engine — the Layer 4 validation peer
 - [[hook-system|Hook System]] — Layer 4 enforcement mechanism
 - [[git-checkpoint|Git Checkpoint]] — the safety model woven through Layer 4

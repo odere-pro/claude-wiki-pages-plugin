@@ -5,7 +5,7 @@ aliases: ["Design-Drift Gate", "design-drift gate", "validate-docs Check 5", "dr
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/adr-0013-design-drift-gate|ADR-0013: Design-Drift Gate]]", "[[design-readme|Design README]]", "[[design-template|Design Diagram Template]]", "[[design-06-feature-relations|Design: Feature Relations]]"]
-related: ["[[node-grounding|Node Grounding]]", "[[parity-gate|Parity Gate]]", "[[llm/software-3-0|Software 3.0]]", "[[architecture-decision-record|Architecture Decision Record]]"]
+related: ["[[parity-gate|Parity Gate]]", "[[llm/software-3-0|Software 3.0]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -79,7 +79,7 @@ The gate scans `docs/design/*.md` and `SOFTWARE-3-0.md`. It does not scan `docs/
 
 ## Related Concepts
 
-- [[node-grounding|Node Grounding]] — the property of a mermaid node naming a real on-disk path
+- Node Grounding — the property of a mermaid node naming a real on-disk path
 - [[parity-gate|Parity Gate]] — the dual-entry router row check enforcing human/agent symmetry
 - [[llm/software-3-0|Software 3.0]] — the posture that every project surface must be equally usable by humans and agents
-- [[architecture-decision-record|Architecture Decision Record]] — the ADR format that governs design decisions
+- Architecture Decision Record — the ADR format that governs design decisions

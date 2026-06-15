@@ -5,7 +5,7 @@ aliases: ["Predicate Domain-Range Table", "predicate domain-range table", "predi
 parent: "[[knowledge-graph|Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[_sources/adr-0004-ontology-profile-v1|ADR-0004: Ontology Profile v1]]", "[[design-07-ontology|Design: Ontology]]"]
-related: ["[[ontology-profile-v1|Ontology Profile v1]]", "[[schema-authority|Schema Authority]]", "[[required-fields|Required Fields]]", "[[graph-traversal-primitive|Graph Traversal Primitive]]"]
+related: ["[[ontology-profile-v1|Ontology Profile v1]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -77,7 +77,7 @@ The predicate domain-range table has three columns:
 
 Without domain-range constraints, a `sources` link from a `source` page pointing to another `source` page would be syntactically valid but semantically meaningless (a source citing itself as a source). The domain-range table makes such errors detectable.
 
-The table also drives the [[graph-traversal-primitive|Graph Traversal Primitive]]: `walk()` traverses only the `R2_EDGES` set (`sources`, `related`, `depends_on`). The domain-range table ensures these edges are semantically coherent — they connect pages in directions that have meaning within the provenance and association graph.
+The table also drives the Graph Traversal Primitive: `walk()` traverses only the `R2_EDGES` set (`sources`, `related`, `depends_on`). The domain-range table ensures these edges are semantically coherent — they connect pages in directions that have meaning within the provenance and association graph.
 
 ## Single Authority
 
@@ -90,6 +90,6 @@ All predicates in the domain-range table are fully closed — adding a new predi
 ## Related Concepts
 
 - [[ontology-profile-v1|Ontology Profile v1]] — the ADR-0004 decision that established this table as the authority
-- [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` as the single source of truth for the predicate table and all other schema rules
-- [[required-fields|Required Fields]] — the required-fields table (a sibling in CLAUDE.md); domain-range table governs what predicates mean, required-fields table governs which must be present
-- [[graph-traversal-primitive|Graph Traversal Primitive]] — the `walk()` function that traverses the edges defined by the `R2_EDGES` subset of this table
+- Schema Authority — `vault/CLAUDE.md` as the single source of truth for the predicate table and all other schema rules
+- Required Fields — the required-fields table (a sibling in CLAUDE.md); domain-range table governs what predicates mean, required-fields table governs which must be present
+- Graph Traversal Primitive — the `walk()` function that traverses the edges defined by the `R2_EDGES` subset of this table

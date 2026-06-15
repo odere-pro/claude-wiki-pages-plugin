@@ -5,7 +5,7 @@ aliases: ["Search Score Object", "search score object", "SearchHit", "matched[] 
 parent: "[[engine|Wiki Engine]]"
 path: "engine"
 sources: ["[[_sources/adr-0006-search-score-object|ADR-0006: One Search Score Object]]", "[[search-ts-source|search.ts Source]]"]
-related: ["[[wiki-native-recall|Wiki-Native Recall]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[no-rag-principle|NO-RAG Principle]]"]
+related: ["[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -106,7 +106,7 @@ This uniformity means the analyst's "why did you select this page?" explanation 
 
 ## Related Concepts
 
-- [[wiki-native-recall|Wiki-Native Recall]] — the overall retrieval philosophy; the score object is how recall evidence is recorded
+- Wiki-Native Recall — the overall retrieval philosophy; the score object is how recall evidence is recorded
 - [[search-scoring-algorithm|Search Scoring Algorithm]] — the weights and computation rules that populate `matched[]`
 - [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] — synonym and stem expansion that generates `synonym-term` and `stem-term` hits
-- [[no-rag-principle|NO-RAG Principle]] — the invariant that all scoring is deterministic keyword matching, never embeddings
+- NO-RAG Principle — the invariant that all scoring is deterministic keyword matching, never embeddings

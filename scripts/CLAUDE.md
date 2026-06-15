@@ -133,6 +133,13 @@ run top to bottom and the first block short-circuits the write.
 - [`graph-quality.sh`](./graph-quality.sh) — dangling-wikilink scanner (the
   detector `verify` lacks) plus the topic-cluster node/edge concentration
   metric. Read-only; pure bash + python3. Used by the `fill-gaps` skill.
+- [`disentangle-links.sh`](./disentangle-links.sh) — topic-local linking
+  remediation (ADR-0033): demotes cross-topic `[[wikilinks]]` to plain text and
+  prunes cross-topic association frontmatter so the graph forms topic islands
+  instead of a hairball. Dry-run by default; `--apply` rewrites in place
+  (git-checkpointed). Pure bash + python3; mirrors `graph-quality.sh`'s
+  resolver. Never touches `parent`/`sources`/`children` or creates dangling
+  links.
 - [`check-duplicate-claims.sh`](./check-duplicate-claims.sh) — advisory
   duplicate-claim warning across `source_quotes`.
 

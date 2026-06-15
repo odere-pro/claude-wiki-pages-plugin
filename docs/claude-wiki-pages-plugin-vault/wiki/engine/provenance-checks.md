@@ -5,7 +5,7 @@ aliases: ["Provenance Checks", "CHECK 5a", "CHECK 5b", "provenance-completeness"
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[provenance-ts-source|provenance.ts Source]]", "[[verify-ts-source|verify.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
-related: ["[[schema-version-gate|Schema Version Gate]]", "[[deterministic-engine|Deterministic Engine]]", "[[lint-rules|Lint Rules]]"]
+related: ["[[schema-version-gate|Schema Version Gate]]", "[[deterministic-engine|Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[schema-version-gate|Schema Version Gate]]"]
@@ -54,4 +54,4 @@ message: "derived-high-confidence: \"Synthesis\" (synthesis.md) has derived: tru
 
 - [[schema-version-gate|Schema Version Gate]] — another check within the same verify pipeline
 - [[deterministic-engine|Deterministic Engine]] — the engine command (`verify`) that runs these checks
-- [[lint-rules|Lint Rules]] — the broader set of lint principles the curator enforces
+- Lint Rules — the broader set of lint principles the curator enforces

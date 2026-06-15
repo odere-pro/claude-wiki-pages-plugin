@@ -6,7 +6,7 @@ aliases: ["Maintenance Agent", "maintenance agent", "claude-wiki-pages-maintenan
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/automation|Automation]]", "[[_sources/teams|Agent Teams]]", "[[_sources/operations|Operations Guide]]", "[[plugin-maintenance-agent|Maintenance Agent Source]]"]
-related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[Backlog]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[polish-agent|Polish Agent]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[polish-agent|Polish Agent]]"]
 tags: ["agent", "automation"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -18,7 +18,7 @@ confidence: 1.0
 # Maintenance Agent
 
 > [!summary]
-> The `claude-wiki-pages-maintenance-agent` runs the full catch-up loop — ingest → curator → polish → lint — in one autonomous invocation. It is off by default and gated behind `maintenance.enabled: true` in config. Each step in the loop is git-checkpointed and bounded by `maintenance.maxPerRun`. The [[Backlog]] detection is O(1) via the source manifest. The SessionStart heartbeat recommends a catch-up run but never triggers one automatically.
+> The `claude-wiki-pages-maintenance-agent` runs the full catch-up loop — ingest → curator → polish → lint — in one autonomous invocation. It is off by default and gated behind `maintenance.enabled: true` in config. Each step in the loop is git-checkpointed and bounded by `maintenance.maxPerRun`. The Backlog detection is O(1) via the source manifest. The SessionStart heartbeat recommends a catch-up run but never triggers one automatically.
 
 ## Key Facts
 
@@ -130,7 +130,7 @@ A raw file is "pending" when no `wiki/_sources/<stem>.md` summary exists for it,
 ## Related
 
 - [[orchestrator-agent|Orchestrator Agent]] — dispatches this agent when maintenance is enabled and backlog exists
-- [[Backlog]] — the pending-sources and overdue-lint state this agent clears
+- Backlog — the pending-sources and overdue-lint state this agent clears
 - [[ingest-agent|Ingest Agent]] — Step 1 of the catch-up loop
 - [[curator-agent|Curator Agent]] — Step 2 of the catch-up loop
 - [[polish-agent|Polish Agent]] — Step 3 of the catch-up loop

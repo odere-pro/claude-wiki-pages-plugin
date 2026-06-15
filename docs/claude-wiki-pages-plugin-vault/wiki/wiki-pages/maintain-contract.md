@@ -5,10 +5,10 @@ aliases: ["Maintain Contract", "maintain-contract", "wiki operating contract", "
 parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[ingest-pipeline|Ingest Pipeline]]", "[[Auto-Heal]]", "[[query-rules|Query Rules]]", "[[git-checkpoint|Git Checkpoint]]", "[[grounded-retrieval|Grounded Retrieval]]", "[[multi-vault-operating-rules|Multi-Vault Operating Rules]]", "[[schema-authority|Schema Authority]]"]
+related: ["[[ingest-pipeline|Ingest Pipeline]]", "[[query-rules|Query Rules]]", "[[grounded-retrieval|Grounded Retrieval]]", "[[multi-vault-operating-rules|Multi-Vault Operating Rules]]", "[[schema-authority|Schema Authority]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[git-checkpoint|Git Checkpoint]]", "[[deterministic-engine|Deterministic Engine]]"]
+depends_on: []
 tags: ["concept", "operating-contract", "skills"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -26,7 +26,7 @@ confidence: 1.0
 
 The maintain contract is the safe sequencing protocol that governs vault operations. Any agent — this plugin's own agents or a third-party agent — follows this contract when ingesting sources, answering questions from the wiki, or keeping the vault structurally healthy.
 
-The contract pairs with `/claude-wiki-pages:engine-api` (the [[deterministic-engine|Deterministic Engine]] surface) to form a complete picture: the engine API documents the tool calls available; the maintain contract documents the order and conditions under which those calls are made correctly.
+The contract pairs with `/claude-wiki-pages:engine-api` (the Deterministic Engine surface) to form a complete picture: the engine API documents the tool calls available; the maintain contract documents the order and conditions under which those calls are made correctly.
 
 ## Key Principles
 
@@ -99,7 +99,7 @@ bash engine.sh heal --target /path/to/vault
 - [[grounded-retrieval|Grounded Retrieval]] — the retrieval discipline that implements invariant 1 for query operations
 - [[multi-vault-operating-rules|Multi-Vault Operating Rules]] — the five extension rules that bind the contract to multi-vault environments
 - [[ingest-pipeline|Ingest Pipeline]] — the 13-step procedure the ingest phase follows
-- [[Auto-Heal]] — the mechanical fix set the maintain phase applies
+- Auto-Heal — the mechanical fix set the maintain phase applies
 - [[query-rules|Query Rules]] — the workflow the retrieve phase follows
-- [[git-checkpoint|Git Checkpoint]] — the safety net underpinning invariant 3
+- Git Checkpoint — the safety net underpinning invariant 3
 - [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` that must be read first (hard rule)

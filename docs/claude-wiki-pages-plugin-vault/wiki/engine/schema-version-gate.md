@@ -5,7 +5,7 @@ aliases: ["Schema Version Gate", "schema_version check", "CHECK 0", "SUPPORTED_S
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[schema-ts-source|schema.ts Source]]", "[[verify-ts-source|verify.ts Source]]"]
-related: ["[[provenance-checks|Provenance Checks]]", "[[deterministic-engine|Deterministic Engine]]", "[[lint-rules|Lint Rules]]"]
+related: ["[[provenance-checks|Provenance Checks]]", "[[deterministic-engine|Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -54,4 +54,4 @@ message: "schema_version 4 is unsupported (this build supports: 1, 2, 3)."
 
 - [[provenance-checks|Provenance Checks]] — the other verify checks (CHECK 5a/5b) in the same pipeline
 - [[deterministic-engine|Deterministic Engine]] — the `verify` and `heal` verbs that run this check
-- [[lint-rules|Lint Rules]] — the broader set of checks the curator enforces
+- Lint Rules — the broader set of checks the curator enforces

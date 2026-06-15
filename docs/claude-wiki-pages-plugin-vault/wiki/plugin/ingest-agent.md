@@ -6,7 +6,7 @@ aliases: ["Ingest Agent", "ingest agent", "claude-wiki-pages-ingest-agent", "pip
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/adr-0002-agent-naming-convention|ADR-0002: Agent Naming Convention]]", "[[adr-0010-durable-memory|ADR-0010: Durable-Memory Carve-Out]]", "[[llm-wiki-03-update-existing|User Guide 03: Update Existing Vault]]", "[[_sources/operations|Operations Guide]]", "[[plugin-ingest-agent|Ingest Agent Source]]", "[[_sources/adr-0024-host-project-intake|ADR-0024: Host-Project Intake]]", "[[_sources/adr-0026-parallel-extract-and-scheduled-upkeep|ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
-related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[curator-agent|Curator Agent]]", "[[polish-agent|Polish Agent]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[git-checkpoint|Git Checkpoint]]", "[[entity-distribution-model|Entity Distribution Model]]", "[[agent-tool-restriction|Agent Tool Restriction]]", "[[host-project-intake|Host-Project Intake]]", "[[parallel-extract|Parallel Extract]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[curator-agent|Curator Agent]]", "[[polish-agent|Polish Agent]]", "[[git-checkpoint|Git Checkpoint]]", "[[agent-tool-restriction|Agent Tool Restriction]]", "[[parallel-extract|Parallel Extract]]"]
 tags: ["agent", "ingest"]
 created: 2026-06-13
 updated: 2026-06-15
@@ -28,7 +28,7 @@ confidence: 1.0
 - Follows: the 13-step ingest rules in `vault/CLAUDE.md` — the skill provides workflow structure; `CLAUDE.md` provides the schema
 - Write phase bounded by git snapshot checkpoints (pre-snapshot before writes, post-snapshot after)
 - Gate: `subagent-ingest-gate.sh` hook fires automatically on return and runs `verify-ingest.sh`; ERROR findings are surfaced to the orchestrator
-- DRY rule enforced: updates existing pages rather than creating duplicates ([[entity-distribution-model|Entity Distribution Model]])
+- DRY rule enforced: updates existing pages rather than creating duplicates (Entity Distribution Model)
 
 ## Overview
 
@@ -70,7 +70,7 @@ The agent extracts entities and concepts from the source. For each extracted ite
 
 - Determines the topic folder it belongs to. Creates `wiki/<topic>/<topic>.md` (the folder note) if the folder does not exist.
 - Searches the wiki for an existing page on this entity/concept.
-- **Updates existing pages rather than creating duplicates** (the [[entity-distribution-model|Entity Distribution Model]]). This is the DRY rule: one source rewrites many existing pages rather than spawning one summary.
+- **Updates existing pages rather than creating duplicates** (the Entity Distribution Model). This is the DRY rule: one source rewrites many existing pages rather than spawning one summary.
 - For new pages: places them in the topic folder, sets `parent` and `path` from the folder note's location, and authors the page from the template in `_templates/<type>.md` (both frontmatter and body section skeleton).
 
 ### 4. Provenance Updates (Steps 7–10)
@@ -112,7 +112,7 @@ The polish agent runs in parallel with the final-report compose step, so ingest 
 
 ## Recursive Enumeration Fix (ADR-0024)
 
-Previously, the ingest agent enumerated `raw/` with a top-level glob (`raw/*.md`), which missed sources wired into nested subdirectories (`raw/wired/<name>/`). The agent now reads pending sources from `engine.sh backlog --json` (`.pendingRaw[]`) — already recursive, `assets/`-excluded, and log/manifest-deduped. The bash fallback is `find` (recursive), never a top-level glob. This makes the [[host-project-intake|Host-Project Intake]] flow work end-to-end.
+Previously, the ingest agent enumerated `raw/` with a top-level glob (`raw/*.md`), which missed sources wired into nested subdirectories (`raw/wired/<name>/`). The agent now reads pending sources from `engine.sh backlog --json` (`.pendingRaw[]`) — already recursive, `assets/`-excluded, and log/manifest-deduped. The bash fallback is `find` (recursive), never a top-level glob. This makes the Host-Project Intake flow work end-to-end.
 
 ## Parallel Extract (ADR-0026)
 
@@ -135,6 +135,6 @@ When `maintenance.maxParallelExtract > 1`, the ingest agent fans out read-only e
 - [[orchestrator-agent|Orchestrator Agent]] — dispatches to this agent when pending sources exist
 - [[curator-agent|Curator Agent]] — runs after ingest (or is dispatched for lint-fix separately)
 - [[polish-agent|Polish Agent]] — runs as tail step after ingest completes
-- [[ingest-pipeline|Ingest Pipeline]] — the conceptual 13-step workflow this agent implements
-- [[entity-distribution-model|Entity Distribution Model]] — the DRY update-not-duplicate rule
+- Ingest Pipeline — the conceptual 13-step workflow this agent implements
+- Entity Distribution Model — the DRY update-not-duplicate rule
 - [[git-checkpoint|Git Checkpoint]] — snapshot pre/post wraps the write phase

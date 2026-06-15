@@ -5,7 +5,7 @@ aliases: ["Wiki-Only Graph", "wiki-only graph", "graph exclusions", "Obsidian gr
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[_sources/adr-0023-wiki-only-graph|ADR-0023: Wiki-Only Graph]]", "[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[adr-0003-polish-agent|ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[llm-wiki-obsidian-experience|User Guide: Obsidian Experience]]", "[[_sources/glossary|Glossary]]"]
-related: ["[[graph-coloring|Graph Coloring]]", "[[graph-config-cache|Graph Config Cache]]", "[[polish-agent|Polish Agent]]", "[[folder-note|Folder Note]]", "[[obsidian/obsidian-experience|Obsidian Experience]]"]
+related: ["[[graph-coloring|Graph Coloring]]", "[[graph-config-cache|Graph Config Cache]]", "[[obsidian/obsidian-experience|Obsidian Experience]]"]
 tags: ["concept", "graph", "obsidian"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -97,6 +97,6 @@ ADR-0022's third color tier (`path:raw` green, `path:wiki` blue, `path:_template
 
 - [[graph-coloring|Graph Coloring]] — the color group management the polish agent owns
 - [[graph-config-cache|Graph Config Cache]] — why `.obsidian/` is gitignored regenerable cache
-- [[polish-agent|Polish Agent]] — asserts the wiki-only contract idempotently after every write
-- [[folder-note|Folder Note]] — the pages whose `path:wiki/<topic>` query drives color groups
+- Polish Agent — asserts the wiki-only contract idempotently after every write
+- Folder Note — the pages whose `path:wiki/<topic>` query drives color groups
 - [[obsidian/obsidian-experience|Obsidian Experience]] — user guide for the Obsidian-side experience

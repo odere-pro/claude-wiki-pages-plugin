@@ -5,7 +5,7 @@ aliases: ["Offline Policy", "offline policy", "offlinePolicy", "degraded mode", 
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[adr-0018-offline-policy|ADR-0018: Offline Policy and Degraded-Mode Routing]]", "[[adr-0019-query-tier|ADR-0019: Query Tier and Answer Verification]]", "[[_sources/operations|Operations Guide]]", "[[_sources/local-models|Local Models]]"]
-related: ["[[approved-local-model|Approved Local Model]]", "[[capability-tier|Capability Tier]]", "[[vault-resolution|Vault Resolution]]", "[[hook-system|Hook System]]", "[[no-rag-principle|NO-RAG Principle]]"]
+related: ["[[approved-local-model|Approved Local Model]]", "[[capability-tier|Capability Tier]]", "[[no-rag-principle|NO-RAG Principle]]"]
 tags: ["concept", "offline", "local-model"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -59,7 +59,7 @@ Configuration for prefer-local routing:
 
 The plugin's north star is a full Claude→Ollama swap for offline use. Two constraints shape how this can be built:
 
-1. **The plugin runs inside Claude Code.** If the network is genuinely down, Claude Code is not running — so an agent cannot "notice it is offline and switch" mid-session. Only Layer 4 (the [[deterministic-engine|Deterministic Engine]], bash scripts, and a local Ollama model) runs with zero network.
+1. **The plugin runs inside Claude Code.** If the network is genuinely down, Claude Code is not running — so an agent cannot "notice it is offline and switch" mid-session. Only Layer 4 (the Deterministic Engine, bash scripts, and a local Ollama model) runs with zero network.
 2. **Local models are only as trustworthy as their measured evidence.** An unapproved model running silently is worse than no fallback — it produces unverified output in the wiki.
 
 The offline policy addresses both: it defines when a fallback is allowed, what quality bar the fallback must meet, and how the routing decision is made without a network call.
@@ -177,4 +177,4 @@ The [[no-rag-principle|NO-RAG Principle]] applies to offline routing and verific
 - [[approved-local-model|Approved Local Model]] — the allow-list the routing decision consults
 - [[capability-tier|Capability Tier]] — the tier the routing decision checks
 - [[no-rag-principle|NO-RAG Principle]] — maintained throughout the offline path
-- [[hook-system|Hook System]] — `session-start.sh` emits the DEGRADED advisory
+- Hook System — `session-start.sh` emits the DEGRADED advisory

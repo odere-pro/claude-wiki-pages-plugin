@@ -26,7 +26,7 @@ config per vault):
 
 | Filter               | Setting | `graph.json` field        | Why                                                                                  |
 | -------------------- | ------- | ------------------------- | ------------------------------------------------------------------------------------ |
-| Search               | empty   | `"search": ""`            | No pre-filter; the whole wiki is visible.                                            |
+| Search               | island filter | `"search": "-path:\"raw/\" -path:\"_templates/\" -path:\"_proposed/\" -path:\"_inbox/\" -path:\"output/\" -path:\"wiki/_sources/\" -path:\"wiki/_synthesis/\" -path:\"wiki/index.md\" -path:\"wiki/log.md\""` | Excludes the connective scaffolding (`_sources`/`_synthesis`/`index`/`log`) from the topic graph so it renders as topic islands, not one hairball fused through shared sources and the MOC (ADR-0033). The pages stay in the vault — they are just not drawn. |
 | Tags                 | off     | `"showTags": false`       | Tag nodes double every page and drown the topic structure.                           |
 | Attachments          | off     | `"showAttachments": false`| `raw/assets/` binaries are provenance payload, not knowledge nodes.                  |
 | Existing files only  | **on**  | `"hideUnresolved": true`  | Dangling wikilinks are lint errors, not graph nodes — the graph shows real pages.    |
@@ -158,15 +158,18 @@ consistency — extend it when more topics are added:
 
 ### 4. Build the color groups array
 
-Rules for ordering — **topics → specials**:
+Rules for ordering — **topics only**:
 
 - **Subtopic paths before parent paths** (e.g., `path:wiki/topic/subtopic` before `path:wiki/topic`)
-- **`_sources` and `_synthesis`** after the topic groups (they are cross-cutting specials)
+- **No `_sources`/`_synthesis` groups.** The connective scaffolding is excluded
+  from the topic graph by the `search` island filter (ADR-0033), so it is never
+  drawn — a color group for it would be dead weight.
 
-Every group queries a `path:wiki/...` — the graph colors only generated wiki
-pages. Never add groups for `raw/`, `_templates/`, or `_proposed/`: those
-paths are excluded from Obsidian's index entirely (see the wiki-only
-exclusions above), so a group matching them is dead weight.
+Every group queries a `path:wiki/<topic>` — the graph colors only the topic
+pages it draws. Never add groups for `raw/`, `_templates/`, `_proposed/`, or the
+filtered scaffolding (`_sources/`, `_synthesis/`, `index.md`, `log.md`): those
+paths are excluded from the graph (index exclusions above + the `search` island
+filter), so a group matching them is dead weight.
 
 There is no index catch-all group: folder notes are topic-named files inside
 their topic folder and take the topic's color via its `path:` group.
@@ -221,7 +224,7 @@ When a new top-level topic folder is created during ingest:
 
 1. Read current color groups via `obsidian eval` (or from `graph.json` on the fallback tier)
 2. Pick the next unused color from the palette
-3. Insert the new group BEFORE the `_sources`/`_synthesis` special groups
+3. Append the new topic group (there are no trailing special groups — the scaffolding is filtered, not colored)
 4. Apply and save per the apply contract
 
 ## Removing a topic color
@@ -244,10 +247,10 @@ precious. Dropping them is always safe; restoring them is one skill run:
 2. Run this skill (or let the polish agent's Step 1 run after the next
    ingest/curator pass).
 3. The minimum scaffold is recreated, one topic group per top-level
-   `wiki/<topic>/` folder is rebuilt in palette order, the
-   `_sources`/`_synthesis` specials are appended, and the wiki-only
+   `wiki/<topic>/` folder is rebuilt in palette order, the `search` island
+   filter (ADR-0033) is re-asserted in `graph.json`, and the wiki-only
    exclusions plus the write-protection new-file keys are re-asserted in
-   `app.json`.
+   `app.json`. No `_sources`/`_synthesis` groups — they are filtered, not drawn.
 
 The same regeneration runs on both apply tiers — `obsidian eval` when
 Obsidian is up, the headless `graph.json`/`app.json` file write otherwise. Two
@@ -267,13 +270,15 @@ Example: #3498DB → parseInt("3498DB", 16) → 3447003
 ## Rules
 
 - Always read current groups before writing — preserve user-added custom groups
-- Order matters: topics → specials (`_sources`, `_synthesis`)
-- Color only `wiki/` paths — `raw/`, `_templates/`, and `_proposed/` are
-  excluded from Obsidian's index; never add groups for them
+- Topics only — one `path:wiki/<topic>` group per top-level topic folder
+- Color only drawn topic `wiki/` paths — `raw/`, `_templates/`, `_proposed/`,
+  and the filtered scaffolding (`_sources/`, `_synthesis/`, `index.md`,
+  `log.md`) are not in the topic graph; never add groups for them
 - One color per top-level topic; subtopics get their own color only when the
   parent has 3+ subtopic folders
-- `_sources` and `_synthesis` groups are always present; there is no index
-  catch-all — folder notes take their topic's color
+- No `_sources`/`_synthesis` groups and no index catch-all — folder notes take
+  their topic's color; the scaffolding is filtered out by the `search` island
+  filter (ADR-0033)
 - Apply through the two-tier contract: `obsidian eval` preferred, direct
   `graph.json` write as the documented headless fallback
 - After applying, verify with a read-back (eval read, or re-read `graph.json`

@@ -5,10 +5,10 @@ aliases: ["Fill-Gaps Skill", "fill-gaps", "/claude-wiki-pages:fill-gaps", "fill-
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/adr-0027-fill-gaps-and-graph-quality|ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]"]
-related: ["[[graph-quality|Graph Quality]]", "[[dangling-wikilink|Dangling Wikilink]]", "[[node-concentration|Node Concentration]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[curator-agent|Curator Agent]]", "[[polish-agent|Polish Agent]]", "[[maintenance-loop|Maintenance Loop]]"]
+related: ["[[graph-quality|Graph Quality]]", "[[dangling-wikilink|Dangling Wikilink]]", "[[node-concentration|Node Concentration]]", "[[maintenance-loop|Maintenance Loop]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[graph-quality|Graph Quality]]", "[[ingest-pipeline|Ingest Pipeline]]"]
+depends_on: ["[[graph-quality|Graph Quality]]"]
 tags: ["concept", "skill", "fill-gaps", "graph-quality", "workflow"]
 created: 2026-06-15
 updated: 2026-06-15

@@ -5,7 +5,7 @@ aliases: ["Frontmatter Validation", "frontmatter validation", "validate-frontmat
 parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[adr-0014-single-source-required-fields|ADR-0014: Single-Source Required Fields]]"]
-related: ["[[required-fields|Required Fields]]", "[[schema-authority|Schema Authority]]", "[[lint-rules|Lint Rules]]", "[[design-drift-gate|Design-Drift Gate]]"]
+related: ["[[required-fields|Required Fields]]", "[[schema-authority|Schema Authority]]", "[[lint-rules|Lint Rules]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -83,4 +83,4 @@ ADR-0014 also added duplicate-claim detection: if the same claim appears in two 
 - [[required-fields|Required Fields]] — the per-type field requirements that frontmatter validation enforces
 - [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` as the single source of truth for the required-fields table
 - [[lint-rules|Lint Rules]] — the broader set of checks; frontmatter validation is the structural subset
-- [[design-drift-gate|Design-Drift Gate]] — a sibling check in `validate-docs.sh` that catches design document drift
+- Design-Drift Gate — a sibling check in `validate-docs.sh` that catches design document drift

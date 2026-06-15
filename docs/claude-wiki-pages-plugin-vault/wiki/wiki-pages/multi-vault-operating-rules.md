@@ -5,10 +5,10 @@ aliases: ["Multi-Vault Operating Rules", "multi-vault operating rules", "multi-v
 parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[maintain-contract|Maintain Contract]]", "[[multi-vault-registry|Multi-Vault Registry]]", "[[Firewall]]", "[[vault-resolution|Vault Resolution]]"]
+related: ["[[maintain-contract|Maintain Contract]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[multi-vault-registry|Multi-Vault Registry]]", "[[Firewall]]", "[[vault-resolution|Vault Resolution]]"]
+depends_on: []
 tags: ["concept", "multi-vault", "operating-rules"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -26,7 +26,7 @@ confidence: 1.0
 
 When more than one vault is registered in `.claude/claude-wiki-pages/settings.json`, every engine call must be explicitly scoped. The five rules codify the correct agent behaviour to prevent cross-vault contamination and fail-closed on any registry inconsistency.
 
-These rules are agent-side procedures — the complementary enforcement mechanism is the [[Firewall]] (bash twin `scripts/firewall.sh` and TypeScript twin `src/core/firewall.ts`). The agent follows the rules voluntarily; the firewall enforces them structurally at the write boundary.
+These rules are agent-side procedures — the complementary enforcement mechanism is the Firewall (bash twin `scripts/firewall.sh` and TypeScript twin `src/core/firewall.ts`). The agent follows the rules voluntarily; the firewall enforces them structurally at the write boundary.
 
 ## Key Principles
 
@@ -97,6 +97,6 @@ Registry inconsistency flow:
 ## Related Concepts
 
 - [[maintain-contract|Maintain Contract]] — the parent contract that these rules extend for multi-vault environments
-- [[multi-vault-registry|Multi-Vault Registry]] — the registry data structure (`settings.json`) that Rules 2 and 5 read from
-- [[Firewall]] — the enforcement mechanism that Rules 4 and 5 rely on (bash twin + TS twin)
-- [[vault-resolution|Vault Resolution]] — `scripts/resolve-vault.sh` that Rules 1 and 2 source for `$VAULT` and `$registry_other_vaults`
+- Multi-Vault Registry — the registry data structure (`settings.json`) that Rules 2 and 5 read from
+- Firewall — the enforcement mechanism that Rules 4 and 5 rely on (bash twin + TS twin)
+- Vault Resolution — `scripts/resolve-vault.sh` that Rules 1 and 2 source for `$VAULT` and `$registry_other_vaults`

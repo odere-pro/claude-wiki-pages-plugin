@@ -5,7 +5,7 @@ aliases: ["Dangling Wikilink", "dangling wikilink", "dangling link", "broken wik
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/adr-0027-fill-gaps-and-graph-quality|ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]", "[[_sources/adr-0028-dangling-wikilink-verify-check|ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
-related: ["[[graph-quality|Graph Quality]]", "[[fill-gaps-skill|Fill-Gaps Skill]]", "[[node-concentration|Node Concentration]]", "[[shell-ts-parity|Shell-TS Parity]]", "[[parity-gate|Parity Gate]]", "[[deterministic-engine|Deterministic Engine]]"]
+related: ["[[graph-quality|Graph Quality]]", "[[fill-gaps-skill|Fill-Gaps Skill]]", "[[node-concentration|Node Concentration]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[graph-quality|Graph Quality]]"]
@@ -64,5 +64,5 @@ Resolution by an empty stub is **prohibited**. Resolution by fabricating a link 
 
 - [[graph-quality|Graph Quality]] — the detector that scans for dangling wikilinks
 - [[fill-gaps-skill|Fill-Gaps Skill]] — the workflow that enforces `danglingCount == 0` as a gate
-- [[shell-ts-parity|Shell-TS Parity]] — gate-05 pins the dangling-wikilink resolution rule between TS and bash twins
-- [[deterministic-engine|Deterministic Engine]] — the verify command where the check lives
+- Shell-TS Parity — gate-05 pins the dangling-wikilink resolution rule between TS and bash twins
+- Deterministic Engine — the verify command where the check lives

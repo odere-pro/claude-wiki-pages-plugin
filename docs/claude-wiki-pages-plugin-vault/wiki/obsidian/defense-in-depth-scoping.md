@@ -5,10 +5,10 @@ aliases: ["Defense-in-Depth Scoping", "defense-in-depth scoping", "defense in de
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[_sources/obsidian-vault-skill|Obsidian Vault Skill (SKILL.md)]]"]
-related: ["[[obsidian/obsidian-vault-skill|obsidian-vault Skill]]", "[[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]]", "[[Firewall]]", "[[hook-system|Hook System]]"]
+related: ["[[obsidian/obsidian-vault-skill|obsidian-vault Skill]]", "[[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[Firewall]]", "[[hook-system|Hook System]]"]
+depends_on: []
 tags: ["concept", "security", "obsidian"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -61,5 +61,5 @@ Scenario: a careful agent follows the skill.
 
 - [[obsidian/obsidian-vault-skill|obsidian-vault Skill]] — Layer 1 (intent); the skill that teaches vault-scoping
 - [[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]] — the four rules the skill encodes
-- [[Firewall]] — Layer 2 (enforcement); `scripts/firewall.sh` + `firewall.ts`
-- [[hook-system|Hook System]] — the `PreToolUse` hook chain that runs the firewall
+- Firewall — Layer 2 (enforcement); `scripts/firewall.sh` + `firewall.ts`
+- Hook System — the `PreToolUse` hook chain that runs the firewall

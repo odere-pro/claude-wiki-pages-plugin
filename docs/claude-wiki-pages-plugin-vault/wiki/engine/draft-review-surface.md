@@ -5,10 +5,10 @@ aliases: ["Draft Review Surface", "propose verb", "review approve reject", "draf
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[propose-ts-source|propose.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]", "[[llm-software-3-0|SOFTWARE-3-0: Dual Entry Point]]"]
-related: ["[[deterministic-engine|Deterministic Engine]]", "[[engine-verb-surface|Engine Verb Surface]]", "[[git-checkpoint|Git Checkpoint]]", "[[dual-entry-point|Dual Entry Point]]", "[[dashboard-write-gate|Dashboard Write Gate]]"]
+related: ["[[deterministic-engine|Deterministic Engine]]", "[[engine-verb-surface|Engine Verb Surface]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[git-checkpoint|Git Checkpoint]]"]
+depends_on: []
 tags: ["engine", "drafts", "review", "propose"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -48,6 +48,6 @@ bash scripts/engine.sh propose reject --file _proposed/wiki/engine/draft.md --ta
 
 ## Related Concepts
 
-- [[git-checkpoint|Git Checkpoint]] — the pre-operation checkpoint that makes approve/reject revertible
+- Git Checkpoint — the pre-operation checkpoint that makes approve/reject revertible
 - [[engine-verb-surface|Engine Verb Surface]] — the full set of engine verbs this `propose` verb is part of
 - [[deterministic-engine|Deterministic Engine]] — the engine providing this review surface

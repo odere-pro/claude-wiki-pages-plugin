@@ -5,7 +5,7 @@ aliases: ["Graph Traversal Primitive", "graph traversal primitive", "walk()", "B
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[_sources/adr-0008-graph-traversal-primitive|ADR-0008: One Graph-Traversal Primitive]]", "[[graph-ts-source|graph.ts Source]]"]
-related: ["[[graph-walk-algorithm|Graph Walk Algorithm]]", "[[wiki-native-recall|Wiki-Native Recall]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[no-rag-principle|NO-RAG Principle]]"]
+related: ["[[graph-walk-algorithm|Graph Walk Algorithm]]", "[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -97,7 +97,7 @@ The decay factor is defined in `src/core/graph.ts`. This weights direct associat
 ## Related Concepts
 
 - [[graph-walk-algorithm|Graph Walk Algorithm]] — the implementation-level documentation of `walk()`, including BFS pseudocode and the visit-order invariant
-- [[wiki-native-recall|Wiki-Native Recall]] — the broader retrieval philosophy: keyword + synonym + graph, no embeddings
+- Wiki-Native Recall — the broader retrieval philosophy: keyword + synonym + graph, no embeddings
 - [[search-scoring-algorithm|Search Scoring Algorithm]] — the scoring model that produces the seed pages `walk()` extends
 - [[tier-2-deterministic-recall|Tier-2 Deterministic Recall]] — synonym expansion and stemming that run before the graph walk
-- [[no-rag-principle|NO-RAG Principle]] — the architectural decision that graph walk replaces, not supplements, vector retrieval
+- NO-RAG Principle — the architectural decision that graph walk replaces, not supplements, vector retrieval

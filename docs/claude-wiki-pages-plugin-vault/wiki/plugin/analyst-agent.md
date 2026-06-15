@@ -6,7 +6,7 @@ aliases: ["Analyst Agent", "analyst agent", "claude-wiki-pages-analyst-agent", "
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[llm-wiki-07-query-the-wiki|User Guide 07: Query the Wiki]]", "[[llm-wiki-05-export-outputs|User Guide 05: Export Outputs]]", "[[_sources/operations|Operations Guide]]", "[[plugin-analyst-agent|Analyst Agent Source]]", "[[llm-analyst-modes-skill|Analyst Modes Skill (SKILL.md)]]"]
-related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[query-rules|Query Rules]]", "[[challenge-mode|Challenge Mode]]", "[[synthesis-note|Synthesis Note]]", "[[wiki-native-recall|Wiki-Native Recall]]", "[[analyst-dashboard-mode|Analyst Dashboard Mode]]", "[[analyst-document-compile-mode|Analyst Document Compile Mode]]", "[[analyst-extract-mode|Analyst Extract Mode]]", "[[dashboard-write-gate|Dashboard Write Gate]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]"]
 tags: ["agent", "analyst"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -49,7 +49,7 @@ The orchestrator selects the analyst when the prompt matches an analytical verb 
 
 ### 1. Query
 
-Standard question answering against the wiki. The agent follows the [[query-rules|Query Rules]] exactly:
+Standard question answering against the wiki. The agent follows the Query Rules exactly:
 
 1. Read `wiki/index.md` to identify relevant pages.
 2. Start from the relevant folder note and traverse downward.
@@ -62,15 +62,15 @@ If the answer is genuinely novel (not a restatement of existing pages), the agen
 
 ### 2. Dashboard
 
-Produces a Dataview live dashboard or a static snapshot of vault health. Standard metrics: coverage (pages per topic/type, source count), health (orphans, broken links, stale pages), evidence (average `update_count`, sources per page, confidence distribution), freshness (pages updated in last 7/30/90 days), connectivity (average `related` links), and gaps (entities mentioned in prose but lacking their own page). Writing to `wiki/dashboard.md` requires the [[dashboard-write-gate|Dashboard Write Gate]]; static snapshots to `vault/output/` are ungated. See [[analyst-dashboard-mode|Analyst Dashboard Mode]] for the full procedure.
+Produces a Dataview live dashboard or a static snapshot of vault health. Standard metrics: coverage (pages per topic/type, source count), health (orphans, broken links, stale pages), evidence (average `update_count`, sources per page, confidence distribution), freshness (pages updated in last 7/30/90 days), connectivity (average `related` links), and gaps (entities mentioned in prose but lacking their own page). Writing to `wiki/dashboard.md` requires the Dashboard Write Gate; static snapshots to `vault/output/` are ungated. See Analyst Dashboard Mode for the full procedure.
 
 ### 3. Document Compile
 
-Reconstructs a named document (an ADR, a project report, a technical brief, a memo, or a runbook) from wiki pages. The agent reads the relevant concept, entity, and decision pages and assembles them into a target format. Output always goes to `vault/output/<slug>.md` — never to `vault/wiki/`. For scope >10 pages, a compile plan must be written and approved before any reads. This mode is distinct from [[wiki-native-recall|Wiki-Native Recall]]-based Query: it assembles a structured deliverable, not answers a question. See [[analyst-document-compile-mode|Analyst Document Compile Mode]] for the full procedure.
+Reconstructs a named document (an ADR, a project report, a technical brief, a memo, or a runbook) from wiki pages. The agent reads the relevant concept, entity, and decision pages and assembles them into a target format. Output always goes to `vault/output/<slug>.md` — never to `vault/wiki/`. For scope >10 pages, a compile plan must be written and approved before any reads. This mode is distinct from Wiki-Native Recall-based Query: it assembles a structured deliverable, not answers a question. See Analyst Document Compile Mode for the full procedure.
 
 ### 4. Extract
 
-Pulls structured data from wiki pages into a markdown table, CSV, structured list, or frontmatter report. Examples: all `type: entity` pages in a topic with their `confidence` and `updated` fields; all ADR decision pages with their `status`; all pages with `confidence < 0.7`. Results are portable — rendered from frontmatter directly, not Dataview queries. Rows where `confidence < 0.6` or `sources` has fewer than 2 entries are annotated as weakly evidenced. See [[analyst-extract-mode|Analyst Extract Mode]] for the full procedure and common extraction patterns.
+Pulls structured data from wiki pages into a markdown table, CSV, structured list, or frontmatter report. Examples: all `type: entity` pages in a topic with their `confidence` and `updated` fields; all ADR decision pages with their `status`; all pages with `confidence < 0.7`. Results are portable — rendered from frontmatter directly, not Dataview queries. Rows where `confidence < 0.6` or `sources` has fewer than 2 entries are annotated as weakly evidenced. See Analyst Extract Mode for the full procedure and common extraction patterns.
 
 ### 5. Challenge
 
@@ -78,7 +78,7 @@ The adversarial querying mode. Before writing an ADR, proposal, or making a sign
 
 > I'm about to decide [X]. Search the wiki for: past decisions on similar topics, contradictions in my current understanding, gaps in evidence, sources that argue against this approach. Push back on my assumptions.
 
-The analyst searches for `contradicts:` frontmatter relationships, low-confidence claims, missing pages on related topics, and conflicting evidence in `sources:`. It surfaces these as structured pushback — not a refusal, but a reasoned counterargument grounded in the wiki's actual content. See [[challenge-mode|Challenge Mode]] for a full description.
+The analyst searches for `contradicts:` frontmatter relationships, low-confidence claims, missing pages on related topics, and conflicting evidence in `sources:`. It surfaces these as structured pushback — not a refusal, but a reasoned counterargument grounded in the wiki's actual content. See Challenge Mode for a full description.
 
 ## Invariants the Agent Enforces
 
@@ -104,7 +104,7 @@ Use this when the routing is unambiguous and the orchestrator's probe would be w
 ## Related
 
 - [[orchestrator-agent|Orchestrator Agent]] — dispatches to this agent for analytical prompts
-- [[query-rules|Query Rules]] — the structured query workflow the agent follows in Query mode
-- [[challenge-mode|Challenge Mode]] — the adversarial querying mode described in full
-- [[wiki-native-recall|Wiki-Native Recall]] — the deterministic retrieval underlying all five modes
-- [[synthesis-note|Synthesis Note]] — the output the analyst may produce for novel answers
+- Query Rules — the structured query workflow the agent follows in Query mode
+- Challenge Mode — the adversarial querying mode described in full
+- Wiki-Native Recall — the deterministic retrieval underlying all five modes
+- Synthesis Note — the output the analyst may produce for novel answers

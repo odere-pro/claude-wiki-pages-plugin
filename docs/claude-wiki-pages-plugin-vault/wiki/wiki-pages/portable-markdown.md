@@ -5,7 +5,7 @@ aliases: ["Portable Markdown", "portable markdown", "markdown export", "vault/ou
 parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[_sources/getting-started|Getting Started (CLI Quickstart)]]", "[[llm-wiki-05-export-outputs|User Guide 05: Export Outputs]]"]
-related: ["[[analyst-agent|Analyst Agent]]", "[[synthesis-note|Synthesis Note]]", "[[Time-to-First-Value]]", "[[query-rules|Query Rules]]"]
+related: ["[[synthesis-note|Synthesis Note]]", "[[query-rules|Query Rules]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -71,7 +71,7 @@ For document-style compilation (multi-page synthesis rather than a single query 
 Analyst Agent: compile a report on <topic> for <audience>
 ```
 
-The [[analyst-agent|Analyst Agent]]'s "document compile" mode produces a longer-form document in `vault/output/` that stitches together multiple wiki pages into a coherent narrative.
+The Analyst Agent's "document compile" mode produces a longer-form document in `vault/output/` that stitches together multiple wiki pages into a coherent narrative.
 
 ## Synthesis vs. Output
 
@@ -99,7 +99,7 @@ This is the supported path for PDF and DOCX delivery. The plugin does not ship a
 
 ## Related Concepts
 
-- [[analyst-agent|Analyst Agent]] — the agent that produces compiled reports in `vault/output/`
+- Analyst Agent — the agent that produces compiled reports in `vault/output/`
 - [[synthesis-note|Synthesis Note]] — the permanent knowledge counterpart; output files can derive from synthesis notes
-- [[Time-to-First-Value]] — `/claude-wiki-pages:markdown` is the value extension for non-Obsidian users
+- Time-to-First-Value — `/claude-wiki-pages:markdown` is the value extension for non-Obsidian users
 - [[query-rules|Query Rules]] — the query workflow that feeds into markdown export

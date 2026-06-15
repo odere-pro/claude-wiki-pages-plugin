@@ -5,7 +5,7 @@ aliases: ["Search Scoring Algorithm", "search scoring", "scoring channels", "Mat
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[search-ts-source|search.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]", "[[graph-ts-source|graph.ts Source]]"]
-related: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[graph-walk-algorithm|Graph Walk Algorithm]]", "[[synonym-lexicon|Synonym Lexicon]]", "[[porter-stemmer|Porter Stemmer]]", "[[wiki-native-recall|Wiki-Native Recall]]", "[[deterministic-engine|Deterministic Engine]]"]
+related: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[graph-walk-algorithm|Graph Walk Algorithm]]", "[[synonym-lexicon|Synonym Lexicon]]", "[[porter-stemmer|Porter Stemmer]]", "[[deterministic-engine|Deterministic Engine]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[tier-2-deterministic-recall|Tier-2 Deterministic Recall]]", "[[graph-walk-algorithm|Graph Walk Algorithm]]"]
@@ -59,4 +59,4 @@ For query `"graph rag"`:
 - [[graph-walk-algorithm|Graph Walk Algorithm]] — the R2 graph channel (opt-in via `--graph`)
 - [[synonym-lexicon|Synonym Lexicon]] — provides synonym expansion for `synonym-term` channels
 - [[porter-stemmer|Porter Stemmer]] — provides stem forms for `stem-term` channel
-- [[wiki-native-recall|Wiki-Native Recall]] — the broader design principle this implements
+- Wiki-Native Recall — the broader design principle this implements

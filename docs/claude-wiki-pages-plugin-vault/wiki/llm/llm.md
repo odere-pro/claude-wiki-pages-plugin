@@ -29,7 +29,7 @@ updated: 2026-06-13
 # LLM
 
 > [!summary]
-> The LLM cluster covers two interrelated concerns: how the [[analyst-agent|Analyst Agent]] operates on vault content (five modes, two write gates), and how the plugin's design ensures that every surface is equally usable by a human and an LLM agent (the [[six-surfaces-dual-reader|Six Surfaces Dual-Reader Contract]] enforced by [[dual-entry-point|Dual Entry Point]]). The analyst modes define what the LLM can produce from the wiki; the dual-reader contract defines what the LLM can read to understand the plugin itself.
+> The LLM cluster covers two interrelated concerns: how the Analyst Agent operates on vault content (five modes, two write gates), and how the plugin's design ensures that every surface is equally usable by a human and an LLM agent (the [[six-surfaces-dual-reader|Six Surfaces Dual-Reader Contract]] enforced by [[dual-entry-point|Dual Entry Point]]). The analyst modes define what the LLM can produce from the wiki; the dual-reader contract defines what the LLM can read to understand the plugin itself.
 
 ## Overview
 

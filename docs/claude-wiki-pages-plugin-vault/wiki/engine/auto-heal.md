@@ -5,7 +5,7 @@ aliases: ["Auto-Heal", "auto-heal", "automatic repair", "self-heal"]
 parent: "[[engine|Wiki Engine]]"
 path: "engine"
 sources: ["[[llm-wiki-04-review-validate-fix|User Guide 04: Review Validate Fix]]", "[[_sources/architecture|Architecture Documentation]]", "[[_sources/features|Features]]", "[[_sources/operations|Operations Guide]]", "[[wiki-pages-skill|Wiki Pages Skill (maintain-contract SKILL.md)]]"]
-related: ["[[curator-agent|Curator Agent]]", "[[lint-rules|Lint Rules]]", "[[git-checkpoint|Git Checkpoint]]", "[[deterministic-engine|Deterministic Engine]]", "[[maintain-contract|Maintain Contract]]"]
+related: ["[[deterministic-engine|Deterministic Engine]]"]
 tags: ["concept", "curator", "repair"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -51,7 +51,7 @@ git revert <heal-commit-sha>
 
 ## Definition
 
-Auto-heal is the repair phase that follows lint diagnosis. The [[curator-agent|Curator Agent]] collects all issues, classifies them into auto-fixable and judgment categories, then applies fixes in phases. The [[git-checkpoint|Git Checkpoint]] safety model means no approval gate is needed: every change is revertible with `git revert <sha>`.
+Auto-heal is the repair phase that follows lint diagnosis. The Curator Agent collects all issues, classifies them into auto-fixable and judgment categories, then applies fixes in phases. The Git Checkpoint safety model means no approval gate is needed: every change is revertible with `git revert <sha>`.
 
 ## What Auto-Heal Applies (No Approval Needed)
 
@@ -115,7 +115,7 @@ The rollback SHA is reported in the curator's final report.
 
 ## Related Concepts
 
-- [[curator-agent|Curator Agent]] — the agent that runs auto-heal
-- [[lint-rules|Lint Rules]] — the checks that produce the findings auto-heal repairs
-- [[git-checkpoint|Git Checkpoint]] — every auto-heal change lands in a reversible commit
+- Curator Agent — the agent that runs auto-heal
+- Lint Rules — the checks that produce the findings auto-heal repairs
+- Git Checkpoint — every auto-heal change lands in a reversible commit
 - [[deterministic-engine|Deterministic Engine]] — `engine.sh heal` handles the structural-error subset

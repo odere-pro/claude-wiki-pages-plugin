@@ -5,7 +5,7 @@ aliases: ["Architecture Decision Record", "ADR", "ADRs", "architecture decision 
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[adr-readme|ADR Index]]", "[[_sources/architecture|Architecture Documentation]]"]
-related: ["[[design-drift-gate|Design-Drift Gate]]", "[[four-layer-stack|Four-Layer Stack]]", "[[deterministic-engine|Deterministic Engine]]", "[[schema-authority|Schema Authority]]", "[[lint-rules|Lint Rules]]"]
+related: []
 tags: ["concept", "adr", "governance"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -103,6 +103,6 @@ All ADRs are in `docs/adr/`. The index is at `wiki/_sources/adr-readme.md`.
 
 ## Related Concepts
 
-- [[design-drift-gate|Design-Drift Gate]] — `validate-docs.sh` that checks design docs against reality (ADR-0013)
-- [[four-layer-stack|Four-Layer Stack]] — the architecture that ADR-0001 formalized
-- [[deterministic-engine|Deterministic Engine]] — the engine whose self-description surfaces ADR-0015 added
+- Design-Drift Gate — `validate-docs.sh` that checks design docs against reality (ADR-0013)
+- Four-Layer Stack — the architecture that ADR-0001 formalized
+- Deterministic Engine — the engine whose self-description surfaces ADR-0015 added

@@ -5,7 +5,7 @@ aliases: ["Hook System", "hook system", "hooks", "lifecycle hooks"]
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[design-02-component-design|Design: Component Design]]", "[[_sources/operations|Operations Guide]]", "[[design-06-feature-relations|Design: Feature Relations]]"]
-related: ["[[four-layer-stack|Four-Layer Stack]]", "[[Firewall]]", "[[git-checkpoint|Git Checkpoint]]", "[[deterministic-engine|Deterministic Engine]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]"]
+related: ["[[four-layer-stack|Four-Layer Stack]]", "[[git-checkpoint|Git Checkpoint]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]"]
 tags: ["concept", "hooks"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -60,9 +60,9 @@ This design means the hook system catches failures that skills and agents cannot
 ## Related Concepts
 
 - [[four-layer-stack|Four-Layer Stack]] — the hook system is the enforcement layer of Layer 4
-- [[Firewall]] — the confinement check that runs first in the PreToolUse chain
+- Firewall — the confinement check that runs first in the PreToolUse chain
 - [[git-checkpoint|Git Checkpoint]] — the `subagent-commit-gate.sh` backstop creates these
-- [[deterministic-engine|Deterministic Engine]] — engine verbs called by hooks (verify, firewall, backlog)
+- Deterministic Engine — engine verbs called by hooks (verify, firewall, backlog)
 - [[ingest-agent|Ingest Agent]] — the agent whose output `subagent-ingest-gate.sh` audits
 - [[curator-agent|Curator Agent]] — the agent that runs `engine heal` as part of its execution
 

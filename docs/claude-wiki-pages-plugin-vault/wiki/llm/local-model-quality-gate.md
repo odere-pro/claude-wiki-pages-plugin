@@ -5,7 +5,7 @@ aliases: ["Local Model Quality Gate", "local model quality gate", "quality gate"
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[_sources/adr-0011-local-model-quality-gate|ADR-0011: Local-Model Quality Gate]]", "[[adr-0017-fabrication-floor|ADR-0017: Fabrication Floor — Verbatim Partition]]", "[[_sources/local-models|Local Models]]"]
-related: ["[[golden-set|Golden Set]]", "[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[approved-local-model|Approved Local Model]]", "[[capability-tier|Capability Tier]]", "[[offline-policy|Offline Policy]]", "[[scaffolding-ablation|Scaffolding Ablation]]"]
+related: ["[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[approved-local-model|Approved Local Model]]", "[[capability-tier|Capability Tier]]", "[[offline-policy|Offline Policy]]"]
 tags: ["concept", "local-model", "quality"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -128,8 +128,8 @@ Rejected models and reasons:
 
 ## Related Concepts
 
-- [[golden-set|Golden Set]] — the checked-in fixtures used for eval scoring
+- Golden Set — the checked-in fixtures used for eval scoring
 - [[zero-fabrication-floor|Zero-Fabrication Floor]] — the hard floor for fabricated sourced claims
 - [[approved-local-model|Approved Local Model]] — the allow-list result of a passed gate
 - [[capability-tier|Capability Tier]] — the tier a model is approved for
-- [[scaffolding-ablation|Scaffolding Ablation]] — the companion eval that measures what the plugin buys vs no plugin
+- Scaffolding Ablation — the companion eval that measures what the plugin buys vs no plugin

@@ -5,7 +5,7 @@ aliases: ["Maintenance Loop", "maintenance loop", "autonomous maintenance", "cat
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/automation|Automation]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]", "[[_sources/adr-0026-parallel-extract-and-scheduled-upkeep|ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]]"]
-related: ["[[Heartbeat]]", "[[Backlog]]", "[[maintenance-agent|Maintenance Agent]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[scheduled-upkeep|Scheduled Upkeep]]", "[[parallel-extract|Parallel Extract]]"]
+related: ["[[Heartbeat]]", "[[Backlog]]", "[[scheduled-upkeep|Scheduled Upkeep]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -111,8 +111,8 @@ When `maintenance.unattended: true`, the loop enforces a strict subset of the in
 
 - [[Heartbeat]] — the SessionStart probe that detects backlog and recommends running the maintenance loop
 - [[Backlog]] — the unprocessed sources and overdue lint that the maintenance loop clears
-- [[maintenance-agent|Maintenance Agent]] — the agent that orchestrates the four-phase maintenance loop
-- [[ingest-agent|Ingest Agent]] — Phase 1 of the maintenance loop
-- [[curator-agent|Curator Agent]] — Phase 2 of the maintenance loop
+- Maintenance Agent — the agent that orchestrates the four-phase maintenance loop
+- Ingest Agent — Phase 1 of the maintenance loop
+- Curator Agent — Phase 2 of the maintenance loop
 - [[scheduled-upkeep|Scheduled Upkeep]] — the host-owned scheduling path for unattended runs
-- [[parallel-extract|Parallel Extract]] — optional performance enhancement for the ingest phase
+- Parallel Extract — optional performance enhancement for the ingest phase

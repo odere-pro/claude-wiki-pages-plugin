@@ -6,7 +6,7 @@ aliases: ["sync-source.sh", "sync-source", "sync source script"]
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/sync-skill|Sync Skill (SKILL.md)]]", "[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[how-it-works/sync-skill|Sync Skill]]", "[[wired-source|Wired Source]]", "[[sync-workflow|Sync Workflow]]", "[[git-checkpoint|Git Checkpoint]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[scripts-layer|Scripts Layer]]"]
+related: ["[[how-it-works/sync-skill|Sync Skill]]", "[[wired-source|Wired Source]]", "[[sync-workflow|Sync Workflow]]"]
 tags: ["entity", "tool", "script", "sync"]
 created: 2026-06-13
 updated: 2026-06-14
@@ -51,6 +51,6 @@ The script never calls `snapshot.sh` itself — the [[how-it-works/sync-skill|Sy
 - [[how-it-works/sync-skill|Sync Skill]] — the skill that calls this script and wraps it in checkpoints
 - [[sync-workflow|Sync Workflow]] — the eight-step workflow in which this script executes Steps 2 and 4
 - [[wired-source|Wired Source]] — the registered git work tree this script reads from
-- [[git-checkpoint|Git Checkpoint]] — the snapshot.sh calls that bracket sync-source.sh invocations
-- [[ingest-pipeline|Ingest Pipeline]] — the downstream pipeline that processes the files this script writes
-- [[scripts-layer|Scripts Layer]] — the broader shell layer this script belongs to
+- Git Checkpoint — the snapshot.sh calls that bracket sync-source.sh invocations
+- Ingest Pipeline — the downstream pipeline that processes the files this script writes
+- Scripts Layer — the broader shell layer this script belongs to

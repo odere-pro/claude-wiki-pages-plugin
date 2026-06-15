@@ -6,7 +6,7 @@ aliases: ["Polish Agent", "polish agent", "claude-wiki-pages-polish-agent", "pol
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[adr-0003-polish-agent|ADR-0003: Polish Agent and Obsidian-Side Experience]]", "[[adr-0022-folder-notes-graph-quality|ADR-0022: Folder Notes and Graph Quality]]", "[[_sources/adr-0023-wiki-only-graph|ADR-0023: Wiki-Only Graph]]", "[[llm-wiki-obsidian-experience|User Guide: Obsidian Experience]]", "[[plugin-polish-agent|Polish Agent Source]]"]
-related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[folder-note|Folder Note]]", "[[wiki-only-graph|Wiki-Only Graph]]", "[[obsidian/obsidian-experience|Obsidian Experience]]"]
+related: ["[[orchestrator-agent|Orchestrator Agent]]", "[[ingest-agent|Ingest Agent]]", "[[curator-agent|Curator Agent]]", "[[obsidian/obsidian-experience|Obsidian Experience]]"]
 tags: ["agent", "polish"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -103,6 +103,6 @@ The polish agent's three steps are collectively "presentation" — they do not c
 - [[orchestrator-agent|Orchestrator Agent]] — fans out the polish agent as a tail step
 - [[ingest-agent|Ingest Agent]] — triggers a polish run on every successful ingest
 - [[curator-agent|Curator Agent]] — triggers a polish run after every audit-and-repair pass
-- [[folder-note|Folder Note]] — the per-folder index files the agent reconciles
-- [[wiki-only-graph|Wiki-Only Graph]] — the graph contract the polish agent enforces via `userIgnoreFilters`
+- Folder Note — the per-folder index files the agent reconciles
+- Wiki-Only Graph — the graph contract the polish agent enforces via `userIgnoreFilters`
 - [[obsidian/obsidian-experience|Obsidian Experience]] — the user-facing outcome the polish agent maintains

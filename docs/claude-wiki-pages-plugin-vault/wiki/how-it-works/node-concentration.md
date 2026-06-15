@@ -5,7 +5,7 @@ aliases: ["Node Concentration", "node concentration", "Cn", "Ce", "Ch", "edge co
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/adr-0027-fill-gaps-and-graph-quality|ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]"]
-related: ["[[graph-quality|Graph Quality]]", "[[fill-gaps-skill|Fill-Gaps Skill]]", "[[dangling-wikilink|Dangling Wikilink]]", "[[wiki-only-graph|Wiki-Only Graph]]", "[[folder-note|Folder Note]]"]
+related: ["[[graph-quality|Graph Quality]]", "[[fill-gaps-skill|Fill-Gaps Skill]]", "[[dangling-wikilink|Dangling Wikilink]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[graph-quality|Graph Quality]]"]
@@ -54,4 +54,4 @@ Hub pages (`type: topic`) are the concentration anchors. The [[fill-gaps-skill|F
 
 - [[graph-quality|Graph Quality]] — the full detector that computes these metrics
 - [[fill-gaps-skill|Fill-Gaps Skill]] — the workflow that gates on Cn ≥ 0.85 and Ce ≥ 0.85
-- [[wiki-only-graph|Wiki-Only Graph]] — the Obsidian graph these metrics characterize
+- Wiki-Only Graph — the Obsidian graph these metrics characterize

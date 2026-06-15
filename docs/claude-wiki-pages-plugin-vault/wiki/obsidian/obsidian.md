@@ -21,7 +21,7 @@ updated: 2026-06-13
 # Obsidian
 
 > [!summary]
-> The Obsidian cluster covers the conventions and enforcement mechanisms that make Obsidian CLI calls safe in a multi-vault environment. The [[obsidian/obsidian-vault-skill|obsidian-vault Skill]] teaches agents to scope every CLI call to the resolved vault before the call happens. [[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]] defines the four rules in detail. [[defense-in-depth-scoping|Defense-in-Depth Scoping]] explains the two-layer design: the skill catches confused agents early; the [[Firewall]] hook provides a deterministic backstop even when the skill is not consulted.
+> The Obsidian cluster covers the conventions and enforcement mechanisms that make Obsidian CLI calls safe in a multi-vault environment. The [[obsidian/obsidian-vault-skill|obsidian-vault Skill]] teaches agents to scope every CLI call to the resolved vault before the call happens. [[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]] defines the four rules in detail. [[defense-in-depth-scoping|Defense-in-Depth Scoping]] explains the two-layer design: the skill catches confused agents early; the Firewall hook provides a deterministic backstop even when the skill is not consulted.
 
 ## Overview
 
@@ -37,7 +37,7 @@ The key invariant: **resolve the vault first, then act**. No Obsidian CLI call o
 
 [[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]] documents the four-rule convention in detail, independent of the skill's SKILL.md format. This page is the reference for contributors adding new Obsidian CLI integrations.
 
-[[defense-in-depth-scoping|Defense-in-Depth Scoping]] explains the two-layer design pairing the skill (intent) with the [[Firewall]] hook (enforcement). The key insight: the skill guides agents that consult it; the hook protects against agents that do not. The `PreToolUse` hook runs on every write tool call, making the enforcement layer unconditional.
+[[defense-in-depth-scoping|Defense-in-Depth Scoping]] explains the two-layer design pairing the skill (intent) with the Firewall hook (enforcement). The key insight: the skill guides agents that consult it; the hook protects against agents that do not. The `PreToolUse` hook runs on every write tool call, making the enforcement layer unconditional.
 
 ## Open Questions
 

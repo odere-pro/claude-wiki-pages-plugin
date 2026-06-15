@@ -5,7 +5,7 @@ aliases: ["Verbatim Partition", "verbatim partition", "verbatim test", "over-cit
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[adr-0017-fabrication-floor|ADR-0017: Fabrication Floor — Verbatim Partition]]"]
-related: ["[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[local-model-quality-gate|Local Model Quality Gate]]", "[[golden-set|Golden Set]]", "[[approved-local-model|Approved Local Model]]"]
+related: ["[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[local-model-quality-gate|Local Model Quality Gate]]", "[[approved-local-model|Approved Local Model]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -93,5 +93,5 @@ The verbatim partition resolves this by measuring the right thing: the real ques
 
 - [[zero-fabrication-floor|Zero-Fabrication Floor]] — the hard floor that the verbatim partition refines; applies only to fabrication, not over-citation
 - [[local-model-quality-gate|Local Model Quality Gate]] — the overall gate that uses the verbatim partition as part of its scoring
-- [[golden-set|Golden Set]] — the fixtures corpus; over-citations are gold-set misses, not model errors
+- Golden Set — the fixtures corpus; over-citations are gold-set misses, not model errors
 - [[approved-local-model|Approved Local Model]] — `qwen3-coder:30b`, the first model to pass under the verbatim partition refinement

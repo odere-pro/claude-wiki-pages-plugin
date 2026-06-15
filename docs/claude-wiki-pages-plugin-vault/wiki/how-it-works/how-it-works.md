@@ -36,7 +36,7 @@ updated: 2026-06-15
 # How It Works
 
 > [!summary]
-> The How It Works cluster covers the sync subsystem: registering a git work tree as a [[wired-source|Wired Source]], pulling changed documentation into `raw/wired/<name>/` via [[sync-source-sh|sync-source.sh]], tracking the eight-step [[sync-workflow|Sync Workflow]], and the [[how-it-works/sync-skill|Sync Skill]] that orchestrates the full process. Sync never writes wiki pages — it only moves files into `raw/` as immutable versioned snapshots, then hands off to the [[ingest-pipeline|Ingest Pipeline]]. Every sync is git-checkpointed and reversible with `git revert`.
+> The How It Works cluster covers the sync subsystem: registering a git work tree as a [[wired-source|Wired Source]], pulling changed documentation into `raw/wired/<name>/` via [[sync-source-sh|sync-source.sh]], tracking the eight-step [[sync-workflow|Sync Workflow]], and the [[how-it-works/sync-skill|Sync Skill]] that orchestrates the full process. Sync never writes wiki pages — it only moves files into `raw/` as immutable versioned snapshots, then hands off to the Ingest Pipeline. Every sync is git-checkpointed and reversible with `git revert`.
 
 ## Overview
 
@@ -46,9 +46,9 @@ The three-phase lifecycle is:
 
 1. **Wire** — register the project repo as a wired source in `settings.json` with docs-only include globs. This is a one-time setup step.
 2. **Sync** — when docs change upstream, run `/claude-wiki-pages:sync` (or wait for the `SYNC:` heartbeat). The skill detects changed files, asks for confirmation, copies new versioned snapshots into `raw/wired/<name>/`, and marks previously ingested source notes as superseded.
-3. **Ingest** — run `/claude-wiki-pages:wiki` to process the new snapshots. The normal [[ingest-pipeline|Ingest Pipeline]] picks them up and updates wiki pages.
+3. **Ingest** — run `/claude-wiki-pages:wiki` to process the new snapshots. The normal Ingest Pipeline picks them up and updates wiki pages.
 
-Two invariants govern the sync subsystem. **Raw is immutable:** an updated doc never overwrites its earlier snapshot; a new versioned sibling file is created instead. **Sync never writes wiki pages:** it only populates `raw/`. Wiki pages change only when the [[ingest-pipeline|Ingest Pipeline]] processes the new snapshots afterward.
+Two invariants govern the sync subsystem. **Raw is immutable:** an updated doc never overwrites its earlier snapshot; a new versioned sibling file is created instead. **Sync never writes wiki pages:** it only populates `raw/`. Wiki pages change only when the Ingest Pipeline processes the new snapshots afterward.
 
 ## Key Pages
 

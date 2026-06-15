@@ -5,7 +5,7 @@ aliases: ["Analyst Dashboard Mode", "analyst dashboard mode", "Dashboard Mode", 
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[llm-analyst-modes-skill|Analyst Modes Skill (SKILL.md)]]", "[[plugin-analyst-agent|Analyst Agent Source]]"]
-related: ["[[analyst-agent|Analyst Agent]]", "[[dashboard-write-gate|Dashboard Write Gate]]", "[[analyst-extract-mode|Analyst Extract Mode]]", "[[query-rules|Query Rules]]"]
+related: ["[[dashboard-write-gate|Dashboard Write Gate]]", "[[analyst-extract-mode|Analyst Extract Mode]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -21,7 +21,7 @@ confidence: 1.0
 
 ## Definition
 
-Analyst Dashboard Mode is Mode 2 of the five [[analyst-agent|Analyst Agent]] operating modes. It generates either a live Dataview dashboard or a static markdown snapshot of vault health and coverage metrics. The mode distinguishes two output targets: `vault/wiki/dashboard.md` (Dataview, gated) and `vault/output/<name>.md` (static snapshot, ungated). The [[dashboard-write-gate|Dashboard Write Gate]] must be passed before writing to `dashboard.md`; static output to `vault/output/` requires no gate.
+Analyst Dashboard Mode is Mode 2 of the five Analyst Agent operating modes. It generates either a live Dataview dashboard or a static markdown snapshot of vault health and coverage metrics. The mode distinguishes two output targets: `vault/wiki/dashboard.md` (Dataview, gated) and `vault/output/<name>.md` (static snapshot, ungated). The [[dashboard-write-gate|Dashboard Write Gate]] must be passed before writing to `dashboard.md`; static output to `vault/output/` requires no gate.
 
 ## Key Principles
 
@@ -72,5 +72,5 @@ The analyst declares scope (full wiki), format (static), reads pages via `Glob` 
 
 - [[dashboard-write-gate|Dashboard Write Gate]] — the approval gate that governs writing to `wiki/dashboard.md`
 - [[analyst-extract-mode|Analyst Extract Mode]] — Mode 4; similar in that it reads and tabulates, but focused on structured data extraction rather than health metrics
-- [[analyst-agent|Analyst Agent]] — the agent that implements all five modes including Dashboard
-- [[query-rules|Query Rules]] — Mode 1; distinct in that it answers questions rather than producing metrics
+- Analyst Agent — the agent that implements all five modes including Dashboard
+- Query Rules — Mode 1; distinct in that it answers questions rather than producing metrics

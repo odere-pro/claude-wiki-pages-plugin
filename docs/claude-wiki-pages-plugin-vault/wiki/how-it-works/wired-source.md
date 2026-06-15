@@ -5,7 +5,7 @@ aliases: ["Wired Source", "wired source", "wired repo", "wired source repository
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/sync-skill|Sync Skill (SKILL.md)]]", "[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]", "[[_sources/adr-0024-host-project-intake|ADR-0024: Host-Project Intake]]"]
-related: ["[[how-it-works/sync-skill|Sync Skill]]", "[[sync-workflow|Sync Workflow]]", "[[sync-source-sh|sync-source.sh]]", "[[ingest-pipeline|Ingest Pipeline]]", "[[Firewall]]", "[[git-checkpoint|Git Checkpoint]]", "[[vault-resolution|Vault Resolution]]", "[[host-project-intake|Host-Project Intake]]"]
+related: ["[[how-it-works/sync-skill|Sync Skill]]", "[[sync-workflow|Sync Workflow]]", "[[sync-source-sh|sync-source.sh]]", "[[host-project-intake|Host-Project Intake]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -50,7 +50,7 @@ The `scripts/set-vault.sh` family manages registry operations: `add`, `switch`, 
 2. **Status check** — `sync-source.sh status` reads the registry, diffs each wired repo's `HEAD` against `lastSyncedSHA`, and reports changed file counts.
 3. **Pull** — `sync-source.sh pull` copies each changed file as a new versioned snapshot under `raw/wired/<name>/`, then advances `lastSyncedSHA` to the current `HEAD`.
 4. **Supersede** — the [[how-it-works/sync-skill|Sync Skill]] marks any existing ingested source note for the same document as `superseded_by` the new snapshot.
-5. **Ingest** — the normal [[ingest-pipeline|Ingest Pipeline]] picks up the new snapshots from `raw/` and updates wiki pages.
+5. **Ingest** — the normal Ingest Pipeline picks up the new snapshots from `raw/` and updates wiki pages.
 
 ## Examples
 
@@ -63,6 +63,6 @@ The current vault's `raw/repo/` contents were ingested as a docs-only snapshot o
 - [[how-it-works/sync-skill|Sync Skill]] — the skill that orchestrates pulling from a wired source
 - [[sync-workflow|Sync Workflow]] — the eight-step procedure executed during a sync
 - [[sync-source-sh|sync-source.sh]] — the Bash script that reads the wired source and copies snapshots
-- [[ingest-pipeline|Ingest Pipeline]] — processes the new snapshots after sync completes
-- [[Firewall]] — the enforcement layer that confines what may be written to the vault
-- [[git-checkpoint|Git Checkpoint]] — the snapshot.sh calls that bracket sync operations
+- Ingest Pipeline — processes the new snapshots after sync completes
+- Firewall — the enforcement layer that confines what may be written to the vault
+- Git Checkpoint — the snapshot.sh calls that bracket sync operations

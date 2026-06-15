@@ -5,7 +5,7 @@ aliases: ["Glossary Terms", "glossary terms", "terminology", "canonical terms"]
 parent: "[[wiki-pages|Wiki Pages]]"
 path: "wiki-pages"
 sources: ["[[_sources/glossary|Glossary]]", "[[_sources/architecture|Architecture Documentation]]"]
-related: ["[[schema-authority|Schema Authority]]", "[[design-drift-gate|Design-Drift Gate]]", "[[banned-strings|Banned Strings]]", "[[plugin|claude-wiki-pages Plugin]]"]
+related: ["[[schema-authority|Schema Authority]]", "[[banned-strings|Banned Strings]]"]
 tags: ["concept", "glossary", "reference"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -115,6 +115,6 @@ A representative set from the Technical register:
 ## Related Concepts
 
 - [[schema-authority|Schema Authority]] — `vault/CLAUDE.md` that also defines enum lists
-- [[design-drift-gate|Design-Drift Gate]] — `validate-docs.sh` that runs both the glossary gate and node-grounding gate
+- Design-Drift Gate — `validate-docs.sh` that runs both the glossary gate and node-grounding gate
 - [[banned-strings|Banned Strings]] — the specific strings `validate-docs.sh` rejects
-- [[plugin|claude-wiki-pages Plugin]] — the product the glossary describes
+- claude-wiki-pages Plugin — the product the glossary describes

@@ -5,7 +5,7 @@ aliases: ["Tier-2 Deterministic Recall", "Tier-2 recall", "synonym+stemming expa
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[search-ts-source|search.ts Source]]", "[[vocabulary-ts-source|vocabulary.ts Source]]", "[[stem-ts-source|stem.ts Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]"]
-related: ["[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[synonym-lexicon|Synonym Lexicon]]", "[[porter-stemmer|Porter Stemmer]]", "[[wiki-native-recall|Wiki-Native Recall]]", "[[deterministic-engine|Deterministic Engine]]", "[[graph-traversal-primitive|Graph Traversal Primitive]]"]
+related: ["[[search-scoring-algorithm|Search Scoring Algorithm]]", "[[synonym-lexicon|Synonym Lexicon]]", "[[porter-stemmer|Porter Stemmer]]", "[[deterministic-engine|Deterministic Engine]]", "[[graph-traversal-primitive|Graph Traversal Primitive]]"]
 contradicts: []
 supersedes: []
 depends_on: ["[[synonym-lexicon|Synonym Lexicon]]", "[[porter-stemmer|Porter Stemmer]]"]
@@ -23,7 +23,7 @@ confidence: 1.0
 
 Tier-2 Deterministic Recall is the query-expansion layer added to the engine's search command that widens recall beyond exact keyword matching using two purely deterministic mechanisms: synonym expansion from a curated lexicon and Porter stemming. Both mechanisms are applied before the scoring loop; they produce additional query terms that flow through the same ranker — no second mechanism, no vectors, no network.
 
-The design sits inside the [[wiki-native-recall|Wiki-Native Recall]] architecture: no RAG pipeline, no embedding store, no network call. The entire retrieval stack is deterministic: same query, same vault state, same ranked output.
+The design sits inside the Wiki-Native Recall architecture: no RAG pipeline, no embedding store, no network call. The entire retrieval stack is deterministic: same query, same vault state, same ranked output.
 
 ## Key Principles
 
@@ -81,5 +81,5 @@ Given `_vocabulary.md` absent: only exact matching and stemming run; synonym cha
 - [[search-scoring-algorithm|Search Scoring Algorithm]] — the scoring framework this tier feeds into
 - [[synonym-lexicon|Synonym Lexicon]] — the `_vocabulary.md` lexicon and its union-find compilation
 - [[porter-stemmer|Porter Stemmer]] — the pure algorithmic stemmer used by the stem channel
-- [[wiki-native-recall|Wiki-Native Recall]] — the broader NO-RAG retrieval design that Tier-2 extends
+- Wiki-Native Recall — the broader NO-RAG retrieval design that Tier-2 extends
 - [[graph-traversal-primitive|Graph Traversal Primitive]] — the graph-walk expansion that follows from Tier-2 hits

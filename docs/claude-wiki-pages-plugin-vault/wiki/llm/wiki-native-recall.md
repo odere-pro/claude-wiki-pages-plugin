@@ -5,7 +5,7 @@ aliases: ["Wiki-Native Recall", "wiki-native recall", "deterministic retrieval",
 parent: "[[LLM]]"
 path: "llm"
 sources: ["[[_sources/adr-0007-wiki-native-recall|ADR-0007: Wiki-Native Recall]]", "[[_sources/adr-0006-search-score-object|ADR-0006: One Search Score Object]]", "[[_sources/adr-0008-graph-traversal-primitive|ADR-0008: One Graph-Traversal Primitive]]", "[[_sources/glossary|Glossary]]"]
-related: ["[[no-rag-principle|NO-RAG Principle]]", "[[deterministic-engine|Deterministic Engine]]", "[[graph-traversal-primitive|Graph Traversal Primitive]]", "[[search-score-object|Search Score Object]]", "[[analyst-agent|Analyst Agent]]"]
+related: ["[[no-rag-principle|NO-RAG Principle]]"]
 tags: ["concept", "retrieval", "search"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -146,7 +146,7 @@ One shared `walk()` function handles all graph traversal in the engine. No secon
 ## Related Concepts
 
 - [[no-rag-principle|NO-RAG Principle]] — the non-negotiable that mandates this approach
-- [[deterministic-engine|Deterministic Engine]] — the Bun CLI that implements wiki-native recall
-- [[graph-traversal-primitive|Graph Traversal Primitive]] — `src/core/graph.ts:walk()` used in graph-link scoring
-- [[search-score-object|Search Score Object]] — the `SearchHit.matched[]` breakdown
-- [[analyst-agent|Analyst Agent]] — the primary consumer of wiki-native recall for query answers
+- Deterministic Engine — the Bun CLI that implements wiki-native recall
+- Graph Traversal Primitive — `src/core/graph.ts:walk()` used in graph-link scoring
+- Search Score Object — the `SearchHit.matched[]` breakdown
+- Analyst Agent — the primary consumer of wiki-native recall for query answers

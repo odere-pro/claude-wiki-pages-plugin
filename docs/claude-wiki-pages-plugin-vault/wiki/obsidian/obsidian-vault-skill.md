@@ -6,7 +6,7 @@ aliases: ["obsidian-vault Skill", "obsidian-vault skill", "obsidian-vault", "vau
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[_sources/obsidian-vault-skill|Obsidian Vault Skill (SKILL.md)]]", "[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]]", "[[defense-in-depth-scoping|Defense-in-Depth Scoping]]", "[[Firewall]]", "[[vault-resolution|Vault Resolution]]", "[[hook-system|Hook System]]", "[[graph-coloring|Graph Coloring]]"]
+related: ["[[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]]", "[[defense-in-depth-scoping|Defense-in-Depth Scoping]]", "[[graph-coloring|Graph Coloring]]"]
 tags: ["tool", "obsidian", "skill"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -55,7 +55,7 @@ A confused agent is stopped by the hook. A careful agent never reaches it.
 
 - [[obsidian-cli-vault-scoping|Obsidian CLI Vault Scoping]] — the detailed four-rule convention this skill encodes
 - [[defense-in-depth-scoping|Defense-in-Depth Scoping]] — the two-layer design (intent + enforcement) this skill participates in
-- [[Firewall]] — the enforcement-layer twin; `scripts/firewall.sh` + `firewall.ts`
-- [[vault-resolution|Vault Resolution]] — the four-tier resolver (`scripts/resolve-vault.sh`) this skill depends on
-- [[hook-system|Hook System]] — the `PreToolUse` hook chain that runs the firewall on every write
+- Firewall — the enforcement-layer twin; `scripts/firewall.sh` + `firewall.ts`
+- Vault Resolution — the four-tier resolver (`scripts/resolve-vault.sh`) this skill depends on
+- Hook System — the `PreToolUse` hook chain that runs the firewall on every write
 - [[graph-coloring|Graph Coloring]] — the primary operation for which Obsidian CLI calls are needed

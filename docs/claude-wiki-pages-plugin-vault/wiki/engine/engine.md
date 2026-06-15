@@ -41,11 +41,11 @@ updated: 2026-06-13
 # Wiki Engine
 
 > [!summary]
-> The Wiki Engine is the deterministic TypeScript core of the claude-wiki-pages plugin. It is invoked through the [[engine-sh|engine.sh]] bash bridge and provides verbs for verify, search, heal, route, backlog, and graph. The search stack layers keyword scoring, [[synonym-lexicon|Synonym Lexicon]] expansion, [[porter-stemmer|Porter stemming]], and [[graph-walk-algorithm|graph-walk]] traversal to achieve [[wiki-native-recall|Wiki-Native Recall]] without embeddings. Integrity is enforced by [[provenance-checks|Provenance Checks]], [[moc-repair-primitives|MOC Repair Primitives]], and the [[schema-version-gate|Schema Version Gate]]. [[degraded-mode-routing|Degraded-Mode Routing]] keeps the system functional when Bun is absent.
+> The Wiki Engine is the deterministic TypeScript core of the claude-wiki-pages plugin. It is invoked through the [[engine-sh|engine.sh]] bash bridge and provides verbs for verify, search, heal, route, backlog, and graph. The search stack layers keyword scoring, [[synonym-lexicon|Synonym Lexicon]] expansion, [[porter-stemmer|Porter stemming]], and [[graph-walk-algorithm|graph-walk]] traversal to achieve Wiki-Native Recall without embeddings. Integrity is enforced by [[provenance-checks|Provenance Checks]], [[moc-repair-primitives|MOC Repair Primitives]], and the [[schema-version-gate|Schema Version Gate]]. [[degraded-mode-routing|Degraded-Mode Routing]] keeps the system functional when Bun is absent.
 
 ## Overview
 
-The engine is the Layer 4 implementation that makes the [[no-rag-principle|NO-RAG Principle]] practical: keyword-plus-synonym-plus-graph-walk recall finds the right pages without a vector database. It is a Bun TypeScript CLI (`src/cli/cli.ts`) exposed through a 23-line bash bridge (`scripts/engine.sh`) so hook scripts and agents can call it with a single `bash engine.sh <verb> --target <vault>` invocation.
+The engine is the Layer 4 implementation that makes the NO-RAG Principle practical: keyword-plus-synonym-plus-graph-walk recall finds the right pages without a vector database. It is a Bun TypeScript CLI (`src/cli/cli.ts`) exposed through a 23-line bash bridge (`scripts/engine.sh`) so hook scripts and agents can call it with a single `bash engine.sh <verb> --target <vault>` invocation.
 
 The engine's public surface is the CAPABILITIES table in `cli.ts`: the implemented verbs and their `--json` output contracts. Agents consume this surface through the `skills/engine-api` teaching skill. The engine never exposes internal state beyond what the verb's output contract defines.
 

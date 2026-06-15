@@ -6,7 +6,7 @@ aliases: ["Plugin Manifest", "plugin manifest", "plugin.json", "claude-wiki-page
 parent: "[[Plugin]]"
 path: "plugin"
 sources: ["[[plugin-json|Plugin Manifest (plugin.json)]]", "[[plugin-readme|Plugin README]]", "[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]"]
-related: ["[[plugin|claude-wiki-pages Plugin]]", "[[plugin-dev-time-vs-runtime|Plugin Dev-Time vs Runtime]]", "[[hook-system|Hook System]]", "[[schema-version-gate|Schema Version Gate]]"]
+related: ["[[plugin|claude-wiki-pages Plugin]]", "[[plugin-dev-time-vs-runtime|Plugin Dev-Time vs Runtime]]", "[[hook-system|Hook System]]"]
 tags: ["plugin", "manifest", "metadata"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -59,4 +59,4 @@ The manifest does not enumerate skills, agents, or scripts. Claude Code discover
 - [[plugin|claude-wiki-pages Plugin]] — the plugin as a whole
 - [[plugin-dev-time-vs-runtime|Plugin Dev-Time vs Runtime]] — what ships at install vs what is dev-only
 - [[hook-system|Hook System]] — the hook event system the manifest's entry point connects to
-- [[schema-version-gate|Schema Version Gate]] — the engine verb that checks schema compatibility at runtime
+- Schema Version Gate — the engine verb that checks schema compatibility at runtime

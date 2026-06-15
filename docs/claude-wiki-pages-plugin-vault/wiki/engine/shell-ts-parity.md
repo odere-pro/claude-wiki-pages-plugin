@@ -5,7 +5,7 @@ aliases: ["Shell-TS Parity", "shell-ts parity", "bash-TypeScript parity", "firew
 parent: "[[engine-index|Engine — Index]]"
 path: "engine"
 sources: ["[[engine-scripts-layer-claude|Engine Scripts Layer (CLAUDE.md)]]", "[[firewall-ts-source|firewall.ts Source]]", "[[_sources/adr-0028-dangling-wikilink-verify-check|ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
-related: ["[[scripts-layer|Scripts Layer]]", "[[Firewall]]", "[[engine-sh|engine.sh]]", "[[degraded-mode-routing|Degraded-Mode Routing]]", "[[dangling-wikilink|Dangling Wikilink]]", "[[parity-gate|Parity Gate]]"]
+related: ["[[scripts-layer|Scripts Layer]]", "[[Firewall]]", "[[engine-sh|engine.sh]]", "[[degraded-mode-routing|Degraded-Mode Routing]]"]
 contradicts: []
 supersedes: []
 depends_on: []

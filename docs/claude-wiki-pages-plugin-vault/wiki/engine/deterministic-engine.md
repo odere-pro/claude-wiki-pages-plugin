@@ -6,7 +6,7 @@ aliases: ["Deterministic Engine", "deterministic engine", "Bun CLI"]
 parent: "[[engine|Wiki Engine]]"
 path: "engine"
 sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/glossary|Glossary]]", "[[adr-0015-engine-self-description|ADR-0015: Engine Self-Description Surfaces]]", "[[adr-0005-git-required|ADR-0005: Git Required Per-Vault Init]]", "[[cli-ts-source|cli.ts Source]]", "[[engine-sh-source|engine.sh Source]]", "[[engine-api-skill|Engine API Skill (SKILL.md)]]", "[[verify-ts-source|verify.ts Source]]", "[[_sources/adr-0028-dangling-wikilink-verify-check|ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
-related: ["[[four-layer-stack|Four-Layer Stack]]", "[[wiki-native-recall|Wiki-Native Recall]]", "[[graph-traversal-primitive|Graph Traversal Primitive]]", "[[Firewall]]", "[[Auto-Heal]]", "[[lint-rules|Lint Rules]]", "[[local-model-quality-gate|Local Model Quality Gate]]", "[[engine-verb-surface|Engine Verb Surface]]", "[[engine-cli-router|Engine CLI Router]]", "[[scripts-layer|Scripts Layer]]", "[[engine-sh|engine.sh]]", "[[cli-ts|cli.ts]]", "[[dangling-wikilink|Dangling Wikilink]]", "[[shell-ts-parity|Shell-TS Parity]]"]
+related: ["[[graph-traversal-primitive|Graph Traversal Primitive]]", "[[Firewall]]", "[[Auto-Heal]]", "[[engine-verb-surface|Engine Verb Surface]]", "[[engine-cli-router|Engine CLI Router]]", "[[scripts-layer|Scripts Layer]]", "[[engine-sh|engine.sh]]", "[[cli-ts|cli.ts]]", "[[shell-ts-parity|Shell-TS Parity]]"]
 tags: ["tool", "engine"]
 created: 2026-06-13
 updated: 2026-06-15
@@ -88,7 +88,7 @@ If the table is malformed or missing, the verb emits an error finding and exits 
 
 ## Git Integration
 
-The engine's `snapshot` verb creates git checkpoint commits that the [[curator-agent|Curator Agent]] and [[ingest-agent|Ingest Agent]] use to bracket their write phases:
+The engine's `snapshot` verb creates git checkpoint commits that the Curator Agent and Ingest Agent use to bracket their write phases:
 
 ```bash
 bash scripts/engine.sh snapshot pre --target <vault>
@@ -108,9 +108,9 @@ The engine's retrieval operations share one graph-traversal primitive in `src/co
 
 ## Related
 
-- [[four-layer-stack|Four-Layer Stack]] — the engine is Layer 4's primary deterministic tool
-- [[wiki-native-recall|Wiki-Native Recall]] — the deterministic retrieval methodology the engine implements
+- Four-Layer Stack — the engine is Layer 4's primary deterministic tool
+- Wiki-Native Recall — the deterministic retrieval methodology the engine implements
 - [[graph-traversal-primitive|Graph Traversal Primitive]] — `src/core/graph.ts:walk()` used by search and the analyst
-- [[git-checkpoint|Git Checkpoint]] — the `snapshot` verb creates these
+- Git Checkpoint — the `snapshot` verb creates these
 - [[Firewall]] — the `firewall` engine verb evaluates path confinement
-- [[local-model-quality-gate|Local Model Quality Gate]] — the allow-list enforced fail-closed by `config validate`
+- Local Model Quality Gate — the allow-list enforced fail-closed by `config validate`

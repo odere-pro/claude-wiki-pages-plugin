@@ -5,7 +5,7 @@ aliases: ["Plugin Arm", "plugin arm", "plugin scaffolding arm", "full scaffoldin
 parent: "[[plugin|claude-wiki-pages Plugin]]"
 path: "plugin"
 sources: ["[[adr-0020-scaffolding-ablation|ADR-0020: The Scaffolding Ablation]]", "[[_sources/features|Features]]"]
-related: ["[[baseline-arm|Baseline Arm]]", "[[scaffolding-ablation|Scaffolding Ablation]]", "[[golden-set|Golden Set]]", "[[zero-fabrication-floor|Zero-Fabrication Floor]]", "[[local-model-quality-gate|Local Model Quality Gate]]"]
+related: []
 contradicts: []
 supersedes: []
 depends_on: []
@@ -20,7 +20,7 @@ confidence: 1.0
 # Plugin Arm
 
 > [!summary]
-> The plugin arm is one of two evaluation conditions in the [[scaffolding-ablation|Scaffolding Ablation]] (ADR-0020). It runs the same model on the same golden inputs but with the full plugin scaffolding: schema excerpt, provenance contract, verbatim `source_quotes` rule, and anti-fabrication hard rules. The plugin arm's results are compared against the [[baseline-arm|Baseline Arm]] to measure what the scaffolding buys.
+> The plugin arm is one of two evaluation conditions in the Scaffolding Ablation (ADR-0020). It runs the same model on the same golden inputs but with the full plugin scaffolding: schema excerpt, provenance contract, verbatim `source_quotes` rule, and anti-fabrication hard rules. The plugin arm's results are compared against the Baseline Arm to measure what the scaffolding buys.
 
 ## Key Principles
 
@@ -28,7 +28,7 @@ confidence: 1.0
 - The four elements injected into the plugin arm prompt: schema excerpt, provenance contract, `source_quotes` verbatim rule, and anti-fabrication hard rules.
 - The baseline arm's zero-fabrication floor is vacuous — the baseline produces no `sources` fields, so fabrication cannot be detected by the same mechanism as the plugin arm.
 - Measured results (2026-06-11): schema-validity ≥ 0.98, fidelity ≥ 0.97, field accuracy ≥ 0.90, dedup ≥ 0.90, zero fabrications enforced.
-- The experiment uses the same golden inputs as the [[local-model-quality-gate|Local Model Quality Gate]], making the ablation findings directly comparable to per-model tier results.
+- The experiment uses the same golden inputs as the Local Model Quality Gate, making the ablation findings directly comparable to per-model tier results.
 
 ## Examples
 
@@ -53,7 +53,7 @@ Plugin-arm vs baseline summary (from `docs/features.md`):
 The scaffolding ablation (ADR-0020) is a controlled experiment with two arms:
 
 - **Plugin arm (this page)** — the model receives the full plugin scaffolding as its prompt: a schema excerpt from `vault/CLAUDE.md`, the provenance contract requiring every claim to be sourceable, the verbatim `source_quotes` rule, and the anti-fabrication hard rules.
-- **[[baseline-arm|Baseline Arm]]** — the same model on the same inputs, but with only a generic prompt ("extract the knowledge into well-organized notes") and no schema, no provenance contract.
+- **Baseline Arm** — the same model on the same inputs, but with only a generic prompt ("extract the knowledge into well-organized notes") and no schema, no provenance contract.
 
 The plugin arm represents what the model produces when properly scaffolded. The baseline arm represents what any capable LLM produces without the plugin's structure.
 
@@ -84,8 +84,8 @@ The plugin arm's advantage is structural, not luck: the schema prompt forces the
 
 ## Related Concepts
 
-- [[baseline-arm|Baseline Arm]] — the control condition (no scaffolding) in the ablation
-- [[scaffolding-ablation|Scaffolding Ablation]] — the overall experiment design and reporting
-- [[golden-set|Golden Set]] — the shared input fixtures both arms run against
-- [[zero-fabrication-floor|Zero-Fabrication Floor]] — the floor the plugin arm enforces; vacuous in the baseline arm
-- [[local-model-quality-gate|Local Model Quality Gate]] — uses the same golden set as the ablation for local model evaluation
+- Baseline Arm — the control condition (no scaffolding) in the ablation
+- Scaffolding Ablation — the overall experiment design and reporting
+- Golden Set — the shared input fixtures both arms run against
+- Zero-Fabrication Floor — the floor the plugin arm enforces; vacuous in the baseline arm
+- Local Model Quality Gate — uses the same golden set as the ablation for local model evaluation

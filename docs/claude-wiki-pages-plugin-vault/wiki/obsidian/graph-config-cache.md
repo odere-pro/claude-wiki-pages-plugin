@@ -5,7 +5,7 @@ aliases: ["Graph Config Cache", "graph config cache", "regenerable cache", ".obs
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[_sources/adr-0023-wiki-only-graph|ADR-0023: Wiki-Only Graph]]", "[[llm-wiki-obsidian-experience|User Guide: Obsidian Experience]]"]
-related: ["[[wiki-only-graph|Wiki-Only Graph]]", "[[graph-coloring|Graph Coloring]]", "[[polish-agent|Polish Agent]]", "[[folder-note|Folder Note]]"]
+related: ["[[wiki-only-graph|Wiki-Only Graph]]", "[[graph-coloring|Graph Coloring]]"]
 contradicts: []
 supersedes: []
 depends_on: []
@@ -101,5 +101,5 @@ The [[wiki-only-graph|Wiki-Only Graph]] contract excludes plugin plumbing from O
 
 - [[wiki-only-graph|Wiki-Only Graph]] — the broader decision to show only wiki pages in the graph; graph config cache is the implementation mechanism
 - [[graph-coloring|Graph Coloring]] — the color group management that the cache stores
-- [[polish-agent|Polish Agent]] — rebuilds the cache as part of its idempotent tail-of-write pass
-- [[folder-note|Folder Note]] — the pages whose `path:wiki/<topic>` queries drive the color group entries in the cache
+- Polish Agent — rebuilds the cache as part of its idempotent tail-of-write pass
+- Folder Note — the pages whose `path:wiki/<topic>` queries drive the color group entries in the cache

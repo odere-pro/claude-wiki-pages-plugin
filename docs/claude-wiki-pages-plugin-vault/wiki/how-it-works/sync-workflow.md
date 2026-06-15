@@ -5,10 +5,10 @@ aliases: ["Sync Workflow", "sync workflow", "sync procedure", "sync steps"]
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/sync-skill|Sync Skill (SKILL.md)]]"]
-related: ["[[how-it-works/sync-skill|Sync Skill]]", "[[wired-source|Wired Source]]", "[[sync-source-sh|sync-source.sh]]", "[[git-checkpoint|Git Checkpoint]]", "[[ingest-pipeline|Ingest Pipeline]]"]
+related: ["[[how-it-works/sync-skill|Sync Skill]]", "[[wired-source|Wired Source]]", "[[sync-source-sh|sync-source.sh]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[wired-source|Wired Source]]", "[[git-checkpoint|Git Checkpoint]]"]
+depends_on: ["[[wired-source|Wired Source]]"]
 tags: ["concept", "sync", "workflow"]
 created: 2026-06-13
 updated: 2026-06-13
@@ -21,7 +21,7 @@ confidence: 1.0
 
 ## Definition
 
-The sync workflow is the eight-step procedure the Sync skill executes to bring the vault's `raw/` layer up to date with a wired source repository. It is a deterministic, git-checkpointed sequence that runs no judgment logic — all judgment belongs to the subsequent [[ingest-pipeline|Ingest Pipeline]]. The workflow is idempotent and always exits cleanly even when there is nothing to do.
+The sync workflow is the eight-step procedure the Sync skill executes to bring the vault's `raw/` layer up to date with a wired source repository. It is a deterministic, git-checkpointed sequence that runs no judgment logic — all judgment belongs to the subsequent Ingest Pipeline. The workflow is idempotent and always exits cleanly even when there is nothing to do.
 
 ## Key Principles
 
@@ -75,5 +75,5 @@ Recommend `/claude-wiki-pages:wiki`. The orchestrator detects the pending snapsh
 - [[how-it-works/sync-skill|Sync Skill]] — the skill definition that specifies this workflow
 - [[wired-source|Wired Source]] — what the workflow reads from
 - [[sync-source-sh|sync-source.sh]] — the Bash script that executes Steps 2 and 4
-- [[git-checkpoint|Git Checkpoint]] — snapshot pre/post safety mechanism (Steps 1 and 7)
-- [[ingest-pipeline|Ingest Pipeline]] — the downstream pipeline that the workflow hands off to (Step 8)
+- Git Checkpoint — snapshot pre/post safety mechanism (Steps 1 and 7)
+- Ingest Pipeline — the downstream pipeline that the workflow hands off to (Step 8)

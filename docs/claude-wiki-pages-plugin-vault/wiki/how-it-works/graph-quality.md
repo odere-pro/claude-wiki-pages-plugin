@@ -5,10 +5,10 @@ aliases: ["Graph Quality", "graph quality", "graph-quality.sh", "graph quality d
 parent: "[[how-it-works|How It Works]]"
 path: "how-it-works"
 sources: ["[[_sources/adr-0027-fill-gaps-and-graph-quality|ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]]", "[[_sources/adr-0028-dangling-wikilink-verify-check|ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]
-related: ["[[fill-gaps-skill|Fill-Gaps Skill]]", "[[dangling-wikilink|Dangling Wikilink]]", "[[node-concentration|Node Concentration]]", "[[wiki-only-graph|Wiki-Only Graph]]", "[[folder-note|Folder Note]]", "[[deterministic-engine|Deterministic Engine]]"]
+related: ["[[fill-gaps-skill|Fill-Gaps Skill]]", "[[dangling-wikilink|Dangling Wikilink]]", "[[node-concentration|Node Concentration]]"]
 contradicts: []
 supersedes: []
-depends_on: ["[[wiki-only-graph|Wiki-Only Graph]]"]
+depends_on: []
 tags: ["concept", "graph", "quality", "metrics", "dangling"]
 created: 2026-06-15
 updated: 2026-06-15
@@ -25,7 +25,7 @@ Graph quality is a set of deterministic metrics that measure how well the wiki's
 
 ## Implementation
 
-`scripts/graph-quality.sh --target <vault> [--json]` implements the detector in pure bash + python3 stdlib — no Bun, no network, no embeddings (consistent with [[no-rag-principle|NO-RAG Principle]]).
+`scripts/graph-quality.sh --target <vault> [--json]` implements the detector in pure bash + python3 stdlib — no Bun, no network, no embeddings (consistent with NO-RAG Principle).
 
 It performs two tasks:
 
@@ -64,4 +64,4 @@ The [[fill-gaps-skill|Fill-Gaps Skill]] workflow gates on:
 - [[dangling-wikilink|Dangling Wikilink]] — the broken link pattern this tool detects
 - [[node-concentration|Node Concentration]] — the Cn/Ce/Ch metrics
 - [[fill-gaps-skill|Fill-Gaps Skill]] — the workflow that uses graph-quality.sh as its quality gate
-- [[wiki-only-graph|Wiki-Only Graph]] — the Obsidian graph view that graph quality measures
+- Wiki-Only Graph — the Obsidian graph view that graph quality measures
