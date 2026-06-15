@@ -28,6 +28,7 @@ children:
   - "[[Plugin Arm]]"
   - "[[Multi-Vault Registry]]"
   - "[[Parallel Extract]]"
+  - "[[Operations Log]]"
 child_indexes: []
 tags: ["plugin", "architecture", "agents"]
 created: 2026-06-13
