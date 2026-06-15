@@ -268,6 +268,131 @@ for p in pages:
 Ch = (edges_hub / edges_total) if edges_total else 0.0
 Ce = (ce_in / ce_total) if ce_total else 0.0
 
+# ---- connectivity / orphans / shadows (ADR-0031) ----------------------------
+# Node universe = every wiki/ page (incl. _sources/_synthesis/index/log/folder
+# notes — the connective tissue). Edges = resolving links (body + frontmatter,
+# code-stripped), resolved by the Obsidian-accurate ladder (ADR-0030) over the
+# nodes PLUS scratch files (output/, _inbox/). A link resolving INTO a scratch
+# folder is a shadow (counted, NOT a connecting edge). Undirected union-find
+# yields components + orphans. All lists sorted (same vault → same output).
+SCRATCH_DIRS = ["output", "_inbox"]
+
+by_path = {}      # normalised vault-rel path (with & without .md) -> id
+by_basename = {}  # normalised stem -> [ids]
+by_alias = {}
+by_title = {}
+
+def add_target(vrel, stem, title, aliases):
+    pk = vrel.lower()
+    by_path.setdefault(pk, vrel)
+    by_path.setdefault(pk[:-3] if pk.endswith(".md") else pk, vrel)
+    by_basename.setdefault(norm(stem), []).append(vrel)
+    if title:
+        by_title.setdefault(norm(title), []).append(vrel)
+    for a in aliases:
+        if norm(a):
+            by_alias.setdefault(norm(a), []).append(vrel)
+
+node_ids = []
+for p in pages:
+    vrel = "wiki/" + p["rel"].replace(os.sep, "/")
+    node_ids.append(vrel)
+    add_target(vrel, p["stem"], p["title"], p["aliases"])
+
+scratch_ids = set()
+for sd in SCRATCH_DIRS:
+    root = os.path.join(vault, sd)
+    if not os.path.isdir(root):
+        continue
+    for dp, _d, fs in os.walk(root):
+        for fn in sorted(fs):
+            if not fn.endswith(".md"):
+                continue
+            full = os.path.join(dp, fn)
+            vrel = os.path.relpath(full, vault).replace(os.sep, "/")
+            scratch_ids.add(vrel)
+            try:
+                text = open(full, encoding="utf-8").read()
+            except Exception:
+                text = ""
+            fm2, _b = split_frontmatter(text)
+            t2, al2 = parse_title_aliases(fm2)
+            add_target(vrel, fn[:-3], t2, al2)
+
+for _m in (by_basename, by_alias, by_title):
+    for _k in list(_m):
+        _m[_k] = sorted(set(_m[_k]))
+
+def _tiebreak(cands, src):
+    srcdir = src.rsplit("/", 1)[0] if "/" in src else ""
+    def key(c):
+        cdir = c.rsplit("/", 1)[0] if "/" in c else ""
+        return (c.count("/"), 0 if cdir == srcdir else 1, c)
+    return sorted(cands, key=key)[0]
+
+def resolve_link(raw, src):
+    nt = norm(link_target(raw))
+    if not nt:
+        return None
+    if nt in by_path:
+        return by_path[nt]
+    if by_basename.get(nt):
+        return _tiebreak(by_basename[nt], src)
+    if by_alias.get(nt):
+        return _tiebreak(by_alias[nt], src)
+    if by_title.get(nt):
+        return _tiebreak(by_title[nt], src)
+    return None
+
+parent = {n: n for n in node_ids}
+
+def _find(x):
+    while parent[x] != x:
+        parent[x] = parent[parent[x]]
+        x = parent[x]
+    return x
+
+def _union(a, b):
+    ra, rb = _find(a), _find(b)
+    if ra != rb:
+        parent[ra] = rb
+
+node_set = set(node_ids)
+degree = {n: 0 for n in node_ids}
+shadows = []
+for p in pages:
+    src = "wiki/" + p["rel"].replace(os.sep, "/")
+    for raw in p["links"]:
+        if not raw:
+            continue
+        tgt = resolve_link(raw, src)
+        if tgt is None:
+            continue  # dangling — no edge
+        if tgt in scratch_ids:
+            shadows.append({"from": src, "to": tgt})
+            continue  # shadow — not a connecting edge
+        if tgt == src or tgt not in node_set:
+            continue
+        degree[src] += 1
+        degree[tgt] += 1
+        _union(src, tgt)
+
+comp_sizes = {}
+for n in node_ids:
+    r = _find(n)
+    comp_sizes[r] = comp_sizes.get(r, 0) + 1
+orphans = sorted(n for n in node_ids if degree[n] == 0)
+shadows_sorted = sorted(shadows, key=lambda s: (s["from"], s["to"]))
+connectivity = {
+    "nodes": len(node_ids),
+    "components": len(comp_sizes),
+    "largestComponentSize": max(comp_sizes.values()) if comp_sizes else 0,
+    "orphanCount": len(orphans),
+    "orphans": orphans,
+    "shadowCount": len(shadows_sorted),
+    "shadows": shadows_sorted,
+}
+
 result = {
     "vault": vault,
     "danglingCount": len(dangling_list),
@@ -283,6 +408,7 @@ result = {
     "edgesWithinClusters": ce_in,
     "Ce": round(Ce, 4),
     "clusters": cluster_counts,
+    "connectivity": connectivity,
 }
 
 if as_json:
@@ -297,4 +423,15 @@ else:
     print(f"nodes: {result['nodes']}  in-clusters: {result['nodesInClusters']}  Cn={result['Cn']}")
     print(f"edges: {result['edgesTotal']}  within-clusters: {result['edgesWithinClusters']}/{result['edgesBetweenTopics']}  Ce={result['Ce']}  touching-hub: {result['edgesTouchingHub']}  Ch={result['Ch']}")
     print("cluster sizes: " + ", ".join(f"{c}={cluster_counts.get(c, 0)}" for c in CLUSTERS + ["other"]))
+    cc = result["connectivity"]
+    print(f"connectivity: nodes={cc['nodes']}  components={cc['components']}  "
+          f"orphans={cc['orphanCount']}  shadows={cc['shadowCount']}  largest={cc['largestComponentSize']}")
+    if cc["orphanCount"]:
+        for o in cc["orphans"][:25]:
+            print(f"  orphan: {o}")
+        if cc["orphanCount"] > 25:
+            print(f"  … and {cc['orphanCount'] - 25} more orphans")
+    if cc["shadowCount"]:
+        for s in cc["shadows"][:25]:
+            print(f"  shadow: {s['from']} -> {s['to']}")
 PY

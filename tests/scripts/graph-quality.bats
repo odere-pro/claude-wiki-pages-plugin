@@ -142,6 +142,73 @@ teardown() {
   assert_eq "$count" "0"
 }
 
+# ---------------------------------------------------------------------------
+# Connectivity / orphans / shadows (ADR-0031)
+# ---------------------------------------------------------------------------
+
+@test "graph-quality: connected pair → one component, zero orphans" {
+  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v jq >/dev/null 2>&1 || skip "jq not available"
+  _make_vault "$VAULT" \
+    "wiki/a/one.md:---\ntitle: One\n---\n[[Two]]" \
+    "wiki/a/two.md:---\ntitle: Two\n---\n[[One]]"
+
+  run bash "$SCRIPT" --target "$VAULT" --json
+  assert_success
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.components')" "1"
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.orphanCount')" "0"
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.nodes')" "2"
+}
+
+@test "graph-quality: a linkless page is reported as an orphan" {
+  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v jq >/dev/null 2>&1 || skip "jq not available"
+  _make_vault "$VAULT" \
+    "wiki/a/one.md:---\ntitle: One\n---\n[[Two]]" \
+    "wiki/a/two.md:---\ntitle: Two\n---\n[[One]]" \
+    "wiki/c/lonely.md:---\ntitle: Lonely\n---\nno links here"
+
+  run bash "$SCRIPT" --target "$VAULT" --json
+  assert_success
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.orphanCount')" "1"
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.orphans[0]')" "wiki/c/lonely.md"
+}
+
+@test "graph-quality: two disconnected pairs → two components" {
+  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v jq >/dev/null 2>&1 || skip "jq not available"
+  _make_vault "$VAULT" \
+    "wiki/a/one.md:---\ntitle: One\n---\n[[Two]]" \
+    "wiki/a/two.md:---\ntitle: Two\n---\n[[One]]" \
+    "wiki/b/three.md:---\ntitle: Three\n---\n[[Four]]" \
+    "wiki/b/four.md:---\ntitle: Four\n---\n[[Three]]"
+
+  run bash "$SCRIPT" --target "$VAULT" --json
+  assert_success
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.components')" "2"
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.orphanCount')" "0"
+}
+
+@test "graph-quality: a link resolving into output/ is a shadow, not an edge" {
+  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v jq >/dev/null 2>&1 || skip "jq not available"
+  # plugin.md links [[Foo]]; the only "Foo" is an Obsidian stub in output/ →
+  # basename match into a scratch folder → shadow (counted, not a real edge).
+  _make_vault "$VAULT" \
+    "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\n[[Foo]]" \
+    "output/Foo.md:"
+
+  run bash "$SCRIPT" --target "$VAULT" --json
+  assert_success
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.shadowCount')" "1"
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.shadows[0].to')" "output/Foo.md"
+  # The link is NOT a connecting edge — plugin.md is left isolated.
+  assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.orphanCount')" "1"
+  # The wiki-only dangling scan (ADR-0028) still flags it (no WIKI target);
+  # connectivity is the scratch-aware view that names it a shadow.
+  assert_eq "$(printf '%s' "$output" | jq -r '.danglingCount')" "1"
+}
+
 @test "graph-quality: --json danglingCount=1 for vault with one dangling link" {
   command -v python3 >/dev/null 2>&1 || skip "python3 not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"

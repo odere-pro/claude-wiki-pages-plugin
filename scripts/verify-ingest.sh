@@ -845,6 +845,134 @@ PY
 fi
 
 # ──────────────────────────────────────────────
+# wikilink-collision WARN check (ADR-0030)
+#
+# One WARN per normalised name claimed by >1 distinct page over basename ∪
+# alias (the two tiers Obsidian resolves; title excluded). Obsidian silently
+# opens the basename winner, shadowing the alias page. Bash twin of
+# src/core/collision-check.ts — must emit the IDENTICAL count (gate-05 compares
+# counts; messages need not match byte-for-byte). Same inline-python3 pattern as
+# the dangling block so the page set and normalisation are identical.
+# ──────────────────────────────────────────────
+header "Wikilink collisions (ADR-0030)"
+
+if ! command -v python3 >/dev/null 2>&1; then
+  yellow "python3 not found — wikilink-collision check skipped"
+else
+  COLLISION_WARNS=0
+  COLLISION_OUTPUT=$(
+    VERIFY_WIKI="$WIKI" python3 - <<'PY'
+import os, re
+from collections import defaultdict
+
+wiki = os.environ["VERIFY_WIKI"]
+
+def norm(s):
+    return s.strip().lower()
+
+def split_frontmatter(text):
+    if not text.startswith("---"):
+        return "", text
+    end = text.find("\n---", 3)
+    if end == -1:
+        return "", text
+    return text[3:end], text[end + 4:]
+
+def parse_aliases(text):
+    """Tolerant extraction of aliases: — mirrors the dangling block / graph-quality.sh."""
+    fm, _ = split_frontmatter(text)
+    aliases = []
+    lines = fm.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        m = re.match(r"^aliases:\s*(.*)$", line)
+        if m:
+            rest = m.group(1).strip()
+            if rest.startswith("["):
+                items = re.findall(r"\"([^\"]*)\"|'([^']*)'", rest)
+                if items:
+                    for a, b in items:
+                        val = a or b
+                        if val:
+                            aliases.append(val)
+                else:
+                    for piece in rest.strip("[]").split(","):
+                        piece = piece.strip().strip('"').strip("'")
+                        if piece:
+                            aliases.append(piece)
+            else:
+                j = i + 1
+                while j < len(lines):
+                    bm = re.match(r"^\s*-\s*(.+?)\s*$", lines[j])
+                    if bm:
+                        aliases.append(bm.group(1).strip().strip('"').strip("'"))
+                        j += 1
+                    else:
+                        break
+                i = j - 1
+        i += 1
+    return aliases
+
+basename_files = defaultdict(set)
+alias_files = defaultdict(set)
+claims = defaultdict(set)
+
+for dirpath, _dirs, files in os.walk(wiki):
+    for fn in sorted(files):
+        if not fn.endswith(".md"):
+            continue
+        stem = fn[:-3]
+        full = os.path.join(dirpath, fn)
+        rel = os.path.relpath(full, wiki).replace(os.sep, "/")
+        nb = norm(stem)
+        basename_files[nb].add(rel)
+        claims[nb].add(rel)
+        try:
+            text = open(full, encoding="utf-8").read()
+        except Exception:
+            text = ""
+        for a in parse_aliases(text):
+            na = norm(a)
+            if na:
+                alias_files[na].add(rel)
+                claims[na].add(rel)
+
+def tiebreak(cands):
+    # shortest path (fewest segments) then alphabetical; no source context here.
+    return sorted(cands, key=lambda p: (p.count("/"), p))[0]
+
+for name in sorted(claims):
+    fileset = claims[name]
+    if len(fileset) < 2:
+        continue
+    if basename_files.get(name):
+        winner = tiebreak(basename_files[name]); kind = "basename"
+    elif alias_files.get(name):
+        winner = tiebreak(alias_files[name]); kind = "alias"
+    else:
+        winner = sorted(fileset)[0]; kind = "basename"
+    losers = ", ".join(sorted(f for f in fileset if f != winner))
+    print(f"wikilink-collision: [[{name}]] resolves to {len(fileset)} pages — "
+          f"Obsidian opens {winner} ({kind}), shadowing {losers}; rename or disambiguate")
+PY
+  )
+
+  if [ -n "$COLLISION_OUTPUT" ]; then
+    while IFS= read -r collision_line; do
+      [ -z "$collision_line" ] && continue
+      yellow "$collision_line"
+      COLLISION_WARNS=$((COLLISION_WARNS + 1))
+      WARNINGS=$((WARNINGS + 1))
+    done <<<"$COLLISION_OUTPUT"
+  fi
+
+  if [ "$COLLISION_WARNS" -eq 0 ]; then
+    green "No wikilink collisions found"
+  fi
+fi
+
+# ──────────────────────────────────────────────
 # SUMMARY
 # ──────────────────────────────────────────────
 header "Summary"
