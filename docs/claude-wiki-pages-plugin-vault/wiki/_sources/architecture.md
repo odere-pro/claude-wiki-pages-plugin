@@ -12,7 +12,7 @@ tags: ["architecture", "four-layer-stack", "plugin"]
 aliases: ["Architecture Documentation"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -21,13 +21,35 @@ confidence: 1.0
 
 ## Summary
 
-The architecture documentation describes the four-layer stack that powers the `claude-wiki-pages` plugin: Data (vault), Skills (single-responsibility capabilities), Agents (multi-step executors), and Orchestration (hooks, scripts, rules). Each layer catches a different class of failure. The single entry point is `/claude-wiki-pages:wiki`; the orchestrator probes vault state and dispatches to one specialist agent per invocation.
+The architecture documentation describes the four-layer stack that powers the `claude-wiki-pages` plugin: Data (vault), Skills (single-responsibility capabilities), Agents (multi-step executors), and Orchestration (hooks, scripts, rules). Each layer catches a different class of failure. The single advertised entry point is `/claude-wiki-pages:wiki`; the orchestrator probes vault state and dispatches to one specialist agent per invocation. Provenance is structural — every wiki page's `sources` field links back to at least one `raw/` item.
 
 ## Key Claims
 
-- The four-layer stack is: Layer 1 — Data (vault), Layer 2 — Skills (24 capabilities), Layer 3 — Agents (7 executors), Layer 4 — Orchestration (hooks/scripts/rules).
-- The orchestrator (`claude-wiki-pages-orchestrator-agent`) is the sole user-facing entry agent; it routes to specialists that never re-probe state.
+- The four-layer stack is: Layer 1 — Data (`raw/`, `wiki/`, `CLAUDE.md`), Layer 2 — Skills (single-responsibility capabilities), Layer 3 — Agents (multi-step executors), Layer 4 — Orchestration (hooks, scripts, rules).
+- Each layer fails differently and its gate is placed in the only location that failure can be observed.
+- `protect-raw.sh` (PreToolUse hook) enforces raw immutability; sources in `raw/` are never rewritten.
+- The orchestrator (`claude-wiki-pages-orchestrator-agent`) is the sole user-facing entry agent; specialists never re-probe state.
 - The deterministic engine (`src/cli/cli.ts`, requires Bun ≥ 1.2) validates the vault; no embeddings or inference are involved.
-- The firewall (`scripts/firewall.sh` + `src/core/firewall.ts`) confines all agent writes to the resolved vault; cross-vault writes are blocked.
-- Every structural write is git-checkpointed via `scripts/snapshot.sh` (pre/post) for reversibility.
-- The `SubagentStop` backstop (`scripts/subagent-commit-gate.sh`) commits any uncommitted vault changes after a write-path agent returns.
+- The `SubagentStop` backstop runs `verify-ingest.sh` after the ingest pipeline and surfaces any drift immediately.
+
+## Entities Mentioned
+
+- [[plugin/claude-wiki-pages-plugin|claude-wiki-pages (Plugin)]]
+- [[plugin/orchestrator-agent|Orchestrator Agent]]
+- [[plugin/ingest-agent|Ingest Agent]]
+- [[plugin/curator-agent|Curator Agent]]
+- [[plugin/analyst-agent|Analyst Agent]]
+- [[plugin/polish-agent|Polish Agent]]
+- [[plugin/maintenance-agent|Maintenance Agent]]
+- [[engine/deterministic-engine|Deterministic Engine]]
+- [[engine/firewall|Firewall]]
+
+## Concepts Covered
+
+- [[plugin/four-layer-stack|Four-Layer Stack]] — the core architectural model described by this source
+- [[plugin/hook-system|Hook System]] — PreToolUse, PostToolUse, SubagentStop hook contracts
+- [[plugin/git-checkpoint|Git Checkpoint]] — snapshot.sh pre/post pattern for reversibility
+- [[how-it-works/ingest-pipeline|Ingest Pipeline]] — the data flow traced step by step in the source
+- [[engine/scripts-layer|Scripts Layer]] — the Layer 4 script implementations
+- [[engine/provenance-checks|Provenance Checks]] — the structural provenance model (`sources` field)
+- [[llm/no-rag-principle|NO-RAG Principle]] — deterministic validation, no embeddings

@@ -11,8 +11,8 @@ supersedes: []
 depends_on: []
 tags: ["concept", "engine", "search", "scoring"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 2
+updated: 2026-06-15
+update_count: 3
 status: active
 confidence: 1.0
 ---
@@ -79,7 +79,7 @@ interface MatchComponent {
 - It is impossible for a page to score 3.7 without `matched[]` showing exactly which channels contributed to that 3.7.
 - Debugging a search result is a matter of reading `matched[]`; there are no hidden multipliers or post-hoc adjustments.
 
-## Seven Scoring Channels
+## Eight Scoring Channels
 
 | Channel        | What it scores                                                     |
 | -------------- | ------------------------------------------------------------------ |

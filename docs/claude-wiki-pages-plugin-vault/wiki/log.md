@@ -3,7 +3,7 @@ title: "Operations Log"
 type: log
 aliases: ["Operations Log"]
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 ---
 
 # Operations Log
@@ -375,5 +375,23 @@ Checkpoint commit: 126353e. Rollback: `git revert 126353e`.
 ## [2026-06-14] snapshot | polish (snap-20260615015746)
 
 - pre-state: c8b345b
+- rollback: git revert the snapshot commit below
+
+## [2026-06-15] ingest | Bounded re-ingest — ADR-0006 and architecture.md
+
+Bounded re-ingest of 2 previously-ingested sources to apply corrected piped/path-qualified wikilink conventions.
+
+Sources re-processed:
+- [[_sources/adr-0006-search-score-object|ADR-0006: One Search Score Object]] — rewrote summary: added Entities Mentioned and Concepts Covered sections with path-qualified wikilinks; corrected channel count claim from 7 to 8 channels.
+- [[_sources/architecture|Architecture Documentation]] — rewrote summary: added Entities Mentioned and Concepts Covered sections with piped basename wikilinks.
+
+Updated existing pages (2):
+- [[engine/search-score-object|Search Score Object]] — corrected section heading "Seven Scoring Channels" to "Eight Scoring Channels"; incremented update_count 2→3; updated date.
+- [[plugin/four-layer-stack|Four-Layer Stack]] — incremented update_count 5→6; updated date.
+
+No new pages created. No structural changes.
+## [2026-06-15] snapshot | ingest ADR-0006-search-score-object architecture.md (snap-20260615172816)
+
+- pre-state: 0352cc6
 - rollback: git revert the snapshot commit below
 

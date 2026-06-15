@@ -8,8 +8,8 @@ sources: ["[[_sources/architecture|Architecture Documentation]]", "[[_sources/gl
 related: ["[[plugin|claude-wiki-pages Plugin]]", "[[deterministic-engine|Deterministic Engine]]", "[[orchestrator-agent|Orchestrator Agent]]", "[[hook-system|Hook System]]", "[[git-checkpoint|Git Checkpoint]]"]
 tags: ["architecture", "concept"]
 created: 2026-06-13
-updated: 2026-06-13
-update_count: 5
+updated: 2026-06-15
+update_count: 6
 status: active
 confidence: 1.0
 ---
