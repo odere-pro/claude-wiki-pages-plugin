@@ -27,7 +27,6 @@ children:
   - "[[Graph Quality]]"
   - "[[Dangling Wikilink]]"
   - "[[Node Concentration]]"
-  - "[[Operations Log]]"
 child_indexes: []
 tags: ["how-it-works", "sync", "wired-source", "skills", "workflows", "fill-gaps", "graph-quality"]
 created: 2026-06-13
