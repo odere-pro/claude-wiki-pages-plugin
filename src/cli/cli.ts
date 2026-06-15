@@ -26,6 +26,8 @@ import { join as pathJoin } from "node:path";
 import { buildReport, renderText, exitCode, type Report } from "../core/report.ts";
 import { ontology, type OntologyReport } from "../commands/ontology/ontology.ts";
 import { route } from "../commands/route/route.ts";
+import { context, renderContextText } from "../commands/context/context.ts";
+import { okf } from "../commands/okf/okf.ts";
 
 // ── One CAPABILITIES table — single source of truth (ADR-0015 N1, N2) ─────────
 //
@@ -81,6 +83,8 @@ export const CAPABILITIES: readonly CapabilityEntry[] = [
   { name: "ontology", status: "implemented" },
   { name: "route", status: "implemented" },
   { name: "snapshot", status: "implemented" },
+  { name: "context", status: "implemented" },
+  { name: "okf", status: "implemented" },
   { name: "index", status: "planned" },
   { name: "link-suggest", status: "planned" },
 ] as const;
@@ -163,6 +167,8 @@ interface ParsedArgs {
   readonly op: string | undefined;
   /** snapshot post: human-readable label for the committed write phase. */
   readonly label: string | undefined;
+  /** context: skill or agent name whose SKILL.md carries the context contract. */
+  readonly skill: string | undefined;
 }
 
 /**
@@ -192,6 +198,7 @@ class ParsedArgsBuilder {
   private rawClaude: string | undefined = undefined;
   private op: string | undefined = undefined;
   private label: string | undefined = undefined;
+  private skill: string | undefined = undefined;
 
   setJson(): this {
     this.json = true;
@@ -257,6 +264,10 @@ class ParsedArgsBuilder {
     this.label = v;
     return this;
   }
+  setSkill(v: string): this {
+    this.skill = v;
+    return this;
+  }
   /**
    * Accept a bare (non-flag) positional token. The first bare token becomes
    * `command`; the second becomes `sub`. Subsequent bare tokens are ignored
@@ -291,6 +302,7 @@ class ParsedArgsBuilder {
       claude: parseClaudeStatus(this.rawClaude),
       op: this.op,
       label: this.label,
+      skill: this.skill,
     });
   }
 }
@@ -335,6 +347,9 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     } else if (a === "--label") {
       const v = argv[++i];
       if (v) b.setLabel(v);
+    } else if (a === "--skill") {
+      const v = argv[++i];
+      if (v) b.setSkill(v);
     } else if (a && !a.startsWith("-")) b.addPositional(a);
   }
   return b.build();
@@ -386,6 +401,7 @@ function main(): number {
     claude,
     op,
     label,
+    skill,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -615,6 +631,22 @@ function main(): number {
         `${report.decision} [tier=${report.tier}, policy=${report.offlinePolicy}] ${report.reason}\n`,
       );
     return exitCode(report);
+  }
+
+  // context verb — resolve the L0–L4 context set for a skill against the vault.
+  if (command === "context") {
+    const report = context({ target, skill });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else process.stdout.write(renderContextText(report) + "\n");
+    return 0;
+  }
+
+  // okf verb — OKF export / import subcommands.
+  if (command === "okf") {
+    const result = okf({ sub, target, write });
+    if (json) process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+    else process.stdout.write(result.message + "\n");
+    return result.ok ? 0 : 1;
   }
 
   if (PLANNED.includes(command)) {

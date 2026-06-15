@@ -302,6 +302,17 @@ Concepts for reproducing Obsidian's link resolution and measuring whether the wi
 | classification checklist | The structured prompt or rule (I1) that ensures an ingested entity is evaluated against the `entity_type` enum and assigned to the correct class before a wiki page is written.                                                                                               |
 | superseded               | A source note whose document has a newer snapshot: `sync` adds optional frontmatter `superseded_by: "[[New Source]]"` to the older `_sources/` note. History stays intact — provenance is never rewritten; ingest's additive merge appends the new source when pages refresh. |
 
+### Context layering and OKF interop terms
+
+Concepts for the per-skill context contract and the OKF (Open Knowledge Format) interop surface introduced by the ICM / OKF work.
+
+| Term                | Description                                                                                                                                                                                                                                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| context contract    | A machine-readable `## Context contract` table in a maintenance skill or agent `SKILL.md` that declares which vault paths the skill reads (inputs L4), which it uses for schema reference (reference L3), and which it writes (outputs). Parsed by `parseContextContract()` in `src/core/ontology-profile.ts` and consumed by the `engine context` verb. |
+| OKF                 | Open Knowledge Format (Google). A portable markdown bundle convention that maps to the vault schema: our `type`/`title`/`description`/`tags`/`sources`/`url` frontmatter fields are a superset of OKF's model. The `engine okf export` verb renders `wiki/` as an OKF bundle; `engine okf import` snapshots an external bundle into `vault/raw/okf/<bundle>/` for normal ingest. |
+| OKF bundle          | A directory produced by `engine okf export`: plain-markdown files (frontmatter stripped, `[[wikilinks]]` rewritten as relative links) plus a flat machine `index.md` catalog listing path, type, title, description, and link targets for every exported page.          |
+| context layers      | The L0–L4 decomposition of the file set available to a skill turn: L0 = vault schema + vocabulary, L1 = MOC hierarchy, L2 = topic pages, L3 = source summaries, L4 = raw sources. The `engine context` verb resolves each layer for a named skill and reports the file lists plus a token estimate. |
+
 ### Parallel-extract and scheduled-upkeep terms
 
 Concepts for bounded map-only parallel extraction and host-owned scheduled upkeep (ADR-0026). Both default to byte-identical-to-today behavior; the parallelism and the schedule are opt-in.

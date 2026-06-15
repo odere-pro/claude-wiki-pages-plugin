@@ -94,3 +94,13 @@ POLISH:
 ## Specification anchor
 
 Contracts: [`docs/architecture.md`](../docs/architecture.md) (`claude-wiki-pages-polish-agent` contract). Decision rationale in [`docs/adr/ADR-0003-polish-agent-and-obsidian-side.md`](../docs/adr/ADR-0003-polish-agent-and-obsidian-side.md).
+
+## Context contract
+
+Machine-readable read/write contract for the `engine context` verb.
+
+| role           | globs                                             |
+| -------------- | ------------------------------------------------- |
+| inputs (L4)    | wiki/**, .obsidian/graph.json                     |
+| reference (L3) | vault/CLAUDE.md, wiki/index.md                    |
+| outputs        | wiki/index.md, .obsidian/graph.json               |

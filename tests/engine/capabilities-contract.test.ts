@@ -56,6 +56,8 @@ const GOLDEN_IMPLEMENTED = [
   "ontology",
   "route",
   "snapshot",
+  "context",
+  "okf",
 ] as const;
 
 const GOLDEN_PLANNED = ["index", "link-suggest"] as const;

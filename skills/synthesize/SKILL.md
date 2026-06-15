@@ -94,4 +94,14 @@ This skill MUST NOT:
 ```
 READY: wrote <path>; synthesis_type=<type>, scope=<N> pages, sources=<M>.
 Remember to refresh the vault MOC: /claude-wiki-pages:index.
+
+## Context contract
+
+Machine-readable read/write contract for the `engine context` verb.
+
+| role           | globs                                          |
+| -------------- | ---------------------------------------------- |
+| inputs (L4)    | wiki/**, wiki/_sources/**                      |
+| reference (L3) | vault/CLAUDE.md, wiki/index.md                 |
+| outputs        | wiki/_synthesis/*                              |
 ```

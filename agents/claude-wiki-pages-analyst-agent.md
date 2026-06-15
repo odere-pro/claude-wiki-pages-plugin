@@ -221,3 +221,13 @@ growing a single context.
 - **Trace to sources.** Wiki → `_sources/` → `raw/`. Chain unbroken.
 - **One mode per run.** Re-enter preflight to switch modes.
 - **Honor the budget.** Halt at 100 pages, hard-stop at 500.
+
+## Context contract
+
+Machine-readable read/write contract for the `engine context` verb.
+
+| role           | globs                                          |
+| -------------- | ---------------------------------------------- |
+| inputs (L4)    | wiki/**, wiki/_sources/**                      |
+| reference (L3) | vault/CLAUDE.md, wiki/index.md                 |
+| outputs        | (read-only; outputs go via _proposed/ only)    |

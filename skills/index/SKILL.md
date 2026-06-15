@@ -109,4 +109,14 @@ or, on a noop:
 
 ```
 UNCHANGED: wiki/index.md already reflects the current tree.
+
+## Context contract
+
+Machine-readable read/write contract for the `engine context` verb.
+
+| role           | globs                                     |
+| -------------- | ----------------------------------------- |
+| inputs (L4)    | wiki/**                                   |
+| reference (L3) | vault/CLAUDE.md                           |
+| outputs        | wiki/index.md                             |
 ```

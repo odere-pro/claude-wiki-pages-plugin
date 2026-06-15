@@ -316,3 +316,13 @@ READY: <N> sources ingested, <M> pages written (<C> created, <U> updated).
 
 The `claude-wiki-pages-ingest-agent` agent looks for this prefix to know it can hand off
 to `claude-wiki-pages-curator-agent`.
+
+## Context contract
+
+Machine-readable read/write contract for the `engine context` verb.
+
+| role           | globs                                       |
+| -------------- | ------------------------------------------- |
+| inputs (L4)    | raw/**, raw/wired/**                        |
+| reference (L3) | vault/CLAUDE.md, wiki/_sources/**           |
+| outputs        | wiki/_sources/*, wiki/**                   |

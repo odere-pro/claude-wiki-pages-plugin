@@ -319,6 +319,107 @@ function extractExtensionsFromText(text: string): readonly string[] {
   return values;
 }
 
+// ── Context contract parser ────────────────────────────────────────────────────
+
+/**
+ * One row from a `## Context contract` table in a maintenance skill SKILL.md.
+ * The `role` column names the layer (e.g. "inputs (L4)", "reference (L3)",
+ * "outputs"); the `globs` column is a comma-separated list of vault-relative
+ * glob patterns.
+ */
+export interface ContextContractRow {
+  readonly role: string;
+  readonly globs: readonly string[];
+}
+
+/**
+ * Parsed result of a `## Context contract` section.
+ *
+ * `inputs` — L4 and any other rows labelled "inputs …"
+ * `reference` — rows labelled "reference …"
+ * `outputs` — rows labelled "outputs"
+ * `rows` — all rows in document order (never mutated)
+ */
+export interface ContextContract {
+  readonly rows: readonly ContextContractRow[];
+  /** Globs from rows whose role starts with "inputs". */
+  readonly inputs: readonly string[];
+  /** Globs from rows whose role starts with "reference". */
+  readonly reference: readonly string[];
+  /** Globs from rows whose role starts with "outputs". */
+  readonly outputs: readonly string[];
+}
+
+/**
+ * Parse the `## Context contract` section from a skill or agent markdown file.
+ *
+ * Uses the same table-parsing primitives as `parseOntologyProfile`:
+ * `extractTableRow` extracts cells; `extractBacktickValues` is NOT used here
+ * because the glob column contains path patterns, not backtick-wrapped tokens.
+ *
+ * Returns null when the section or the table is absent (graceful absent-case;
+ * the `context` verb degrades to empty contract lists).
+ */
+export function parseContextContract(skillMd: string): ContextContract | null {
+  const lines = skillMd.split("\n");
+
+  // Locate the `## Context contract` heading.
+  let sectionStart = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (l !== undefined && l.trim() === "## Context contract") {
+      sectionStart = i;
+      break;
+    }
+  }
+  if (sectionStart === -1) return null;
+
+  const rows: ContextContractRow[] = [];
+  let inTable = false;
+
+  for (let i = sectionStart + 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (line === undefined) continue;
+    const trimmed = line.trim();
+
+    // Stop at the next heading.
+    if (trimmed.startsWith("#")) break;
+
+    if (trimmed.startsWith("|")) {
+      inTable = true;
+      // Skip the column-header row and separator rows.
+      if (trimmed.includes("role") && trimmed.includes("globs")) continue;
+      const cells = extractTableRow(line, 2);
+      if (cells === null) continue;
+      const roleCell = cells[0];
+      const globsCell = cells[1];
+      if (roleCell === undefined || globsCell === undefined) continue;
+      // Globs are comma-separated plain strings (not backtick-wrapped).
+      const globs = globsCell
+        .split(",")
+        .map((g) => g.trim())
+        .filter((g) => g.length > 0);
+      rows.push(Object.freeze({ role: roleCell.trim(), globs: Object.freeze(globs) }));
+    } else {
+      if (inTable) break;
+    }
+  }
+
+  if (rows.length === 0) return null;
+
+  const inputs = Object.freeze(
+    rows.filter((r) => r.role.toLowerCase().startsWith("inputs")).flatMap((r) => [...r.globs]),
+  );
+  const reference = Object.freeze(
+    rows.filter((r) => r.role.toLowerCase().startsWith("reference")).flatMap((r) => [...r.globs]),
+  );
+  const outputs = Object.freeze(
+    rows.filter((r) => r.role.toLowerCase().startsWith("outputs")).flatMap((r) => [...r.globs]),
+  );
+
+  return Object.freeze({ rows: Object.freeze(rows), inputs, reference, outputs });
+}
+
 // ── Main parse entry point ─────────────────────────────────────────────────────
 
 /**
