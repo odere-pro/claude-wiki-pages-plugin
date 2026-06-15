@@ -1,7 +1,7 @@
 ---
 title: "Wiki Pages"
 type: index
-aliases: ["Wiki Pages", "wiki-pages", "wiki operating contract", "skills wiki-pages", "maintain contract skill"]
+aliases: ["Wiki Pages", "wiki-pages", "skills wiki-pages"]
 parent: "[[Wiki Index]]"
 path: "wiki-pages"
 children:

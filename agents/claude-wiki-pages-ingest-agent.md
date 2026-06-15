@@ -226,7 +226,9 @@ stripped from a running agent.
 
 ### 1.3 Write source summaries
 
-For each source, write to `vault/wiki/_sources/<kebab-slug>.md` using the `source` frontmatter schema from `vault/CLAUDE.md`. Body: Summary, Key Claims, Entities Mentioned (as `[[wikilinks]]`), Concepts Covered (as `[[wikilinks]]`).
+For each source, write to `vault/wiki/_sources/<kebab-slug>.md` using the `source` frontmatter schema from `vault/CLAUDE.md`. Body: Summary, Key Claims, Entities Mentioned, Concepts Covered.
+
+**Entities and Concepts MUST be clean standalone Markdown list items — one per line, in the exact form `- [[Page Name]]` (optionally `- [[Page Name|display]]`).** Never place a `[[wikilink]]` inside backticks or a code span: that renders as a code span, not a link, so Obsidian draws no graph edge and the source page floats as an orphan. Never substitute a bare file path (e.g. `wiki/foo.md`) for a wikilink. If a concept needs a parenthetical gloss, put the gloss as plain text AFTER the link on the same line — e.g. `- [[Specialist Pattern]] — orchestrator dispatches one specialist per turn` — keeping the `[[link]]` outside any backticks.
 
 ### 1.4 Plan the topic tree — externalize, then confirm
 

@@ -6,7 +6,7 @@ source_format: text
 date_published: 2026-06-13
 date_ingested: 2026-06-13
 tags: ["guide", "lint", "curator", "validation"]
-aliases: ["User Guide 04: Review, Validate, Fix"]
+aliases: ["User Guide 04: Review Validate Fix", "User Guide 04: Review, Validate, Fix"]
 sources: []
 created: 2026-06-13
 updated: 2026-06-13

@@ -339,7 +339,7 @@ Processed 5 new ADRs from `docs/adr/` (not previously in `raw/`):
 - ADR-0028: Dangling-Wikilink WARN Check in Verify (WARN-tier parity gate)
 - ADR-0029: Drop docs/vault-example (schema authority → skills/init/template)
 
-New sources: [[ADR-0024: Host-Project Intake]], [[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]], [[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]], [[ADR-0028: Dangling-Wikilink WARN Check in Verify]], [[ADR-0029: Drop docs/vault-example]]
+New sources: [[ADR-0024: Host-Project Intake]], [[ADR-0026: Bounded Parallel Extract and Scheduled Upkeep]], [[ADR-0027: Fill-Gaps Capability and Graph-Quality Detector]], [[ADR-0028: Dangling-Wikilink WARN Check in Verify]], [[ADR-0029|ADR-0029: Drop docs/vault-example]]
 
 New concept pages (6): [[Host-Project Intake]], [[Parallel Extract]], [[Scheduled Upkeep]], [[Fill-Gaps Skill]], [[Graph Quality]], [[Dangling Wikilink]], [[Node Concentration]]
 

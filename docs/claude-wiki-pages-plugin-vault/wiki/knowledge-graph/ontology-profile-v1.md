@@ -1,7 +1,7 @@
 ---
 title: "Ontology Profile v1"
 type: concept
-aliases: ["Ontology Profile v1", "ontology-profile-v1", "ontology profile", "predicate table"]
+aliases: ["Ontology Profile v1", "ontology-profile-v1", "ontology profile"]
 parent: "[[Knowledge Graph]]"
 path: "knowledge-graph"
 sources: ["[[ADR-0004: Ontology Profile v1]]", "[[Design: Ontology]]", "[[Glossary]]"]

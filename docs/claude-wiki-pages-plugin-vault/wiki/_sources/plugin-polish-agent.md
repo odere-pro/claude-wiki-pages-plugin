@@ -12,7 +12,7 @@ tags: ["agent", "polish", "plugin"]
 aliases: ["Polish Agent Source", "plugin-polish-agent", "claude-wiki-pages-polish-agent source"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -42,4 +42,20 @@ The canonical agent definition file for `claude-wiki-pages-polish-agent`. Declar
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[Polish Agent]]
+
+## Concepts Covered
+
+- [[Agent Contract Table]]
+- [[Agent Tool Restriction]]
+- [[Git Checkpoint]]
+- [[Graph Quality]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Polish Agent]] — primary source for three idempotent steps and POLISH: report format
+- [[Agent Contract Table]] — per-agent contract pattern sourced here
+- [[Agent Tool Restriction]] — tool restriction (no Task)
+- [[Git Checkpoint]] — snapshot.sh pre/post git-bounding documented here

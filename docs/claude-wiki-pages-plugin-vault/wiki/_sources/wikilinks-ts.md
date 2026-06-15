@@ -56,13 +56,16 @@ logic mirrors the bash `sed '/^```/,/^```/d'` idiom.
 - The guard message is a human-readable string instructing conversion to wikilinks
   for Obsidian compatibility.
 
-## Entities Mentioned
+## Concepts Covered
 
-(No new entities beyond what is already tracked)
+- [[Wikilink Extractor]]
+- [[Frontmatter Parser]]
+- [[Provenance Checks]]
+- [[MOC Repair Primitives]]
+- [[Dangling Wikilink]]
 
-## Concepts Mentioned
+## Grounded Pages
 
-- Wikilink Extractor (new — `wiki/knowledge-graph/wikilink-extractor.md`)
-- Frontmatter Parser (new — `wiki/knowledge-graph/frontmatter-parser.md`)
-- Provenance Checks (already tracked as `[[Provenance Checks]]`)
-- MOC Repair Primitives (already tracked as `[[MOC Repair Primitives]]`)
+Wiki pages that cite this source:
+
+- [[Wikilink Extractor]] — the concept page this source directly backs (three exported functions, markdown-link guard)

@@ -12,7 +12,7 @@ tags: ["sync", "skill", "wired-source"]
 aliases: ["Sync Skill (SKILL.md)"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -43,11 +43,21 @@ The Sync skill (`skills/sync/SKILL.md`) defines the eight-step workflow for pull
 
 ## Entities Mentioned
 
-- sync-source.sh (tool script)
+- [[sync-source.sh]]
 
-## Concepts Mentioned
+## Concepts Covered
 
-- Wired Source (registered git work tree with docs-only include globs)
-- Sync Workflow (8-step: pre-snapshot, status, confirm, pull, mark superseded, log, post-snapshot, hand off)
-- Sync Skill (the skill that orchestrates the above)
-- Immutable raw/ directory (raw is write-once; sync adds new files, never overwrites)
+- [[Wired Source]]
+- [[Sync Workflow]]
+- [[Sync Skill]]
+- [[Git Checkpoint]]
+- [[Ingest Pipeline]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Sync Skill]] — primary source for the eight-step sync workflow definition
+- [[Wired Source]] — raw is immutable; sync adds new versioned snapshots, never overwrites
+- [[Sync Workflow]] — full eight-step breakdown documented here
+- [[sync-source.sh]] — script that implements wired-source detection and file copying

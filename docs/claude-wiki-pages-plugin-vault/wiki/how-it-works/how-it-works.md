@@ -60,6 +60,8 @@ Two invariants govern the sync subsystem. **Raw is immutable:** an updated doc n
 
 [[sync-source.sh]] is the deterministic bash script that implements wired-source detection and file copying. It reads the last-synced SHA from `settings.json`, diffs `HEAD` against that SHA to find changed docs, and copies each changed file as a new versioned snapshot (`<stem>--<date>-<sha8>`). It never overwrites existing snapshots.
 
+[[Operations Log]] is the chronological record of every wiki operation — ingest, lint, snapshot, query, and sync. The log is appended at the end of each skill run and is the authoritative provenance trail for the vault's history.
+
 ## Open Questions
 
 - The `SYNC:` heartbeat notice is referenced in the Sync Skill but the trigger mechanism is not yet documented in this cluster. Should a page on the heartbeat/maintenance integration be added here?

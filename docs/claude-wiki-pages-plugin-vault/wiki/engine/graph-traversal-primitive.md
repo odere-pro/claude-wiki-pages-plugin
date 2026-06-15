@@ -1,7 +1,7 @@
 ---
 title: "Graph Traversal Primitive"
 type: concept
-aliases: ["Graph Traversal Primitive", "graph traversal primitive", "walk()", "graph walk", "BFS walk", "N-hop BFS"]
+aliases: ["Graph Traversal Primitive", "graph traversal primitive", "walk()", "BFS walk", "N-hop BFS"]
 parent: "[[Engine — Index]]"
 path: "engine"
 sources: ["[[ADR-0008: One Graph-Traversal Primitive]]", "[[graph.ts Source]]"]

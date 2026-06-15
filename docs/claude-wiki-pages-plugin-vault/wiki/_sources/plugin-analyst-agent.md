@@ -12,7 +12,7 @@ tags: ["agent", "analyst", "plugin"]
 aliases: ["Analyst Agent Source", "plugin-analyst-agent", "claude-wiki-pages-analyst-agent source"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -42,4 +42,23 @@ The canonical agent definition file for `claude-wiki-pages-analyst-agent`. Decla
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[Analyst Agent]]
+
+## Concepts Covered
+
+- [[Agent Contract Table]]
+- [[Agent Tool Restriction]]
+- [[Dashboard Write Gate]]
+- [[Grounded Retrieval]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Analyst Agent]] — primary source for agent definition, modes, and tool restrictions
+- [[Agent Contract Table]] — per-agent contract pattern sourced here
+- [[Agent Tool Restriction]] — tool restriction (sonnet + no Task)
+- [[Analyst Dashboard Mode]] — Dashboard mode definition and write gate
+- [[Analyst Document Compile Mode]] — Compile mode definition
+- [[Analyst Extract Mode]] — Extract mode definition
+- [[Dashboard Write Gate]] — write gate rule for dashboard output

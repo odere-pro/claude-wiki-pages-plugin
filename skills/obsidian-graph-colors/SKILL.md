@@ -37,19 +37,35 @@ config per vault):
 editing color groups; the color workflow must not flip filters.
 
 Alongside `graph.json`, the scaffold also asserts the **wiki-only exclusions**
-in `vault/.obsidian/app.json`:
+and the **Obsidian write-protection keys** in `vault/.obsidian/app.json`:
 
 ```json
-{ "userIgnoreFilters": ["raw/", "_templates/", "_proposed/"] }
+{
+  "userIgnoreFilters": ["raw/", "_templates/", "_proposed/", "_inbox/"],
+  "newFileLocation": "folder",
+  "newFileFolderPath": "_inbox",
+  "newLinkFormat": "shortest"
+}
 ```
 
-This is Obsidian's "Excluded files" setting: `raw/` (provenance payload),
-`_templates/` (scaffolding), and `_proposed/` (unreviewed drafts) disappear
-from the graph, search, and link autocomplete — the Obsidian experience shows
-only generated wiki pages. If `app.json` is absent, create it with exactly
-this content. If it exists, **merge**: append any missing entry to
-`userIgnoreFilters`, never remove user entries, and preserve every other key
-unchanged.
+`userIgnoreFilters` is Obsidian's "Excluded files" setting: `raw/` (provenance
+payload), `_templates/` (scaffolding), `_proposed/` (unreviewed drafts), and
+`_inbox/` (the stub quarantine) disappear from the graph, search, and link
+autocomplete — the Obsidian experience shows only generated wiki pages.
+
+The three new-file keys route every Obsidian-created note (e.g. a note made by
+clicking an unresolved link) into the excluded `_inbox/` folder instead of the
+vault root: `newFileLocation: "folder"` plus `newFileFolderPath: "_inbox"` fix
+the destination, and `newLinkFormat: "shortest"` keeps generated links
+filename-based. This stops a stray stub from shadowing a real wiki page at the
+vault root — an exact-filename match beats an alias in Obsidian, so a
+root-level stub would silently capture links meant for the canonical page.
+
+If `app.json` is absent, create it with exactly this content. If it exists,
+**merge**: append the missing `_inbox/` entry (and any other missing entry) to
+`userIgnoreFilters`, set each of the three new-file keys only when it is absent
+or differs from the expected value, never remove user entries, and preserve
+every other key unchanged.
 
 ## Apply contract — two tiers
 
@@ -219,10 +235,10 @@ When a topic folder is deleted or merged:
 ## Regenerate from scratch — graph config is cache, not state
 
 `.obsidian/graph.json` and the plugin-owned keys of `.obsidian/app.json`
-(`userIgnoreFilters`) are **disposable cache**. Every value in them is derived
-deterministically from the `wiki/` topic tree plus the palette table above —
-nothing in them is precious. Dropping them is always safe; restoring them is
-one skill run:
+(`userIgnoreFilters`, `newFileLocation`, `newFileFolderPath`, `newLinkFormat`)
+are **disposable cache**. Every value in them is derived deterministically from
+the `wiki/` topic tree plus the palette table above — nothing in them is
+precious. Dropping them is always safe; restoring them is one skill run:
 
 1. Delete `vault/.obsidian/graph.json` (or empty its `colorGroups` array).
 2. Run this skill (or let the polish agent's Step 1 run after the next
@@ -230,7 +246,8 @@ one skill run:
 3. The minimum scaffold is recreated, one topic group per top-level
    `wiki/<topic>/` folder is rebuilt in palette order, the
    `_sources`/`_synthesis` specials are appended, and the wiki-only
-   exclusions are re-asserted in `app.json`.
+   exclusions plus the write-protection new-file keys are re-asserted in
+   `app.json`.
 
 The same regeneration runs on both apply tiers — `obsidian eval` when
 Obsidian is up, the headless `graph.json`/`app.json` file write otherwise. Two

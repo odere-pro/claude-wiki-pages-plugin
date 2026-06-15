@@ -43,8 +43,9 @@ tests/test_helper/bats-file/
 vault/output/
 
 # Plugin wiki vault — tracked in the repo as the project knowledge base.
-# Only the scratch output/ subdirectory is ignored.
+# Only the scratch output/ subdirectory and the _inbox/ stub quarantine are ignored.
 docs/claude-wiki-pages-plugin-vault/output/
+docs/claude-wiki-pages-plugin-vault/_inbox/
 
 # Large binary assets in raw/
 **/raw/assets/*.pdf

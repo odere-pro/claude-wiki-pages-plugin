@@ -1,7 +1,7 @@
 ---
 title: "Obsidian Experience"
 type: concept
-aliases: ["Obsidian Experience", "obsidian experience", "Obsidian integration", "graph view"]
+aliases: ["Obsidian Experience", "obsidian experience", "graph view"]
 parent: "[[Obsidian]]"
 path: "obsidian"
 sources: ["[[User Guide: Obsidian Experience]]", "[[ADR-0023: Wiki-Only Graph]]", "[[ADR-0022: Folder Notes and Graph Quality]]", "[[ADR-0003: Polish Agent and Obsidian-Side Experience]]"]

@@ -57,12 +57,16 @@ bash `sed` fallback behavior.
   processing the `sources:` and `related:` wikilink arrays.
 - Parity with `verify-ingest.sh` on well-formed fixtures is enforced by a gate test.
 
-## Entities Mentioned
+## Concepts Covered
 
-(No new entities beyond what is already tracked)
+- [[Frontmatter Parser]]
+- [[Provenance Checks]]
+- [[Schema Version Gate]]
+- [[Wikilink Extractor]]
+- [[Shell-TS Parity]]
 
-## Concepts Mentioned
+## Grounded Pages
 
-- Frontmatter Parser (new — `wiki/knowledge-graph/frontmatter-parser.md`)
-- Provenance Checks (already tracked as `[[Provenance Checks]]`)
-- Schema Version Gate (already tracked as `[[Schema Version Gate]]`)
+Wiki pages that cite this source:
+
+- [[Frontmatter Parser]] — the concept page this source directly backs (five exported functions, yaml-library parser)

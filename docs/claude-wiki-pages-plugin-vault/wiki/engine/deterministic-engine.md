@@ -2,7 +2,7 @@
 title: "Deterministic Engine"
 type: entity
 entity_type: tool
-aliases: ["Deterministic Engine", "deterministic engine", "Bun CLI", "engine"]
+aliases: ["Deterministic Engine", "deterministic engine", "Bun CLI"]
 parent: "[[Wiki Engine]]"
 path: "engine"
 sources: ["[[Architecture Documentation]]", "[[Glossary]]", "[[ADR-0015: Engine Self-Description Surfaces]]", "[[ADR-0005: Git Required Per-Vault Init]]", "[[cli.ts Source]]", "[[engine.sh Source]]", "[[Engine API Skill (SKILL.md)]]", "[[verify.ts Source]]", "[[ADR-0028: Dangling-Wikilink WARN Check in Verify]]"]

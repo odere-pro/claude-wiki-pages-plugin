@@ -21,6 +21,7 @@ import { checkCitedSourceStaleness } from "../../core/staleness.ts";
 import { checkProvenance } from "../../core/provenance.ts";
 import { checkEntityType } from "./check-entity-type.ts";
 import { checkDanglingWikilinks } from "../../core/wikilink-check.ts";
+import { checkCollisions } from "../../core/collision-check.ts";
 import { resolveVault } from "../../core/vault.ts";
 
 export interface VerifyOptions {
@@ -61,6 +62,7 @@ export function verify(opts: VerifyOptions = {}): Report {
     ...checkProvenance(wiki),
     ...checkEntityType(wiki, vaultClaudeMd, vaultClaudeMd),
     ...checkDanglingWikilinks(wiki),
+    ...checkCollisions(wiki),
   ];
 
   return buildReport("verify", vault, findings);

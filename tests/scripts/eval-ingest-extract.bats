@@ -399,6 +399,12 @@ _setup_eval_artifact_repo() {
     git config commit.gpgsign false
     git config tag.gpgsign false
     git config core.hooksPath /dev/null
+    # Disable background maintenance/gc so no async git process writes into
+    # .git/objects after the test body returns — otherwise the teardown's
+    # `rm -rf` races it and reports "Directory not empty" on macOS runners.
+    git config gc.auto 0
+    git config maintenance.auto false
+    git config core.fsmonitor false
     git add -A
     git commit -q -m init
   )
@@ -407,9 +413,15 @@ _setup_eval_artifact_repo() {
 
 _teardown_eval_artifact_repo() {
   if [ -n "${EVAL_REPO:-}" ] && [ -d "$EVAL_REPO" ]; then
-    rm -rf "$EVAL_REPO"
+    # Cleanup must never fail the test: $BATS_TEST_TMPDIR is auto-removed by
+    # Bats regardless. A single retry absorbs a transient macOS rm/git race.
+    rm -rf "$EVAL_REPO" 2>/dev/null || {
+      sleep 1
+      rm -rf "$EVAL_REPO" 2>/dev/null || true
+    }
   fi
   unset EVAL_REPO
+  return 0
 }
 
 @test "eval-ingest-extract: --stamp emits a complete measured-run artifact (model_id + golden_set_sha + recorded_at)" {

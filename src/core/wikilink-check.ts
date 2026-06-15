@@ -2,110 +2,41 @@
  * Dangling-wikilink check — FU1 (ADR-0028).
  *
  * `checkDanglingWikilinks(wiki)` scans every non-BOOKKEEPING page under
- * `wiki/` for `[[links]]` whose normalised target resolves to no page,
- * and returns one `Finding` per (file, distinct-normalised-target).
+ * `wiki/` for `[[links]]` whose normalised target resolves to no page, and
+ * returns one `Finding` per (file, distinct-normalised-target).
  *
- * Resolution model (identical to scripts/graph-quality.sh `parse_title_aliases`
- * and the `norm()`/`link_target()` helpers — kept as one specification, pinned
- * by gate-05):
- *
- *   A link [[T]] resolves iff, case-insensitively, the normalised target
- *   (stripped of "|alias" after the first `|`, "#heading" after the first `#`,
- *   and "^block" after the first `^`, then `.strip().lower()`) equals:
- *     - the filename stem of some page, OR
- *     - the `title:` value of some page, OR
- *     - any `aliases:` entry of some page.
+ * Resolution model: a link `[[T]]` resolves iff its normalised target (see
+ * `normaliseTarget` in [`link-resolver.ts`](./link-resolver.ts)) is in the
+ * resolvable-name set — the union of every page's filename stem, `title:`, and
+ * `aliases:`, case-insensitively. This set comes from `resolvableNames(index)`
+ * (ADR-0030 §2): it is exactly the flat set ADR-0028 pinned, so the WARN count
+ * here is unchanged by the move to the shared resolver — the priority ladder
+ * and the `byPath` tier are NOT consulted by the dangling predicate (those serve
+ * the collision and connectivity checks). The verify-ingest.sh twin's dangling
+ * block is unchanged and stays pinned by gate-05.
  *
  * No space↔hyphen fuzzing: that mismatch is exactly what produces empty Obsidian
  * nodes, so the resolver is strict. (ADR-0028 §2)
  *
  * BOOKKEEPING pages (index, log, dashboard, manifest, _index, .gitkeep, and
  * folder notes with `type: index`) are skipped as SUBJECTS (their outgoing
- * links are not scanned) — matching the bookkeeping exemption applied
- * everywhere else in verify.
- *
- * Frontmatter wikilinks are included in the scan: the full file content
- * (frontmatter + body) is searched.
+ * links are not scanned). Frontmatter wikilinks ARE included in the scan.
  */
 
-import { relative, basename } from "node:path";
+import { relative } from "node:path";
 import { listMarkdownRecursive, readFileSafe, isBookkeepingFile } from "./fs.ts";
-import { parseFrontmatter, stringList } from "./frontmatter.ts";
+import { buildLinkIndex, resolvableNames, normaliseTarget } from "./link-resolver.ts";
 import type { Finding } from "./report.ts";
-
-// ── Normalisation ─────────────────────────────────────────────────────────────
-
-/**
- * Normalise a raw wikilink inner text to the form used for resolution.
- * Mirrors `link_target()` + `norm()` in scripts/graph-quality.sh.
- *
- * Steps:
- *   1. Strip "|display" alias (everything from the first `|`).
- *   2. Strip "#heading" anchor (everything from the first `#`).
- *   3. Strip "^block" anchor (everything from the first `^`).
- *   4. `.trim().toLowerCase()`.
- */
-function normaliseTarget(raw: string): string {
-  let t = raw;
-  const pipe = t.indexOf("|");
-  if (pipe !== -1) t = t.slice(0, pipe);
-  const hash = t.indexOf("#");
-  if (hash !== -1) t = t.slice(0, hash);
-  const caret = t.indexOf("^");
-  if (caret !== -1) t = t.slice(0, caret);
-  return t.trim().toLowerCase();
-}
-
-// ── Resolvable-name set ───────────────────────────────────────────────────────
-
-/**
- * Build the set of all normalised names that satisfy a [[link]] — the union of
- * every page's filename stem, `title:` value, and `aliases:` entries.
- *
- * Mirrors `resolvable` construction in scripts/graph-quality.sh (ALL pages are
- * targets, including bookkeeping; only the subject scan is filtered).
- */
-function buildResolvableSet(wiki: string): Set<string> {
-  const resolvable = new Set<string>();
-  for (const file of listMarkdownRecursive(wiki)) {
-    const stem = basename(file, ".md").trim().toLowerCase();
-    if (stem !== "") resolvable.add(stem);
-
-    const content = readFileSafe(file);
-    if (content === null) continue;
-
-    const fm = parseFrontmatter(content);
-
-    // title:
-    const title = fm["title"];
-    if (typeof title === "string" && title.trim() !== "") {
-      resolvable.add(title.trim().toLowerCase());
-    }
-
-    // aliases: (inline array or block list via stringList)
-    for (const alias of stringList(fm["aliases"])) {
-      const normAlias = alias.trim().toLowerCase();
-      if (normAlias !== "") resolvable.add(normAlias);
-    }
-  }
-  return resolvable;
-}
 
 // ── Wikilink extraction ───────────────────────────────────────────────────────
 
 /**
- * Extract all raw inner texts of `[[…]]` links from `content`, including
- * those inside the frontmatter block (the full file is searched).
- *
- * The regex matches `[[` then captures everything up to the first `]]` or `|`,
- * mirroring `LINK_RE = re.compile(r"\[\[([^\[\]]+?)\]\]")` in graph-quality.sh.
- * Note: extractWikilinks in wikilinks.ts already strips the alias, but here we
- * need the raw inner text (including any alias/anchor) so normaliseTarget() can
- * strip it in the same way the bash scanner does.
+ * Extract all raw inner texts of `[[…]]` links from `content` (frontmatter and
+ * body), code stripped. Mirrors `LINK_RE = re.compile(r"\[\[([^\[\]]+?)\]\]")`
+ * in graph-quality.sh / verify-ingest.sh.
  */
-function extractRawWikilinkTargets(content: string): string[] {
+export function extractRawWikilinkTargets(content: string): string[] {
   const out: string[] = [];
-  // Match the full [[inner text]] (including any alias/anchor) up to the closing `]]`.
   const re = /\[\[([^[\]]+?)\]\]/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(stripCode(content))) !== null) {
@@ -116,13 +47,13 @@ function extractRawWikilinkTargets(content: string): string[] {
 
 /**
  * Drop fenced code blocks (``` / ~~~) and inline code spans (`…`) before
- * scanning for `[[wikilinks]]`. Obsidian does not render a link inside code,
- * so a `[[Target]]` written as a documentation example is not a dangling link.
+ * scanning for `[[wikilinks]]`. Obsidian does not render a link inside code, so
+ * a `[[Target]]` written as a documentation example is not a dangling link.
  *
  * Twin of `strip_code` in scripts/verify-ingest.sh and scripts/graph-quality.sh
  * (pinned by gate-05) — line-based so all three implementations agree.
  */
-function stripCode(text: string): string {
+export function stripCode(text: string): string {
   const out: string[] = [];
   let inFence = false;
   let marker = "";
@@ -153,11 +84,10 @@ function stripCode(text: string): string {
  * normalised target) that resolves to no page.
  *
  * @param wiki Absolute path to the `wiki/` directory.
- * @returns Immutable array of findings, sorted by (file asc, target asc) for
- *          determinism (same vault → same ranking).
+ * @returns Immutable array of findings, sorted by (file asc, target asc).
  */
 export function checkDanglingWikilinks(wiki: string): readonly Finding[] {
-  const resolvable = buildResolvableSet(wiki);
+  const resolvable = resolvableNames(buildLinkIndex(wiki));
   const findings: Finding[] = [];
 
   for (const file of listMarkdownRecursive(wiki)) {
@@ -180,7 +110,6 @@ export function checkDanglingWikilinks(wiki: string): readonly Finding[] {
       if (!resolvable.has(norm)) {
         // Produce the original (non-normalised) target for the message so the
         // human can see what they wrote, matching graph-quality.sh output.
-        // Strip alias/anchor from the raw text for a readable display form.
         let display = raw;
         const pipeIdx = display.indexOf("|");
         if (pipeIdx !== -1) display = display.slice(0, pipeIdx);

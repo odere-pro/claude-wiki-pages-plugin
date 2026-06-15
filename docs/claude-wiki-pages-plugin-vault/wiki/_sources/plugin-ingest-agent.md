@@ -12,7 +12,7 @@ tags: ["agent", "ingest", "plugin"]
 aliases: ["Ingest Agent Source", "plugin-ingest-agent", "claude-wiki-pages-ingest-agent source"]
 sources: []
 created: 2026-06-13
-updated: 2026-06-13
+updated: 2026-06-15
 status: active
 confidence: 1.0
 ---
@@ -42,4 +42,21 @@ The canonical agent definition file for `claude-wiki-pages-ingest-agent`. Declar
 
 ## Entities Mentioned
 
-## Concepts Mentioned
+- [[Ingest Agent]]
+
+## Concepts Covered
+
+- [[Agent Contract Table]]
+- [[Agent Tool Restriction]]
+- [[Ingest Pipeline]]
+- [[Parallel Extract]]
+
+## Grounded Pages
+
+Wiki pages that cite this source:
+
+- [[Ingest Agent]] — primary source for agent definition and four-step pipeline contract
+- [[Agent Contract Table]] — per-agent contract pattern sourced here
+- [[Agent Tool Restriction]] — tool restriction (includes Task for worker fan-out)
+- [[Ingest Pipeline]] — four-step pipeline steps documented here
+- [[Parallel Extract]] — maxParallelExtract fan-out with Read/Glob/Grep-only workers
