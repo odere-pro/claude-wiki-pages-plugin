@@ -162,12 +162,13 @@ EOF
   # Remove the ontology-profile-v1 section from the vault CLAUDE.md.
   # Replace it with a stub that has no predicate rows.
   local claude_md="$FIXTURE_VAULT/CLAUDE.md"
-  python3 -c "
-import sys, re
-txt = open('$claude_md').read()
-# Strip everything from the ontology-profile-v1 heading to the next ## heading
-txt = re.sub(r'## Ontology profile.*?(?=\n## |\Z)', '## Ontology profile (stub — no rows)\n\n', txt, flags=re.DOTALL)
-open('$claude_md', 'w').write(txt)
+  bun -e "
+const fs = require('fs');
+const p = '$claude_md';
+let txt = fs.readFileSync(p, 'utf8');
+// Strip everything from the ontology-profile-v1 heading to the next ## heading
+txt = txt.replace(/## Ontology profile[\s\S]*?(?=\n## |\$)/, '## Ontology profile (stub — no rows)\n\n');
+fs.writeFileSync(p, txt);
 "
 
   run bash "$SCRIPTS_DIR/lint-ontology.sh" --target "$FIXTURE_VAULT"

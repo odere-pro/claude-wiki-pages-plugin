@@ -9,7 +9,7 @@
 #   - A vault with no dangling links reports danglingCount=0.
 #   - A vault with a dangling link reports danglingCount=1 and names the target.
 #   - A vault with no wiki/ directory skips gracefully.
-#   - python3 absence is handled gracefully (skipped or reported).
+#   - Bun absence is handled gracefully (skipped or reported).
 #   - Cn=1.0 when all topic pages are in known clusters.
 #   - dangling links from _sources/ pages are detected.
 
@@ -50,7 +50,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "graph-quality: always exits 0 (clean vault)" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\nbody"
 
@@ -59,7 +59,7 @@ teardown() {
 }
 
 @test "graph-quality: always exits 0 (dangling vault)" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\n[[NonExistent]]"
 
@@ -84,7 +84,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "graph-quality: reports zero dangling when all links resolve" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/index.md:---\ntitle: index\n---\n[[Plugin]]" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\nbody"
@@ -99,7 +99,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "graph-quality: reports dangling target by name" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\n[[GhostPage]]"
 
@@ -114,7 +114,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "graph-quality: --json emits valid JSON with required keys" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\nbody"
@@ -130,7 +130,7 @@ teardown() {
 }
 
 @test "graph-quality: --json danglingCount=0 for resolved-only vault" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
     "wiki/index.md:---\ntitle: index\n---\n[[Plugin]]" \
@@ -147,7 +147,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "graph-quality: connected pair → one component, zero orphans" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
     "wiki/a/one.md:---\ntitle: One\n---\n[[Two]]" \
@@ -161,7 +161,7 @@ teardown() {
 }
 
 @test "graph-quality: a linkless page is reported as an orphan" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
     "wiki/a/one.md:---\ntitle: One\n---\n[[Two]]" \
@@ -175,7 +175,7 @@ teardown() {
 }
 
 @test "graph-quality: two disconnected pairs → two components" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
     "wiki/a/one.md:---\ntitle: One\n---\n[[Two]]" \
@@ -190,7 +190,7 @@ teardown() {
 }
 
 @test "graph-quality: a link resolving into output/ is a shadow, not an edge" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   # plugin.md links [[Foo]]; the only "Foo" is an Obsidian stub in output/ →
   # basename match into a scratch folder → shadow (counted, not a real edge).
@@ -210,7 +210,7 @@ teardown() {
 }
 
 @test "graph-quality: --json danglingCount=1 for vault with one dangling link" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\n[[Ghost]]"
@@ -228,7 +228,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "graph-quality: Cn=1.0 when all topic pages are in known clusters" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   # "plugin" is one of the 7 CLUSTERS in graph-quality.sh.
   _make_vault "$VAULT" \
@@ -238,7 +238,7 @@ teardown() {
   run bash "$SCRIPT" --target "$VAULT" --json
   assert_success
   cn=$(printf '%s' "$output" | jq -r '.Cn')
-  assert_eq "$cn" "1.0"
+  assert_eq "$cn" "1"
 }
 
 # ---------------------------------------------------------------------------
@@ -246,7 +246,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "graph-quality: dangling link inside _sources/ page is detected" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/_sources/src.md:---\ntitle: Src\n---\n[[Nowhere]]"
 
@@ -260,7 +260,7 @@ teardown() {
 # ---------------------------------------------------------------------------
 
 @test "graph-quality: alias link resolves (not dangling)" {
-  command -v python3 >/dev/null 2>&1 || skip "python3 not available"
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\naliases: [\"The Plugin\"]\ntype: index\n---\nbody" \

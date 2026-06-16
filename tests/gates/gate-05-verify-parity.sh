@@ -35,29 +35,25 @@ fi
 # the count of error-severity findings and warn-severity findings extracted from
 # each JSON output so the two tools agree field-for-field on that fixture.
 #
-# Extraction uses python3 (available everywhere bun is available; no jq needed
-# on this side since validate-frontmatter.sh emits json via bash/printf).
+# Extraction uses bun (the one runtime this whole suite already requires; no jq
+# needed on this side since validate-frontmatter.sh emits json via bash/printf).
 FIXTURE="tests/fixtures/minimal-vault"
 
 fm_json="$(bash scripts/validate-frontmatter.sh --target "$FIXTURE" --json 2>/dev/null)"
 eng_json="$(bun src/cli/cli.ts verify --target "$FIXTURE" --json 2>/dev/null)"
 
-fm_counts="$(printf '%s' "$fm_json" | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-findings = data.get('findings', [])
-errors  = sum(1 for f in findings if f.get('severity') == 'error')
-warnings = sum(1 for f in findings if f.get('severity') == 'warn')
-print(str(errors) + ',' + str(warnings))
+fm_counts="$(printf '%s' "$fm_json" | bun -e "
+const data = JSON.parse(await Bun.stdin.text());
+const findings = data.findings || [];
+const errors = findings.filter((f) => f.severity === 'error').length;
+const warnings = findings.filter((f) => f.severity === 'warn').length;
+process.stdout.write(errors + ',' + warnings);
 ")"
 
-eng_fm_counts="$(printf '%s' "$eng_json" | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-# engine verify --json returns top-level errors/warnings counts
-errors   = data.get('errors', 0)
-warnings = data.get('warnings', 0)
-print(str(errors) + ',' + str(warnings))
+eng_fm_counts="$(printf '%s' "$eng_json" | bun -e "
+// engine verify --json returns top-level errors/warnings counts
+const data = JSON.parse(await Bun.stdin.text());
+process.stdout.write((data.errors || 0) + ',' + (data.warnings || 0));
 ")"
 
 if [ "$fm_counts" = "$eng_fm_counts" ]; then

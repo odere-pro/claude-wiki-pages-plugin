@@ -28,8 +28,9 @@
  * report.) The collision check ([`collision-check.ts`](./collision-check.ts))
  * and the connectivity metric in
  * [`../../scripts/graph-quality.sh`](../../scripts/graph-quality.sh) consume the
- * full ladder. The python twins re-implement this specification; the
- * verify-ingest.sh twin is pinned by gate-05.
+ * full ladder. graph-quality.ts and disentangle-links.ts reuse THIS module; the
+ * verify-ingest.sh twin (scripts/verify-twins.ts) is a deliberately independent
+ * re-implementation, pinned by gate-05.
  */
 
 import { relative, basename } from "node:path";

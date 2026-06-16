@@ -373,6 +373,8 @@ _setup_eval_artifact_repo() {
   cp "$REPO_ROOT/scripts/eval-ingest-extract.sh" \
     "$REPO_ROOT/scripts/eval-normalize-ws.sh" \
     "$REPO_ROOT/scripts/verify-ingest.sh" \
+    "$REPO_ROOT/scripts/verify-twins.ts" \
+    "$REPO_ROOT/scripts/settings-tool.ts" \
     "$REPO_ROOT/scripts/validate-frontmatter.sh" \
     "$REPO_ROOT/scripts/resolve-vault.sh" \
     "$REPO_ROOT/scripts/lib-validate-gate.sh" \
