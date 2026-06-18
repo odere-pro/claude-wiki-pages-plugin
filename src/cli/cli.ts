@@ -12,6 +12,7 @@
  */
 
 import { verify } from "../commands/verify/verify.ts";
+import { lint } from "../commands/lint/lint.ts";
 import { fix } from "../commands/fix/fix.ts";
 import { heal } from "../commands/heal/heal.ts";
 import { doctor, doctorExit } from "../commands/doctor/doctor.ts";
@@ -85,6 +86,7 @@ export const CAPABILITIES: readonly CapabilityEntry[] = [
   { name: "snapshot", status: "implemented" },
   { name: "context", status: "implemented" },
   { name: "okf", status: "implemented" },
+  { name: "lint", status: "implemented" },
   { name: "index", status: "planned" },
   { name: "link-suggest", status: "planned" },
 ] as const;
@@ -169,6 +171,8 @@ interface ParsedArgs {
   readonly label: string | undefined;
   /** context: skill or agent name whose SKILL.md carries the context contract. */
   readonly skill: string | undefined;
+  /** lint: maximum parallel check workers (1–32); currently unused. */
+  readonly concurrency: number | undefined;
 }
 
 /**
@@ -199,6 +203,7 @@ class ParsedArgsBuilder {
   private op: string | undefined = undefined;
   private label: string | undefined = undefined;
   private skill: string | undefined = undefined;
+  private rawConcurrency: string | undefined = undefined;
 
   setJson(): this {
     this.json = true;
@@ -268,6 +273,10 @@ class ParsedArgsBuilder {
     this.skill = v;
     return this;
   }
+  setConcurrency(v: string): this {
+    this.rawConcurrency = v;
+    return this;
+  }
   /**
    * Accept a bare (non-flag) positional token. The first bare token becomes
    * `command`; the second becomes `sub`. Subsequent bare tokens are ignored
@@ -303,6 +312,12 @@ class ParsedArgsBuilder {
       op: this.op,
       label: this.label,
       skill: this.skill,
+      concurrency:
+        this.rawConcurrency !== undefined
+          ? Number.isFinite(Number(this.rawConcurrency))
+            ? Number(this.rawConcurrency)
+            : undefined
+          : undefined,
     });
   }
 }
@@ -350,6 +365,9 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     } else if (a === "--skill") {
       const v = argv[++i];
       if (v) b.setSkill(v);
+    } else if (a === "--concurrency") {
+      const v = argv[++i];
+      if (v) b.setConcurrency(v);
     } else if (a && !a.startsWith("-")) b.addPositional(a);
   }
   return b.build();
@@ -402,6 +420,7 @@ function main(): number {
     op,
     label,
     skill,
+    concurrency,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -411,6 +430,14 @@ function main(): number {
 
   if (command === "verify") {
     const report = verify({ target });
+    emit(report, json);
+    return exitCode(report);
+  }
+
+  // lint verb — structural lint of a vault (scaffold: returns empty Report).
+  // `--concurrency <n>` is parsed and validated but currently unused.
+  if (command === "lint") {
+    const report = lint({ target, concurrency });
     emit(report, json);
     return exitCode(report);
   }

@@ -58,6 +58,7 @@ const GOLDEN_IMPLEMENTED = [
   "snapshot",
   "context",
   "okf",
+  "lint",
 ] as const;
 
 const GOLDEN_PLANNED = ["index", "link-suggest"] as const;
