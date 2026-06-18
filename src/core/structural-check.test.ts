@@ -720,9 +720,9 @@ describe("checkStructural — unit: missing wiki/ dir", () => {
 // ---------------------------------------------------------------------------
 
 describe("lint --check structural — integration", () => {
-  test("clean vault (no wiki pages) → clean report", () => {
+  test("clean vault (no wiki pages) → clean report", async () => {
     const sb = makeVault(CLEAN_VAULT);
-    const report = lint({ target: sb.vault, check: "structural" });
+    const report = await lint({ target: sb.vault, check: "structural" });
     expect(report.command).toBe("lint");
     expect(report.errors).toBe(0);
     expect(report.warnings).toBe(0);
@@ -731,7 +731,7 @@ describe("lint --check structural — integration", () => {
     sb.cleanup();
   });
 
-  test("page with raw html → report has warnings > 0, exitCode 0 (warn-only)", () => {
+  test("page with raw html → report has warnings > 0, exitCode 0 (warn-only)", async () => {
     const v = makeStructuralVault({
       "concepts/page.md": `---
 title: Page
@@ -743,14 +743,14 @@ type: concept
 <div>raw html</div>
 `,
     });
-    const report = lint({ target: v.vault, check: "structural" });
+    const report = await lint({ target: v.vault, check: "structural" });
     expect(report.warnings).toBeGreaterThan(0);
     // structural check emits warn-severity, not error — exitCode stays 0
     expect(exitCode(report)).toBe(0);
     v.cleanup();
   });
 
-  test("check=all includes structural check", () => {
+  test("check=all includes structural check", async () => {
     const v = makeStructuralVault({
       "concepts/page.md": `---
 title: Page
@@ -762,14 +762,14 @@ type: concept
 <div>raw html in all mode</div>
 `,
     });
-    const report = lint({ target: v.vault, check: "all" });
+    const report = await lint({ target: v.vault, check: "all" });
     // structural is included in all — should pick up the raw html warning
     const structuralFindings = report.findings.filter((f) => f.check === STRUCTURAL_CHECK);
     expect(structuralFindings.length).toBeGreaterThan(0);
     v.cleanup();
   });
 
-  test("structural findings have check === 'structural'", () => {
+  test("structural findings have check === 'structural'", async () => {
     const v = makeStructuralVault({
       "concepts/page.md": `---
 title: Page
@@ -781,16 +781,16 @@ type: concept
 <div>raw html</div>
 `,
     });
-    const report = lint({ target: v.vault, check: "structural" });
+    const report = await lint({ target: v.vault, check: "structural" });
     for (const f of report.findings) {
       expect(f.check).toBe(STRUCTURAL_CHECK);
     }
     v.cleanup();
   });
 
-  test("reference-vault fixtures pass structural check cleanly", () => {
+  test("reference-vault fixtures pass structural check cleanly", async () => {
     const REFERENCE_VAULT = join(import.meta.dir, "../../tests/fixtures/reference-vault");
-    const report = lint({ target: REFERENCE_VAULT, check: "structural" });
+    const report = await lint({ target: REFERENCE_VAULT, check: "structural" });
     // Reference vault should be clean — zero structural violations
     expect(report.warnings).toBe(0);
     expect(report.errors).toBe(0);

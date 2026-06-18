@@ -82,12 +82,21 @@ export function lintVocabulary(
   const vocabPath = join(vaultNorm, "_vocabulary.md");
   const vocabContent = readFileSafe(vocabPath);
   if (vocabContent === null) {
-    // Absent vocabulary file → graceful skip (no findings), consistent with the
-    // sibling lint checks (ontology/manifests/structural all return [] on absent
-    // input). The bash twin's "INFO: No _vocabulary.md found" was console-only
-    // advisory and exited 0; modeling it as a structural Finding would pollute
-    // the aggregate `--check all` report on every vault without a lexicon.
-    return Object.freeze([]);
+    // Absent vocabulary file → return one info-severity finding that mirrors the
+    // bash twin's "INFO: No _vocabulary.md found" advisory line. The info
+    // severity is never counted as a warning or error (renderText uses "INFO "
+    // tag; buildReport excludes info from the warnings tally), so this does NOT
+    // pollute the aggregate `--check all` report — it just preserves the
+    // observable behavior of the bash twin (exited 0, emitted an INFO line).
+    return Object.freeze([
+      {
+        severity: "info" as const,
+        check: "vocabulary-absent",
+        message:
+          "No _vocabulary.md found at vault root — " +
+          "controlled-vocabulary checks skipped (create _vocabulary.md to enable)",
+      },
+    ]);
   }
 
   const fm = parseFrontmatter(vocabContent);

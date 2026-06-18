@@ -198,9 +198,9 @@ describe("checkMarkdownLinks — unit", () => {
 // ---------------------------------------------------------------------------
 
 describe("lint --check md-links — integration", () => {
-  test("clean vault → clean report (no md-link findings)", () => {
+  test("clean vault → clean report (no md-link findings)", async () => {
     const sb = makeVault(CLEAN_VAULT);
-    const report = lint({ target: sb.vault, check: "md-links" });
+    const report = await lint({ target: sb.vault, check: "md-links" });
     expect(report.command).toBe("lint");
     expect(report.errors).toBe(0);
     expect(report.clean).toBe(true);
@@ -209,12 +209,12 @@ describe("lint --check md-links — integration", () => {
     sb.cleanup();
   });
 
-  test("vault with [text](file.md) link → error report (check md-links)", () => {
+  test("vault with [text](file.md) link → error report (check md-links)", async () => {
     const sb = makeVault({
       ...CLEAN_VAULT,
       "wiki/bad-page.md": "---\ntitle: Bad Page\n---\n# Bad\n\nSee [other page](other.md).\n",
     });
-    const report = lint({ target: sb.vault, check: "md-links" });
+    const report = await lint({ target: sb.vault, check: "md-links" });
     expect(report.errors).toBeGreaterThan(0);
     expect(report.clean).toBe(false);
     expect(exitCode(report)).toBe(1);
@@ -223,20 +223,20 @@ describe("lint --check md-links — integration", () => {
     sb.cleanup();
   });
 
-  test("check=all includes md-links check findings", () => {
+  test("check=all includes md-links check findings", async () => {
     const sb = makeVault({
       ...CLEAN_VAULT,
       "wiki/bad-page.md": "---\ntitle: Bad\n---\n# Bad\n\nSee [link](x.md).\n",
     });
-    const report = lint({ target: sb.vault, check: "all" });
+    const report = await lint({ target: sb.vault, check: "all" });
     const mdFindings = report.findings.filter((f) => f.check === "md-links");
     expect(mdFindings.length).toBeGreaterThan(0);
     sb.cleanup();
   });
 
-  test("reference vault → 0 md-link findings (parity anchor)", () => {
+  test("reference vault → 0 md-link findings (parity anchor)", async () => {
     const REFERENCE_VAULT = join(import.meta.dir, "../../tests/fixtures/reference-vault");
-    const report = lint({ target: REFERENCE_VAULT, check: "md-links" });
+    const report = await lint({ target: REFERENCE_VAULT, check: "md-links" });
     const mdFindings = report.findings.filter((f) => f.check === "md-links");
     expect(mdFindings).toHaveLength(0);
     expect(report.errors).toBe(0);

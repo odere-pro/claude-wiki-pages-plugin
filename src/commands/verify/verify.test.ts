@@ -55,24 +55,24 @@ function stalenessVault(pageUpdated: string, sourceUpdated: string): Record<stri
 }
 
 describe("verify", () => {
-  test("clean vault has no findings and exit 0", () => {
+  test("clean vault has no findings and exit 0", async () => {
     const sb = makeVault(CLEAN_VAULT);
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
     expect(report.errors).toBe(0);
     expect(report.clean).toBe(true);
     expect(exitCode(report)).toBe(0);
     sb.cleanup();
   });
 
-  test("reports a missing vault directory", () => {
-    const report = verify({ target: "/no/such/vault-xyz" });
+  test("reports a missing vault directory", async () => {
+    const report = await verify({ target: "/no/such/vault-xyz" });
     expect(report.errors).toBe(1);
     expect(report.findings[0]?.check).toBe("vault");
   });
 
-  test("dirty vault surfaces every expected check (errors and warnings present)", () => {
+  test("dirty vault surfaces every expected check (errors and warnings present)", async () => {
     const sb = makeVault(DIRTY_VAULT);
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
     // Contract: a dirty vault produces at least one error and at least one warning,
     // and the exit code is non-zero. We assert membership (which checks are present)
     // rather than exact counts so that adding a new check to the engine does not
@@ -95,11 +95,11 @@ describe("verify", () => {
   // Schema v3: folder notes vs. legacy _index.md
   // ──────────────────────────────────────────────────────────────────────────
 
-  test("v3: legacy _index.md is accepted identically to a folder note (counts match)", () => {
+  test("v3: legacy _index.md is accepted identically to a folder note (counts match)", async () => {
     const sbNote = makeVault(DIRTY_VAULT);
     const sbLegacy = makeVault(DIRTY_VAULT_LEGACY_INDEX);
-    const note = verify({ target: sbNote.vault });
-    const legacy = verify({ target: sbLegacy.vault });
+    const note = await verify({ target: sbNote.vault });
+    const legacy = await verify({ target: sbLegacy.vault });
 
     expect({ errors: legacy.errors, warnings: legacy.warnings }).toEqual({
       errors: note.errors,
@@ -111,7 +111,7 @@ describe("verify", () => {
     sbLegacy.cleanup();
   });
 
-  test("v3: a folder-note vault at schema_version 3 verifies clean", () => {
+  test("v3: a folder-note vault at schema_version 3 verifies clean", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
       // Root index reaches the folder note via child_indexes (hierarchical MOC).
@@ -122,13 +122,13 @@ describe("verify", () => {
         '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[real-page|Real Page]]"]\n---\n',
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
     });
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
     expect(report.errors).toBe(0);
     expect(report.warnings).toBe(0);
     sb.cleanup();
   });
 
-  test("orphan-sources: the source manifest (type: manifest) is exempt, never flagged", () => {
+  test("orphan-sources: the source manifest (type: manifest) is exempt, never flagged", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
       "wiki/index.md":
@@ -141,13 +141,13 @@ describe("verify", () => {
         '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[real-page|Real Page]]"]\n---\n',
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
     });
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
     expect(report.findings.filter((f) => f.check === "orphan-sources")).toHaveLength(0);
     expect(report.warnings).toBe(0);
     sb.cleanup();
   });
 
-  test("v3: a remaining _index.md at schema_version 3 gets the legacy-index-filename WARN", () => {
+  test("v3: a remaining _index.md at schema_version 3 gets the legacy-index-filename WARN", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
       "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
@@ -156,7 +156,7 @@ describe("verify", () => {
         '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
     });
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     expect(report.errors).toBe(0); // warning severity, not error
     const legacy = report.findings.filter((f) => f.check === "legacy-index-filename");
@@ -166,7 +166,7 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("v3: a v2 vault with _index.md emits NO legacy-index-filename diagnostic (back-compat)", () => {
+  test("v3: a v2 vault with _index.md emits NO legacy-index-filename diagnostic (back-compat)", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 2\n---\n# Vault\n",
       // The legacy _index.md folder note is reached by a path-qualified
@@ -178,7 +178,7 @@ describe("verify", () => {
         '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[real-page|Real Page]]"]\n---\n',
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
     });
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     expect(report.errors).toBe(0);
     expect(report.warnings).toBe(0);
@@ -186,7 +186,7 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("v3: a same-stem page WITHOUT type: index is a regular page, not a folder note", () => {
+  test("v3: a same-stem page WITHOUT type: index is a regular page, not a folder note", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
       "wiki/index.md": "---\ntitle: index\n---\n- [[Topics]]\n",
@@ -194,16 +194,16 @@ describe("verify", () => {
       // Stem matches the folder, but no `type: index` → NOT an index file.
       "wiki/topics/topics.md": "---\ntitle: Topics\n---\nbody\n",
     });
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const topicFolder = report.findings.filter((f) => f.check === "topic-folder");
     expect(topicFolder).toHaveLength(1); // folder still lacks an index file
     sb.cleanup();
   });
 
-  test("S4: warns when a wiki page predates its cited source", () => {
+  test("S4: warns when a wiki page predates its cited source", async () => {
     const sb = makeVault(stalenessVault("2026-04-18", "2026-05-01"));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     // WARN-severity, counted: no errors, exactly the staleness warning.
     expect(report.errors).toBe(0);
@@ -215,23 +215,23 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("S4: clean when the wiki page is newer than its cited source", () => {
+  test("S4: clean when the wiki page is newer than its cited source", async () => {
     const sb = makeVault(stalenessVault("2026-06-01", "2026-05-01"));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     expect(report.findings.filter((f) => f.check === "stale-source").length).toBe(0);
     sb.cleanup();
   });
 
-  test("S4: equal dates are not stale (strictly-newer rule)", () => {
+  test("S4: equal dates are not stale (strictly-newer rule)", async () => {
     const sb = makeVault(stalenessVault("2026-05-01", "2026-05-01"));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     expect(report.findings.filter((f) => f.check === "stale-source").length).toBe(0);
     sb.cleanup();
   });
 
-  test("S4: a dangling cited source is labelled, not treated as fresh", () => {
+  test("S4: a dangling cited source is labelled, not treated as fresh", async () => {
     const files = stalenessVault("2026-04-18", "2026-05-01");
     // Repoint the page at a source that does not exist in _sources/.
     files["wiki/topics/real-page.md"] =
@@ -239,7 +239,7 @@ describe("verify", () => {
     // Drop the now-uncited Source One from index.md to keep the dangling case isolated.
     files["wiki/index.md"] = "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n";
     const sb = makeVault(files);
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const stale = report.findings.filter((f) => f.check === "stale-source");
     expect(stale.length).toBe(1);
@@ -253,9 +253,9 @@ describe("verify", () => {
   // I3: provenance-completeness checks
   // ──────────────────────────────────────────────────────────────────────────
 
-  test("I3: entity with no sources is an ERROR", () => {
+  test("I3: entity with no sources is an ERROR", async () => {
     const sb = makeVault(missingSourcesVault("entity"));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const findings = report.findings.filter((f) => f.check === "provenance-completeness");
     expect(findings.length).toBe(1);
@@ -265,9 +265,9 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("I3: concept with no sources is an ERROR", () => {
+  test("I3: concept with no sources is an ERROR", async () => {
     const sb = makeVault(missingSourcesVault("concept"));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const findings = report.findings.filter((f) => f.check === "provenance-completeness");
     expect(findings.length).toBe(1);
@@ -275,9 +275,9 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("I3: topic with no sources is an ERROR", () => {
+  test("I3: topic with no sources is an ERROR", async () => {
     const sb = makeVault(missingSourcesVault("topic"));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const findings = report.findings.filter((f) => f.check === "provenance-completeness");
     expect(findings.length).toBe(1);
@@ -285,9 +285,9 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("I3: project with no sources is an ERROR", () => {
+  test("I3: project with no sources is an ERROR", async () => {
     const sb = makeVault(missingSourcesVault("project"));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const findings = report.findings.filter((f) => f.check === "provenance-completeness");
     expect(findings.length).toBe(1);
@@ -295,9 +295,9 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("I3: synthesis with no sources is an ERROR", () => {
+  test("I3: synthesis with no sources is an ERROR", async () => {
     const sb = makeVault(missingSourcesVault("synthesis"));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const findings = report.findings.filter((f) => f.check === "provenance-completeness");
     expect(findings.length).toBe(1);
@@ -305,24 +305,24 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("I3: source/index/log/manifest types are exempt from provenance-completeness", () => {
+  test("I3: source/index/log/manifest types are exempt from provenance-completeness", async () => {
     // 'source' pages are the citations themselves — they do not require sources entries.
     // 'index', 'log', 'manifest' are bookkeeping pages and are also exempt.
     for (const pageType of ["source", "index", "log", "manifest"]) {
       const sb = makeVault(missingSourcesVault(pageType));
-      const report = verify({ target: sb.vault });
+      const report = await verify({ target: sb.vault });
       const findings = report.findings.filter((f) => f.check === "provenance-completeness");
       expect(findings.length).toBe(0);
       sb.cleanup();
     }
   });
 
-  test("I3: malformed source entry (plain string) counts as present — no double-flag", () => {
+  test("I3: malformed source entry (plain string) counts as present — no double-flag", async () => {
     // DIRTY_VAULT has real-page.md with sources: ["plain-not-a-link"] — 1 entry.
     // The sources-FORMAT check (CHECK 2) already fires for the malformed entry.
     // The provenance-PRESENCE check must NOT also fire, because there IS 1 entry present.
     const sb = makeVault(DIRTY_VAULT);
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     // No provenance-completeness finding for real-page.md (it has 1 source entry, albeit malformed).
     const findings = report.findings.filter((f) => f.check === "provenance-completeness");
@@ -331,9 +331,9 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("I3: derived:true with confidence >= 0.8 is a WARN", () => {
+  test("I3: derived:true with confidence >= 0.8 is a WARN", async () => {
     const sb = makeVault(derivedHighConfidenceVault(0.8));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const findings = report.findings.filter((f) => f.check === "provenance-consistency");
     expect(findings.length).toBe(1);
@@ -343,41 +343,41 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("I3: derived:true with confidence < 0.8 is clean", () => {
+  test("I3: derived:true with confidence < 0.8 is clean", async () => {
     const sb = makeVault(derivedHighConfidenceVault(0.7));
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const findings = report.findings.filter((f) => f.check === "provenance-consistency");
     expect(findings.length).toBe(0);
     sb.cleanup();
   });
 
-  test("I3: derived:false with confidence >= 0.8 is clean", () => {
+  test("I3: derived:false with confidence >= 0.8 is clean", async () => {
     const files = derivedHighConfidenceVault(0.9);
     // Override the page to have derived: false
     files["wiki/topics/derived.md"] =
       '---\ntitle: Derived Page\ntype: concept\nsources: ["[[Source One]]"]\nderived: false\nconfidence: 0.9\n---\nbody\n';
     const sb = makeVault(files);
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     const findings = report.findings.filter((f) => f.check === "provenance-consistency");
     expect(findings.length).toBe(0);
     sb.cleanup();
   });
 
-  test("I3: clean vault stays clean after adding provenance checks", () => {
+  test("I3: clean vault stays clean after adding provenance checks", async () => {
     const sb = makeVault(CLEAN_VAULT);
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
     expect(report.errors).toBe(0);
     expect(report.clean).toBe(true);
     sb.cleanup();
   });
 
-  test("I3: dirty vault parity — provenance-completeness does NOT add new errors", () => {
+  test("I3: dirty vault parity — provenance-completeness does NOT add new errors", async () => {
     // DIRTY_VAULT has real-page.md with 1 source entry (malformed plain-string).
     // The presence check must not increase the error count beyond the baseline.
     const sb = makeVault(DIRTY_VAULT);
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
     // Baseline: 5 errors, 4 warnings — pinned against the bash twin by
     // parity.test.ts. The hierarchical-MOC check (ADR-0031) reports the two
     // unreachable pages once each ("Page not in MOC"); the old flat check and
@@ -391,7 +391,7 @@ describe("verify", () => {
   // FU1 (ADR-0028): dangling-wikilink WARN check
   // ──────────────────────────────────────────────────────────────────────────
 
-  test("FU1: dangling [[Target]] yields a wikilink-dangling WARN finding", () => {
+  test("FU1: dangling [[Target]] yields a wikilink-dangling WARN finding", async () => {
     // A fully-wired vault (folder note present) with one dangling link.
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
@@ -401,7 +401,7 @@ describe("verify", () => {
         '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nSee [[Nonexistent Target]] here.\n",
     });
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     // A dangling link is WARN, not error — exit code stays 0.
     expect(report.errors).toBe(0);
@@ -414,7 +414,7 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("FU1: all-resolved vault produces no wikilink-dangling findings", () => {
+  test("FU1: all-resolved vault produces no wikilink-dangling findings", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
       "wiki/index.md":
@@ -426,13 +426,13 @@ describe("verify", () => {
         '---\ntitle: Real Page\naliases: ["real"]\n---\nSee [[Another Page]].\n',
       "wiki/topics/another-page.md": "---\ntitle: Another Page\n---\nRefers to [[Real Page]].\n",
     });
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     expect(report.findings.filter((f) => f.check === "wikilink-dangling")).toHaveLength(0);
     sb.cleanup();
   });
 
-  test("FU1: dangling-wikilink does not change exit code (WARN severity)", () => {
+  test("FU1: dangling-wikilink does not change exit code (WARN severity)", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
       "wiki/index.md": "---\ntitle: index\n---\n- [[Topics — Index]]\n- [[Real Page]]\n",
@@ -441,7 +441,7 @@ describe("verify", () => {
         '---\ntitle: Topics — Index\ntype: index\nchildren: ["[[Real Page]]"]\n---\n',
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nSee [[Ghost]].\n",
     });
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
 
     expect(report.errors).toBe(0);
     expect(report.clean).toBe(true);
@@ -449,11 +449,11 @@ describe("verify", () => {
     sb.cleanup();
   });
 
-  test("FU1: DIRTY_VAULT dangling check does not raise errors (warnings only)", () => {
+  test("FU1: DIRTY_VAULT dangling check does not raise errors (warnings only)", async () => {
     // DIRTY_VAULT has bookkeeping pages and a topics/ page with sources; ensure
     // the dangling check does not add errors to the existing 5-error baseline.
     const sb = makeVault(DIRTY_VAULT);
-    const report = verify({ target: sb.vault });
+    const report = await verify({ target: sb.vault });
     expect(report.errors).toBe(5); // unchanged from existing test
     sb.cleanup();
   });

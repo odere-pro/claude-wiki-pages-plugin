@@ -34,17 +34,18 @@ function wikiPage(title: string, tags: string[] = [], body = "body text"): strin
 // ─── absent _vocabulary.md ────────────────────────────────────────────────────
 
 describe("lintVocabulary — absent _vocabulary.md", () => {
-  test("returns zero findings (graceful skip) when _vocabulary.md is absent", () => {
+  test("returns one info finding when _vocabulary.md is absent", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
       "wiki/index.md": "---\ntitle: index\n---\n",
     });
     try {
       const findings = lintVocabulary(sb.vault);
-      // Graceful skip, consistent with the sibling lint checks: an absent
-      // optional lexicon is not a structural finding (the bash twin's INFO line
-      // was console-only and exited 0).
-      expect(findings).toHaveLength(0);
+      // Mirrors the bash twin's "INFO: No _vocabulary.md found" advisory line.
+      // Info severity is never counted as a warning or error; exit code stays 0.
+      expect(findings).toHaveLength(1);
+      expect(findings[0]?.severity).toBe("info");
+      expect(findings[0]?.check).toBe("vocabulary-absent");
     } finally {
       sb.cleanup();
     }

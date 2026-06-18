@@ -455,7 +455,7 @@ function usage(): void {
   );
 }
 
-function main(): number {
+async function main(): Promise<number> {
   const {
     command,
     sub,
@@ -490,16 +490,22 @@ function main(): number {
   }
 
   if (command === "verify") {
-    const report = verify({ target });
+    const report = await verify({ target, concurrency });
     emit(report, json);
     return exitCode(report);
   }
 
   // lint verb — structural lint of a vault.
   // `--check <name>` selects a specific check (default: all).
-  // `--concurrency <n>` is parsed and validated but currently unused.
+  // `--concurrency <n>` 1 = serial fallback for debuggability; default = parallel.
   if (command === "lint") {
-    const report = lint({ target, concurrency, check: resolveLintCheck(check), minTagUsage, file });
+    const report = await lint({
+      target,
+      concurrency,
+      check: resolveLintCheck(check),
+      minTagUsage,
+      file,
+    });
     emit(report, json);
     return exitCode(report);
   }
@@ -514,7 +520,7 @@ function main(): number {
   }
 
   if (command === "doctor") {
-    const report = doctor({ target, fix: fixFlag });
+    const report = await doctor({ target, fix: fixFlag });
     if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
     else {
       const glyph: Record<string, string> = {
@@ -548,7 +554,7 @@ function main(): number {
   }
 
   if (command === "heal") {
-    const report = heal({ target });
+    const report = await heal({ target });
     if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
     else
       process.stdout.write(
@@ -764,6 +770,12 @@ function main(): number {
 }
 
 // Guard process.exit so this module is importable by tests without side effects.
+// main() is async (verify + lint are async); resolve before exiting.
 if (import.meta.main) {
-  process.exit(main());
+  main()
+    .then((code) => process.exit(code))
+    .catch((err: unknown) => {
+      process.stderr.write(String(err instanceof Error ? err.message : err) + "\n");
+      process.exit(2);
+    });
 }

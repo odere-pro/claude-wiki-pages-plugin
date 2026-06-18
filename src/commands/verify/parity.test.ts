@@ -31,7 +31,7 @@ describe("bash parity", () => {
   test.if(hasBash)("clean vault: engine matches bash", async () => {
     const sb = makeVault(CLEAN_VAULT);
     const bash = await bashCounts(sb.vault);
-    const eng = verify({ target: sb.vault });
+    const eng = await verify({ target: sb.vault });
     expect({ errors: eng.errors, warnings: eng.warnings }).toEqual(bash);
     sb.cleanup();
   });
@@ -39,7 +39,7 @@ describe("bash parity", () => {
   test.if(hasBash)("dirty vault: engine matches bash", async () => {
     const sb = makeVault(DIRTY_VAULT);
     const bash = await bashCounts(sb.vault);
-    const eng = verify({ target: sb.vault });
+    const eng = await verify({ target: sb.vault });
     expect({ errors: eng.errors, warnings: eng.warnings }).toEqual(bash);
     sb.cleanup();
   });
@@ -47,7 +47,7 @@ describe("bash parity", () => {
   test.if(hasBash)("dirty vault with legacy _index.md: engine matches bash", async () => {
     const sb = makeVault(DIRTY_VAULT_LEGACY_INDEX);
     const bash = await bashCounts(sb.vault);
-    const eng = verify({ target: sb.vault });
+    const eng = await verify({ target: sb.vault });
     expect({ errors: eng.errors, warnings: eng.warnings }).toEqual(bash);
     sb.cleanup();
   });
@@ -62,7 +62,7 @@ describe("bash parity", () => {
       "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
     });
     const bash = await bashCounts(sb.vault);
-    const eng = verify({ target: sb.vault });
+    const eng = await verify({ target: sb.vault });
     expect(eng.warnings).toBeGreaterThan(0); // the legacy-index-filename WARN
     expect({ errors: eng.errors, warnings: eng.warnings }).toEqual(bash);
     sb.cleanup();

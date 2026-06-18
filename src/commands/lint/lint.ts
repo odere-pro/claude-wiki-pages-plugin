@@ -7,8 +7,11 @@
  *   - buildReport for a frozen, immutable Report
  *   - findings array composed from check functions
  *
- * `concurrency` is parsed and validated here but currently unused.
- * It is reserved for parallel check execution in a later milestone.
+ * Phase 2 (tmp/migration-plan.md): checks run concurrently via Promise.all;
+ * findings are deterministically sorted by (file, check, severity, message)
+ * before buildReport so byte-identical output is guaranteed regardless of
+ * completion order. --concurrency 1 triggers a serial fallback for
+ * debuggability.
  *
  * Currently implemented checks (selectable via --check):
  *   - manifests: validate .claude-plugin/plugin.json and marketplace.json
@@ -17,7 +20,7 @@
 
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
-import { buildReport, type Report } from "../../core/report.ts";
+import { buildReport, type Finding, type Report } from "../../core/report.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { checkManifests } from "../../core/manifest-check.ts";
 import { checkMarkdownLinks } from "../../core/markdown-link-check.ts";
@@ -26,7 +29,6 @@ import { checkOntology } from "../../core/ontology-lint.ts";
 import { lintVocabulary } from "../../core/vocabulary-lint.ts";
 import { checkDuplicateClaims } from "../../core/duplicate-claims.ts";
 import { checkOutput } from "../../core/output-check.ts";
-import type { Finding } from "../../core/report.ts";
 
 /** Minimum allowed concurrency value. */
 const CONCURRENCY_MIN = 1;
@@ -70,8 +72,8 @@ export interface LintOptions {
   readonly target?: string;
   readonly cwd?: string;
   /**
-   * Maximum parallel check workers (parsed, validated, currently unused).
-   * Must be between 1 and 32 inclusive. Out-of-range values are clamped.
+   * Maximum parallel check workers (1–32, default: run all in parallel).
+   * Set to 1 for serial execution (debuggability). Out-of-range values are clamped.
    */
   readonly concurrency?: number;
   /**
@@ -95,11 +97,27 @@ export interface LintOptions {
 
 /**
  * Validate and clamp a concurrency value to the allowed range.
- * Returns 1 for undefined/NaN/negative inputs (safe default).
+ * Returns CONCURRENCY_MAX (run all in parallel) for undefined/NaN inputs.
+ * Returns 1 for 1, so callers can detect the serial-fallback case.
  */
 function resolveConcurrency(raw: number | undefined): number {
-  if (raw === undefined || !Number.isFinite(raw)) return 1;
+  if (raw === undefined || !Number.isFinite(raw)) return CONCURRENCY_MAX;
   return Math.max(CONCURRENCY_MIN, Math.min(CONCURRENCY_MAX, Math.floor(raw)));
+}
+
+/**
+ * Sort findings deterministically by (file, check, severity, message).
+ * Pure sort — no mutation of the input array (returns a new sorted array).
+ */
+function sortFindings(findings: readonly Finding[]): Finding[] {
+  return [...findings].sort((a, b) => {
+    const fa = a.file ?? "";
+    const fb = b.file ?? "";
+    if (fa !== fb) return fa < fb ? -1 : 1;
+    if (a.check !== b.check) return a.check < b.check ? -1 : 1;
+    if (a.severity !== b.severity) return a.severity < b.severity ? -1 : 1;
+    return a.message < b.message ? -1 : a.message > b.message ? 1 : 0;
+  });
 }
 
 /**
@@ -132,19 +150,18 @@ function resolveRepoRoot(vault: string): string {
   return dirname(vault);
 }
 
-export function lint(opts: LintOptions = {}): Report {
+export async function lint(opts: LintOptions = {}): Promise<Report> {
   const vault = (opts.target ?? resolveVault({ cwd: opts.cwd })).replace(/\/+$/, "");
 
-  // Validate the concurrency flag now (clamp to range) so an out-of-range value
-  // surfaces at parse time rather than being silently dropped later. The result
-  // is intentionally discarded until a later milestone wires it to parallel
-  // check execution.
-  void resolveConcurrency(opts.concurrency);
-
+  const concurrency = resolveConcurrency(opts.concurrency);
   const check = opts.check ?? "all";
 
-  // Collect findings from selected checks.
-  const findings: Finding[] = [];
+  // Each entry is a named check thunk: { name, fn }.
+  // We run them concurrently (Promise.all) or serially (n=1) then sort.
+  type CheckFn = () => Finding[] | readonly Finding[];
+  type NamedCheck = { name: string; fn: CheckFn };
+
+  const selectedChecks: NamedCheck[] = [];
 
   // Check: manifests — validate .claude-plugin/plugin.json and marketplace.json.
   //
@@ -154,7 +171,7 @@ export function lint(opts: LintOptions = {}): Report {
   // repositories and should not fail on a missing plugin manifest.
   if (check === "manifests") {
     const repoRoot = resolveRepoRoot(vault);
-    findings.push(...checkManifests(repoRoot));
+    selectedChecks.push({ name: "manifests", fn: () => checkManifests(repoRoot) });
   }
 
   // Check: md-links — detect [text](file.md) links that should be [[wikilinks]].
@@ -163,7 +180,7 @@ export function lint(opts: LintOptions = {}): Report {
   // The hook half (PreToolUse stdin-JSON path) stays in bash until Phase 3.
   // Skips bookkeeping files and folder notes (mirrors check_content() exemptions).
   if (check === "md-links") {
-    findings.push(...checkMarkdownLinks(vault));
+    selectedChecks.push({ name: "md-links", fn: () => checkMarkdownLinks(vault) });
   }
 
   // Check: structural — template-skeleton conformance + no-raw-HTML (S2).
@@ -172,7 +189,7 @@ export function lint(opts: LintOptions = {}): Report {
   // WARN-tier advisory audit; never blocks a write. Skips bookkeeping files,
   // folder notes, _proposed/ drafts, and type-exempt pages (source/index/manifest/log).
   if (check === "structural") {
-    findings.push(...checkStructural(vault));
+    selectedChecks.push({ name: "structural", fn: () => checkStructural(vault) });
   }
 
   // Check: ontology — predicate domain→range lint (S1-check).
@@ -182,7 +199,7 @@ export function lint(opts: LintOptions = {}): Report {
   // vault/CLAUDE.md and checks each typed wikilink field against domain/range rules.
   // Gracefully skips when vault/CLAUDE.md is absent or has no predicate table.
   if (check === "ontology") {
-    findings.push(...checkOntology(vault));
+    selectedChecks.push({ name: "ontology", fn: () => checkOntology(vault) });
   }
 
   // Check: vocabulary — controlled-vocabulary freshness (orphaned forms,
@@ -192,7 +209,10 @@ export function lint(opts: LintOptions = {}): Report {
   // WARN-tier advisory audit; never blocks a write. Reuses the lexicon loader
   // (vocabulary.ts) + stemming. Absent _vocabulary.md → one info finding.
   if (check === "vocabulary") {
-    findings.push(...lintVocabulary(vault, { minTagUsage: opts.minTagUsage }));
+    selectedChecks.push({
+      name: "vocabulary",
+      fn: () => lintVocabulary(vault, { minTagUsage: opts.minTagUsage }),
+    });
   }
 
   // Check: dup-claims — warn when a _proposed/ page restates a claim already in
@@ -201,7 +221,7 @@ export function lint(opts: LintOptions = {}): Report {
   // Migrated from scripts/check-duplicate-claims.sh (Phase 1, tmp/migration-plan.md §3).
   // WARN-tier; needs --file <proposed page>. A no-op (returns []) without one.
   if (check === "dup-claims") {
-    findings.push(...checkDuplicateClaims(vault, opts.file));
+    selectedChecks.push({ name: "dup-claims", fn: () => checkDuplicateClaims(vault, opts.file) });
   }
 
   // Check: output — portable-markdown contract for files under output/.
@@ -210,28 +230,53 @@ export function lint(opts: LintOptions = {}): Report {
   // Audits <vault>/output/ only; absent/empty output/ → no findings. The bash
   // wrapper remaps these warn findings to exit 1 to preserve its gate contract.
   if (check === "output") {
-    findings.push(...checkOutput(vault));
+    selectedChecks.push({ name: "output", fn: () => checkOutput(vault) });
   }
 
   if (check === "all") {
     const repoRoot = resolveRepoRoot(vault);
     if (existsSync(join(repoRoot, ".claude-plugin"))) {
-      findings.push(...checkManifests(repoRoot));
+      selectedChecks.push({ name: "manifests", fn: () => checkManifests(repoRoot) });
     }
     // md-links: run unconditionally on all vaults (no optional-gate needed).
-    findings.push(...checkMarkdownLinks(vault));
+    selectedChecks.push({ name: "md-links", fn: () => checkMarkdownLinks(vault) });
     // structural: run unconditionally on all vaults.
-    findings.push(...checkStructural(vault));
+    selectedChecks.push({ name: "structural", fn: () => checkStructural(vault) });
     // ontology: run unconditionally on all vaults (graceful-skip in checkOntology
     // when CLAUDE.md or predicate table is absent).
-    findings.push(...checkOntology(vault));
-    // vocabulary: run unconditionally (absent _vocabulary.md → graceful skip).
-    findings.push(...lintVocabulary(vault, { minTagUsage: opts.minTagUsage }));
+    selectedChecks.push({ name: "ontology", fn: () => checkOntology(vault) });
+    // vocabulary: run unconditionally (absent _vocabulary.md → one info finding).
+    selectedChecks.push({
+      name: "vocabulary",
+      fn: () => lintVocabulary(vault, { minTagUsage: opts.minTagUsage }),
+    });
     // dup-claims: only meaningful with --file (a _proposed/ page); no-op otherwise.
-    findings.push(...checkDuplicateClaims(vault, opts.file));
+    selectedChecks.push({ name: "dup-claims", fn: () => checkDuplicateClaims(vault, opts.file) });
     // output: audit <vault>/output/ (absent/empty → no findings).
-    findings.push(...checkOutput(vault));
+    selectedChecks.push({ name: "output", fn: () => checkOutput(vault) });
   }
 
-  return buildReport("lint", vault, findings);
+  let allFindings: readonly Finding[];
+
+  if (concurrency === 1) {
+    // Serial fallback (n=1) for debuggability — same checks, one at a time.
+    const acc: Finding[] = [];
+    for (const { fn } of selectedChecks) {
+      acc.push(...fn());
+    }
+    allFindings = acc;
+  } else {
+    // Parallel: run all selected checks concurrently. Promise.all collects results
+    // in declaration order, but we sort afterwards so completion order does not
+    // affect the final output.
+    const results = await Promise.all(selectedChecks.map(({ fn }) => Promise.resolve(fn())));
+    allFindings = results.flat();
+  }
+
+  // Deterministic sort by (file, check, severity, message) so the same vault
+  // always produces the same findings in the same order regardless of which
+  // check finished first (parity-safe: byte-identical output guaranteed).
+  const sorted = sortFindings(allFindings);
+
+  return buildReport("lint", vault, sorted);
 }

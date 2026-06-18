@@ -359,14 +359,14 @@ describe("checkOntology() — multi-violation", () => {
 // ---------------------------------------------------------------------------
 
 describe("lint --check ontology — integration", () => {
-  test("17. clean vault (no violations) → no findings, exitCode 0", () => {
+  test("17. clean vault (no violations) → no findings, exitCode 0", async () => {
     const s = makeOntologyVault({
       "CLAUDE.md": claudeMdWithProfile(),
       "wiki/_sources/my-source.md": "---\ntitle: My Source\ntype: source\n---\n",
       "wiki/topics/my-entity.md":
         '---\ntitle: My Entity\ntype: entity\nsources: ["[[My Source]]"]\n---\n',
     });
-    const report = lint({ target: s.vault, check: "ontology" });
+    const report = await lint({ target: s.vault, check: "ontology" });
     expect(report.command).toBe("lint");
     const ontologyFindings = report.findings.filter((f) => f.check === ONTOLOGY_CHECK);
     expect(ontologyFindings).toHaveLength(0);
@@ -374,14 +374,14 @@ describe("lint --check ontology — integration", () => {
     s.cleanup();
   });
 
-  test("18. domain violation → warn finding, exitCode 0 (warn-only is not an error)", () => {
+  test("18. domain violation → warn finding, exitCode 0 (warn-only is not an error)", async () => {
     const s = makeOntologyVault({
       "CLAUDE.md": claudeMdWithProfile(),
       "wiki/_sources/bad-source.md":
         '---\ntitle: Bad Source\ntype: source\nsources: ["[[some-other-source]]"]\n---\n',
       "wiki/_sources/some-other-source.md": "---\ntitle: Some Other Source\ntype: source\n---\n",
     });
-    const report = lint({ target: s.vault, check: "ontology" });
+    const report = await lint({ target: s.vault, check: "ontology" });
     const ontologyFindings = report.findings.filter((f) => f.check === ONTOLOGY_CHECK);
     expect(ontologyFindings.length).toBeGreaterThan(0);
     expect(ontologyFindings[0]?.severity).toBe("warn");

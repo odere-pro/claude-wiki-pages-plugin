@@ -42,37 +42,39 @@ function run(...args: string[]): RunResult {
 // ---------------------------------------------------------------------------
 
 describe("lint() — unit", () => {
-  test("returns an empty Report (no findings, clean, errors === 0)", () => {
+  test("returns a clean Report (no errors/warnings) for a clean vault", async () => {
     const sb = makeVault(CLEAN_VAULT);
-    const report = lint({ target: sb.vault });
+    const report = await lint({ target: sb.vault });
     expect(report.command).toBe("lint");
     expect(report.errors).toBe(0);
     expect(report.warnings).toBe(0);
-    expect(report.findings).toHaveLength(0);
+    // info-severity findings (e.g. vocabulary-absent) do not count as errors or
+    // warnings — they are informational skips; clean === true and exitCode === 0
+    // even when info findings are present.
     expect(report.clean).toBe(true);
     expect(exitCode(report)).toBe(0);
     sb.cleanup();
   });
 
-  test("vault path is preserved in the report", () => {
+  test("vault path is preserved in the report", async () => {
     const sb = makeVault(CLEAN_VAULT);
-    const report = lint({ target: sb.vault });
+    const report = await lint({ target: sb.vault });
     expect(report.vault).toBe(sb.vault);
     sb.cleanup();
   });
 
-  test("accepts concurrency option without error", () => {
+  test("accepts concurrency option without error", async () => {
     const sb = makeVault(CLEAN_VAULT);
     // concurrency is parsed but currently unused — must not throw
-    const report = lint({ target: sb.vault, concurrency: 4 });
+    const report = await lint({ target: sb.vault, concurrency: 4 });
     expect(report.errors).toBe(0);
     sb.cleanup();
   });
 
-  test("works without an explicit target (falls back to resolveVault)", () => {
+  test("works without an explicit target (falls back to resolveVault)", async () => {
     // When called with no target the four-tier resolution runs; it may or may not
     // find a vault. Either way the call must not throw.
-    expect(() => lint({})).not.toThrow();
+    await expect(lint({})).resolves.toBeDefined();
   });
 });
 
@@ -88,7 +90,10 @@ describe("lint — CLI dispatch", () => {
     const report = JSON.parse(r.stdout);
     expect(report.command).toBe("lint");
     expect(report.clean).toBe(true);
-    expect(report.findings).toHaveLength(0);
+    // errors and warnings must be 0; info findings (e.g. vocabulary-absent) are
+    // allowed and do not affect clean or exitCode.
+    expect(report.errors).toBe(0);
+    expect(report.warnings).toBe(0);
     sb.cleanup();
   });
 
@@ -160,43 +165,43 @@ function makePluginRoot(): { root: string; vault: string; cleanup: () => void } 
 }
 
 describe("lint --check manifests — unit", () => {
-  test("valid plugin.json → clean report (no findings)", () => {
+  test("valid plugin.json → clean report (no findings)", async () => {
     const tmp = makePluginRoot();
-    const report = lint({ target: tmp.vault, check: "manifests" });
+    const report = await lint({ target: tmp.vault, check: "manifests" });
     expect(report.command).toBe("lint");
     expect(report.errors).toBe(0);
     expect(report.clean).toBe(true);
     tmp.cleanup();
   });
 
-  test("missing .claude-plugin/plugin.json → error finding", () => {
+  test("missing .claude-plugin/plugin.json → error finding", async () => {
     const sb = makeVault(CLEAN_VAULT);
     // sandbox vault has no .claude-plugin/ in its ancestors
-    const report = lint({ target: sb.vault, check: "manifests" });
+    const report = await lint({ target: sb.vault, check: "manifests" });
     expect(report.errors).toBeGreaterThan(0);
     expect(report.clean).toBe(false);
     sb.cleanup();
   });
 
-  test("check=all does not error when .claude-plugin/ is absent", () => {
+  test("check=all does not error when .claude-plugin/ is absent", async () => {
     const sb = makeVault(CLEAN_VAULT);
-    const report = lint({ target: sb.vault, check: "all" });
+    const report = await lint({ target: sb.vault, check: "all" });
     expect(report.errors).toBe(0);
     expect(report.clean).toBe(true);
     sb.cleanup();
   });
 
-  test("check=all includes manifests check when .claude-plugin/ exists", () => {
+  test("check=all includes manifests check when .claude-plugin/ exists", async () => {
     const tmp = makePluginRoot();
-    const report = lint({ target: tmp.vault, check: "all" });
+    const report = await lint({ target: tmp.vault, check: "all" });
     // Valid plugin.json — should still be clean
     expect(report.errors).toBe(0);
     tmp.cleanup();
   });
 
-  test("exitCode is 1 for invalid plugin.json", () => {
+  test("exitCode is 1 for invalid plugin.json", async () => {
     const sb = makeVault(CLEAN_VAULT);
-    const report = lint({ target: sb.vault, check: "manifests" });
+    const report = await lint({ target: sb.vault, check: "manifests" });
     expect(exitCode(report)).toBe(1);
     sb.cleanup();
   });
@@ -224,14 +229,14 @@ describe("lint --check manifests — CLI", () => {
 });
 
 describe("lint --check vocabulary — dispatch", () => {
-  test("runs the vocabulary check in isolation and returns a lint Report", () => {
+  test("runs the vocabulary check in isolation and returns a lint Report", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
       "_vocabulary.md": "---\ngroups: []\n---\n",
       "wiki/index.md": "---\ntitle: index\n---\n",
     });
     try {
-      const report = lint({ target: sb.vault, check: "vocabulary" });
+      const report = await lint({ target: sb.vault, check: "vocabulary" });
       expect(report.command).toBe("lint");
       // Empty groups → no findings, clean.
       expect(report.findings).toHaveLength(0);
@@ -247,7 +252,16 @@ describe("lint --check vocabulary — dispatch", () => {
       "_vocabulary.md": "---\ngroups: []\n---\n",
       "wiki/index.md": "---\ntitle: index\n---\n",
     });
-    const r = run("lint", "--target", sb.vault, "--check", "vocabulary", "--min-tag-usage", "3", "--json");
+    const r = run(
+      "lint",
+      "--target",
+      sb.vault,
+      "--check",
+      "vocabulary",
+      "--min-tag-usage",
+      "3",
+      "--json",
+    );
     expect(r.code).toBe(0);
     expect(JSON.parse(r.stdout).command).toBe("lint");
     sb.cleanup();
@@ -255,13 +269,13 @@ describe("lint --check vocabulary — dispatch", () => {
 });
 
 describe("lint --check dup-claims — dispatch", () => {
-  test("is a no-op (clean) without --file", () => {
+  test("is a no-op (clean) without --file", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
       "wiki/index.md": "---\ntitle: index\n---\n",
     });
     try {
-      const report = lint({ target: sb.vault, check: "dup-claims" });
+      const report = await lint({ target: sb.vault, check: "dup-claims" });
       expect(report.command).toBe("lint");
       expect(report.findings).toHaveLength(0);
       expect(report.clean).toBe(true);
@@ -276,7 +290,16 @@ describe("lint --check dup-claims — dispatch", () => {
       "wiki/index.md": "---\ntitle: index\n---\n",
       "_proposed/draft.md": "---\ntitle: draft\n---\n",
     });
-    const r = run("lint", "--target", sb.vault, "--check", "dup-claims", "--file", `${sb.vault}/_proposed/draft.md`, "--json");
+    const r = run(
+      "lint",
+      "--target",
+      sb.vault,
+      "--check",
+      "dup-claims",
+      "--file",
+      `${sb.vault}/_proposed/draft.md`,
+      "--json",
+    );
     expect(r.code).toBe(0);
     expect(JSON.parse(r.stdout).command).toBe("lint");
     sb.cleanup();
@@ -284,13 +307,13 @@ describe("lint --check dup-claims — dispatch", () => {
 });
 
 describe("lint --check output — dispatch", () => {
-  test("clean (no findings) when output/ is absent", () => {
+  test("clean (no findings) when output/ is absent", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
       "wiki/index.md": "---\ntitle: index\n---\n",
     });
     try {
-      const report = lint({ target: sb.vault, check: "output" });
+      const report = await lint({ target: sb.vault, check: "output" });
       expect(report.command).toBe("lint");
       expect(report.findings).toHaveLength(0);
       expect(report.clean).toBe(true);
@@ -299,14 +322,14 @@ describe("lint --check output — dispatch", () => {
     }
   });
 
-  test("flags a non-portable output file (warn)", () => {
+  test("flags a non-portable output file (warn)", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
       // A [[wikilink]] is not portable markdown — the contract forbids it.
       "output/brief.md": "# Brief\n\nSee [[Some Page]] for details.\n",
     });
     try {
-      const report = lint({ target: sb.vault, check: "output" });
+      const report = await lint({ target: sb.vault, check: "output" });
       expect(report.warnings).toBeGreaterThan(0);
     } finally {
       sb.cleanup();
