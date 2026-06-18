@@ -22,6 +22,7 @@ import { resolveVault } from "../../core/vault.ts";
 import { checkManifests } from "../../core/manifest-check.ts";
 import { checkMarkdownLinks } from "../../core/markdown-link-check.ts";
 import { checkStructural } from "../../core/structural-check.ts";
+import { checkOntology } from "../../core/ontology-lint.ts";
 import type { Finding } from "../../core/report.ts";
 
 /** Minimum allowed concurrency value. */
@@ -31,10 +32,10 @@ const CONCURRENCY_MIN = 1;
 const CONCURRENCY_MAX = 32;
 
 /** Named checks selectable via --check. "all" runs every check. */
-export type LintCheck = "manifests" | "md-links" | "structural" | "all";
+export type LintCheck = "manifests" | "md-links" | "structural" | "ontology" | "all";
 
 /** The set of known check names (guards against typos at the call site). */
-const KNOWN_CHECKS = new Set<LintCheck>(["manifests", "md-links", "structural", "all"]);
+const KNOWN_CHECKS = new Set<LintCheck>(["manifests", "md-links", "structural", "ontology", "all"]);
 
 /** Resolve a raw --check value to a LintCheck (defaults to "all"). */
 export function resolveLintCheck(raw: string | undefined): LintCheck {
@@ -142,6 +143,16 @@ export function lint(opts: LintOptions = {}): Report {
     findings.push(...checkStructural(vault));
   }
 
+  // Check: ontology — predicate domain→range lint (S1-check).
+  //
+  // Migrated from scripts/lint-ontology.sh (Phase 1, tmp/migration-plan.md §4).
+  // WARN-tier advisory audit; never blocks a write. Reads ontology-profile-v1 from
+  // vault/CLAUDE.md and checks each typed wikilink field against domain/range rules.
+  // Gracefully skips when vault/CLAUDE.md is absent or has no predicate table.
+  if (check === "ontology") {
+    findings.push(...checkOntology(vault));
+  }
+
   if (check === "all") {
     const repoRoot = resolveRepoRoot(vault);
     if (existsSync(join(repoRoot, ".claude-plugin"))) {
@@ -151,6 +162,9 @@ export function lint(opts: LintOptions = {}): Report {
     findings.push(...checkMarkdownLinks(vault));
     // structural: run unconditionally on all vaults.
     findings.push(...checkStructural(vault));
+    // ontology: run unconditionally on all vaults (graceful-skip in checkOntology
+    // when CLAUDE.md or predicate table is absent).
+    findings.push(...checkOntology(vault));
   }
 
   return buildReport("lint", vault, findings);
