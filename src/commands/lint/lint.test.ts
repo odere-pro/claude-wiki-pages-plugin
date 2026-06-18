@@ -283,6 +283,37 @@ describe("lint --check dup-claims — dispatch", () => {
   });
 });
 
+describe("lint --check output — dispatch", () => {
+  test("clean (no findings) when output/ is absent", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+    });
+    try {
+      const report = lint({ target: sb.vault, check: "output" });
+      expect(report.command).toBe("lint");
+      expect(report.findings).toHaveLength(0);
+      expect(report.clean).toBe(true);
+    } finally {
+      sb.cleanup();
+    }
+  });
+
+  test("flags a non-portable output file (warn)", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n",
+      // A [[wikilink]] is not portable markdown — the contract forbids it.
+      "output/brief.md": "# Brief\n\nSee [[Some Page]] for details.\n",
+    });
+    try {
+      const report = lint({ target: sb.vault, check: "output" });
+      expect(report.warnings).toBeGreaterThan(0);
+    } finally {
+      sb.cleanup();
+    }
+  });
+});
+
 describe("resolveLintCheck", () => {
   test("undefined → all", () => {
     expect(resolveLintCheck(undefined)).toBe("all");
@@ -294,6 +325,10 @@ describe("resolveLintCheck", () => {
 
   test("'dup-claims' → dup-claims", () => {
     expect(resolveLintCheck("dup-claims")).toBe("dup-claims");
+  });
+
+  test("'output' → output", () => {
+    expect(resolveLintCheck("output")).toBe("output");
   });
 
   test("'manifests' → manifests", () => {

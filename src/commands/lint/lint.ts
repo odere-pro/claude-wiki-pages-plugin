@@ -25,6 +25,7 @@ import { checkStructural } from "../../core/structural-check.ts";
 import { checkOntology } from "../../core/ontology-lint.ts";
 import { lintVocabulary } from "../../core/vocabulary-lint.ts";
 import { checkDuplicateClaims } from "../../core/duplicate-claims.ts";
+import { checkOutput } from "../../core/output-check.ts";
 import type { Finding } from "../../core/report.ts";
 
 /** Minimum allowed concurrency value. */
@@ -34,7 +35,15 @@ const CONCURRENCY_MIN = 1;
 const CONCURRENCY_MAX = 32;
 
 /** Named checks selectable via --check. "all" runs every check. */
-export type LintCheck = "manifests" | "md-links" | "structural" | "ontology" | "vocabulary" | "dup-claims" | "all";
+export type LintCheck =
+  | "manifests"
+  | "md-links"
+  | "structural"
+  | "ontology"
+  | "vocabulary"
+  | "dup-claims"
+  | "output"
+  | "all";
 
 /** The set of known check names (guards against typos at the call site). */
 const KNOWN_CHECKS = new Set<LintCheck>([
@@ -44,6 +53,7 @@ const KNOWN_CHECKS = new Set<LintCheck>([
   "ontology",
   "vocabulary",
   "dup-claims",
+  "output",
   "all",
 ]);
 
@@ -194,6 +204,15 @@ export function lint(opts: LintOptions = {}): Report {
     findings.push(...checkDuplicateClaims(vault, opts.file));
   }
 
+  // Check: output — portable-markdown contract for files under output/.
+  //
+  // Migrated from scripts/verify-output.sh (Phase 1, tmp/migration-plan.md §3).
+  // Audits <vault>/output/ only; absent/empty output/ → no findings. The bash
+  // wrapper remaps these warn findings to exit 1 to preserve its gate contract.
+  if (check === "output") {
+    findings.push(...checkOutput(vault));
+  }
+
   if (check === "all") {
     const repoRoot = resolveRepoRoot(vault);
     if (existsSync(join(repoRoot, ".claude-plugin"))) {
@@ -210,6 +229,8 @@ export function lint(opts: LintOptions = {}): Report {
     findings.push(...lintVocabulary(vault, { minTagUsage: opts.minTagUsage }));
     // dup-claims: only meaningful with --file (a _proposed/ page); no-op otherwise.
     findings.push(...checkDuplicateClaims(vault, opts.file));
+    // output: audit <vault>/output/ (absent/empty → no findings).
+    findings.push(...checkOutput(vault));
   }
 
   return buildReport("lint", vault, findings);
