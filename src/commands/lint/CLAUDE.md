@@ -15,7 +15,7 @@ no network, no embeddings.
   Parsed and validated; currently unused. Reserved for parallel check execution
   in a later milestone.
 - `--check <name>` — run a single check; default is `all`.
-  Known values: `manifests`, `md-links`, `all`.
+  Known values: `manifests`, `md-links`, `structural`, `all`.
 
 ## Composition pattern
 
@@ -31,6 +31,7 @@ no network, no embeddings.
 const findings = [
   ...checkManifests(repoRoot),   // --check manifests
   ...checkMarkdownLinks(vault),  // --check md-links
+  ...checkStructural(vault),     // --check structural
 ];
 return buildReport("lint", vault, findings);
 ```
@@ -42,7 +43,7 @@ interface LintOptions {
   target?: string;      // explicit vault path (--target)
   cwd?: string;         // cwd for four-tier resolution
   concurrency?: number; // 1–32, default 1 (parsed; unused until checks land)
-  check?: LintCheck;    // "manifests" | "md-links" | "all" (default: "all")
+  check?: LintCheck;    // "manifests" | "md-links" | "structural" | "all" (default: "all")
 }
 ```
 
@@ -80,6 +81,36 @@ When `check=all`: runs unconditionally on all vaults.
 
 Covered by: [`markdown-link-check.ts`](../../core/markdown-link-check.ts)
 
+### `structural` — template-skeleton conformance + no-raw-HTML (S2)
+
+Migrated from `scripts/lint-structural.sh` (Phase 1, `tmp/migration-plan.md §3`).
+WARN-tier advisory audit; never blocks a write. Two sub-checks per eligible wiki page:
+
+1. **Template-skeleton conformance** — every required `## Section` heading from
+   `_templates/<type>.md` must be present in the page body. Placeholder headings
+   (`## {{something}}`) in the template are excluded from the required list.
+   Skipped when `_templates/` is absent or has no template for the page's type.
+
+2. **No-raw-HTML** — block-level HTML elements (`<div>`, `<span>`, `<table>`, etc.)
+   in the page body violate presentation-independence (TEAM-BRIEF §5). Frontmatter
+   and fenced code blocks are excluded from the scan.
+
+Exemptions (mirrors `lint-structural.sh`):
+
+- Bookkeeping files: `index.md`, `log.md`, `dashboard.md`, `manifest.md`, `_index.md`, `.gitkeep`.
+- Folder notes: `<dir>/<dir>.md` where frontmatter has `type: index`.
+- `_proposed/` drafts.
+- Pages with no `type` frontmatter field.
+- Types exempt from skeleton check: `source`, `index`, `manifest`, `log`.
+
+Both sub-checks emit `warn`-severity findings; `exitCode` stays `0` for warn-only
+results. The `file` field on each finding is the vault-relative path.
+
+When `check=all`: runs unconditionally on all vaults.
+
+Covered by: [`structural-check.ts`](../../core/structural-check.ts),
+[`structural-check.test.ts`](../../core/structural-check.test.ts)
+
 ## Report semantics
 
 `lint` returns the shared [`Report`](../../core/report.ts):
@@ -94,3 +125,6 @@ error-severity finding, else `0`.
   parsing (concurrency, --json, --target, --check), manifests integration.
 - [`markdown-link-check.test.ts`](../../core/markdown-link-check.test.ts) —
   md-links unit tests + integration with `lint --check md-links`.
+- [`structural-check.test.ts`](../../core/structural-check.test.ts) —
+  structural unit tests (missing-section, raw-html, exemptions) + integration
+  with `lint --check structural`.
