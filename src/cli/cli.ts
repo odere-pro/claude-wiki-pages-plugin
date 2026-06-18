@@ -12,7 +12,7 @@
  */
 
 import { verify } from "../commands/verify/verify.ts";
-import { lint } from "../commands/lint/lint.ts";
+import { lint, resolveLintCheck } from "../commands/lint/lint.ts";
 import { fix } from "../commands/fix/fix.ts";
 import { heal } from "../commands/heal/heal.ts";
 import { doctor, doctorExit } from "../commands/doctor/doctor.ts";
@@ -173,6 +173,8 @@ interface ParsedArgs {
   readonly skill: string | undefined;
   /** lint: maximum parallel check workers (1–32); currently unused. */
   readonly concurrency: number | undefined;
+  /** lint: which check to run (default: all). */
+  readonly check: string | undefined;
 }
 
 /**
@@ -204,6 +206,7 @@ class ParsedArgsBuilder {
   private label: string | undefined = undefined;
   private skill: string | undefined = undefined;
   private rawConcurrency: string | undefined = undefined;
+  private rawCheck: string | undefined = undefined;
 
   setJson(): this {
     this.json = true;
@@ -277,6 +280,10 @@ class ParsedArgsBuilder {
     this.rawConcurrency = v;
     return this;
   }
+  setCheck(v: string): this {
+    this.rawCheck = v;
+    return this;
+  }
   /**
    * Accept a bare (non-flag) positional token. The first bare token becomes
    * `command`; the second becomes `sub`. Subsequent bare tokens are ignored
@@ -318,6 +325,7 @@ class ParsedArgsBuilder {
             ? Number(this.rawConcurrency)
             : undefined
           : undefined,
+      check: this.rawCheck,
     });
   }
 }
@@ -368,6 +376,9 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     } else if (a === "--concurrency") {
       const v = argv[++i];
       if (v) b.setConcurrency(v);
+    } else if (a === "--check") {
+      const v = argv[++i];
+      if (v) b.setCheck(v);
     } else if (a && !a.startsWith("-")) b.addPositional(a);
   }
   return b.build();
@@ -421,6 +432,7 @@ function main(): number {
     label,
     skill,
     concurrency,
+    check,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -434,10 +446,11 @@ function main(): number {
     return exitCode(report);
   }
 
-  // lint verb — structural lint of a vault (scaffold: returns empty Report).
+  // lint verb — structural lint of a vault.
+  // `--check <name>` selects a specific check (default: all).
   // `--concurrency <n>` is parsed and validated but currently unused.
   if (command === "lint") {
-    const report = lint({ target, concurrency });
+    const report = lint({ target, concurrency, check: resolveLintCheck(check) });
     emit(report, json);
     return exitCode(report);
   }

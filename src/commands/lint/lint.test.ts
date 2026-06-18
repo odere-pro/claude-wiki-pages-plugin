@@ -1,20 +1,23 @@
 /**
- * TDD: lint scaffold — written FIRST, before the implementation exists.
+ * TDD: lint scaffold + --check manifests integration.
  *
- * These tests assert the skeleton contract:
- *   1. `lint()` returns an empty Report (no findings, clean, errors === 0).
+ * These tests assert:
+ *   1. `lint()` returns an empty Report for a clean vault (no .claude-plugin/).
  *   2. The CLI dispatches `lint` correctly (no "Unknown command" error).
  *   3. `--concurrency <n>` is parsed and accepted without error.
  *   4. `--json` emits a parseable Report with command === "lint".
- *
- * No behavior (no checks) is asserted beyond the empty-Report contract.
- * Behavior tests will be added when lint checks land.
+ *   5. `--check manifests` routes to the manifest check and reports errors
+ *      when .claude-plugin/plugin.json is absent.
+ *   6. `--check manifests` exits 0 for a valid plugin.json.
+ *   7. `resolveLintCheck` normalises known/unknown values.
  */
 
 import { test, expect, describe } from "bun:test";
 import { join } from "node:path";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { makeVault, CLEAN_VAULT } from "../../test-helpers/sandbox/vault.ts";
-import { lint } from "./lint.ts";
+import { lint, resolveLintCheck } from "./lint.ts";
 import { exitCode } from "../../core/report.ts";
 
 const CLI = join(import.meta.dir, "../../cli/cli.ts");
@@ -125,5 +128,115 @@ describe("lint — CLI dispatch", () => {
     const r = run("lint", "--target", sb.vault);
     expect(r.stderr).not.toContain("Unknown command");
     sb.cleanup();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// --check manifests integration
+// ---------------------------------------------------------------------------
+
+/** Create a temporary repo root with a valid .claude-plugin/plugin.json. */
+function makePluginRoot(): { root: string; vault: string; cleanup: () => void } {
+  const root = mkdtempSync(join(tmpdir(), "cwp-lint-manifests-test-"));
+  mkdirSync(join(root, ".claude-plugin"), { recursive: true });
+  const vaultDir = join(root, "vault");
+  mkdirSync(join(vaultDir, "wiki"), { recursive: true });
+  writeFileSync(join(vaultDir, "CLAUDE.md"), "---\nschema_version: 1\n---\n# Vault\n");
+  writeFileSync(join(vaultDir, "wiki", "index.md"), "---\ntitle: index\n---\n");
+  writeFileSync(join(vaultDir, "wiki", "log.md"), "---\ntitle: log\n---\n");
+  const validPlugin = {
+    name: "my-plugin",
+    version: "1.0.0",
+    description: "A valid plugin description longer than 10 chars.",
+    author: { name: "Test Author", email: "test@example.com" },
+    license: "MIT",
+  };
+  writeFileSync(join(root, ".claude-plugin", "plugin.json"), JSON.stringify(validPlugin, null, 2));
+  return {
+    root,
+    vault: vaultDir,
+    cleanup: () => rmSync(root, { recursive: true, force: true }),
+  };
+}
+
+describe("lint --check manifests — unit", () => {
+  test("valid plugin.json → clean report (no findings)", () => {
+    const tmp = makePluginRoot();
+    const report = lint({ target: tmp.vault, check: "manifests" });
+    expect(report.command).toBe("lint");
+    expect(report.errors).toBe(0);
+    expect(report.clean).toBe(true);
+    tmp.cleanup();
+  });
+
+  test("missing .claude-plugin/plugin.json → error finding", () => {
+    const sb = makeVault(CLEAN_VAULT);
+    // sandbox vault has no .claude-plugin/ in its ancestors
+    const report = lint({ target: sb.vault, check: "manifests" });
+    expect(report.errors).toBeGreaterThan(0);
+    expect(report.clean).toBe(false);
+    sb.cleanup();
+  });
+
+  test("check=all does not error when .claude-plugin/ is absent", () => {
+    const sb = makeVault(CLEAN_VAULT);
+    const report = lint({ target: sb.vault, check: "all" });
+    expect(report.errors).toBe(0);
+    expect(report.clean).toBe(true);
+    sb.cleanup();
+  });
+
+  test("check=all includes manifests check when .claude-plugin/ exists", () => {
+    const tmp = makePluginRoot();
+    const report = lint({ target: tmp.vault, check: "all" });
+    // Valid plugin.json — should still be clean
+    expect(report.errors).toBe(0);
+    tmp.cleanup();
+  });
+
+  test("exitCode is 1 for invalid plugin.json", () => {
+    const sb = makeVault(CLEAN_VAULT);
+    const report = lint({ target: sb.vault, check: "manifests" });
+    expect(exitCode(report)).toBe(1);
+    sb.cleanup();
+  });
+});
+
+describe("lint --check manifests — CLI", () => {
+  test("lint --check manifests --json reports errors when plugin.json missing", () => {
+    const sb = makeVault(CLEAN_VAULT);
+    const r = run("lint", "--target", sb.vault, "--check", "manifests", "--json");
+    expect(r.code).toBe(1);
+    const report = JSON.parse(r.stdout);
+    expect(report.command).toBe("lint");
+    expect(report.errors).toBeGreaterThan(0);
+    sb.cleanup();
+  });
+
+  test("lint --check manifests exits 0 for valid plugin repo", () => {
+    const tmp = makePluginRoot();
+    const r = run("lint", "--target", tmp.vault, "--check", "manifests", "--json");
+    expect(r.code).toBe(0);
+    const report = JSON.parse(r.stdout);
+    expect(report.errors).toBe(0);
+    tmp.cleanup();
+  });
+});
+
+describe("resolveLintCheck", () => {
+  test("undefined → all", () => {
+    expect(resolveLintCheck(undefined)).toBe("all");
+  });
+
+  test("'manifests' → manifests", () => {
+    expect(resolveLintCheck("manifests")).toBe("manifests");
+  });
+
+  test("'all' → all", () => {
+    expect(resolveLintCheck("all")).toBe("all");
+  });
+
+  test("unknown value → all (safe default)", () => {
+    expect(resolveLintCheck("unknown-check")).toBe("all");
   });
 });
