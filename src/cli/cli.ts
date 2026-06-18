@@ -13,6 +13,7 @@
 
 import { verify } from "../commands/verify/verify.ts";
 import { lint, resolveLintCheck } from "../commands/lint/lint.ts";
+import { exportWiki } from "../commands/export/export.ts";
 import { fix } from "../commands/fix/fix.ts";
 import { heal } from "../commands/heal/heal.ts";
 import { doctor, doctorExit } from "../commands/doctor/doctor.ts";
@@ -87,6 +88,7 @@ export const CAPABILITIES: readonly CapabilityEntry[] = [
   { name: "context", status: "implemented" },
   { name: "okf", status: "implemented" },
   { name: "lint", status: "implemented" },
+  { name: "export", status: "implemented" },
   { name: "index", status: "planned" },
   { name: "link-suggest", status: "planned" },
 ] as const;
@@ -150,6 +152,12 @@ interface ParsedArgs {
   readonly fix: boolean;
   readonly strict: boolean;
   readonly write: boolean;
+  /** export: render [[Title]] as [Title](slug.md) instead of flattening. */
+  readonly links: boolean;
+  /** export: mirror-tree mode (one file per page). */
+  readonly tree: boolean;
+  /** export: remove the existing output target before writing. */
+  readonly clean: boolean;
   readonly file: string | undefined;
   /** R1 candidate filter: frontmatter `type` exact match. */
   readonly type: string | undefined;
@@ -196,6 +204,9 @@ class ParsedArgsBuilder {
   private fixFlag = false;
   private strict = false;
   private write = false;
+  private links = false;
+  private tree = false;
+  private clean = false;
   private file: string | undefined = undefined;
   private type: string | undefined = undefined;
   private folder: string | undefined = undefined;
@@ -229,6 +240,18 @@ class ParsedArgsBuilder {
   }
   setWrite(): this {
     this.write = true;
+    return this;
+  }
+  setLinks(): this {
+    this.links = true;
+    return this;
+  }
+  setTree(): this {
+    this.tree = true;
+    return this;
+  }
+  setClean(): this {
+    this.clean = true;
     return this;
   }
   setGraph(): this {
@@ -315,6 +338,9 @@ class ParsedArgsBuilder {
       fix: this.fixFlag,
       strict: this.strict,
       write: this.write,
+      links: this.links,
+      tree: this.tree,
+      clean: this.clean,
       file: this.file,
       type: this.type,
       folder: this.folder,
@@ -352,6 +378,9 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (a === "--fix") b.setFix();
     else if (a === "--strict") b.setStrict();
     else if (a === "--write") b.setWrite();
+    else if (a === "--links") b.setLinks();
+    else if (a === "--tree") b.setTree();
+    else if (a === "--clean") b.setClean();
     else if (a === "--target") {
       const v = argv[++i];
       if (v) b.setTarget(v);
@@ -450,6 +479,9 @@ function main(): number {
     concurrency,
     check,
     minTagUsage,
+    links,
+    tree,
+    clean,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -470,6 +502,15 @@ function main(): number {
     const report = lint({ target, concurrency, check: resolveLintCheck(check), minTagUsage, file });
     emit(report, json);
     return exitCode(report);
+  }
+
+  // export verb — render the wiki as portable markdown under <vault>/output/.
+  // Migrated from scripts/distribute-wiki.sh; --links/--tree/--clean mirror it.
+  if (command === "export") {
+    const report = exportWiki({ target, links, tree, clean });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else process.stdout.write(report.message + "\n");
+    return report.ok ? 0 : 1;
   }
 
   if (command === "doctor") {
