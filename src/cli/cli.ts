@@ -30,6 +30,7 @@ import { ontology, type OntologyReport } from "../commands/ontology/ontology.ts"
 import { route } from "../commands/route/route.ts";
 import { context, renderContextText } from "../commands/context/context.ts";
 import { okf } from "../commands/okf/okf.ts";
+import { runHookGate, resolveGateName } from "../commands/hook/hook.ts";
 
 // ── One CAPABILITIES table — single source of truth (ADR-0015 N1, N2) ─────────
 //
@@ -89,6 +90,7 @@ export const CAPABILITIES: readonly CapabilityEntry[] = [
   { name: "okf", status: "implemented" },
   { name: "lint", status: "implemented" },
   { name: "export", status: "implemented" },
+  { name: "hook", status: "implemented" },
   { name: "index", status: "planned" },
   { name: "link-suggest", status: "planned" },
 ] as const;
@@ -185,6 +187,8 @@ interface ParsedArgs {
   readonly check: string | undefined;
   /** lint --check vocabulary: tag-usage floor (mirrors --min-tag-usage). */
   readonly minTagUsage: number | undefined;
+  /** hook: which security gate to run (e.g. "frontmatter"). */
+  readonly gate: string | undefined;
 }
 
 /**
@@ -221,6 +225,7 @@ class ParsedArgsBuilder {
   private rawConcurrency: string | undefined = undefined;
   private rawCheck: string | undefined = undefined;
   private rawMinTagUsage: string | undefined = undefined;
+  private gate: string | undefined = undefined;
 
   setJson(): this {
     this.json = true;
@@ -314,6 +319,10 @@ class ParsedArgsBuilder {
     this.rawMinTagUsage = v;
     return this;
   }
+  setGate(v: string): this {
+    this.gate = v;
+    return this;
+  }
   /**
    * Accept a bare (non-flag) positional token. The first bare token becomes
    * `command`; the second becomes `sub`. Subsequent bare tokens are ignored
@@ -365,6 +374,7 @@ class ParsedArgsBuilder {
             ? Number(this.rawMinTagUsage)
             : undefined
           : undefined,
+      gate: this.gate,
     });
   }
 }
@@ -424,9 +434,27 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     } else if (a === "--min-tag-usage") {
       const v = argv[++i];
       if (v) b.setMinTagUsage(v);
+    } else if (a === "--gate") {
+      const v = argv[++i];
+      if (v) b.setGate(v);
     } else if (a && !a.startsWith("-")) b.addPositional(a);
   }
   return b.build();
+}
+
+/**
+ * Read the entire stdin body as a string (the PreToolUse tool-call JSON).
+ * Returns "" when stdin is empty or unavailable — the hook gate then sees an
+ * empty payload and allows (fail-open is the gate's own decision for an empty
+ * file path, not a swallowed error: a malformed body still yields an empty
+ * HookInput and a no-op allow, never a thrown exception).
+ */
+async function readStdin(): Promise<string> {
+  try {
+    return await new Response(Bun.stdin.stream()).text();
+  } catch {
+    return "";
+  }
 }
 
 function emit(report: Report, json: boolean): void {
@@ -482,6 +510,7 @@ async function main(): Promise<number> {
     links,
     tree,
     clean,
+    gate,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -612,6 +641,27 @@ async function main(): Promise<number> {
     return report.message.startsWith("Vault not found") || report.message.startsWith("No CLAUDE.md")
       ? 1
       : 0;
+  }
+
+  // hook verb — the firewall-adjacent entry: read the PreToolUse tool-call JSON
+  // from stdin, run the named security gate, and emit the
+  // {"decision":"block","reason":…} contract on a block (else nothing). Always
+  // exits 0 — the block is signalled by the stdout JSON, not the exit code
+  // (matching every PreToolUse hook except enforce-dmi). The bash wrappers stay
+  // fail-closed: when Bun is absent they emit the block themselves, never
+  // reaching this code.
+  if (command === "hook") {
+    const gateName = resolveGateName(gate);
+    if (gateName === undefined) {
+      process.stderr.write(`hook: --gate <name> is required (known: frontmatter)\n`);
+      return 2;
+    }
+    const stdin = await readStdin();
+    const result = runHookGate({ gate: gateName, stdin, target });
+    if (result.block && result.reason !== undefined) {
+      process.stdout.write(JSON.stringify({ decision: "block", reason: result.reason }) + "\n");
+    }
+    return 0;
   }
 
   if (command === "firewall") {

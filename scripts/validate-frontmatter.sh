@@ -405,43 +405,38 @@ if [ "$TARGET_SET" -eq 1 ]; then
   exit 0
 fi
 
-# ── Hook mode (stdin) ─────────────────────────────────────────────────────────
+# ── Hook mode (stdin) — delegated to the Bun engine (Phase 3 migration) ───────
+# The hot-path PreToolUse decision is now made by `engine hook --gate frontmatter`
+# (src/commands/hook/), which replaces the 447-line awk-YAML parser with a real
+# `yaml` parser (src/core/frontmatter-validate.ts). The stdin shape, the
+# {"decision":"block","reason":…} stdout contract, and the always-exit-0 hook
+# semantics are preserved VERBATIM — the engine emits the same block JSON the
+# bash inline path did, with the same per-type / path / source-format rules
+# single-sourced from the schema table (ADR-0014), plus the bundled-template
+# fallback for pre-table vaults.
+#
+# FAIL-CLOSED (the explicit Phase-3 safety upgrade over the old fail-open hook):
+# this is a SECURITY gate, so when Bun is absent we BLOCK the write with an
+# install-Bun reason rather than letting an unvalidated write through. The CLI
+# mode above keeps the bash validator so the parity gate (gate-05) and the
+# --json envelope tests remain authoritative until that path is migrated in a
+# later serial step.
 INPUT=$(cat)
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // empty')
 
-case "$FILE_PATH" in
-  */${VAULT_NAME}/wiki/*) ;;
-  *) exit 0 ;;
-esac
-case "$FILE_PATH" in
-  *.md) ;;
-  *) exit 0 ;;
-esac
-
-TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
-
-if [ "$TOOL" = "Edit" ]; then
-  OLD=$(echo "$INPUT" | jq -r '.tool_input.old_string // empty')
-  NEW=$(echo "$INPUT" | jq -r '.tool_input.new_string // empty')
-  if [ -n "$OLD" ]; then
-    for field in type title source_type entity_type synthesis_type parent path sources status confidence created updated; do
-      if echo "$OLD" | grep -q "^${field}:" && ! echo "$NEW" | grep -q "^${field}:"; then
-        echo "{\"decision\":\"block\",\"reason\":\"Edit removes required frontmatter field: ${field}. Preserve all required fields.\"}"
-        exit 0
-      fi
-    done
-  fi
+if ! command -v bun >/dev/null 2>&1; then
+  # Only block writes the engine WOULD gate: markdown under <vault>/wiki/.
+  # Other paths pass through (the engine's path filter would have allowed them),
+  # so a missing-Bun box does not block unrelated edits.
+  _fp=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // empty' 2>/dev/null || true)
+  case "$_fp" in
+    */"${VAULT_NAME}"/wiki/*.md)
+      emit_block_decision "frontmatter gate: Bun is required to validate wiki frontmatter but was not found. Install Bun from https://bun.sh, then retry the write. (Security gate fails closed — the write is blocked until validation can run.)"
+      ;;
+  esac
   exit 0
 fi
 
-CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
-[ -z "$CONTENT" ] && exit 0 || true
-
-err=$(validate_content "$FILE_PATH" "$CONTENT")
-if [ -n "$err" ]; then
-  # B05: use emit_block_decision (jq --arg) — never interpolate err into a shell
-  # string. jq escapes backslash/newline/tab/C0 control chars automatically,
-  # closing the injection window from the sed+awk chain this replaced.
-  emit_block_decision "$err"
-fi
+# Pipe the ORIGINAL stdin to the engine entry; --target pins the same resolved
+# vault the bash side computed so vaultName / path checks match exactly.
+printf '%s' "$INPUT" | bash "$(dirname "$0")/engine.sh" hook --gate frontmatter --target "$VAULT"
 exit 0
