@@ -26,4 +26,16 @@ describe("markdownLinkViolation", () => {
   test("returns null for clean wikilink bodies", () => {
     expect(markdownLinkViolation("---\nt: 1\n---\nsee [[X]]")).toBeNull();
   });
+  test("detects markdown link containing a CR (\\r) byte in link text", () => {
+    // The 's' (dotAll) flag is required so '.' matches '\r'.
+    // Without it the regex silently misses '[the\rsample](page.md)'.
+    // Regression anchor for json-envelope.bats test 311.
+    const content = "---\ntitle: T\ntype: topic\n---\n\nSee [the\rsample](page.md) here.";
+    expect(markdownLinkViolation(content)).not.toBeNull();
+    expect(markdownLinkViolation(content)).toContain("wikilinks");
+  });
+  test("detects markdown link containing a tab (\\t) byte in link text", () => {
+    const content = "---\ntitle: T\ntype: topic\n---\n\nSee [the\tsample](page.md) here.";
+    expect(markdownLinkViolation(content)).not.toBeNull();
+  });
 });

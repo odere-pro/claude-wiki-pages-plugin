@@ -20,6 +20,7 @@ import { join, dirname } from "node:path";
 import { buildReport, type Report } from "../../core/report.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { checkManifests } from "../../core/manifest-check.ts";
+import { checkMarkdownLinks } from "../../core/markdown-link-check.ts";
 import type { Finding } from "../../core/report.ts";
 
 /** Minimum allowed concurrency value. */
@@ -29,10 +30,10 @@ const CONCURRENCY_MIN = 1;
 const CONCURRENCY_MAX = 32;
 
 /** Named checks selectable via --check. "all" runs every check. */
-export type LintCheck = "manifests" | "all";
+export type LintCheck = "manifests" | "md-links" | "all";
 
 /** The set of known check names (guards against typos at the call site). */
-const KNOWN_CHECKS = new Set<LintCheck>(["manifests", "all"]);
+const KNOWN_CHECKS = new Set<LintCheck>(["manifests", "md-links", "all"]);
 
 /** Resolve a raw --check value to a LintCheck (defaults to "all"). */
 export function resolveLintCheck(raw: string | undefined): LintCheck {
@@ -120,11 +121,24 @@ export function lint(opts: LintOptions = {}): Report {
   if (check === "manifests") {
     const repoRoot = resolveRepoRoot(vault);
     findings.push(...checkManifests(repoRoot));
-  } else if (check === "all") {
+  }
+
+  // Check: md-links — detect [text](file.md) links that should be [[wikilinks]].
+  //
+  // Migrated from scripts/check-wikilinks.sh CLI half (Phase 1, tmp/migration-plan.md).
+  // The hook half (PreToolUse stdin-JSON path) stays in bash until Phase 3.
+  // Skips bookkeeping files and folder notes (mirrors check_content() exemptions).
+  if (check === "md-links") {
+    findings.push(...checkMarkdownLinks(vault));
+  }
+
+  if (check === "all") {
     const repoRoot = resolveRepoRoot(vault);
     if (existsSync(join(repoRoot, ".claude-plugin"))) {
       findings.push(...checkManifests(repoRoot));
     }
+    // md-links: run unconditionally on all vaults (no optional-gate needed).
+    findings.push(...checkMarkdownLinks(vault));
   }
 
   return buildReport("lint", vault, findings);

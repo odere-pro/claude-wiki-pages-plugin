@@ -5,10 +5,6 @@ applies a set of deterministic structural checks, and returns a frozen
 [`Report`](../../core/report.ts). Same vault in, same findings out — no writes,
 no network, no embeddings.
 
-This file documents the **scaffold state**: the command is wired and dispatches
-correctly; no checks are implemented yet. Checks will be added in subsequent
-milestones and documented here.
-
 ## Input and flags
 
 - `claude-wiki-pages lint` — lint the resolved vault (four-tier resolution via
@@ -18,6 +14,8 @@ milestones and documented here.
 - `--concurrency <n>` — maximum parallel check workers (1–32, default 1).
   Parsed and validated; currently unused. Reserved for parallel check execution
   in a later milestone.
+- `--check <name>` — run a single check; default is `all`.
+  Known values: `manifests`, `md-links`, `all`.
 
 ## Composition pattern
 
@@ -29,12 +27,10 @@ milestones and documented here.
 - Report built with `buildReport` — frozen, immutable, tallied.
 - Router (`cli.ts`) owns stdout emission and exit-code mapping.
 
-When check functions are added they will follow the same pattern as `verify`:
-
 ```ts
 const findings = [
-  ...checkFoo(wiki),
-  ...checkBar(wiki),
+  ...checkManifests(repoRoot),   // --check manifests
+  ...checkMarkdownLinks(vault),  // --check md-links
 ];
 return buildReport("lint", vault, findings);
 ```
@@ -46,8 +42,43 @@ interface LintOptions {
   target?: string;      // explicit vault path (--target)
   cwd?: string;         // cwd for four-tier resolution
   concurrency?: number; // 1–32, default 1 (parsed; unused until checks land)
+  check?: LintCheck;    // "manifests" | "md-links" | "all" (default: "all")
 }
 ```
+
+## Implemented checks
+
+### `manifests` — plugin manifest validation
+
+Validates `.claude-plugin/plugin.json` (and optionally `.claude-plugin/marketplace.json`)
+against the same rules `scripts/validate-manifests.sh` enforced. Native `JSON.parse` —
+no `jq` dependency. Migrated from `validate-manifests.sh` (Phase 1,
+`tmp/migration-plan.md`).
+
+When `--check manifests` is explicit: always runs (missing file → error finding).
+When `check=all`: only runs when `.claude-plugin/` exists in the resolved repo root;
+vault-only runs (CI on content vaults, test sandboxes) skip gracefully.
+
+Covered by: [`manifest-check.ts`](../../core/manifest-check.ts)
+
+### `md-links` — markdown-link guard
+
+Detects `[text](file.md)` links in `wiki/` pages that should be `[[wikilinks]]`.
+Mirrors the CLI half of `scripts/check-wikilinks.sh check_content()`. The hook half
+(PreToolUse stdin-JSON path) stays in bash until Phase 3 (`tmp/migration-plan.md`).
+
+Detection rules:
+
+- Frontmatter (`---` block) is stripped before scanning.
+- Fenced code blocks (triple-backtick) are stripped to avoid false positives on examples.
+- Pattern `\[.+\]\([^)]+\.md\)` flags a violation.
+- Bookkeeping files (`index`, `log`, `dashboard`, `manifest`, `_index`, `.gitkeep`) and
+  folder notes (`<dir>/<dir>.md` + `type: index`) are skipped.
+- The first offending fragment is included in the message (U4 errors-that-teach).
+
+When `check=all`: runs unconditionally on all vaults.
+
+Covered by: [`markdown-link-check.ts`](../../core/markdown-link-check.ts)
 
 ## Report semantics
 
@@ -57,13 +88,9 @@ interface LintOptions {
 or `JSON.stringify` (`--json`). Exit code follows `exitCode(report)`: `1` on any
 error-severity finding, else `0`.
 
-## Scaffold state
-
-- No checks are implemented. `findings` is always `[]`.
-- `clean` is always `true`; exit code is always `0`.
-- `--concurrency` is validated and clamped (1–32) but the value is not used.
-
 ## Covered by
 
-- [`lint.test.ts`](./lint.test.ts) — empty Report contract, CLI dispatch, flag
-  parsing (concurrency, --json, --target).
+- [`lint.test.ts`](./lint.test.ts) — Report contract, CLI dispatch, flag
+  parsing (concurrency, --json, --target, --check), manifests integration.
+- [`markdown-link-check.test.ts`](../../core/markdown-link-check.test.ts) —
+  md-links unit tests + integration with `lint --check md-links`.

@@ -381,7 +381,11 @@ MD
     printf 'default output should be human text, not JSON:\n%s\n' "$output" >&2
     return 1
   fi
-  assert_output_contains "All wikilinks valid"
+  # The CLI half now delegates to the Bun engine (md-links migration); the engine
+  # emits "OK: all checks passed" via renderText (src/core/report.ts:85) instead
+  # of the old bash "OK:    All wikilinks valid". The contract (human text, not JSON,
+  # non-zero exit only on violations) is preserved; the exact summary line changes.
+  assert_output_contains "OK: all checks passed"
 }
 
 @test "json-envelope: firewall without --json emits human text (behavior unchanged)" {

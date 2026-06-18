@@ -1,28 +1,57 @@
 #!/bin/bash
 # PreToolUse: blocks wiki files that use [text](file.md) instead of [[wikilinks]]
-# Usage (CLI): scripts/check-wikilinks.sh [--target <vault-path>]
+# Usage (CLI): scripts/check-wikilinks.sh [--target <vault-path>] [--json]
 # Default target: $CLAUDE_WIKI_PAGES_VAULT (fallback: docs/vault)
+#
+# CLI half: thin wrapper delegating to `engine lint --check md-links`
+#   (migrated from inline bash to the Bun engine; see tmp/migration-plan.md §Phase 1).
+# Hook half: PreToolUse stdin-JSON path stays in bash until Phase 3.
 set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
 VAULT=$(resolve_vault)
 TARGET_SET=0
-JSON_MODE=0
-while [ $# -gt 0 ]; do
-  case "$1" in
+
+# Scan original args to determine mode (do not consume them — pass $@ through).
+ARGS=("$@")
+i=0
+while [ $i -lt ${#ARGS[@]} ]; do
+  case "${ARGS[$i]}" in
     --target)
-      VAULT="${2%/}"
+      i=$((i + 1))
+      VAULT="${ARGS[$i]%/}"
       TARGET_SET=1
-      shift 2
-      ;; # explicit CLI flag overrides auto-detection
-    --json)
-      JSON_MODE=1
-      shift
       ;;
-    *) shift ;;
+    *) ;;
   esac
+  i=$((i + 1))
 done
+
+# ── CLI mode: delegate to the Bun engine ─────────────────────────────────────
+# When called with --target, forward all original arguments to the engine.
+# The engine recognises --target, --json; other flags are silently ignored.
+# Output shape and exit codes are compatible with the original bash behaviour:
+#   exit 0 = clean, exit 1 = violations found, exit 2 = bad args (vault absent).
+#
+# Pre-check: validate the vault's wiki/ directory exists before delegating.
+# The engine returns exit 0 with empty findings for a nonexistent vault
+# (listMarkdownRecursive returns [] when the dir is absent), which would silently
+# succeed on a bad --target path. The old bash CLI half exited 2 in this case
+# (scripts/check-wikilinks.sh:106 in the pre-migration committed HEAD), so we
+# preserve that contract here to keep json-envelope.bats test 301 green.
+if [ "$TARGET_SET" -eq 1 ]; then
+  if [ ! -d "$VAULT/wiki" ]; then
+    exit 2
+  fi
+  exec bash "$(dirname "$0")/engine.sh" lint --check md-links --target "$VAULT" "$@"
+fi
+
+# ── Hook mode (stdin) — stays in bash until Phase 3 ──────────────────────────
+# Reads the PreToolUse tool-call JSON from stdin, blocks wiki writes that
+# introduce [text](file.md) links. Never emits a block decision for non-wiki
+# files. Must always exit 0 (non-zero = harness error).
+
 VAULT_NAME=$(basename "$VAULT")
 
 # ── JSON helpers (no jq dependency) ──────────────────────────────────────────
@@ -61,18 +90,6 @@ _json_escape() {
   ' | sed 's/\\n$//'
 }
 
-# _json_finding_with_file: emit one Finding JSON object with a file field.
-# $1=severity  $2=check  $3=message  $4=file
-_json_finding_with_file() {
-  local sev check msg file
-  sev=$(_json_escape "$1")
-  check=$(_json_escape "$2")
-  msg=$(_json_escape "$3")
-  file=$(_json_escape "$4")
-  printf '{"severity":"%s","check":"%s","message":"%s","file":"%s"}' \
-    "$sev" "$check" "$msg" "$file"
-}
-
 # Returns a plain error message on stdout, or nothing on success.
 # U4 (errors-that-teach): includes the specific offending fragment so the
 # author can locate the line without a separate grep.
@@ -93,65 +110,6 @@ check_content() {
   fi
 }
 
-# ── CLI mode ──────────────────────────────────────────────────────────────────
-if [ "$TARGET_SET" -eq 1 ]; then
-  WIKI="$VAULT/wiki"
-  ERRORS=0
-
-  # Validate the vault directory exists (exit 2 for bad args).
-  if [ ! -d "$WIKI" ]; then
-    if [ "$JSON_MODE" -eq 1 ]; then
-      printf '{"findings":[]}\n'
-    fi
-    exit 2
-  fi
-
-  if [ "$JSON_MODE" -eq 1 ]; then
-    # ── JSON mode: collect findings[], emit envelope, exit 0/1 ──────────────
-    FINDINGS_JSON=""
-    FINDING_SEP=""
-
-    while IFS= read -r -d '' file; do
-      wiki_rel="${file#${WIKI}/}"
-      err=$(check_content "$(cat "$file")")
-      if [ -n "$err" ]; then
-        finding=$(_json_finding_with_file "error" "wikilinks" "$err" "$wiki_rel")
-        FINDINGS_JSON="${FINDINGS_JSON}${FINDING_SEP}${finding}"
-        FINDING_SEP=","
-        ERRORS=$((ERRORS + 1))
-      fi
-    done < <(find "$WIKI" -name "*.md" -print0 2>/dev/null)
-
-    printf '{"findings":[%s]}\n' "$FINDINGS_JSON"
-    if [ "$ERRORS" -gt 0 ]; then
-      exit 1
-    fi
-    exit 0
-  fi
-
-  red() { printf '\033[0;31mERROR: %s\033[0m\n' "$1"; }
-  green() { printf '\033[0;32mOK:    %s\033[0m\n' "$1"; }
-
-  while IFS= read -r -d '' file; do
-    err=$(check_content "$(cat "$file")")
-    if [ -n "$err" ]; then
-      red "$(basename "$file") — $err"
-      ERRORS=$((ERRORS + 1))
-    else
-      green "$(basename "$file")"
-    fi
-  done < <(find "$WIKI" -name "*.md" -print0 2>/dev/null)
-
-  printf '\n'
-  if [ "$ERRORS" -gt 0 ]; then
-    printf '\033[0;31mErrors:   %d\033[0m\n' "$ERRORS"
-    exit 1
-  fi
-  printf '\033[0;32mOK:    All wikilinks valid\033[0m\n'
-  exit 0
-fi
-
-# ── Hook mode (stdin) ─────────────────────────────────────────────────────────
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // empty')
 
