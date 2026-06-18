@@ -467,7 +467,7 @@ function main(): number {
   // `--check <name>` selects a specific check (default: all).
   // `--concurrency <n>` is parsed and validated but currently unused.
   if (command === "lint") {
-    const report = lint({ target, concurrency, check: resolveLintCheck(check), minTagUsage });
+    const report = lint({ target, concurrency, check: resolveLintCheck(check), minTagUsage, file });
     emit(report, json);
     return exitCode(report);
   }

@@ -24,6 +24,7 @@ import { checkMarkdownLinks } from "../../core/markdown-link-check.ts";
 import { checkStructural } from "../../core/structural-check.ts";
 import { checkOntology } from "../../core/ontology-lint.ts";
 import { lintVocabulary } from "../../core/vocabulary-lint.ts";
+import { checkDuplicateClaims } from "../../core/duplicate-claims.ts";
 import type { Finding } from "../../core/report.ts";
 
 /** Minimum allowed concurrency value. */
@@ -33,10 +34,18 @@ const CONCURRENCY_MIN = 1;
 const CONCURRENCY_MAX = 32;
 
 /** Named checks selectable via --check. "all" runs every check. */
-export type LintCheck = "manifests" | "md-links" | "structural" | "ontology" | "vocabulary" | "all";
+export type LintCheck = "manifests" | "md-links" | "structural" | "ontology" | "vocabulary" | "dup-claims" | "all";
 
 /** The set of known check names (guards against typos at the call site). */
-const KNOWN_CHECKS = new Set<LintCheck>(["manifests", "md-links", "structural", "ontology", "vocabulary", "all"]);
+const KNOWN_CHECKS = new Set<LintCheck>([
+  "manifests",
+  "md-links",
+  "structural",
+  "ontology",
+  "vocabulary",
+  "dup-claims",
+  "all",
+]);
 
 /** Resolve a raw --check value to a LintCheck (defaults to "all"). */
 export function resolveLintCheck(raw: string | undefined): LintCheck {
@@ -66,6 +75,12 @@ export interface LintOptions {
    * Defaults to the check's own default (2) when undefined.
    */
   readonly minTagUsage?: number;
+  /**
+   * Path to a `_proposed/` page to scan for duplicate claims (dup-claims check
+   * only). Mirrors check-duplicate-claims.sh `--proposed`. When undefined, the
+   * dup-claims check is a no-op (nothing to compare against the wiki).
+   */
+  readonly file?: string;
 }
 
 /**
@@ -170,6 +185,15 @@ export function lint(opts: LintOptions = {}): Report {
     findings.push(...lintVocabulary(vault, { minTagUsage: opts.minTagUsage }));
   }
 
+  // Check: dup-claims — warn when a _proposed/ page restates a claim already in
+  // the wiki (advisory; suggests linking instead of duplicating).
+  //
+  // Migrated from scripts/check-duplicate-claims.sh (Phase 1, tmp/migration-plan.md §3).
+  // WARN-tier; needs --file <proposed page>. A no-op (returns []) without one.
+  if (check === "dup-claims") {
+    findings.push(...checkDuplicateClaims(vault, opts.file));
+  }
+
   if (check === "all") {
     const repoRoot = resolveRepoRoot(vault);
     if (existsSync(join(repoRoot, ".claude-plugin"))) {
@@ -182,8 +206,10 @@ export function lint(opts: LintOptions = {}): Report {
     // ontology: run unconditionally on all vaults (graceful-skip in checkOntology
     // when CLAUDE.md or predicate table is absent).
     findings.push(...checkOntology(vault));
-    // vocabulary: run unconditionally (absent _vocabulary.md → info finding only).
+    // vocabulary: run unconditionally (absent _vocabulary.md → graceful skip).
     findings.push(...lintVocabulary(vault, { minTagUsage: opts.minTagUsage }));
+    // dup-claims: only meaningful with --file (a _proposed/ page); no-op otherwise.
+    findings.push(...checkDuplicateClaims(vault, opts.file));
   }
 
   return buildReport("lint", vault, findings);

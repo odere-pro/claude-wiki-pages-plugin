@@ -254,6 +254,35 @@ describe("lint --check vocabulary — dispatch", () => {
   });
 });
 
+describe("lint --check dup-claims — dispatch", () => {
+  test("is a no-op (clean) without --file", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+    });
+    try {
+      const report = lint({ target: sb.vault, check: "dup-claims" });
+      expect(report.command).toBe("lint");
+      expect(report.findings).toHaveLength(0);
+      expect(report.clean).toBe(true);
+    } finally {
+      sb.cleanup();
+    }
+  });
+
+  test("--check dup-claims --file is accepted via the CLI without error", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "_proposed/draft.md": "---\ntitle: draft\n---\n",
+    });
+    const r = run("lint", "--target", sb.vault, "--check", "dup-claims", "--file", `${sb.vault}/_proposed/draft.md`, "--json");
+    expect(r.code).toBe(0);
+    expect(JSON.parse(r.stdout).command).toBe("lint");
+    sb.cleanup();
+  });
+});
+
 describe("resolveLintCheck", () => {
   test("undefined → all", () => {
     expect(resolveLintCheck(undefined)).toBe("all");
@@ -261,6 +290,10 @@ describe("resolveLintCheck", () => {
 
   test("'vocabulary' → vocabulary", () => {
     expect(resolveLintCheck("vocabulary")).toBe("vocabulary");
+  });
+
+  test("'dup-claims' → dup-claims", () => {
+    expect(resolveLintCheck("dup-claims")).toBe("dup-claims");
   });
 
   test("'manifests' → manifests", () => {
