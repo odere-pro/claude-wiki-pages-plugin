@@ -41,6 +41,8 @@ _why_ a particular path was taken; they are not the spec.
 | 0030 | [Obsidian-accurate link resolution + `wikilink-collision` check](./ADR-0030-obsidian-accurate-resolution-and-collision.md)              |
 | 0031 | [Graph connectivity, orphans, and shadow edges](./ADR-0031-graph-connectivity-orphans-shadows.md)                                       |
 | 0032 | [Piped, path-qualified wikilinks](./ADR-0032-piped-path-qualified-wikilinks.md)                                                         |
+| 0033 | [Topic-local linking and island graph](./ADR-0033-topic-local-linking-and-island-graph.md)                                              |
+| 0034 | [Bun required + fail-closed bridge; engine `lint` WARN-tier twin of `verify`](./ADR-0034-bun-required-and-lint-verb.md)                  |
 
 ## Conventions
 
