@@ -59,7 +59,7 @@ else
   fi
 fi
 if ! command -v bun >/dev/null 2>&1; then
-  echo "NOTICE: Bun is not installed — the deterministic engine (verify/fix/heal/doctor/config) and git-checkpointed self-heal are disabled; hooks still enforce the schema. Install: curl -fsSL https://bun.sh/install | bash  (then restart the session). See /claude-wiki-pages:doctor."
+  echo "ERROR: Bun is required and not installed — the deterministic engine (verify/fix/heal/doctor/config), json-tool.ts, settings-tool.ts, and git-checkpointed self-heal are disabled; schema-enforcing hooks still run. Install: curl -fsSL https://bun.sh/install | bash  (then restart the session). See https://bun.sh/install or run /claude-wiki-pages:doctor."
 fi
 # jq pre-flight: unlike Bun, jq absence is NOT graceful — the JSON-parsing
 # PreToolUse guards (firewall, frontmatter, raw-protect) cannot read the
