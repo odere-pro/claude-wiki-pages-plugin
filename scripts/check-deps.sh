@@ -36,7 +36,7 @@ fi
 
 # ─── bun >= 1.2 (REQUIRED) ──────────────────────────────────────────────────
 # Bun is required for the deterministic engine (verify/fix/heal/doctor/config),
-# the JSON helper scripts (json-tool.ts, settings-tool.ts, settings-tool.ts),
+# the JSON helper scripts (json-tool.ts, settings-tool.ts),
 # and all git-checkpointed self-heal flows. Without it none of the engine
 # verbs run — bash hooks still enforce the schema, but structural repair,
 # the config command, and all Phase-3 fail-closed guards are disabled.

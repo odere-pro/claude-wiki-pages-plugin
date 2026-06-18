@@ -45,10 +45,11 @@ function resolveConcurrency(raw: number | undefined): number {
 export function lint(opts: LintOptions = {}): Report {
   const vault = (opts.target ?? resolveVault({ cwd: opts.cwd })).replace(/\/+$/, "");
 
-  // Validate concurrency now so the flag is never silently ignored if it is
-  // out of range — a later milestone wires it to parallel check execution.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _concurrency = resolveConcurrency(opts.concurrency);
+  // Validate the concurrency flag now (clamp to range) so an out-of-range value
+  // surfaces at parse time rather than being silently dropped later. The result
+  // is intentionally discarded until a later milestone wires it to parallel
+  // check execution.
+  void resolveConcurrency(opts.concurrency);
 
   // Scaffold: no checks yet — return a clean empty Report.
   // Checks will be added here in the form:
