@@ -23,6 +23,7 @@ import { checkManifests } from "../../core/manifest-check.ts";
 import { checkMarkdownLinks } from "../../core/markdown-link-check.ts";
 import { checkStructural } from "../../core/structural-check.ts";
 import { checkOntology } from "../../core/ontology-lint.ts";
+import { lintVocabulary } from "../../core/vocabulary-lint.ts";
 import type { Finding } from "../../core/report.ts";
 
 /** Minimum allowed concurrency value. */
@@ -32,10 +33,10 @@ const CONCURRENCY_MIN = 1;
 const CONCURRENCY_MAX = 32;
 
 /** Named checks selectable via --check. "all" runs every check. */
-export type LintCheck = "manifests" | "md-links" | "structural" | "ontology" | "all";
+export type LintCheck = "manifests" | "md-links" | "structural" | "ontology" | "vocabulary" | "all";
 
 /** The set of known check names (guards against typos at the call site). */
-const KNOWN_CHECKS = new Set<LintCheck>(["manifests", "md-links", "structural", "ontology", "all"]);
+const KNOWN_CHECKS = new Set<LintCheck>(["manifests", "md-links", "structural", "ontology", "vocabulary", "all"]);
 
 /** Resolve a raw --check value to a LintCheck (defaults to "all"). */
 export function resolveLintCheck(raw: string | undefined): LintCheck {
@@ -59,6 +60,12 @@ export interface LintOptions {
    * Use "manifests" to run only the plugin-manifest check.
    */
   readonly check?: LintCheck;
+  /**
+   * Minimum page count for a tag form before the vocabulary tag-floor warning
+   * fires (vocabulary check only). Mirrors lint-vocabulary.sh `--min-tag-usage`.
+   * Defaults to the check's own default (2) when undefined.
+   */
+  readonly minTagUsage?: number;
 }
 
 /**
@@ -153,6 +160,16 @@ export function lint(opts: LintOptions = {}): Report {
     findings.push(...checkOntology(vault));
   }
 
+  // Check: vocabulary — controlled-vocabulary freshness (orphaned forms,
+  // unreferenced groups, tags below the usage floor).
+  //
+  // Migrated from scripts/lint-vocabulary.sh (Phase 1, tmp/migration-plan.md §3).
+  // WARN-tier advisory audit; never blocks a write. Reuses the lexicon loader
+  // (vocabulary.ts) + stemming. Absent _vocabulary.md → one info finding.
+  if (check === "vocabulary") {
+    findings.push(...lintVocabulary(vault, { minTagUsage: opts.minTagUsage }));
+  }
+
   if (check === "all") {
     const repoRoot = resolveRepoRoot(vault);
     if (existsSync(join(repoRoot, ".claude-plugin"))) {
@@ -165,6 +182,8 @@ export function lint(opts: LintOptions = {}): Report {
     // ontology: run unconditionally on all vaults (graceful-skip in checkOntology
     // when CLAUDE.md or predicate table is absent).
     findings.push(...checkOntology(vault));
+    // vocabulary: run unconditionally (absent _vocabulary.md → info finding only).
+    findings.push(...lintVocabulary(vault, { minTagUsage: opts.minTagUsage }));
   }
 
   return buildReport("lint", vault, findings);

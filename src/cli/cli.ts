@@ -175,6 +175,8 @@ interface ParsedArgs {
   readonly concurrency: number | undefined;
   /** lint: which check to run (default: all). */
   readonly check: string | undefined;
+  /** lint --check vocabulary: tag-usage floor (mirrors --min-tag-usage). */
+  readonly minTagUsage: number | undefined;
 }
 
 /**
@@ -207,6 +209,7 @@ class ParsedArgsBuilder {
   private skill: string | undefined = undefined;
   private rawConcurrency: string | undefined = undefined;
   private rawCheck: string | undefined = undefined;
+  private rawMinTagUsage: string | undefined = undefined;
 
   setJson(): this {
     this.json = true;
@@ -284,6 +287,10 @@ class ParsedArgsBuilder {
     this.rawCheck = v;
     return this;
   }
+  setMinTagUsage(v: string): this {
+    this.rawMinTagUsage = v;
+    return this;
+  }
   /**
    * Accept a bare (non-flag) positional token. The first bare token becomes
    * `command`; the second becomes `sub`. Subsequent bare tokens are ignored
@@ -326,6 +333,12 @@ class ParsedArgsBuilder {
             : undefined
           : undefined,
       check: this.rawCheck,
+      minTagUsage:
+        this.rawMinTagUsage !== undefined
+          ? Number.isFinite(Number(this.rawMinTagUsage))
+            ? Number(this.rawMinTagUsage)
+            : undefined
+          : undefined,
     });
   }
 }
@@ -379,6 +392,9 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     } else if (a === "--check") {
       const v = argv[++i];
       if (v) b.setCheck(v);
+    } else if (a === "--min-tag-usage") {
+      const v = argv[++i];
+      if (v) b.setMinTagUsage(v);
     } else if (a && !a.startsWith("-")) b.addPositional(a);
   }
   return b.build();
@@ -433,6 +449,7 @@ function main(): number {
     skill,
     concurrency,
     check,
+    minTagUsage,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -450,7 +467,7 @@ function main(): number {
   // `--check <name>` selects a specific check (default: all).
   // `--concurrency <n>` is parsed and validated but currently unused.
   if (command === "lint") {
-    const report = lint({ target, concurrency, check: resolveLintCheck(check) });
+    const report = lint({ target, concurrency, check: resolveLintCheck(check), minTagUsage });
     emit(report, json);
     return exitCode(report);
   }

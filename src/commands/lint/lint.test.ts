@@ -223,9 +223,44 @@ describe("lint --check manifests — CLI", () => {
   });
 });
 
+describe("lint --check vocabulary — dispatch", () => {
+  test("runs the vocabulary check in isolation and returns a lint Report", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n",
+      "_vocabulary.md": "---\ngroups: []\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+    });
+    try {
+      const report = lint({ target: sb.vault, check: "vocabulary" });
+      expect(report.command).toBe("lint");
+      // Empty groups → no findings, clean.
+      expect(report.findings).toHaveLength(0);
+      expect(report.clean).toBe(true);
+    } finally {
+      sb.cleanup();
+    }
+  });
+
+  test("--min-tag-usage flag is accepted via the CLI without error", () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n",
+      "_vocabulary.md": "---\ngroups: []\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+    });
+    const r = run("lint", "--target", sb.vault, "--check", "vocabulary", "--min-tag-usage", "3", "--json");
+    expect(r.code).toBe(0);
+    expect(JSON.parse(r.stdout).command).toBe("lint");
+    sb.cleanup();
+  });
+});
+
 describe("resolveLintCheck", () => {
   test("undefined → all", () => {
     expect(resolveLintCheck(undefined)).toBe("all");
+  });
+
+  test("'vocabulary' → vocabulary", () => {
+    expect(resolveLintCheck("vocabulary")).toBe("vocabulary");
   });
 
   test("'manifests' → manifests", () => {
