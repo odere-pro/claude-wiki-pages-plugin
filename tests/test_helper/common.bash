@@ -184,6 +184,13 @@ setup_isolated_repo() {
     git config commit.gpgsign false
     git config tag.gpgsign false
     git config core.hooksPath /dev/null
+    # Disable background maintenance. The engine's docs check shells to git
+    # (git ls-files / git check-ignore) many times; any of those can trip
+    # gc.auto, which forks a `git gc` that writes into .git asynchronously and
+    # races the teardown `rm -rf` ("Directory not empty"). Pin it off so the
+    # repo never spawns background work.
+    git config gc.auto 0
+    git config maintenance.auto false
     git add -A
     git commit -q -m "init"
   )
@@ -193,7 +200,10 @@ setup_isolated_repo() {
 
 teardown_isolated_repo() {
   if [ -n "${ISOLATED_REPO:-}" ] && [ -d "$ISOLATED_REPO" ]; then
-    rm -rf "$ISOLATED_REPO"
+    # Defensive retry: gc.auto is pinned off in setup, but if a stray git
+    # process is still flushing into .git, a single re-attempt clears the
+    # transient "Directory not empty" without a wait-loop.
+    rm -rf "$ISOLATED_REPO" 2>/dev/null || rm -rf "$ISOLATED_REPO"
   fi
   unset ISOLATED_REPO
 }

@@ -8,7 +8,7 @@ Tests are organized into tiers by cost and dependency footprint. The default loc
 
 | Tier | What it is | Where | Runner target |
 | --- | --- | --- | --- |
-| Tier 0 | Static gates — shellcheck, shfmt, markdownlint, lychee, gitleaks, manifest parse, `validate-docs.sh` | repo-wide | `tier0` |
+| Tier 0 | Static gates — shellcheck, shfmt, markdownlint, lychee, gitleaks, manifest parse, `validate-docs.sh` (Bun-backed: wraps `engine lint --check docs`, fail-closes without Bun) | repo-wide | `tier0` |
 | Tier 1 | Bats unit tests — one `.bats` per `scripts/*.sh` hook or utility | [`scripts/`](./scripts/) | `tier1` |
 | Tier 2 | Smoke — end-to-end flows that self-skip without the `claude` CLI | [`smoke/`](./smoke/) | `tier2` |
 | Tier 3 | Local-embedding re-ranker — permanently dropped; an empty self-skipping stub | n/a | `tier3` |

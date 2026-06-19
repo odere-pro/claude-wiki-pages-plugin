@@ -68,6 +68,16 @@ jobs:
         # canonical Anthropic schema + validator when one is published.
         run: bash scripts/validate-manifests.sh
 
+      # scripts/validate-docs.sh is now a thin wrapper over the Bun engine
+      # (`engine lint --check docs`) and fail-closes (exit 2) when Bun is
+      # absent. Tier 0 must therefore provide the engine runtime + deps.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.2"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
       - name: Vocabulary gate
         run: scripts/validate-docs.sh
 
