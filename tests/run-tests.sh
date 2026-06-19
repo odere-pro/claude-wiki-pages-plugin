@@ -7,6 +7,7 @@
 #   bash tests/run-tests.sh tier1            Tier 1 only
 #   bash tests/run-tests.sh tier2            Tier 2 smoke (self-skips without `claude` CLI)
 #   bash tests/run-tests.sh tier3            Tier 3 stub (permanently dropped — self-skips)
+#   bash tests/run-tests.sh gates            Engine gates (tests/gates/run-all.sh — needs Bun)
 #   bash tests/run-tests.sh eval             Local-model quality-gate eval (opt-in;
 #                                            self-skips without a configured local model)
 #   bash tests/run-tests.sh all              all available tiers
@@ -33,9 +34,9 @@ while [ "$#" -gt 0 ]; do
       exit 0
       ;;
     -l | --list) LIST=1 ;;
-    tier0 | tier1 | tier2 | tier3 | eval | default | all) TIER="$1" ;;
+    tier0 | tier1 | tier2 | tier3 | gates | eval | default | all) TIER="$1" ;;
     *)
-      echo "unknown tier: $1 (expected tier0|tier1|tier2|tier3|eval|default|all)" >&2
+      echo "unknown tier: $1 (expected tier0|tier1|tier2|tier3|gates|eval|default|all)" >&2
       exit 2
       ;;
   esac
@@ -80,6 +81,14 @@ tier1() {
 tier2() {
   run "fresh-install smoke" bash tests/smoke/fresh-install.sh
   run "skill-schema smoke" bash tests/smoke/skill-schema.sh
+}
+
+# Engine gates — every tests/gates/gate-NN-*.sh (bun test, typecheck, eslint,
+# verify/firewall parity, no-absolute-paths, stale-dist, …). These cover the Bun
+# engine surface the shell tiers cannot; run-all.sh globs them so a new gate is
+# picked up automatically. Part of `all`; also runnable on its own.
+gates() {
+  run "engine gates (tests/gates/run-all.sh)" bash tests/gates/run-all.sh
 }
 
 # Tier 3 — local-embedding re-ranker — PERMANENTLY DROPPED (§5 / §11.1).
@@ -137,6 +146,7 @@ case "$TIER" in
   tier1) tier1 ;;
   tier2) tier2 ;;
   tier3) tier3 ;;
+  gates) gates ;;
   eval) eval_tier ;;
   default)
     tier0
@@ -146,6 +156,7 @@ case "$TIER" in
     tier0
     tier1
     tier2
+    gates
     ;;
 esac
 
