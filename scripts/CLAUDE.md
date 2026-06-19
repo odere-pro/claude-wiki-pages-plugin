@@ -230,17 +230,17 @@ other script in this directory is executable and sets strict mode.
 
 ## Shell↔TS parity contract
 
-Two shell gates are byte-aligned twins of the Bun engine and must stay in
-lock-step:
-
-- [`firewall.sh`](./firewall.sh) ↔ [`../src/core/firewall.ts`](../src/core/firewall.ts)
-  — pinned by `gate-11-firewall-parity`.
 - [`verify-ingest.sh`](./verify-ingest.sh) ↔ the engine's `verify` command —
-  pinned by `gate-05`.
-
-To keep the two implementations in agreement, the bash side uses simple globs
-only (`*` → `[^/]*`, `**` → `.*`); anything fancier would drift from the
-TypeScript matcher.
+  byte-aligned twin, pinned by `gate-05`. To keep the two in agreement the bash
+  side uses simple globs only (`*` → `[^/]*`, `**` → `.*`).
+- [`firewall.sh`](./firewall.sh) is NO LONGER a decision twin. Since
+  firewall-twin-retire (migration-plan.md Phase 3) it is a thin stdin→engine
+  wrapper — it derives the active vault + the registry cross-vault set (fail-
+  closed) and pipes the PreToolUse stdin to `engine hook --gate firewall`. The
+  sole write-isolation authority is [`../src/core/firewall.ts`](../src/core/firewall.ts);
+  `gate-11-firewall-parity` now pins the engine against a checked-in GOLDEN
+  verdict table (anti-drift without two implementations). FAIL-CLOSED: when Bun
+  is absent the wrapper BLOCKS any write with an install-Bun reason.
 
 ## Coupling
 

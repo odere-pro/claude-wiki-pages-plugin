@@ -53,9 +53,12 @@ is checkable line-for-line.
 
 ## Parity mirrors
 
-- [`firewall.ts`](./firewall.ts) ↔
-  [`../../scripts/firewall.sh`](../../scripts/firewall.sh) — write-isolation
-  decision; pinned by `tests/gates/gate-11-firewall-parity.sh`.
+- [`firewall.ts`](./firewall.ts) — the SOLE write-isolation decision authority.
+  Since firewall-twin-retire (migration-plan.md Phase 3) the bash hook
+  [`../../scripts/firewall.sh`](../../scripts/firewall.sh) is a thin
+  stdin→engine wrapper (no independent `decide()`), so this is no longer a
+  byte-for-byte twin — anti-drift is now `engine == checked-in GOLDEN verdict
+  table` in `tests/gates/gate-11-firewall-parity.sh`.
 - [`vault.ts`](./vault.ts) ↔
   [`../../scripts/resolve-vault.sh`](../../scripts/resolve-vault.sh) — the
   four-tier vault resolution.

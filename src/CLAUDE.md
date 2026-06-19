@@ -40,9 +40,10 @@ the latency-critical slices and are pinned byte-for-byte by parity gates:
 
 - `verify` ↔ [`../scripts/verify-ingest.sh`](../scripts/verify-ingest.sh),
   pinned by `tests/gates/gate-05-verify-parity.sh`.
-- [`core/firewall.ts`](./core/firewall.ts) ↔
-  [`../scripts/firewall.sh`](../scripts/firewall.sh), pinned by
-  `tests/gates/gate-11-firewall-parity.sh`.
+- [`core/firewall.ts`](./core/firewall.ts) is the sole write-isolation authority;
+  [`../scripts/firewall.sh`](../scripts/firewall.sh) is now a thin stdin→engine
+  wrapper (firewall-twin-retire). `tests/gates/gate-11-firewall-parity.sh` pins
+  the engine against a checked-in GOLDEN verdict table instead of a bash twin.
 
 Globs in the firewall stay "simple" (`*` within a segment, `**` across segments)
 deliberately, so the bash and TypeScript matchers agree on every path.

@@ -653,11 +653,14 @@ async function main(): Promise<number> {
   if (command === "hook") {
     const gateName = resolveGateName(gate);
     if (gateName === undefined) {
-      process.stderr.write(`hook: --gate <name> is required (known: frontmatter)\n`);
+      process.stderr.write(`hook: --gate <name> is required (known: frontmatter, firewall)\n`);
       return 2;
     }
     const stdin = await readStdin();
-    const result = runHookGate({ gate: gateName, stdin, target });
+    const otherVaultsList: readonly string[] = otherVaults
+      ? otherVaults.split(":").filter((v) => v.length > 0)
+      : [];
+    const result = runHookGate({ gate: gateName, stdin, target, otherVaults: otherVaultsList });
     if (result.block && result.reason !== undefined) {
       process.stdout.write(JSON.stringify({ decision: "block", reason: result.reason }) + "\n");
     }

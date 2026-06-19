@@ -6,10 +6,9 @@
  * The CLI reads the raw stdin body, resolves the active vault, and calls
  * `runHookGate`. The handler narrows the payload at the boundary
  * (src/core/hook-input.ts), dispatches to the named gate, and returns a typed
- * HookResult the router serialises. Only the `frontmatter` gate is wired here
- * (this unit); `check-wikilinks`, `protect-raw`, `attachments`, and `dmi` plug
- * into the same `GATES` table in later units, each fail-closed on the same
- * contract.
+ * HookResult the router serialises. The `frontmatter` and `firewall` gates are
+ * wired here; `check-wikilinks`, `protect-raw`, `attachments`, and `dmi` plug
+ * into the same dispatch in later units, each fail-closed on the same contract.
  *
  * Decision-emission contract (preserved verbatim from the bash hooks):
  *   - block  → print `{"decision":"block","reason":…}` on stdout, exit 0.
@@ -23,12 +22,13 @@ import { basename } from "node:path";
 import { resolveVault } from "../../core/vault.ts";
 import { parseHookInput } from "../../core/hook-input.ts";
 import { frontmatterGate, type HookDecision } from "./frontmatter-gate.ts";
+import { firewallHookGate } from "./firewall-gate.ts";
 
 /** The names of the security gates routed through the engine hook entry. */
-export type GateName = "frontmatter";
+export type GateName = "frontmatter" | "firewall";
 
 /** The list of gate names this entry knows (one source of truth for the CLI). */
-export const GATE_NAMES: readonly GateName[] = ["frontmatter"] as const;
+export const GATE_NAMES: readonly GateName[] = ["frontmatter", "firewall"] as const;
 
 /** Narrow an arbitrary string to a known GateName, or undefined. */
 export function resolveGateName(raw: string | undefined): GateName | undefined {
@@ -46,6 +46,12 @@ export interface RunHookOptions {
   readonly target?: string;
   /** cwd for vault resolution; injectable for tests. */
   readonly cwd?: string;
+  /**
+   * S3 cross-vault: the OTHER registered vault roots (the bash `--other-vaults`).
+   * Consumed only by the `firewall` gate; ignored by gates that do not isolate
+   * across vaults.
+   */
+  readonly otherVaults?: readonly string[];
 }
 
 /** The structured outcome the CLI maps to stdout + exit code. */
@@ -71,6 +77,14 @@ export function runHookGate(opts: RunHookOptions): HookResult {
   switch (opts.gate) {
     case "frontmatter":
       decision = frontmatterGate({ vault, vaultName, input });
+      break;
+    case "firewall":
+      decision = firewallHookGate({
+        vault,
+        input,
+        otherVaults: opts.otherVaults,
+        cwd: opts.cwd,
+      });
       break;
     default:
       // Exhaustive: GateName has no other members. Allow rather than throw so a
