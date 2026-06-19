@@ -29,7 +29,7 @@ import {
 
 describe("isWikiFilePath", () => {
   test("path under <vault>/wiki/ is in scope", () => {
-    expect(isWikiFilePath("/home/u/docs/vault/wiki/concepts/page.md", "vault")).toBe(true);
+    expect(isWikiFilePath("/a/b/docs/vault/wiki/concepts/page.md", "vault")).toBe(true);
   });
 
   test("nested path under wiki/ is in scope", () => {
@@ -37,11 +37,11 @@ describe("isWikiFilePath", () => {
   });
 
   test("path outside wiki/ is out of scope", () => {
-    expect(isWikiFilePath("/home/u/docs/vault/raw/source.md", "vault")).toBe(false);
+    expect(isWikiFilePath("/a/b/docs/vault/raw/source.md", "vault")).toBe(false);
   });
 
   test("path in a different vault name is out of scope", () => {
-    expect(isWikiFilePath("/home/u/docs/other/wiki/page.md", "vault")).toBe(false);
+    expect(isWikiFilePath("/a/b/docs/other/wiki/page.md", "vault")).toBe(false);
   });
 
   test("empty path is out of scope", () => {
@@ -49,7 +49,7 @@ describe("isWikiFilePath", () => {
   });
 
   test("vault root (no /wiki/ segment) is out of scope", () => {
-    expect(isWikiFilePath("/home/u/docs/vault/CLAUDE.md", "vault")).toBe(false);
+    expect(isWikiFilePath("/a/b/docs/vault/CLAUDE.md", "vault")).toBe(false);
   });
 });
 
