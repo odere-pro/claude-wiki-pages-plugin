@@ -18,10 +18,19 @@
 #   - 5a: [speculative] doc/fence → PASS (exempt from grounding)
 #   - 5c (PreToolUse order): reordered PreToolUse scripts → WARN, exit 0
 #
-# validate-docs.sh uses `git ls-files` to enumerate files, so every test that
-# needs a file visible to the scan creates an isolated git repo with that
-# file committed (see setup_isolated_repo / commit_file_in_isolated_repo in
-# tests/test_helper/common.bash).
+# Since the docs-finish migration unit, validate-docs.sh is a THIN WRAPPER over
+# `engine lint --check docs` (src/core/docs-check.ts + src/core/design-drift.ts).
+# These tests therefore pin the engine's behaviour through the wrapper: the
+# finding messages are unchanged (banned string / dead link / unresolved mermaid
+# token / count mismatch / single-ramped …); only the clean-tree summary line is
+# the engine's "OK: all checks passed". Retirement of the bash logic was gated on
+# a whole-repo dual-run proving byte/count/file-identical results bash vs engine.
+#
+# The engine scopes its scan with `git ls-files` (via a git-backed RepoIO), so
+# every test that needs a file visible to the scan still creates an isolated git
+# repo with that file committed (see setup_isolated_repo /
+# commit_file_in_isolated_repo in tests/test_helper/common.bash). The isolated
+# repo copies .claude-plugin/, so the engine resolves it as its own repo root.
 
 load '../test_helper/common'
 
@@ -39,7 +48,7 @@ setup() {
   run bash "$SCRIPTS_DIR/validate-docs.sh" "$REPO_ROOT"
 
   assert_success
-  assert_output_contains "All glossary checks passed"
+  assert_output_contains "OK: all checks passed"
 }
 
 # -----------------------------------------------------------------------------
@@ -93,7 +102,7 @@ setup() {
   teardown_isolated_repo
 
   assert_eq "$rc" 0
-  assert_contains "$out" "no banned strings"
+  assert_contains "$out" "OK: all checks passed"
 }
 
 # -----------------------------------------------------------------------------
@@ -132,7 +141,7 @@ setup() {
   teardown_isolated_repo
 
   assert_eq "$rc" 0
-  assert_contains "$out" "no SEO-register leaks"
+  assert_contains "$out" "OK: all checks passed"
 }
 
 # -----------------------------------------------------------------------------
@@ -168,7 +177,7 @@ setup() {
   teardown_isolated_repo
 
   assert_eq "$rc" 0
-  assert_contains "$out" "all slash-command references resolve"
+  assert_contains "$out" "OK: all checks passed"
 }
 
 # -----------------------------------------------------------------------------

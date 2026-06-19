@@ -121,8 +121,14 @@ run top to bottom and the first block short-circuits the write.
   index entries, sources-field format, index consistency).
 - [`verify-output.sh`](./verify-output.sh) — enforce the portable-markdown
   contract for files under `output/`.
-- [`validate-docs.sh`](./validate-docs.sh) — the glossary gate (banned strings,
-  Layer capitalization, slash-command resolution); run in CI Tier 0.
+- [`validate-docs.sh`](./validate-docs.sh) — the glossary / design-drift gate
+  (banned strings, Layer capitalization, slash-command resolution, ADR-0013
+  design-drift); run in CI Tier 0. Since the docs-finish migration unit it is a
+  thin wrapper over `engine lint --check docs`, backed by
+  [`docs-check.ts`](../src/core/docs-check.ts) and
+  [`design-drift.ts`](../src/core/design-drift.ts); positional `$1` (default repo
+  root) is passed as `--target`. FAIL-CLOSED (exit 2) when Bun is absent — a CI
+  gate must never pass silently.
 - [`validate-manifests.sh`](./validate-manifests.sh) — validate
   `.claude-plugin/plugin.json` and `marketplace.json` shape with jq.
 

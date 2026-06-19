@@ -15,7 +15,9 @@ no network, no embeddings.
   Parsed and validated; currently unused. Reserved for parallel check execution
   in a later milestone.
 - `--check <name>` — run a single check; default is `all`.
-  Known values: `manifests`, `md-links`, `structural`, `all`.
+  Known values: `manifests`, `md-links`, `structural`, `ontology`, `vocabulary`,
+  `dup-claims`, `output`, `docs`, `all`. Note `docs` is repo-scoped (not part of
+  `all`, which is vault-scoped) — it is the CI Tier-0 glossary/design-drift gate.
 
 ## Composition pattern
 
@@ -110,6 +112,36 @@ When `check=all`: runs unconditionally on all vaults.
 
 Covered by: [`structural-check.ts`](../../core/structural-check.ts),
 [`structural-check.test.ts`](../../core/structural-check.test.ts)
+
+### `docs` — glossary / design-drift CI Tier-0 gate
+
+Migrated from `scripts/validate-docs.sh` (Phase 1 #9, `tmp/migration-plan.md`).
+**Repo-scoped, not vault-scoped** — it scans the whole plugin repo's git-tracked
+`*.md`/`*.json`/`*.sh`/`*.yml` tree, so it is NOT part of `--check all` (which is
+per-vault). `scripts/validate-docs.sh` is now a thin wrapper over
+`engine lint --check docs --target <root>`.
+
+ERROR-tier (unlike the other lint checks, which are WARN-tier) — this is a
+merge-gating CI invariant, so violations exit 1. Two pillars:
+
+- **Checks 0–4 (glossary)** — banned/retired strings, the retired init-skill
+  alias, SEO-register leaks, Layer capitalization, bare slash commands, and
+  `/claude-wiki-pages:<name>` resolution. Covered by
+  [`docs-check.ts`](../../core/docs-check.ts).
+- **Check 5 (design-drift, ADR-0013)** — mermaid node grounding (5a), relative
+  link resolution (5b), hook set-equality + PreToolUse-order WARN (5c),
+  feature-relation counts (5d), authority presence (5e), router parity (5f), and
+  ontology predicate-node grounding (5g). Gated on `hooks/hooks.json` being
+  tracked. Covered by [`design-drift.ts`](../../core/design-drift.ts).
+
+File discovery uses a git-backed `RepoIO` ([`repo-io.ts`](../../core/repo-io.ts))
+so the scan scope is byte-identical to the bash `git ls-files` discipline. The
+retirement of the bash logic was gated on a whole-repo dual-run proving identical
+verdicts, violation counts, and per-file/per-check messages bash vs engine.
+
+Covered by: [`docs-check.ts`](../../core/docs-check.ts),
+[`design-drift.ts`](../../core/design-drift.ts),
+[`repo-io.ts`](../../core/repo-io.ts) and their colocated `*.test.ts`.
 
 ## Report semantics
 

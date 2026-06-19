@@ -29,6 +29,7 @@ import { checkOntology } from "../../core/ontology-lint.ts";
 import { lintVocabulary } from "../../core/vocabulary-lint.ts";
 import { checkDuplicateClaims } from "../../core/duplicate-claims.ts";
 import { checkOutput } from "../../core/output-check.ts";
+import { checkDocs } from "../../core/docs-check.ts";
 
 /** Minimum allowed concurrency value. */
 const CONCURRENCY_MIN = 1;
@@ -45,6 +46,7 @@ export type LintCheck =
   | "vocabulary"
   | "dup-claims"
   | "output"
+  | "docs"
   | "all";
 
 /** The set of known check names (guards against typos at the call site). */
@@ -56,6 +58,7 @@ const KNOWN_CHECKS = new Set<LintCheck>([
   "vocabulary",
   "dup-claims",
   "output",
+  "docs",
   "all",
 ]);
 
@@ -231,6 +234,21 @@ export async function lint(opts: LintOptions = {}): Promise<Report> {
   // wrapper remaps these warn findings to exit 1 to preserve its gate contract.
   if (check === "output") {
     selectedChecks.push({ name: "output", fn: () => checkOutput(vault) });
+  }
+
+  // Check: docs — the glossary / design-drift CI Tier-0 gate (validate-docs.sh).
+  //
+  // Migrated from scripts/validate-docs.sh (Phase 1 #9, tmp/migration-plan.md).
+  // REPO-scoped, not vault-scoped: it scans git-tracked *.md/*.json/*.sh/*.yml
+  // files across the whole plugin repo for banned/SEO terms, layer capitalization,
+  // slash-command resolution, and the design-drift pillar (ADR-0013, Check 5).
+  // Runs only when explicitly selected (NOT under check=all, which is vault-scoped),
+  // since the bash gate is a standalone whole-repo CI gate, not a per-vault lint.
+  // git:true → checkDocs scans the git-tracked tree and runs Check 5 (matching the
+  // bash `git ls-files` discipline + the hooks/hooks.json gate).
+  if (check === "docs") {
+    const repoRoot = resolveRepoRoot(vault);
+    selectedChecks.push({ name: "docs", fn: () => checkDocs(repoRoot, { git: true }) });
   }
 
   if (check === "all") {
