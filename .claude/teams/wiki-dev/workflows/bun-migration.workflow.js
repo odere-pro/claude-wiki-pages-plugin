@@ -19,7 +19,9 @@ if (typeof A === 'string') {
     A = {}
   }
 }
-const PHASE = A.phase === undefined ? 0 : Number(A.phase)
+const RAW_PHASE = A.phase === undefined ? 0 : A.phase
+// String modes ('left'|'remaining') run the whole tail; numeric modes run one phase.
+const PHASE = typeof RAW_PHASE === 'string' && Number.isNaN(Number(RAW_PHASE)) ? RAW_PHASE : Number(RAW_PHASE)
 const PLAN = A.planPath || 'tmp/migration-plan.md'
 const BRIEF = A.briefPath || '.claude/teams/wiki-dev/TEAM-BRIEF.md'
 const BRANCH = A.branch || 'worktree-bun-migration'
@@ -293,7 +295,7 @@ async function runSequential(units) {
     }
     const commit = await commitUnit(unit, built)
     results.push({ ...built, commit })
-    if (!commit.committed) {
+    if (!commit || !commit.committed) {
       log(`STOP: manager declined to commit unit ${unit.id}. Halting.`)
       return results
     }
@@ -325,7 +327,7 @@ async function runFanOut(units) {
     }
     const commit = await commitUnit(unit, built)
     results.push({ ...built, author: authored[i], commit })
-    if (!commit.committed) {
+    if (!commit || !commit.committed) {
       log(`STOP: manager declined to commit unit ${unit.id}. Halting.`)
       return results
     }
@@ -462,6 +464,7 @@ const PHASE2 = [
 const PHASE3 = [
   {
     id: 'frontmatter-validate', agentType: SCHEMA, adversarial: true, model: 'opus',
+    authorFiles: ['src/core/frontmatter-validate.ts', 'src/core/frontmatter-validate.test.ts'],
     task: `Biggest correctness/security win: replace the 447-line awk-YAML parser in validate-frontmatter.sh with a real parser. New src/core/frontmatter-validate.ts using the existing frontmatter.ts (real \`yaml\`). Add a firewall-adjacent engine entry that consumes the hook's stdin JSON and emits the {"decision":"block","reason":...} contract. Convert scripts/validate-frontmatter.sh to a thin stdin→engine wrapper. FAIL-CLOSED: if Bun is absent at hook time, emit a block decision with an "install Bun" reason (NOT fail-open). Keep/extend tests/scripts/*.bats including the Bun-absent fail-closed path. Prove dual-run on reference-vault + minimal-vault before retiring awk logic.`,
     files: ['src/core/frontmatter-validate.ts', 'scripts/validate-frontmatter.sh', 'hooks/hooks.json'],
     dualRun: `pipe representative tool-call JSON payloads (clean + dirty frontmatter) through old scripts/validate-frontmatter.sh and the new engine entry; assert identical block/allow decisions on ${REF} + tests/fixtures/minimal-vault.`,
@@ -470,6 +473,7 @@ const PHASE3 = [
   },
   {
     id: 'firewall-twin-retire', agentType: SCHEMA, adversarial: true, model: 'opus',
+    authorFiles: ['src/core/firewall.ts'],
     task: `firewall.ts already exists and is the source of truth — retire only the bash twin. Convert scripts/firewall.sh to a thin stdin→engine wrapper (fail-closed: Bun absent ⇒ block). Then FLIP gate-11-firewall-parity from "bash-twin == engine" to "engine == checked-in golden verdict table on the fixtures" — keeping anti-drift without two implementations. Never retire the twin in a commit that changes engine behavior. Prove engine==bash on reference-vault + minimal-vault (gates green) BEFORE the flip, then delete dead bash logic.`,
     files: ['scripts/firewall.sh', 'tests/gates/gate-11-firewall-parity.sh', 'hooks/hooks.json'],
     dualRun: `run old firewall.sh vs engine firewall on the fixture write-attempts; assert identical ALLOW|BLOCK [rule] verdicts before flipping the gate to golden-snapshot.`,
@@ -478,6 +482,13 @@ const PHASE3 = [
   },
   {
     id: 'hook-gates', agentType: INGEST, adversarial: true, model: 'opus',
+    authorFiles: [
+      'src/core/hook-wikilink-check.ts',
+      'src/core/protect-raw-check.ts',
+      'src/core/attachment-check.ts',
+      'src/core/dmi-check.ts',
+      'src/core/must-rule-check.ts',
+    ],
     task: `Migrate the remaining PreToolUse Write|Edit hook gates into the engine as core/ modules consumed by a firewall-adjacent engine entry, converting each hook to a thin stdin→engine wrapper that preserves the contract exactly: read tool-call JSON from stdin, emit the block-decision JSON on stdout, exit 0 for advisory/allow. Cover: check-wikilinks.sh (HOOK half), protect-raw.sh, validate-attachments.sh, enforce-dmi.sh (PRESERVE the hard exit 2), enforce-must-rule.sh. Advisory checks fail-OPEN on internal error; security checks (protect-raw, attachments, dmi) fail-CLOSED when the engine can't run. Keep each hook's tests/scripts/*.bats (add the Bun-absent fail-closed assertion). Prove dual-run per hook before retiring bash logic.`,
     files: ['scripts/check-wikilinks.sh', 'scripts/protect-raw.sh', 'scripts/validate-attachments.sh', 'scripts/enforce-dmi.sh', 'scripts/enforce-must-rule.sh', 'hooks/hooks.json'],
     extra: 'enforce-dmi.sh MUST keep its hard exit 2 semantics. raw/ immutability (protect-raw) must stay enforced fail-closed. Do this hook-by-hook; never retire a bash twin in the same step that changes engine behavior.',
@@ -486,6 +497,129 @@ const PHASE3 = [
     commit: 'refactor(security): migrate PreToolUse hook gates into the engine (fail-closed wrappers)',
   },
 ]
+
+// ---- Phase 3 fan-out authoring: one author agent PER core module (more agents,
+// ~2x). All disjoint files, so they author in parallel; the SHARED wiring
+// (hooks.json, firewall-adjacent engine entry, gate-11) is integrated serially by
+// the PHASE3 integrate units below. ----
+const PHASE3_AUTHORS = [
+  {
+    id: 'fm-validate-core', agentType: SCHEMA, model: 'opus',
+    authorFiles: ['src/core/frontmatter-validate.ts', 'src/core/frontmatter-validate.test.ts'],
+    task: 'Author src/core/frontmatter-validate.ts — the pure validator replacing the awk-YAML parser in scripts/validate-frontmatter.sh. Parse frontmatter via the existing src/core/frontmatter.ts (real `yaml`) and return Finding[] for EVERY rule validate-frontmatter.sh enforces (required keys per page class, enum/domain checks, sources/source_quotes/derived/confidence provenance shape, schema_version). No `any`; narrow `unknown`. Colocated *.test.ts with the makeVault sandbox covering a clean page plus each dirty case the bash handled. Do NOT touch hooks.json, any bash, or any wiring — integration is a later serial step.',
+  },
+  {
+    id: 'hook-wikilink-core', agentType: INGEST, model: 'opus',
+    authorFiles: ['src/core/hook-wikilink-check.ts', 'src/core/hook-wikilink-check.test.ts'],
+    task: 'Author the HOOK-half core module for check-wikilinks.sh (the PreToolUse Write|Edit path — distinct from the already-migrated CLI half in src/core/markdown-link-check.ts; READ that for the shared shape, do not duplicate or edit it). Pure function over a single changed file’s content → Finding[] for the broken/missing wikilink rules the hook enforces. Reuse link-resolver.ts/wikilinks.ts. No `any`. Colocated test. No wiring/bash edits.',
+  },
+  {
+    id: 'protect-raw-core', agentType: INGEST, model: 'opus',
+    authorFiles: ['src/core/protect-raw-check.ts', 'src/core/protect-raw-check.test.ts'],
+    task: 'Author the core module for protect-raw.sh: given a target write path + vault root, decide ALLOW vs BLOCK — raw/ is immutable/append-only (§5 non-negotiable). Pure, returns a typed decision. SECURITY check: it must integrate FAIL-CLOSED later. No `any`. Colocated test covering raw/ write (block), wiki/ write (allow), and the sanctioned durable-memory carve-out if one exists in the current bash. No wiring/bash edits.',
+  },
+  {
+    id: 'attachment-core', agentType: INGEST, model: 'opus',
+    authorFiles: ['src/core/attachment-check.ts', 'src/core/attachment-check.test.ts'],
+    task: 'Author the core module for validate-attachments.sh: validate attachment writes per the current bash rules → typed decision/Finding. Pure. No `any`. Colocated test (allowed + each disallowed case). No wiring/bash edits.',
+  },
+  {
+    id: 'dmi-core', agentType: INGEST, model: 'opus',
+    authorFiles: ['src/core/dmi-check.ts', 'src/core/dmi-check.test.ts'],
+    task: 'Author the core module for enforce-dmi.sh → typed decision/Finding. CRITICAL: integration must preserve enforce-dmi’s HARD exit 2 semantics — encode the violation distinctly (e.g. a dedicated severity/decision) so the thin wrapper can map it to exit 2. Pure. No `any`. Colocated test. No wiring/bash edits.',
+  },
+  {
+    id: 'must-rule-core', agentType: INGEST, model: 'opus',
+    authorFiles: ['src/core/must-rule-check.ts', 'src/core/must-rule-check.test.ts'],
+    task: 'Author the core module for enforce-must-rule.sh → typed decision/Finding. Pure. No `any`. Colocated test. No wiring/bash edits.',
+  },
+]
+
+// Phase-3 serial integrate prompt: core modules are pre-authored; this wires the
+// firewall-adjacent engine entry, converts each bash gate to a thin stdin→engine
+// wrapper (contract + exit codes verbatim), proves dual-run, and retires bash.
+function phase3IntegratePrompt(unit) {
+  return [
+    `You are ${unit.agentType}, INTEGRATING already-authored Phase-3 security unit "${unit.id}" on branch ${BRANCH}.`,
+    unit.authorFiles && unit.authorFiles.length
+      ? `These core module(s) are ALREADY written and unit-tested — verify they exist and REUSE them; fix only if integration reveals a defect:\n${unit.authorFiles.map((f) => `- ${f}`).join('\n')}`
+      : '',
+    '',
+    'Do the WIRING + twin-retirement part of the unit task below: add/extend the firewall-adjacent engine entry that reads the hook stdin JSON and emits the {"decision":"block","reason":...} contract; convert each named bash script to a thin stdin→engine wrapper preserving its contract VERBATIM (stdin shape, stdout decision JSON, exit codes — enforce-dmi keeps its hard exit 2); rebuild dist/cli.js; then prove dual-run BEFORE retiring any bash logic.',
+    'FAIL-CLOSED: if Bun is absent at hook time, SECURITY gates (frontmatter, firewall, protect-raw, attachments, dmi) emit a block decision with an "install Bun" reason — never fail-open. Advisory checks fail-OPEN (exit 0) on internal error.',
+    '',
+    'FULL UNIT TASK:',
+    unit.task,
+    unit.extra ? `\nUNIT-SPECIFIC:\n${unit.extra}` : '',
+    '',
+    'GUARDRAILS:',
+    `- Read ${BRIEF} + ${PLAN}. NEVER delete a bash twin or flip a gate in the same step that changes engine behavior — prove dual-run equivalence on tests/fixtures/reference-vault + tests/fixtures/minimal-vault FIRST.`,
+    '- DO NOT run git/commit (the manager commits); format ONLY files you edit (no repo-wide `bun run format`).',
+    '- hooks.json + the firewall-adjacent engine entry are SHARED — you are the only integrator running now; keep edits minimal and additive.',
+    unit.dualRun ? `\nDUAL-RUN: ${unit.dualRun} Report bashCount/engineCount/match; set bashDeleted:true only if match:true.` : '',
+    '',
+    'Return the structured IMPL result incl dualRun.',
+  ]
+    .filter(Boolean)
+    .join('\n')
+}
+
+const halted = (results) => !results || results.length === 0 || results.some((r) => r && (r.stopped || (r.commit && r.commit.committed === false)))
+
+// Phase 3: author all core modules in PARALLEL, then integrate the three units
+// serially (stop-on-red) in safe order: frontmatter-validate → firewall-twin →
+// hook-gates (shared hooks.json / engine entry stay serialized).
+async function runPhase3FanOut() {
+  // args.skipAuthor=true reuses the on-disk, already-authored+unit-tested core
+  // modules (e.g. after a rate-limit halt mid-integration) and goes straight to
+  // serial integration — avoids re-burning tokens re-authoring proven modules.
+  if (A.skipAuthor) {
+    log(`Phase 3: skipAuthor=true — reusing the ${PHASE3_AUTHORS.length} on-disk core modules (already authored + unit-tested); going straight to serial integration (stop-on-red)`)
+  } else {
+    phase('Author')
+    log(`Phase 3: authoring ${PHASE3_AUTHORS.length} core modules in parallel: ${PHASE3_AUTHORS.map((u) => u.id).join(', ')}`)
+    const authored = await parallel(
+      PHASE3_AUTHORS.map((u) => () => agent(authorPrompt(u), { agentType: u.agentType, schema: IMPL_SCHEMA, phase: 'Author', label: `author:${u.id}`, ...(u.model ? { model: u.model } : {}) })),
+    )
+    log(`Authored ${authored.filter((a) => a && (a.status === 'done' || a.status === 'partial')).length}/${PHASE3_AUTHORS.length} modules; integrating serially (stop-on-red)`)
+  }
+
+  const results = []
+  for (const unit of pick(PHASE3)) {
+    const built = await buildUnit(unit, phase3IntegratePrompt)
+    if (!built.green) {
+      log(`STOP: Phase-3 unit ${unit.id} could not go green after ${built.repairRounds} repair round(s). Halting before later security units build on a red foundation.`)
+      results.push({ ...built, committed: false, stopped: true })
+      return results
+    }
+    const commit = await commitUnit(unit, built)
+    results.push({ ...built, commit })
+    if (!commit || !commit.committed) {
+      log(`STOP: manager declined to commit Phase-3 unit ${unit.id}. Halting.`)
+      return results
+    }
+  }
+  return results
+}
+
+// "left"/"remaining": land the clean PENDING tail in one go — Phase 2 concurrency,
+// then Phase 3 security gates (fan-out). The deferred docs item (Phase 1 #9) is
+// intentionally OUT of this chain: it is structurally blocked (Check 5 / ADR-0013
+// unported ⇒ validate-docs.sh cannot be retired). Stop-on-red between phases.
+async function runRemaining() {
+  const out = { mode: 'left', sequence: ['phase2', 'phase3'] }
+
+  log('=== Phase 2 — deterministic Promise.all concurrency in verify + lint ===')
+  out.phase2 = await runSequential(pick(PHASE2))
+  if (halted(out.phase2)) {
+    log('HALT after Phase 2 — Phase 3 NOT started. Review the red Phase-2 unit.')
+    return out
+  }
+
+  log('=== Phase 3 — hot-path security gates, fail-closed (fan-out authoring) ===')
+  out.phase3 = await runPhase3FanOut()
+  return out
+}
 
 // ===================================================================
 // DRIVER
@@ -537,7 +671,9 @@ const pick = (units) => (ONLY ? units.filter((u) => ONLY.includes(u.id)) : units
 const PARALLEL = A.parallel === true
 
 let result
-if (PHASE === 0) {
+if (PHASE === 'left' || PHASE === 'remaining') {
+  result = await runRemaining()
+} else if (PHASE === 0) {
   result = await phase0()
 } else if (PHASE === 1) {
   const units = PARALLEL ? await runFanOut(pick(PHASE1)) : await runSequential(pick(PHASE1))
@@ -546,7 +682,9 @@ if (PHASE === 0) {
   const units = await runSequential(pick(PHASE2))
   result = { phase: 2, units }
 } else if (PHASE === 3) {
-  const units = await runSequential(pick(PHASE3))
+  // Fan-out by default (6 per-module authors in parallel, then serial integrate);
+  // args.parallel=false forces the plain serial path.
+  const units = A.parallel === false ? await runSequential(pick(PHASE3)) : await runPhase3FanOut()
   result = { phase: 3, units }
 } else {
   throw new Error(`Unknown phase ${PHASE} (expected 0|1|2|3)`)
