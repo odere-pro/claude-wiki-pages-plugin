@@ -23,12 +23,39 @@ import { resolveVault } from "../../core/vault.ts";
 import { parseHookInput } from "../../core/hook-input.ts";
 import { frontmatterGate, type HookDecision } from "./frontmatter-gate.ts";
 import { firewallHookGate } from "./firewall-gate.ts";
+import { wikilinkHookGate } from "./wikilink-gate.ts";
+import { protectRawHookGate } from "./protect-raw-gate.ts";
+import { attachmentHookGate } from "./attachment-gate.ts";
+import { dmiHookGate } from "./dmi-gate.ts";
+import { mustRuleHookGate } from "./must-rule-gate.ts";
 
-/** The names of the security gates routed through the engine hook entry. */
-export type GateName = "frontmatter" | "firewall";
+/**
+ * The names of the gates routed through the engine hook entry.
+ *
+ * `frontmatter`, `firewall`, `protect-raw`, `attachments`, and `dmi` are SECURITY
+ * gates (fail-closed in their bash wrappers); `check-wikilinks` and `must-rule`
+ * are ADVISORY (fail-open). `dmi` is the lone HARD-block gate — it exits 2 via
+ * stderr, never the stdout block JSON.
+ */
+export type GateName =
+  | "frontmatter"
+  | "firewall"
+  | "check-wikilinks"
+  | "protect-raw"
+  | "attachments"
+  | "dmi"
+  | "must-rule";
 
 /** The list of gate names this entry knows (one source of truth for the CLI). */
-export const GATE_NAMES: readonly GateName[] = ["frontmatter", "firewall"] as const;
+export const GATE_NAMES: readonly GateName[] = [
+  "frontmatter",
+  "firewall",
+  "check-wikilinks",
+  "protect-raw",
+  "attachments",
+  "dmi",
+  "must-rule",
+] as const;
 
 /** Narrow an arbitrary string to a known GateName, or undefined. */
 export function resolveGateName(raw: string | undefined): GateName | undefined {
@@ -54,12 +81,26 @@ export interface RunHookOptions {
   readonly otherVaults?: readonly string[];
 }
 
-/** The structured outcome the CLI maps to stdout + exit code. */
+/** The structured outcome the CLI maps to stdout + stderr + exit code. */
 export interface HookResult {
-  /** True → the CLI prints the block JSON; false → no output. */
+  /**
+   * True → the CLI prints the `{"decision":"block","reason":…}` JSON on stdout.
+   * Only the stdout-block gates (frontmatter, firewall, check-wikilinks,
+   * protect-raw, attachments) set this; dmi/must-rule signal via stderr+exitCode.
+   */
   readonly block: boolean;
   /** The block reason, present when `block` is true. */
   readonly reason?: string;
+  /**
+   * Exit code the CLI must return. Default 0 (every PreToolUse gate exits 0 and
+   * signals a block via stdout JSON) EXCEPT `dmi`, which exits 2 on a hard block.
+   */
+  readonly exitCode: number;
+  /**
+   * Verbatim stderr text the CLI must write (the `dmi` / `must-rule` notices).
+   * "" when the gate writes nothing to stderr.
+   */
+  readonly stderr: string;
 }
 
 /**
@@ -73,6 +114,19 @@ export function runHookGate(opts: RunHookOptions): HookResult {
   const vaultName = basename(vault);
   const input = parseHookInput(opts.stdin);
 
+  // ── DMI — the lone HARD-block gate: stderr + exit 2, never a stdout block. ──
+  if (opts.gate === "dmi") {
+    const r = dmiHookGate({ input });
+    return Object.freeze({ block: false, exitCode: r.exitCode, stderr: r.stderr });
+  }
+
+  // ── must-rule — advisory: a stderr notice, always exit 0, never a block. ────
+  if (opts.gate === "must-rule") {
+    const r = mustRuleHookGate({ input });
+    return Object.freeze({ block: false, exitCode: r.exitCode, stderr: r.stderr });
+  }
+
+  // ── The stdout-block gates: block → {"decision":"block",reason}, exit 0. ────
   let decision: HookDecision;
   switch (opts.gate) {
     case "frontmatter":
@@ -86,6 +140,15 @@ export function runHookGate(opts: RunHookOptions): HookResult {
         cwd: opts.cwd,
       });
       break;
+    case "check-wikilinks":
+      decision = wikilinkHookGate({ vaultName, input });
+      break;
+    case "protect-raw":
+      decision = protectRawHookGate({ vault, vaultName, input });
+      break;
+    case "attachments":
+      decision = attachmentHookGate({ input });
+      break;
     default:
       // Exhaustive: GateName has no other members. Allow rather than throw so a
       // future-gate typo can never turn into a fail-open security hole here.
@@ -93,6 +156,6 @@ export function runHookGate(opts: RunHookOptions): HookResult {
   }
 
   return decision.block
-    ? Object.freeze({ block: true, reason: decision.reason })
-    : Object.freeze({ block: false });
+    ? Object.freeze({ block: true, reason: decision.reason, exitCode: 0, stderr: "" })
+    : Object.freeze({ block: false, exitCode: 0, stderr: "" });
 }

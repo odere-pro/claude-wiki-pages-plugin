@@ -653,7 +653,9 @@ async function main(): Promise<number> {
   if (command === "hook") {
     const gateName = resolveGateName(gate);
     if (gateName === undefined) {
-      process.stderr.write(`hook: --gate <name> is required (known: frontmatter, firewall)\n`);
+      process.stderr.write(
+        `hook: --gate <name> is required (known: frontmatter, firewall, check-wikilinks, protect-raw, attachments, dmi, must-rule)\n`,
+      );
       return 2;
     }
     const stdin = await readStdin();
@@ -661,10 +663,16 @@ async function main(): Promise<number> {
       ? otherVaults.split(":").filter((v) => v.length > 0)
       : [];
     const result = runHookGate({ gate: gateName, stdin, target, otherVaults: otherVaultsList });
+    // Stdout block JSON (frontmatter/firewall/check-wikilinks/protect-raw/attachments).
     if (result.block && result.reason !== undefined) {
       process.stdout.write(JSON.stringify({ decision: "block", reason: result.reason }) + "\n");
     }
-    return 0;
+    // Stderr notice (dmi hard-block, must-rule advisory) written verbatim.
+    if (result.stderr !== "") {
+      process.stderr.write(result.stderr);
+    }
+    // Exit code: 0 for every gate except a dmi hard block (2).
+    return result.exitCode;
   }
 
   if (command === "firewall") {

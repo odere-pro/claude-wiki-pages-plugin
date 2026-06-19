@@ -6,35 +6,30 @@
 # unenforced rule is a polite request, not a guarantee. Non-blocking by design:
 # this hook only warns and ALWAYS exits 0, so it never interrupts an edit.
 #
-# Path-filtered inside the script (the hook matcher is the broad Write|Edit|
+# Phase 3 (hook-gates): the decision authority is now the Bun engine
+# (src/core/must-rule-check.ts via `engine hook --gate must-rule`). This script
+# is a thin stdin→engine wrapper that preserves the hook contract VERBATIM: the
+# engine writes the two-line `[enforce-must-rule] …` notice to STDERR (with the
+# same per-line must/never/always count) and always returns exit 0.
+#
+# Path-filtered inside the engine (the hook matcher is the broad Write|Edit|
 # MultiEdit), so it is a no-op for any file that is not a CLAUDE.md.
 #
+# FAIL-OPEN (ADVISORY gate): this is not a security boundary. When Bun is absent
+# we simply skip the advisory notice and exit 0 — the write always proceeds.
+#
 # Exit codes: 0 = always (warning only; never blocks).
-
 set -euo pipefail
 
-# Read tool input from stdin (Claude passes it as JSON).
 INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-FILE_PATH=$(printf '%s' "$INPUT" | bun "$SCRIPT_DIR/json-tool.ts" field tool_input.file_path 2>/dev/null || true)
 
-# Only act on CLAUDE.md files; no-op otherwise.
-case "$FILE_PATH" in
-  */CLAUDE.md | CLAUDE.md) ;;
-  *) exit 0 ;;
-esac
-
-# Inspect only the text being written/added: `content` for Write, `new_string`
-# for Edit. MultiEdit (no single content/new_string) falls through to a no-op so
-# we never warn on edits whose added text we cannot see.
-NEW=$(printf '%s' "$INPUT" | bun "$SCRIPT_DIR/json-tool.ts" field tool_input.content tool_input.new_string 2>/dev/null || true)
-[[ -z "$NEW" ]] && exit 0
-
-# Heuristic: count imperative rule words in the added text.
-RULE_HITS=$(printf '%s' "$NEW" | grep -ciE '\b(must|never|always)\b' || true)
-if [[ "$RULE_HITS" -gt 0 ]]; then
-  echo "[enforce-must-rule] note: this CLAUDE.md edit adds ${RULE_HITS} imperative 'must/never/always' line(s)." >&2
-  echo "[enforce-must-rule] If any is a hard rule, back it with a PreToolUse/Stop hook or a CI check — an unenforced rule is advisory only." >&2
+if ! command -v bun >/dev/null 2>&1; then
+  # Advisory: fail OPEN — skip the notice, never block.
+  exit 0
 fi
 
+# Pipe the ORIGINAL stdin to the engine entry. The engine writes the advisory
+# stderr notice when applicable and always returns exit 0.
+printf '%s' "$INPUT" | bash "$SCRIPT_DIR/engine.sh" hook --gate must-rule
 exit 0

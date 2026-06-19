@@ -179,3 +179,40 @@ MD
   assert_success
   assert_output_empty
 }
+
+# ── Phase 3: Bun-absent fail-CLOSED (hook-gates) ──────────────────────────────
+# A non-text source with a missing/dangling attachment is a provenance-integrity
+# failure, so this SECURITY gate BLOCKS when Bun is absent — scoped to in-scope
+# source notes (<vault>/wiki/_sources/*.md). Other paths still pass.
+
+_path_without_bun_va() {
+  local tooldir="$BATS_TEST_TMPDIR/nobun-bin"
+  mkdir -p "$tooldir"
+  local t src
+  for t in bash jq cat grep sed dirname basename env awk tr head find; do
+    src=$(command -v "$t" 2>/dev/null || true)
+    [ -n "$src" ] && ln -sf "$src" "$tooldir/$t"
+  done
+  printf '%s' "$tooldir"
+}
+
+@test "validate-attachments: FAIL-CLOSED — Bun absent blocks a source-note write" {
+  local tooldir
+  tooldir=$(_path_without_bun_va)
+  run bash -c "PATH='$tooldir' command -v bun"
+  assert_status 1
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test-project/vault/wiki/_sources/img.md","content":"---\ntype: source\nsource_format: image\n---\n# I"}}'
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/validate-attachments.sh'"
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "Bun is required"
+}
+
+@test "validate-attachments: FAIL-CLOSED — Bun absent passes through non-source paths" {
+  local tooldir
+  tooldir=$(_path_without_bun_va)
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test-project/vault/wiki/topics/x.md","content":"x"}}'
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/validate-attachments.sh'"
+  assert_success
+  assert_output_empty
+}

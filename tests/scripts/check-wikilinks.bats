@@ -139,3 +139,30 @@ MD
   # The offending fragment must be present in the reason so the author can find it.
   assert_output_contains "sample-entity.md"
 }
+
+# ── Phase 3: Bun-absent fail-OPEN (hook-gates) ────────────────────────────────
+# check-wikilinks is an ADVISORY style gate, not a security boundary. When Bun is
+# absent the wrapper must fail OPEN — let the write THROUGH (exit 0, no block) —
+# the opposite of the security gates. Simulate Bun-absence by shadowing PATH.
+
+_path_without_bun_cw() {
+  local tooldir="$BATS_TEST_TMPDIR/nobun-bin"
+  mkdir -p "$tooldir"
+  local t src
+  for t in bash jq cat grep sed dirname basename env awk tr head find; do
+    src=$(command -v "$t" 2>/dev/null || true)
+    [ -n "$src" ] && ln -sf "$src" "$tooldir/$t"
+  done
+  printf '%s' "$tooldir"
+}
+
+@test "check-wikilinks: FAIL-OPEN — Bun absent lets a markdown-link wiki write through" {
+  local tooldir
+  tooldir=$(_path_without_bun_cw)
+  run bash -c "PATH='$tooldir' command -v bun"
+  assert_status 1
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test-project/vault/wiki/topics/x.md","content":"---\ntitle: X\n---\nSee [the page](other.md)."}}'
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/check-wikilinks.sh'"
+  assert_success
+  assert_output_empty
+}

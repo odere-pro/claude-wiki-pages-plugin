@@ -397,3 +397,43 @@ HEREDOC
   assert_success
   assert_output_empty
 }
+
+# ── Phase 3: Bun-absent fail-CLOSED (hook-gates) ──────────────────────────────
+# raw/ immutability is a SECURITY boundary. When Bun is absent the wrapper must
+# BLOCK any write the gate would have guarded (a target under <vault>/raw/) with
+# an install-Bun reason — never fail-open. Scoped: non-raw paths still pass.
+
+_path_without_bun_pr() {
+  local tooldir="$BATS_TEST_TMPDIR/nobun-bin"
+  mkdir -p "$tooldir"
+  local t src
+  for t in bash jq cat grep sed dirname basename env awk tr head find pwd; do
+    src=$(command -v "$t" 2>/dev/null || true)
+    [ -n "$src" ] && ln -sf "$src" "$tooldir/$t"
+  done
+  printf '%s' "$tooldir"
+}
+
+@test "protect-raw: FAIL-CLOSED — Bun absent blocks a raw/ write with install-Bun reason" {
+  local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw"
+  mkdir -p "$vault_dir"
+  local tooldir
+  tooldir=$(_path_without_bun_pr)
+  run bash -c "PATH='$tooldir' command -v bun"
+  assert_status 1
+  local json
+  json="{\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"$vault_dir/paper.md\",\"old_string\":\"a\",\"new_string\":\"b\"}}"
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/protect-raw.sh'"
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "Bun is required"
+}
+
+@test "protect-raw: FAIL-CLOSED — Bun absent still passes through non-raw paths" {
+  local tooldir
+  tooldir=$(_path_without_bun_pr)
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/elsewhere/notes.md","content":"x"}}'
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/protect-raw.sh'"
+  assert_success
+  assert_output_empty
+}
