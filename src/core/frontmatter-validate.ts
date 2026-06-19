@@ -360,6 +360,57 @@ export function validateContent(
 // ── Public vault-level validator (CLI/lint composition) ──────────────────────
 
 /**
+ * The per-page validation outcome — one entry for EVERY `*.md` page under
+ * `<vault>/wiki/`, conformant or not. This is the per-file granularity the bash
+ * CLI plain-text mode emitted (`validate-frontmatter.sh`'s green/red loop printed
+ * one `OK:`/`ERROR:` line per page), which `validateFrontmatter` collapses to
+ * failures-only. Consumers that count one line per page — e.g.
+ * `scripts/eval-ingest-extract.sh:_score_schema` — need the full list.
+ */
+export interface FrontmatterFileResult {
+  /** Wiki-relative path (POSIX separators), e.g. "topics/biology/photosynthesis.md". */
+  readonly file: string;
+  /** True when the page is fully conformant (no violation). */
+  readonly ok: boolean;
+  /** The first violation message, or null when `ok` is true. */
+  readonly message: string | null;
+}
+
+/**
+ * Validate every `*.md` page under `<vault>/wiki/`, returning ONE result per
+ * page (pass and fail), in the deterministic sorted order of
+ * `listMarkdownRecursive`. This is the per-file granularity the bash CLI
+ * plain-text mode emitted; `validateFrontmatter` derives its failures-only
+ * findings from this list, so there is a single vault walk (DRY).
+ *
+ * A missing `wiki/` directory yields `[]`.
+ */
+export function validateFrontmatterFiles(
+  vault: string,
+  schemaPath?: string,
+): FrontmatterFileResult[] {
+  const wiki = join(vault, "wiki");
+  if (!existsSync(wiki)) return [];
+
+  const resolvedSchema = schemaPath ?? join(vault, "CLAUDE.md");
+  const results: FrontmatterFileResult[] = [];
+
+  for (const absPath of listMarkdownRecursive(wiki)) {
+    const content = readFileSafe(absPath);
+    if (content === null) continue;
+    // wiki-relative path (POSIX separators) for the path check + file field.
+    const wikiRelative = absPath
+      .slice(wiki.length + 1)
+      .split(/[\\/]/)
+      .join("/");
+    const message = validateContent(wikiRelative, content, resolvedSchema);
+    results.push({ file: wikiRelative, ok: message === null, message });
+  }
+
+  return results;
+}
+
+/**
  * Validate every `*.md` page under `<vault>/wiki/`, returning one error-severity
  * `Finding` per non-conformant page (mirrors the bash CLI/JSON mode, which
  * emits one finding per failing file). The `file` field carries the
@@ -374,32 +425,14 @@ export function validateContent(
  *                    `<vault>/CLAUDE.md`.
  */
 export function validateFrontmatter(vault: string, schemaPath?: string): Finding[] {
-  const wiki = join(vault, "wiki");
-  if (!existsSync(wiki)) return [];
-
-  const resolvedSchema = schemaPath ?? join(vault, "CLAUDE.md");
-  const findings: Finding[] = [];
-
-  for (const absPath of listMarkdownRecursive(wiki)) {
-    const content = readFileSafe(absPath);
-    if (content === null) continue;
-    // wiki-relative path (POSIX separators) for the path check + file field.
-    const wikiRelative = absPath
-      .slice(wiki.length + 1)
-      .split(/[\\/]/)
-      .join("/");
-    const message = validateContent(wikiRelative, content, resolvedSchema);
-    if (message !== null) {
-      findings.push({
-        severity: "error",
-        check: FRONTMATTER_CHECK,
-        message,
-        file: wikiRelative,
-      });
-    }
-  }
-
-  return findings;
+  return validateFrontmatterFiles(vault, schemaPath)
+    .filter((r) => !r.ok && r.message !== null)
+    .map((r) => ({
+      severity: "error" as const,
+      check: FRONTMATTER_CHECK,
+      message: r.message as string,
+      file: r.file,
+    }));
 }
 
 // Re-export for callers that compose the list-coercion in their own findings.

@@ -31,6 +31,7 @@ import { route } from "../commands/route/route.ts";
 import { context, renderContextText } from "../commands/context/context.ts";
 import { okf } from "../commands/okf/okf.ts";
 import { runHookGate, resolveGateName } from "../commands/hook/hook.ts";
+import { frontmatterCli } from "../commands/hook/frontmatter-cli.ts";
 
 // ── One CAPABILITIES table — single source of truth (ADR-0015 N1, N2) ─────────
 //
@@ -189,6 +190,13 @@ interface ParsedArgs {
   readonly minTagUsage: number | undefined;
   /** hook: which security gate to run (e.g. "frontmatter"). */
   readonly gate: string | undefined;
+  /**
+   * hook --gate frontmatter --cli: batch-validate every page under
+   * `<vault>/wiki/` (the CLI/JSON mode of validate-frontmatter.sh) instead of
+   * reading one PreToolUse write from stdin. Emits the `{"findings":[…]}`
+   * envelope (with --json) or a human summary, exit 0/1/2.
+   */
+  readonly cli: boolean;
 }
 
 /**
@@ -226,6 +234,7 @@ class ParsedArgsBuilder {
   private rawCheck: string | undefined = undefined;
   private rawMinTagUsage: string | undefined = undefined;
   private gate: string | undefined = undefined;
+  private cli = false;
 
   setJson(): this {
     this.json = true;
@@ -323,6 +332,10 @@ class ParsedArgsBuilder {
     this.gate = v;
     return this;
   }
+  setCli(): this {
+    this.cli = true;
+    return this;
+  }
   /**
    * Accept a bare (non-flag) positional token. The first bare token becomes
    * `command`; the second becomes `sub`. Subsequent bare tokens are ignored
@@ -375,6 +388,7 @@ class ParsedArgsBuilder {
             : undefined
           : undefined,
       gate: this.gate,
+      cli: this.cli,
     });
   }
 }
@@ -437,7 +451,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     } else if (a === "--gate") {
       const v = argv[++i];
       if (v) b.setGate(v);
-    } else if (a && !a.startsWith("-")) b.addPositional(a);
+    } else if (a === "--cli") b.setCli();
+    else if (a && !a.startsWith("-")) b.addPositional(a);
   }
   return b.build();
 }
@@ -511,6 +526,7 @@ async function main(): Promise<number> {
     tree,
     clean,
     gate,
+    cli,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -658,6 +674,50 @@ async function main(): Promise<number> {
       );
       return 2;
     }
+
+    // CLI batch mode (frontmatter only) — replaces the awk validate_content loop
+    // in scripts/validate-frontmatter.sh's `--target [--json]` modes
+    // (frontmatter-cli-retire, tmp/migration-plan.md "What is left" #2). Validate
+    // every page under <vault>/wiki/ and emit the {"findings":[…]} envelope
+    // (--json) or a human summary. Exit 2 (bad target) when wiki/ is absent, 1
+    // when any page fails, else 0 — the bash CLI contract verbatim.
+    if (cli) {
+      if (gateName !== "frontmatter") {
+        process.stderr.write(`hook --cli: only --gate frontmatter is supported\n`);
+        return 2;
+      }
+      const resolvedVault = target ?? "";
+      if (resolvedVault === "") {
+        process.stderr.write(`hook --cli: --target <vault> is required\n`);
+        return 2;
+      }
+      const result = frontmatterCli({ vault: resolvedVault });
+      if (result.missingWiki) {
+        // Bad target: the bash CLI emits {"findings":[]} (json) and exits 2.
+        if (json) process.stdout.write(`{"findings":[]}\n`);
+        return 2;
+      }
+      const errors = result.findings.length;
+      if (json) {
+        process.stdout.write(JSON.stringify({ findings: result.findings }) + "\n");
+      } else {
+        // Plain-text mode: one OK:/ERROR: line PER wiki page (the bash green/red
+        // loop contract), not a single vault-level summary. Line-counting
+        // consumers (scripts/eval-ingest-extract.sh:_score_schema, which requires
+        // one ".md" line per page) depend on the per-file granularity
+        // (frontmatter-cli-retire regression fix). The trailing summary line is
+        // retained for the human reader.
+        for (const f of result.files) {
+          if (f.ok) process.stdout.write(`OK:    ${f.file}\n`);
+          else process.stdout.write(`ERROR: ${f.file} — ${f.message ?? ""}\n`);
+        }
+        process.stdout.write(`\n`);
+        if (errors > 0) process.stdout.write(`Errors:   ${errors}\n`);
+        else process.stdout.write(`OK:    All frontmatter valid\n`);
+      }
+      return errors > 0 ? 1 : 0;
+    }
+
     const stdin = await readStdin();
     const otherVaultsList: readonly string[] = otherVaults
       ? otherVaults.split(":").filter((v) => v.length > 0)

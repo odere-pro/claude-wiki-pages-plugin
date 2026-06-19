@@ -21,6 +21,21 @@ by a real parser while the hook contract is preserved verbatim.
 - `--other-vaults <a:b:c>` — colon-separated sibling registered-vault roots; used
   only by the `firewall` gate (cross-vault confinement). The bash wrapper derives
   them from the registry (or `CLAUDE_WIKI_PAGES_OTHER_VAULTS`), fail-closed.
+- `--cli` — batch mode for `--gate frontmatter` only: instead of reading one
+  PreToolUse write from stdin, validate every page under `<vault>/wiki/` and emit
+  the `{"findings":[…]}` envelope (with `--json`) or, in plain-text mode, **one
+  `OK:    <relpath>.md` / `ERROR: <relpath>.md — <msg>` line per wiki page**
+  followed by a `Errors:   N` / `OK:    All frontmatter valid` summary. The
+  per-file line format is load-bearing: line-counting consumers (notably
+  `scripts/eval-ingest-extract.sh:_score_schema`, which counts one `.md` line per
+  page) depend on it — a single vault-level summary would read as zero pages. Exit
+  `2` when `wiki/` is absent (bad target), `1` when any page fails, else `0`. This is
+  the engine half of `scripts/validate-frontmatter.sh`'s CLI `--target [--json]`
+  modes (frontmatter-cli-retire, tmp/migration-plan.md "What is left" #2);
+  [`frontmatter-cli.ts`](./frontmatter-cli.ts) composes the same per-page rules
+  ([`../../core/frontmatter-validate.ts`](../../core/frontmatter-validate.ts)) and
+  the same bundled-template fallback ([`resolveSchemaFile`](./frontmatter-gate.ts))
+  the hook gate uses — one mechanism, no second copy.
 
 ## Contract (preserved verbatim from the bash hooks)
 

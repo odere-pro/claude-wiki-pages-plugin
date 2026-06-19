@@ -1087,3 +1087,38 @@ _path_without_bun() {
   assert_success
   assert_output_empty
 }
+
+# --- frontmatter-cli-retire: CLI mode delegates to the engine, fail-closed ----
+# The CLI `--target [--json]` path is now a thin wrapper over
+# `engine hook --gate frontmatter --cli`. When Bun is absent the CLI cannot
+# validate, so it exits 2 (cannot validate) — never a silent pass.
+
+@test "validate-frontmatter: CLI --json delegates to engine (clean vault → empty findings)" {
+  run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" \
+    --target "$REPO_ROOT/tests/fixtures/minimal-vault" --json
+  assert_success
+  assert_output_contains '"findings":[]'
+}
+
+@test "validate-frontmatter: CLI --json FAIL-CLOSED — Bun absent exits 2 with empty envelope" {
+  local tooldir
+  tooldir=$(_path_without_bun)
+  # Sanity: bun must be unreachable on the curated PATH.
+  run bash -c "PATH='$tooldir' command -v bun"
+  assert_status 1
+
+  run bash -c "export PATH='$tooldir'; '$tooldir/bash' '$REPO_ROOT/scripts/validate-frontmatter.sh' --target '$REPO_ROOT/tests/fixtures/minimal-vault' --json"
+
+  assert_status 2
+  assert_output_contains '"findings":[]'
+}
+
+@test "validate-frontmatter: CLI (plain) FAIL-CLOSED — Bun absent exits 2 with install-Bun message" {
+  local tooldir
+  tooldir=$(_path_without_bun)
+
+  run bash -c "export PATH='$tooldir'; '$tooldir/bash' '$REPO_ROOT/scripts/validate-frontmatter.sh' --target '$REPO_ROOT/tests/fixtures/minimal-vault'"
+
+  assert_status 2
+  assert_output_contains "Bun is required"
+}

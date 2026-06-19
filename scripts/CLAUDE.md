@@ -80,6 +80,10 @@ run top to bottom and the first block short-circuits the write.
   isolation from the registry.
 - [`validate-frontmatter.sh`](./validate-frontmatter.sh) — block wiki writes
   missing required frontmatter (rules single-sourced from the schema table).
+  Since frontmatter-cli-retire it is a thin wrapper: the hook path pipes stdin to
+  `engine hook --gate frontmatter`, and the CLI `--target [--json]` path delegates
+  to `engine hook --gate frontmatter --cli` — the awk-YAML parser is fully
+  retired. Both fail-closed when Bun is absent.
 - [`check-wikilinks.sh`](./check-wikilinks.sh) — block `[text](file.md)` where
   a `[[wikilink]]` is required.
 - [`protect-raw.sh`](./protect-raw.sh) — block edits to existing `raw/` files

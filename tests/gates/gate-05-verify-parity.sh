@@ -1,12 +1,21 @@
 #!/bin/bash
 # Gate 05 — the Bun engine `verify` agrees with bash verify-ingest.sh on the
-# reference vault (the parity invariant that keeps the TS port honest).
+# reference vault (the parity invariant that keeps the TS port honest), plus a
+# GOLDEN-SNAPSHOT anti-drift check on `engine verify --json`.
 #
 # Rows:
-#   1. verify-ingest.sh vs engine verify  (original row)
-#   2. validate-frontmatter.sh --json vs engine verify --json  (P3.5 parity row)
-#      Both rows run on the minimal-vault fixture (tests/fixtures/minimal-vault)
-#      which is clean and produces 0 errors / 0 warnings on both paths.
+#   1. verify-ingest.sh vs engine verify  (the byte-aligned twin; reference vault).
+#   2. engine verify --json == checked-in GOLDEN errors,warnings on BOTH fixtures
+#      (tests/fixtures/reference-vault + tests/fixtures/minimal-vault).
+#
+# Row 2 history: it used to compare `validate-frontmatter.sh --json` against
+# `engine verify --json`. Since frontmatter-cli-retire (tmp/migration-plan.md
+# "What is left" #2) validate-frontmatter.sh's CLI `--json` path is a THIN
+# wrapper over `engine hook --gate frontmatter --cli` — so that comparison
+# became engine==engine (vacuous). The row is now a GOLDEN-SNAPSHOT: the engine's
+# verify counts on the two fixtures are pinned to a checked-in table, preserving
+# the anti-drift protection without two implementations (the same flip applied to
+# gate-11-firewall-parity after firewall-twin-retire).
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT" || exit 2
@@ -29,39 +38,36 @@ else
   FAIL=1
 fi
 
-# ── Row 2: validate-frontmatter.sh --json vs engine verify --json ────────────
-# Both are run against the minimal-vault fixture (tests/fixtures/minimal-vault),
-# which is guaranteed clean (0 errors, 0 warnings).  The parity check compares
-# the count of error-severity findings and warn-severity findings extracted from
-# each JSON output so the two tools agree field-for-field on that fixture.
-#
-# Extraction uses bun (the one runtime this whole suite already requires; no jq
-# needed on this side since validate-frontmatter.sh emits json via bash/printf).
-FIXTURE="tests/fixtures/minimal-vault"
+# ── Row 2: GOLDEN-SNAPSHOT — engine verify --json on both fixtures ────────────
+# The checked-in golden "errors,warnings" pair for each fixture. Both fixtures
+# are maintained clean (0 errors, 0 warnings) so any new engine check that moves
+# a verdict on them turns this gate red — the anti-drift guarantee. Update these
+# goldens deliberately (in the same commit as the check change) when intended.
+golden_for() {
+  case "$1" in
+    "tests/fixtures/reference-vault") echo "0,0" ;;
+    "tests/fixtures/minimal-vault") echo "0,0" ;;
+    *) echo "UNKNOWN" ;;
+  esac
+}
 
-fm_json="$(bash scripts/validate-frontmatter.sh --target "$FIXTURE" --json 2>/dev/null)"
-eng_json="$(bun src/cli/cli.ts verify --target "$FIXTURE" --json 2>/dev/null)"
+check_golden() {
+  local fixture="$1" golden actual
+  golden="$(golden_for "$fixture")"
+  actual="$(bun src/cli/cli.ts verify --target "$fixture" --json 2>/dev/null | bun -e '
+const r = JSON.parse(await Bun.stdin.text());
+process.stdout.write(`${r.errors || 0},${r.warnings || 0}`);
+')"
+  if [ "$actual" = "$golden" ]; then
+    echo "OK row2: engine verify --json == golden ($actual) on $fixture"
+  else
+    echo "FAIL row2: engine verify --json=$actual golden=$golden on $fixture"
+    FAIL=1
+  fi
+}
 
-fm_counts="$(printf '%s' "$fm_json" | bun -e "
-const data = JSON.parse(await Bun.stdin.text());
-const findings = data.findings || [];
-const errors = findings.filter((f) => f.severity === 'error').length;
-const warnings = findings.filter((f) => f.severity === 'warn').length;
-process.stdout.write(errors + ',' + warnings);
-")"
-
-eng_fm_counts="$(printf '%s' "$eng_json" | bun -e "
-// engine verify --json returns top-level errors/warnings counts
-const data = JSON.parse(await Bun.stdin.text());
-process.stdout.write((data.errors || 0) + ',' + (data.warnings || 0));
-")"
-
-if [ "$fm_counts" = "$eng_fm_counts" ]; then
-  echo "OK row2: validate-frontmatter.sh --json == engine verify --json ($fm_counts) on minimal-vault"
-else
-  echo "FAIL row2: validate-frontmatter.sh --json=$fm_counts engine verify --json=$eng_fm_counts"
-  FAIL=1
-fi
+check_golden "tests/fixtures/reference-vault"
+check_golden "tests/fixtures/minimal-vault"
 
 if [ "$FAIL" -eq 0 ]; then
   exit 0

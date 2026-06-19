@@ -151,8 +151,12 @@ function hasRequiredFieldsHeading(schemaFile: string): boolean {
  * `_resolve_schema_file`: the vault's CLAUDE.md when it carries the heading,
  * else the bundled template. Returns null when neither does (caller fails
  * closed — validateContent itself also fails closed on an absent table).
+ *
+ * Exported so the CLI batch validator (frontmatter-cli.ts) reuses the exact
+ * same resolution + bundled-template fallback as the hook gate — one mechanism,
+ * no second copy of the fallback logic (TEAM-BRIEF §5 DRY / single-sourcing).
  */
-function resolveSchemaFile(vault: string, bundled: string): string | null {
+export function resolveSchemaFile(vault: string, bundled: string): string | null {
   const vaultSchema = `${vault.replace(/\/+$/, "")}/CLAUDE.md`;
   if (hasRequiredFieldsHeading(vaultSchema)) return vaultSchema;
   if (hasRequiredFieldsHeading(bundled)) return bundled;
