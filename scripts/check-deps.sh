@@ -3,12 +3,21 @@
 # Used by the SessionStart hook and by /claude-wiki-pages:status.
 #
 # Exit 0 = all deps present. Exit 1 = one or more missing.
+#
+# Bun is a REQUIRED dependency (not merely recommended). Without it, the
+# deterministic engine (verify/fix/heal/doctor/config), the JSON helper
+# scripts (json-tool.ts, settings-tool.ts), and all git-checkpointed
+# self-heal flows are disabled. A bare box with no Bun cannot run any
+# engine verb or the Phase-3 fail-closed hook guards. This check is the
+# groundwork for Phase-3 fail-closed hooks — it surfaces the gap loudly
+# so operators provision Bun before enabling stricter enforcement.
 
 set -euo pipefail
 
 MISSING=0
 
 red() { printf '\033[0;31mMISSING:\033[0m %s\n' "$1"; }
+error() { printf '\033[0;31mERROR:\033[0m %s\n' "$1"; }
 green() { printf '\033[0;32mOK:\033[0m %s\n' "$1"; }
 hint() { printf '        %s\n' "$1"; }
 
@@ -22,6 +31,28 @@ else
     Linux*) hint "Install: sudo apt-get install jq  # or your distro equivalent" ;;
     *) hint "Install jq from https://stedolan.github.io/jq/download/" ;;
   esac
+  MISSING=$((MISSING + 1))
+fi
+
+# ─── bun >= 1.2 (REQUIRED) ──────────────────────────────────────────────────
+# Bun is required for the deterministic engine (verify/fix/heal/doctor/config),
+# the JSON helper scripts (json-tool.ts, settings-tool.ts),
+# and all git-checkpointed self-heal flows. Without it none of the engine
+# verbs run — bash hooks still enforce the schema, but structural repair,
+# the config command, and all Phase-3 fail-closed guards are disabled.
+# Install path: curl -fsSL https://bun.sh/install | bash  (then restart the
+# terminal so PATH picks up ~/.bun/bin).
+if command -v bun >/dev/null 2>&1; then
+  green "bun ($(bun --version 2>/dev/null || echo 'unknown'))"
+else
+  error "Bun is required — install via: curl -fsSL https://bun.sh/install | bash"
+  case "$(uname -s)" in
+    Darwin*) hint "macOS: curl -fsSL https://bun.sh/install | bash  OR  brew install oven-sh/bun/bun" ;;
+    Linux*) hint "Linux: curl -fsSL https://bun.sh/install | bash" ;;
+    *) hint "See https://bun.sh/install for your platform" ;;
+  esac
+  hint "After install, restart your terminal (or run: source ~/.bashrc) so PATH includes ~/.bun/bin"
+  hint "Then re-run this check: bash scripts/check-deps.sh"
   MISSING=$((MISSING + 1))
 fi
 

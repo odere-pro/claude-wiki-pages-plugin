@@ -88,6 +88,7 @@ bash tests/run-tests.sh --list all      # print the commands without running the
 - `bats-core` (the test runner)
 - `jq` (used by every hook script and most tests)
 - `git` (used by `tests/scripts/validate-docs.bats` for isolated repos)
+- `bun` (the engine runtime — Tier 0's `validate-docs.sh` is now a thin wrapper over `engine lint --check docs` and fail-closes without it; also required by several Tier 1 suites)
 - Optional Tier 0 tools: `shellcheck`, `shfmt`, `markdownlint-cli2`, `lychee`, `gitleaks`, plus `yq` and `check-jsonschema` via pip.
 
 Install on macOS:

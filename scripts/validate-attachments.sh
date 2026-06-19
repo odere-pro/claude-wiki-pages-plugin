@@ -1,78 +1,43 @@
 #!/bin/bash
 # PreToolUse: blocks writes to vault/wiki/_sources/ when source_format != text
 # but attachment_path is missing or the referenced file does not exist.
+#
+# Phase 3 (hook-gates): the decision authority is now the Bun engine
+# (src/core/attachment-check.ts via `engine hook --gate attachments`). This script
+# is a thin stdin→engine wrapper that preserves the hook contract VERBATIM:
+#   - reads the PreToolUse tool JSON from stdin,
+#   - emits {"decision":"block","reason":…} on stdout for a blocked write,
+#   - ALWAYS exits 0 (a non-zero hook exit is a harness error, not a policy block).
+# The engine reconstructs the post-operation content (Write content; Edit = disk
+# content with old_string→new_string applied) and validates the attachment.
+#
+# FAIL-CLOSED (the Phase-3 safety upgrade): a non-text source with a missing or
+# dangling attachment is a provenance-integrity failure, so this SECURITY gate
+# BLOCKS when Bun is absent — scoped to in-scope source notes
+# (<vault>/wiki/_sources/*.md) so a missing-Bun box does not block unrelated edits.
 set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
+# shellcheck source=lib-validate-gate.sh
+source "$(dirname "$0")/lib-validate-gate.sh"
 VAULT=$(resolve_vault)
 VAULT_NAME=$(basename "$VAULT")
 
 INPUT=$(cat)
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // empty')
 
-# Only validate source notes
-case "$FILE_PATH" in
-  */${VAULT_NAME}/wiki/_sources/*.md) ;;
-  *) exit 0 ;;
-esac
-
-TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
-
-# Resolve vault root (the parent of wiki/).
-VAULT_ROOT=$(echo "$FILE_PATH" | sed 's|/wiki/_sources/.*||')
-
-# Extract the frontmatter block that will be on disk after the operation.
-# For Write: use the tool_input content.
-# For Edit: read the existing file (the edit has not been applied yet), then
-# apply old_string → new_string in memory so we validate the post-edit state.
-CONTENT=""
-if [ "$TOOL" = "Write" ]; then
-  CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
-elif [ "$TOOL" = "Edit" ]; then
-  [ -f "$FILE_PATH" ] || exit 0
-  OLD=$(echo "$INPUT" | jq -r '.tool_input.old_string // empty')
-  NEW=$(echo "$INPUT" | jq -r '.tool_input.new_string // empty')
-  ORIG=$(cat "$FILE_PATH")
-  if [ -n "$OLD" ]; then
-    # Literal replace using awk to avoid regex surprises in sed.
-    CONTENT=$(printf '%s' "$ORIG" | awk -v o="$OLD" -v n="$NEW" '
-      BEGIN { RS = "\0" }
-      { sub(o, n); printf "%s", $0 }
-    ')
-  else
-    CONTENT="$ORIG"
-  fi
-else
+if ! command -v bun >/dev/null 2>&1; then
+  # Fail-closed, but SCOPED: only block in-scope source-note writes
+  # (<vault>/wiki/_sources/*.md). Other paths pass through.
+  FILE_PATH=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // empty' 2>/dev/null || true)
+  case "$FILE_PATH" in
+    */"${VAULT_NAME}"/wiki/_sources/*.md)
+      emit_block_decision "attachments gate: Bun is required to validate source-note attachments but was not found. Install Bun from https://bun.sh, then retry the write. (Security gate fails closed — the write is blocked until the attachment check can run.)"
+      ;;
+  esac
   exit 0
 fi
 
-[ -z "$CONTENT" ] && exit 0 || true
-
-# Extract frontmatter (between first pair of ---)
-FRONTMATTER=$(echo "$CONTENT" | awk 'NR==1 && /^---$/{n++; next} /^---$/{exit} n{print}')
-[ -z "$FRONTMATTER" ] && exit 0 || true
-
-SOURCE_FORMAT=$(echo "$FRONTMATTER" | grep '^source_format:' | sed 's/^source_format: *//' | tr -d '"'"'" | xargs || true)
-
-# Default is text — nothing to enforce.
-if [ -z "$SOURCE_FORMAT" ] || [ "$SOURCE_FORMAT" = "text" ]; then
-  exit 0
-fi
-
-ATTACHMENT_PATH=$(echo "$FRONTMATTER" | grep '^attachment_path:' | sed 's/^attachment_path: *//' | tr -d '"'"'" | xargs || true)
-
-if [ -z "$ATTACHMENT_PATH" ]; then
-  echo "{\"decision\":\"block\",\"reason\":\"source note has source_format: ${SOURCE_FORMAT} but no attachment_path. Add attachment_path pointing to the file under raw/assets/.\"}"
-  exit 0
-fi
-
-# Resolve attachment relative to the vault root.
-ABS_ATTACHMENT="$VAULT_ROOT/$ATTACHMENT_PATH"
-
-if [ ! -f "$ABS_ATTACHMENT" ]; then
-  echo "{\"decision\":\"block\",\"reason\":\"attachment_path '${ATTACHMENT_PATH}' does not exist at ${ABS_ATTACHMENT}. Add the file to raw/assets/ before writing the source note.\"}"
-  exit 0
-fi
-
+# Pipe the ORIGINAL stdin to the engine entry; --target pins the resolved vault.
+printf '%s' "$INPUT" | bash "$(dirname "$0")/engine.sh" hook --gate attachments --target "$VAULT"
 exit 0

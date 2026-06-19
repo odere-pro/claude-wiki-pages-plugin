@@ -166,3 +166,29 @@ setup() {
   run bash -c "printf '%s' \"\$json\" | bash '$SCRIPT' 2>&1"
   assert_success
 }
+
+# ── Phase 3: Bun-absent fail-OPEN (hook-gates) ────────────────────────────────
+# enforce-must-rule is ADVISORY. When Bun is absent it skips the notice and exits
+# 0 — never blocks, never errors.
+
+_path_without_bun_mr() {
+  local tooldir="$BATS_TEST_TMPDIR/nobun-bin"
+  mkdir -p "$tooldir"
+  local t src
+  for t in bash jq cat grep sed dirname basename env awk tr head find pwd; do
+    src=$(command -v "$t" 2>/dev/null || true)
+    [ -n "$src" ] && ln -sf "$src" "$tooldir/$t"
+  done
+  printf '%s' "$tooldir"
+}
+
+@test "enforce-must-rule: FAIL-OPEN — Bun absent exits 0 silently on a rule-bearing CLAUDE.md" {
+  local tooldir
+  tooldir=$(_path_without_bun_mr)
+  run bash -c "PATH='$tooldir' command -v bun"
+  assert_status 1
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/p/proj/CLAUDE.md","content":"You must do X."}}'
+  run bash -c "export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/enforce-must-rule.sh'"
+  assert_success
+  assert_output_empty
+}

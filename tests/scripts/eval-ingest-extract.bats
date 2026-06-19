@@ -376,12 +376,22 @@ _setup_eval_artifact_repo() {
     "$REPO_ROOT/scripts/verify-twins.ts" \
     "$REPO_ROOT/scripts/settings-tool.ts" \
     "$REPO_ROOT/scripts/validate-frontmatter.sh" \
+    "$REPO_ROOT/scripts/engine.sh" \
     "$REPO_ROOT/scripts/resolve-vault.sh" \
     "$REPO_ROOT/scripts/lib-validate-gate.sh" \
     "$REPO_ROOT/scripts/lib-vault-registry.sh" \
     "$REPO_ROOT/scripts/lib-wired-source.sh" \
     "$REPO_ROOT/scripts/lib-page-type.sh" "$EVAL_REPO/scripts/"
-  cp -R "$REPO_ROOT/src/core" "$EVAL_REPO/src/"
+  # Since frontmatter-cli-retire (tmp/migration-plan.md "What is left" #2)
+  # validate-frontmatter.sh's CLI `--target` path delegates to the Bun engine
+  # (`engine.sh hook --gate frontmatter --cli`) instead of running the inline
+  # awk loop. The engine entry (src/cli/cli.ts) imports every command handler,
+  # which transitively pulls in src/{commands,data} beyond the src/core
+  # primitives the parser already required — copy the whole src/ tree (minus the
+  # colocated *.test.ts, which Bun never loads at runtime) so the migrated CLI
+  # path resolves in the isolated repo.
+  cp -R "$REPO_ROOT/src/core" "$REPO_ROOT/src/cli" "$REPO_ROOT/src/commands" \
+    "$REPO_ROOT/src/data" "$EVAL_REPO/src/"
   # validate-frontmatter.sh falls back to the bundled runtime schema template
   # (skills/init/template/CLAUDE.md) for its required-fields table when a target
   # vault has none (ADR-0014 §A.6). Mirror the real runtime layout (scripts/ and

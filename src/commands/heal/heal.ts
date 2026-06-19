@@ -56,7 +56,7 @@ export interface HealOptions {
   readonly today?: string;
 }
 
-export function heal(opts: HealOptions = {}): HealReport {
+export async function heal(opts: HealOptions = {}): Promise<HealReport> {
   const vault = (opts.target ?? resolveVault({ cwd: opts.cwd })).replace(/\/+$/, "");
   const maxIterations = opts.maxIterations ?? DEFAULT_MAX_ITERATIONS;
   const now = opts.isoTime ?? new Date().toISOString();
@@ -66,7 +66,7 @@ export function heal(opts: HealOptions = {}): HealReport {
   // configured mode; gitCheckpoint.mode is the production control.
   const mode: CheckpointMode = opts.checkpointBranch ? "both" : gitCfg.mode;
 
-  const before = verify({ target: vault });
+  const before = await verify({ target: vault });
 
   // Already clean — no-op, no git churn.
   if (before.errors === 0) {
@@ -83,7 +83,7 @@ export function heal(opts: HealOptions = {}): HealReport {
     const f = fix({ target: vault, today: opts.today });
     iterations++;
     changes.push(...f.changes);
-    last = verify({ target: vault });
+    last = await verify({ target: vault });
     if (last.errors === 0) break;
     if (f.changed === 0) break; // no progress — stop rather than spin
   }

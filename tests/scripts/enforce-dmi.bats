@@ -142,3 +142,38 @@ teardown() {
   run_hook_with_json_string "$SCRIPT" "$json"
   assert_success
 }
+
+# ── Phase 3: Bun-absent fail-CLOSED, HARD exit 2 (hook-gates) ─────────────────
+# enforce-dmi is the lone HARD-block gate. When Bun is absent it must HARD-block
+# an in-scope SKILL.md write (exit 2 + install-Bun stderr) — never fail-open.
+# Scoped: non-SKILL.md paths still exit 0.
+
+_path_without_bun_dmi() {
+  local tooldir="$BATS_TEST_TMPDIR/nobun-bin"
+  mkdir -p "$tooldir"
+  local t src
+  for t in bash jq cat grep sed dirname basename env awk tr head find pwd; do
+    src=$(command -v "$t" 2>/dev/null || true)
+    [ -n "$src" ] && ln -sf "$src" "$tooldir/$t"
+  done
+  printf '%s' "$tooldir"
+}
+
+@test "enforce-dmi: FAIL-CLOSED — Bun absent HARD-blocks a SKILL.md write (exit 2)" {
+  local tooldir
+  tooldir=$(_path_without_bun_dmi)
+  run bash -c "PATH='$tooldir' command -v bun"
+  assert_status 1
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/p/skills/q/SKILL.md","content":"anything"}}'
+  run bash -c "export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/enforce-dmi.sh' 2>&1"
+  assert_status 2
+  assert_output_contains "Bun is required"
+}
+
+@test "enforce-dmi: FAIL-CLOSED — Bun absent passes through non-SKILL.md (exit 0)" {
+  local tooldir
+  tooldir=$(_path_without_bun_dmi)
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/p/vault/wiki/x.md","content":"scaffold and commit"}}'
+  run bash -c "export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/enforce-dmi.sh'"
+  assert_success
+}

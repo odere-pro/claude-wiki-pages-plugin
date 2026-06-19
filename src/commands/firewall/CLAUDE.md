@@ -5,11 +5,14 @@ it is the single authority that does so. The boundary is: writes are confined to
 the resolved vault, plus any `allowPaths` roots, minus any `denyPaths` globs (which
 win even inside an allowed root), minus any sibling registered vaults
 (`cross-vault`, which `allowPaths` cannot override). Agents and the parity gate
-call this engine handler; the latency-critical `PreToolUse` hook
-[`../../../scripts/firewall.sh`](../../../scripts/firewall.sh) mirrors the same
-logic in bash so writes are gated without a Bun spawn on every tool call. The
-handler in [`firewall.ts`](./firewall.ts) loads the policy from config and delegates
-the decision to [`../../core/firewall.ts`](../../core/firewall.ts).
+call this engine handler. Since firewall-twin-retire (migration-plan.md Phase 3)
+the latency-critical `PreToolUse` hook
+[`../../../scripts/firewall.sh`](../../../scripts/firewall.sh) no longer mirrors
+the logic in bash — it is a thin stdin→engine wrapper that pipes the tool-call
+JSON to `engine hook --gate firewall` (which calls this same decision authority),
+so there is one implementation, not two. The handler in
+[`firewall.ts`](./firewall.ts) loads the policy from config and delegates the
+decision to [`../../core/firewall.ts`](../../core/firewall.ts).
 
 ## Input and flags
 
@@ -46,13 +49,12 @@ inside the vault or an allowed root.
 ## Simple-glob matching + symlink safety
 
 Globs are deliberately "simple" — `*` within a path segment, `**` across segments —
-so the bash and TypeScript matchers stay in lock-step (the parity gate
-`tests/gates/gate-11-firewall-parity.sh` pins them byte-for-byte). Before any
-check, the target and every boundary root are reduced to their PHYSICAL path
-(symlinks dereferenced, dangling leaves tolerated), so a symlink inside the vault
-pointing at a sibling cannot smuggle a write out. `physicalPath` in
-[`../../core/firewall.ts`](../../core/firewall.ts) mirrors `_realpath_physical` in
-the bash twin exactly.
+so the matcher stays simple and auditable (the parity gate
+`tests/gates/gate-11-firewall-parity.sh` pins the engine against a checked-in
+GOLDEN verdict table). Before any check, the target and every boundary root are
+reduced to their PHYSICAL path (symlinks dereferenced, dangling leaves
+tolerated), so a symlink inside the vault pointing at a sibling cannot smuggle a
+write out — `physicalPath` in [`../../core/firewall.ts`](../../core/firewall.ts).
 
 ## FirewallReport
 

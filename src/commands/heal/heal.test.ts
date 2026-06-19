@@ -28,18 +28,18 @@ function gitLog(dir: string): string {
 describe("heal", () => {
   const opts = { opId: "test-op", isoTime: "2026-06-01T00:00:00.000Z", today: "2026-06-01" };
 
-  test("checkpoints, fixes, commits, and drives errors to zero", () => {
+  test("checkpoints, fixes, commits, and drives errors to zero", async () => {
     const sb = makeVault(DIRTY);
     initRepo(sb.vault);
 
-    const report = heal({ target: sb.vault, ...opts });
+    const report = await heal({ target: sb.vault, ...opts });
 
     expect(report.errorsBefore).toBeGreaterThan(0);
     expect(report.errorsAfter).toBe(0);
     expect(report.clean).toBe(true);
     expect(report.checkpoint).not.toBeNull();
     expect(report.healCommit).not.toBeNull();
-    expect(verify({ target: sb.vault }).errors).toBe(0);
+    expect((await verify({ target: sb.vault })).errors).toBe(0);
 
     const log = gitLog(sb.vault);
     expect(log).toContain("checkpoint: claude-wiki-pages pre-heal");
@@ -47,7 +47,7 @@ describe("heal", () => {
     sb.cleanup();
   });
 
-  test("a clean vault is a no-op with no git churn", () => {
+  test("a clean vault is a no-op with no git churn", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
       "wiki/index.md": "---\ntitle: index\n---\n",
@@ -56,7 +56,7 @@ describe("heal", () => {
     initRepo(sb.vault);
     const before = gitLog(sb.vault);
 
-    const report = heal({ target: sb.vault, ...opts });
+    const report = await heal({ target: sb.vault, ...opts });
 
     expect(report.clean).toBe(true);
     expect(report.iterations).toBe(0);
@@ -65,14 +65,14 @@ describe("heal", () => {
     sb.cleanup();
   });
 
-  test("gitCheckpoint.mode=off heals without any git operation", () => {
+  test("gitCheckpoint.mode=off heals without any git operation", async () => {
     const sb = makeVault(DIRTY);
     initRepo(sb.vault);
     const before = gitLog(sb.vault);
 
     process.env["CLAUDE_WIKI_PAGES_GITCHECKPOINT_MODE"] = "off";
     try {
-      const report = heal({ target: sb.vault, ...opts });
+      const report = await heal({ target: sb.vault, ...opts });
       expect(report.clean).toBe(true);
       expect(report.errorsAfter).toBe(0);
       expect(report.checkpoint).toBeNull();
@@ -84,11 +84,11 @@ describe("heal", () => {
     sb.cleanup();
   });
 
-  test("checkpointBranch option pins a rollback branch on top of the configured mode", () => {
+  test("checkpointBranch option pins a rollback branch on top of the configured mode", async () => {
     const sb = makeVault(DIRTY);
     initRepo(sb.vault);
 
-    const report = heal({ target: sb.vault, ...opts, checkpointBranch: true });
+    const report = await heal({ target: sb.vault, ...opts, checkpointBranch: true });
     expect(report.checkpoint).not.toBeNull();
     const branches = execFileSync("git", ["branch", "--list", "cwp/checkpoint/test-op"], {
       cwd: sb.vault,

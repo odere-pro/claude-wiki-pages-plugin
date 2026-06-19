@@ -8,13 +8,14 @@ Tests are organized into tiers by cost and dependency footprint. The default loc
 
 | Tier | What it is | Where | Runner target |
 | --- | --- | --- | --- |
-| Tier 0 | Static gates — shellcheck, shfmt, markdownlint, lychee, gitleaks, manifest parse, `validate-docs.sh` | repo-wide | `tier0` |
+| Tier 0 | Static gates — shellcheck, shfmt, markdownlint, lychee, gitleaks, manifest parse, `validate-docs.sh` (Bun-backed: wraps `engine lint --check docs`, fail-closes without Bun) | repo-wide | `tier0` |
 | Tier 1 | Bats unit tests — one `.bats` per `scripts/*.sh` hook or utility | [`scripts/`](./scripts/) | `tier1` |
 | Tier 2 | Smoke — end-to-end flows that self-skip without the `claude` CLI | [`smoke/`](./smoke/) | `tier2` |
 | Tier 3 | Local-embedding re-ranker — permanently dropped; an empty self-skipping stub | n/a | `tier3` |
+| gates | Engine gates — every `gate-NN-*.sh` (bun test, typecheck, eslint, parity, no-absolute-paths, stale-dist) | [`gates/`](./gates/) | `gates` |
 | eval | Local-model ingest-extract quality gate — model-neutral, opt-in | [`eval/`](./eval/) | `eval` |
 
-The CI "gates" job (Tier 1-adjacent, run after Bats) lives in [`gates/`](./gates/) and is driven by [`gates/run-all.sh`](./gates/run-all.sh); it covers the Bun engine surface (`bun test`, typecheck, eslint, parity) that the shell tiers cannot.
+The CI "gates" job (Tier 1-adjacent, run after Bats) lives in [`gates/`](./gates/) and is driven by [`gates/run-all.sh`](./gates/run-all.sh); it covers the Bun engine surface (`bun test`, typecheck, eslint, parity) that the shell tiers cannot. Run it locally with `bash tests/run-tests.sh gates`, or as part of `bash tests/run-tests.sh all`.
 
 ## Running
 
@@ -29,8 +30,9 @@ bash tests/run-tests.sh              # Tier 0 + Tier 1 (the default merge-gating
 bash tests/run-tests.sh tier0        # static gates only
 bash tests/run-tests.sh tier1        # Bats only (bats --recursive tests/scripts/)
 bash tests/run-tests.sh tier2        # smoke (self-skips without the claude CLI)
+bash tests/run-tests.sh gates        # engine gates (tests/gates/run-all.sh — needs Bun)
 bash tests/run-tests.sh eval         # opt-in eval (SKIP without CLAUDE_WIKI_PAGES_EVAL_MODEL)
-bash tests/run-tests.sh all          # Tier 0 + Tier 1 + Tier 2
+bash tests/run-tests.sh all          # Tier 0 + Tier 1 + Tier 2 + engine gates
 bash tests/run-tests.sh --list all   # print the commands without executing them
 ```
 

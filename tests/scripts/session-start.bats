@@ -486,3 +486,139 @@ EOF
   refute_output_contains '{"type":'
   refute_output_contains '"decision":'
 }
+
+# ---------------------------------------------------------------------------
+# p0-bun-required: Bun messaging upgrade (prominent ERROR: + install path)
+# The hook remains exit-0 (not fail-closed) but the message is upgraded from
+# the old NOTICE: to a prominent ERROR: with an actionable install command
+# so a bare box is never blocked silently.
+# ---------------------------------------------------------------------------
+
+@test "session-start: prints ERROR for Bun when bun is absent" {
+  local vault_dir="$BATS_TEST_TMPDIR/bun-absent-vault"
+  mkdir -p "$vault_dir"
+
+  # Hermetic sandbox PATH that resolves everything session-start.sh needs but
+  # deliberately omits bun.
+  local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nobun-ss"
+  mkdir -p "$SANDBOX_BIN"
+  local tool real
+  for tool in bash dirname basename find wc tr mkdir cat cp grep sed sort head date jq timeout; do
+    real="$(command -v "$tool" 2>/dev/null)" || continue
+    case "$real" in
+      /*) ln -s "$real" "$SANDBOX_BIN/$tool" ;;
+    esac
+  done
+
+  if PATH="$SANDBOX_BIN" command -v bun >/dev/null 2>&1; then
+    skip "bun leaked into sandbox PATH — test cannot verify absent-bun branch"
+  fi
+
+  run env -i PATH="$SANDBOX_BIN" HOME="$HOME" \
+    CLAUDE_WIKI_PAGES_SETTINGS_FILE="$SETTINGS_TMP" \
+    CLAUDE_WIKI_PAGES_VAULT="$vault_dir" \
+    /bin/bash "$REPO_ROOT/scripts/session-start.sh"
+
+  # Session hook must ALWAYS exit 0 — a non-zero exit is a harness error.
+  assert_success
+  # Prominent label — was NOTICE:, now ERROR: so it is impossible to miss.
+  assert_output_contains "ERROR:"
+  # Must name Bun.
+  assert_output_contains "bun"
+}
+
+@test "session-start: Bun ERROR message includes bun.sh install URL" {
+  local vault_dir="$BATS_TEST_TMPDIR/bun-url-vault"
+  mkdir -p "$vault_dir"
+
+  local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nobun-url-ss"
+  mkdir -p "$SANDBOX_BIN"
+  local tool real
+  for tool in bash dirname basename find wc tr mkdir cat cp grep sed sort head date jq timeout; do
+    real="$(command -v "$tool" 2>/dev/null)" || continue
+    case "$real" in
+      /*) ln -s "$real" "$SANDBOX_BIN/$tool" ;;
+    esac
+  done
+
+  if PATH="$SANDBOX_BIN" command -v bun >/dev/null 2>&1; then
+    skip "bun leaked into sandbox PATH"
+  fi
+
+  run env -i PATH="$SANDBOX_BIN" HOME="$HOME" \
+    CLAUDE_WIKI_PAGES_SETTINGS_FILE="$SETTINGS_TMP" \
+    CLAUDE_WIKI_PAGES_VAULT="$vault_dir" \
+    /bin/bash "$REPO_ROOT/scripts/session-start.sh"
+
+  assert_success
+  assert_output_contains "bun.sh/install"
+}
+
+@test "session-start: Bun ERROR message includes curl install command" {
+  local vault_dir="$BATS_TEST_TMPDIR/bun-curl-vault"
+  mkdir -p "$vault_dir"
+
+  local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nobun-curl-ss"
+  mkdir -p "$SANDBOX_BIN"
+  local tool real
+  for tool in bash dirname basename find wc tr mkdir cat cp grep sed sort head date jq timeout; do
+    real="$(command -v "$tool" 2>/dev/null)" || continue
+    case "$real" in
+      /*) ln -s "$real" "$SANDBOX_BIN/$tool" ;;
+    esac
+  done
+
+  if PATH="$SANDBOX_BIN" command -v bun >/dev/null 2>&1; then
+    skip "bun leaked into sandbox PATH"
+  fi
+
+  run env -i PATH="$SANDBOX_BIN" HOME="$HOME" \
+    CLAUDE_WIKI_PAGES_SETTINGS_FILE="$SETTINGS_TMP" \
+    CLAUDE_WIKI_PAGES_VAULT="$vault_dir" \
+    /bin/bash "$REPO_ROOT/scripts/session-start.sh"
+
+  assert_success
+  assert_output_contains "curl -fsSL https://bun.sh/install | bash"
+}
+
+@test "session-start: Bun ERROR message says Bun is required" {
+  local vault_dir="$BATS_TEST_TMPDIR/bun-req-vault"
+  mkdir -p "$vault_dir"
+
+  local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nobun-req-ss"
+  mkdir -p "$SANDBOX_BIN"
+  local tool real
+  for tool in bash dirname basename find wc tr mkdir cat cp grep sed sort head date jq timeout; do
+    real="$(command -v "$tool" 2>/dev/null)" || continue
+    case "$real" in
+      /*) ln -s "$real" "$SANDBOX_BIN/$tool" ;;
+    esac
+  done
+
+  if PATH="$SANDBOX_BIN" command -v bun >/dev/null 2>&1; then
+    skip "bun leaked into sandbox PATH"
+  fi
+
+  run env -i PATH="$SANDBOX_BIN" HOME="$HOME" \
+    CLAUDE_WIKI_PAGES_SETTINGS_FILE="$SETTINGS_TMP" \
+    CLAUDE_WIKI_PAGES_VAULT="$vault_dir" \
+    /bin/bash "$REPO_ROOT/scripts/session-start.sh"
+
+  assert_success
+  assert_output_contains "required"
+}
+
+@test "session-start: no Bun ERROR when bun is present" {
+  command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
+  local vault_dir="$BATS_TEST_TMPDIR/bun-present-vault"
+  mkdir -p "$vault_dir"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    bash '$REPO_ROOT/scripts/session-start.sh'
+  "
+
+  assert_success
+  refute_output_contains "ERROR: Bun"
+}

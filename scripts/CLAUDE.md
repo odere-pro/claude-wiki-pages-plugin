@@ -80,6 +80,10 @@ run top to bottom and the first block short-circuits the write.
   isolation from the registry.
 - [`validate-frontmatter.sh`](./validate-frontmatter.sh) — block wiki writes
   missing required frontmatter (rules single-sourced from the schema table).
+  Since frontmatter-cli-retire it is a thin wrapper: the hook path pipes stdin to
+  `engine hook --gate frontmatter`, and the CLI `--target [--json]` path delegates
+  to `engine hook --gate frontmatter --cli` — the awk-YAML parser is fully
+  retired. Both fail-closed when Bun is absent.
 - [`check-wikilinks.sh`](./check-wikilinks.sh) — block `[text](file.md)` where
   a `[[wikilink]]` is required.
 - [`protect-raw.sh`](./protect-raw.sh) — block edits to existing `raw/` files
@@ -117,8 +121,14 @@ run top to bottom and the first block short-circuits the write.
   index entries, sources-field format, index consistency).
 - [`verify-output.sh`](./verify-output.sh) — enforce the portable-markdown
   contract for files under `output/`.
-- [`validate-docs.sh`](./validate-docs.sh) — the glossary gate (banned strings,
-  Layer capitalization, slash-command resolution); run in CI Tier 0.
+- [`validate-docs.sh`](./validate-docs.sh) — the glossary / design-drift gate
+  (banned strings, Layer capitalization, slash-command resolution, ADR-0013
+  design-drift); run in CI Tier 0. Since the docs-finish migration unit it is a
+  thin wrapper over `engine lint --check docs`, backed by
+  [`docs-check.ts`](../src/core/docs-check.ts) and
+  [`design-drift.ts`](../src/core/design-drift.ts); positional `$1` (default repo
+  root) is passed as `--target`. FAIL-CLOSED (exit 2) when Bun is absent — a CI
+  gate must never pass silently.
 - [`validate-manifests.sh`](./validate-manifests.sh) — validate
   `.claude-plugin/plugin.json` and `marketplace.json` shape with jq.
 
@@ -230,17 +240,17 @@ other script in this directory is executable and sets strict mode.
 
 ## Shell↔TS parity contract
 
-Two shell gates are byte-aligned twins of the Bun engine and must stay in
-lock-step:
-
-- [`firewall.sh`](./firewall.sh) ↔ [`../src/core/firewall.ts`](../src/core/firewall.ts)
-  — pinned by `gate-11-firewall-parity`.
 - [`verify-ingest.sh`](./verify-ingest.sh) ↔ the engine's `verify` command —
-  pinned by `gate-05`.
-
-To keep the two implementations in agreement, the bash side uses simple globs
-only (`*` → `[^/]*`, `**` → `.*`); anything fancier would drift from the
-TypeScript matcher.
+  byte-aligned twin, pinned by `gate-05`. To keep the two in agreement the bash
+  side uses simple globs only (`*` → `[^/]*`, `**` → `.*`).
+- [`firewall.sh`](./firewall.sh) is NO LONGER a decision twin. Since
+  firewall-twin-retire (migration-plan.md Phase 3) it is a thin stdin→engine
+  wrapper — it derives the active vault + the registry cross-vault set (fail-
+  closed) and pipes the PreToolUse stdin to `engine hook --gate firewall`. The
+  sole write-isolation authority is [`../src/core/firewall.ts`](../src/core/firewall.ts);
+  `gate-11-firewall-parity` now pins the engine against a checked-in GOLDEN
+  verdict table (anti-drift without two implementations). FAIL-CLOSED: when Bun
+  is absent the wrapper BLOCKS any write with an install-Bun reason.
 
 ## Coupling
 

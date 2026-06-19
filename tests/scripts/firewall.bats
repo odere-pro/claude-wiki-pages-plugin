@@ -247,6 +247,38 @@ run_fw_with_other() {
   assert_output_empty
 }
 
+# ── Phase 3: Bun-absent fail-closed (firewall-twin-retire) ───────────────────────
+# The hook is a thin stdin→engine wrapper. When Bun is absent it is a SECURITY
+# gate and must BLOCK any write (non-empty file_path) with an install-Bun reason —
+# never fail-open. Simulate Bun-absence by shadowing PATH so `command -v bun` fails.
+
+@test "fail-closed: Bun absent blocks a vault write with an install-Bun reason" {
+  local BINSTUB="$BATS_TEST_TMPDIR/nobun-bin"
+  mkdir -p "$BINSTUB"
+  # Provide the tools the wrapper needs (jq, cat, etc.) but NOT bun.
+  for t in jq cat dirname basename sed tr printf bash grep; do
+    if command -v "$t" >/dev/null 2>&1; then ln -sf "$(command -v "$t")" "$BINSTUB/$t"; fi
+  done
+  local json
+  json=$(jq -n --arg p "$VAULT_DIR/wiki/topics/page.md" '{tool_name:"Write", tool_input:{file_path:$p, content:"x"}}')
+  run bash -c "export PATH='$BINSTUB'; export CLAUDE_WIKI_PAGES_VAULT='$VAULT_DIR'; printf '%s' '$json' | bash '$REPO_ROOT/scripts/firewall.sh'"
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "Bun is required"
+}
+
+@test "fail-closed: Bun absent with no file_path passes through (no block)" {
+  local BINSTUB="$BATS_TEST_TMPDIR/nobun-bin2"
+  mkdir -p "$BINSTUB"
+  for t in jq cat dirname basename sed tr printf bash grep; do
+    if command -v "$t" >/dev/null 2>&1; then ln -sf "$(command -v "$t")" "$BINSTUB/$t"; fi
+  done
+  local json='{"tool_name":"Write","tool_input":{}}'
+  run bash -c "export PATH='$BINSTUB'; export CLAUDE_WIKI_PAGES_VAULT='$VAULT_DIR'; printf '%s' '$json' | bash '$REPO_ROOT/scripts/firewall.sh'"
+  assert_success
+  refute_output_contains '"decision":"block"'
+}
+
 @test "registry-derived: firewall.sh hook does NOT mutate settings.json (read-only)" {
   local ACTIVE="$BATS_TEST_TMPDIR/reg3/active"
   local SIBLING="$BATS_TEST_TMPDIR/reg3/sibling"

@@ -3,19 +3,23 @@
  *
  * The boundary is: writes are confined to the resolved vault, plus any
  * `firewall.allowPaths` roots, minus any `firewall.denyPaths` globs (which win
- * even inside an allowed root). The bash hook (`scripts/firewall.sh`) mirrors
- * this exactly; `tests/gates/gate-11-firewall-parity.sh` pins them together.
+ * even inside an allowed root). Since firewall-twin-retire (migration-plan.md
+ * Phase 3) this module is the SOLE decision authority — the bash hook
+ * (`scripts/firewall.sh`) is a thin stdin→engine wrapper, not a second
+ * implementation. `tests/gates/gate-11-firewall-parity.sh` pins this engine
+ * against a checked-in GOLDEN verdict table (anti-drift without two twins).
  *
- * Globs are deliberately simple (prefix + `*`/`**`) so the bash and TS matchers
- * stay in lock-step. `mode: warn` never blocks; `mode: off`/`enabled:false` is a
+ * Globs are deliberately simple (prefix + `*`/`**`) so the matcher stays simple
+ * and auditable. `mode: warn` never blocks; `mode: off`/`enabled:false` is a
  * pass-through.
  *
  * Symlink safety (S3 / F1): the target and every boundary root are reduced to
  * their PHYSICAL paths (symlinks dereferenced) before any check, so a symlink
  * inside the active vault that points at a sibling cannot smuggle a write out.
  * `node:path resolve()` is lexical only and never derefs symlinks; the
- * `physicalPath` helper below adds that, mirrored byte-for-byte in
- * `scripts/firewall.sh`.
+ * `physicalPath` helper below adds that. (Pre twin-retirement this was mirrored
+ * byte-for-byte in `scripts/firewall.sh`; that bash copy is gone — this is now
+ * the only implementation.)
  */
 
 import { resolve, dirname, basename, isAbsolute } from "node:path";
@@ -48,8 +52,8 @@ export interface FirewallDecision {
 /**
  * Translate a simple glob (`*` within a segment, `**` across segments) to a
  * RegExp. Exported as the ONE glob dialect — backlog's wired-source filter
- * reuses it so no second dialect appears (bash twin: scripts/firewall.sh
- * glob_to_regex, pinned by gate-11).
+ * reuses it so no second dialect appears. (The bash `glob_to_regex` twin was
+ * retired with firewall-twin-retire; this is now the only dialect.)
  */
 export function globToRegExp(glob: string): RegExp {
   let re = "";
@@ -93,9 +97,10 @@ function isSymlink(p: string): boolean {
 /**
  * Reduce a path to its PHYSICAL location: dereference symlinks (including a
  * dangling leaf and symlinked ancestors) while tolerating a non-existent tail
- * (the write target may be a new file). Mirrors `_realpath_physical` in
- * `scripts/firewall.sh`. When nothing on the path exists yet (e.g. a fictional
- * test root), this degrades to a lexical `resolve()`.
+ * (the write target may be a new file). (Was mirrored by `_realpath_physical` in
+ * `scripts/firewall.sh` before twin-retirement; now the only implementation.)
+ * When nothing on the path exists yet (e.g. a fictional test root), this
+ * degrades to a lexical `resolve()`.
  */
 function physicalPath(filePath: string): string {
   let target = resolve(filePath);
@@ -107,8 +112,8 @@ function physicalPath(filePath: string): string {
   }
   // Iteratively dereference leaf symlinks (dangling allowed), peeling any newly
   // non-existent tail each round.
-  // B04 parity: mirrors the named _SYMLINK_LOOP_MAX=40 constant in firewall.sh.
-  // Linux MAXSYMLINKS is 40; we use the same ceiling in both twins.
+  // B04: Linux MAXSYMLINKS is 40; we use the same ceiling. (Pre twin-retirement
+  // this matched a named _SYMLINK_LOOP_MAX=40 in firewall.sh; that copy is gone.)
   const SYMLINK_LOOP_MAX = 40;
   let guard = 0;
   while (guard < SYMLINK_LOOP_MAX && isSymlink(target)) {

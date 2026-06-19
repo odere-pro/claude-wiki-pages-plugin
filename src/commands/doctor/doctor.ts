@@ -69,7 +69,7 @@ interface DoctorContext {
   readonly runner: DoctorRunner;
 }
 
-type CheckFn = (ctx: DoctorContext) => CheckResult;
+type CheckFn = (ctx: DoctorContext) => CheckResult | Promise<CheckResult>;
 
 const OLD_SETTINGS = ".claude/llm-wiki-stack/settings.json";
 const NEW_SETTINGS = ".claude/claude-wiki-pages/settings.json";
@@ -299,7 +299,7 @@ function checkSettingsMigration({ cwd, fix }: DoctorContext): CheckResult {
 }
 
 // D09 — verify reports no errors
-function checkVerify({ vault }: DoctorContext): CheckResult {
+async function checkVerify({ vault }: DoctorContext): Promise<CheckResult> {
   if (!existsSync(vault))
     return {
       id: "D09",
@@ -307,7 +307,7 @@ function checkVerify({ vault }: DoctorContext): CheckResult {
       status: "skip",
       message: "no vault yet",
     };
-  const v = verify({ target: vault });
+  const v = await verify({ target: vault });
   return v.errors === 0
     ? {
         id: "D09",
@@ -402,7 +402,7 @@ const CHECKS: readonly CheckFn[] = [
   checkLinkParity,
 ];
 
-export function doctor(opts: DoctorOptions = {}): DoctorReport {
+export async function doctor(opts: DoctorOptions = {}): Promise<DoctorReport> {
   const cwd = opts.cwd ?? process.cwd();
   const pluginRoot = opts.pluginRoot ?? cwd;
   const vault = (opts.target ?? resolveVault({ cwd })).replace(/\/+$/, "");
@@ -414,7 +414,7 @@ export function doctor(opts: DoctorOptions = {}): DoctorReport {
     fix: opts.fix ?? false,
     runner: opts.runner ?? defaultRunner,
   };
-  const results = CHECKS.map((check) => check(ctx));
+  const results = await Promise.all(CHECKS.map((check) => check(ctx)));
   return { command: "doctor", vault, results, worst: worstOf(results) };
 }
 

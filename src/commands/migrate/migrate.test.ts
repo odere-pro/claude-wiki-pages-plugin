@@ -45,7 +45,7 @@ describe("migrate", () => {
     sb.cleanup();
   });
 
-  test("--write bumps schema, writes templates + manifest under a checkpoint", () => {
+  test("--write bumps schema, writes templates + manifest under a checkpoint", async () => {
     const sb = makeVault(V1);
     initRepo(sb.vault);
 
@@ -63,7 +63,7 @@ describe("migrate", () => {
     expect(manifest).toContain("| raw/unprocessed.md | pending | — |");
 
     // vault still verifies clean under v2
-    expect(verify({ target: sb.vault }).errors).toBe(0);
+    expect((await verify({ target: sb.vault })).errors).toBe(0);
 
     const log = execFileSync("git", ["log", "--oneline"], { cwd: sb.vault, encoding: "utf8" });
     expect(log).toContain("checkpoint: claude-wiki-pages pre-heal");

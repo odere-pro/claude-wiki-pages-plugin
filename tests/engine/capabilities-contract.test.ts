@@ -58,6 +58,9 @@ const GOLDEN_IMPLEMENTED = [
   "snapshot",
   "context",
   "okf",
+  "lint",
+  "export",
+  "hook",
 ] as const;
 
 const GOLDEN_PLANNED = ["index", "link-suggest"] as const;
@@ -115,6 +118,11 @@ describe("(a) IMPLEMENTED verbs — every verb exits != 2 (live dispatch branch)
     // snapshot requires a subcommand (pre|post); without one it exits 2 by
     // design (usage error), which is NOT a missing dispatch branch.
     snapshot: ["pre", "--json", "--target", "/nonexistent"],
+    // hook is the PreToolUse stdin entry: it requires --gate (exits 2 without
+    // one — a usage error, not a missing dispatch branch). With --gate and the
+    // empty stdin the spawner provides, the gate sees no file path → allow,
+    // exit 0. (--json is accepted but ignored; the contract is the exit code.)
+    hook: ["--gate", "frontmatter", "--json"],
   };
 
   for (const verb of GOLDEN_IMPLEMENTED) {

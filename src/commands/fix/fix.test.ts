@@ -23,15 +23,15 @@ const FIXABLE: Record<string, string> = {
 };
 
 describe("fix", () => {
-  test("repairs index duplicates, missing folder index, and children drift → errors clear", () => {
+  test("repairs index duplicates, missing folder index, and children drift → errors clear", async () => {
     const sb = makeVault(FIXABLE);
-    expect(verify({ target: sb.vault }).errors).toBeGreaterThan(0);
+    expect((await verify({ target: sb.vault })).errors).toBeGreaterThan(0);
 
     const report = fix({ target: sb.vault, today: "2026-06-01" });
     expect(report.changed).toBeGreaterThan(0);
     expect(report.changes.map((c) => c.action)).toContain("create-index");
 
-    expect(verify({ target: sb.vault }).errors).toBe(0);
+    expect((await verify({ target: sb.vault })).errors).toBe(0);
     sb.cleanup();
   });
 

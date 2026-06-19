@@ -12,6 +12,8 @@
  */
 
 import { verify } from "../commands/verify/verify.ts";
+import { lint, resolveLintCheck } from "../commands/lint/lint.ts";
+import { exportWiki } from "../commands/export/export.ts";
 import { fix } from "../commands/fix/fix.ts";
 import { heal } from "../commands/heal/heal.ts";
 import { doctor, doctorExit } from "../commands/doctor/doctor.ts";
@@ -28,6 +30,8 @@ import { ontology, type OntologyReport } from "../commands/ontology/ontology.ts"
 import { route } from "../commands/route/route.ts";
 import { context, renderContextText } from "../commands/context/context.ts";
 import { okf } from "../commands/okf/okf.ts";
+import { runHookGate, resolveGateName } from "../commands/hook/hook.ts";
+import { frontmatterCli } from "../commands/hook/frontmatter-cli.ts";
 
 // ── One CAPABILITIES table — single source of truth (ADR-0015 N1, N2) ─────────
 //
@@ -85,6 +89,9 @@ export const CAPABILITIES: readonly CapabilityEntry[] = [
   { name: "snapshot", status: "implemented" },
   { name: "context", status: "implemented" },
   { name: "okf", status: "implemented" },
+  { name: "lint", status: "implemented" },
+  { name: "export", status: "implemented" },
+  { name: "hook", status: "implemented" },
   { name: "index", status: "planned" },
   { name: "link-suggest", status: "planned" },
 ] as const;
@@ -148,6 +155,12 @@ interface ParsedArgs {
   readonly fix: boolean;
   readonly strict: boolean;
   readonly write: boolean;
+  /** export: render [[Title]] as [Title](slug.md) instead of flattening. */
+  readonly links: boolean;
+  /** export: mirror-tree mode (one file per page). */
+  readonly tree: boolean;
+  /** export: remove the existing output target before writing. */
+  readonly clean: boolean;
   readonly file: string | undefined;
   /** R1 candidate filter: frontmatter `type` exact match. */
   readonly type: string | undefined;
@@ -169,6 +182,21 @@ interface ParsedArgs {
   readonly label: string | undefined;
   /** context: skill or agent name whose SKILL.md carries the context contract. */
   readonly skill: string | undefined;
+  /** lint: maximum parallel check workers (1–32); currently unused. */
+  readonly concurrency: number | undefined;
+  /** lint: which check to run (default: all). */
+  readonly check: string | undefined;
+  /** lint --check vocabulary: tag-usage floor (mirrors --min-tag-usage). */
+  readonly minTagUsage: number | undefined;
+  /** hook: which security gate to run (e.g. "frontmatter"). */
+  readonly gate: string | undefined;
+  /**
+   * hook --gate frontmatter --cli: batch-validate every page under
+   * `<vault>/wiki/` (the CLI/JSON mode of validate-frontmatter.sh) instead of
+   * reading one PreToolUse write from stdin. Emits the `{"findings":[…]}`
+   * envelope (with --json) or a human summary, exit 0/1/2.
+   */
+  readonly cli: boolean;
 }
 
 /**
@@ -188,6 +216,9 @@ class ParsedArgsBuilder {
   private fixFlag = false;
   private strict = false;
   private write = false;
+  private links = false;
+  private tree = false;
+  private clean = false;
   private file: string | undefined = undefined;
   private type: string | undefined = undefined;
   private folder: string | undefined = undefined;
@@ -199,6 +230,11 @@ class ParsedArgsBuilder {
   private op: string | undefined = undefined;
   private label: string | undefined = undefined;
   private skill: string | undefined = undefined;
+  private rawConcurrency: string | undefined = undefined;
+  private rawCheck: string | undefined = undefined;
+  private rawMinTagUsage: string | undefined = undefined;
+  private gate: string | undefined = undefined;
+  private cli = false;
 
   setJson(): this {
     this.json = true;
@@ -218,6 +254,18 @@ class ParsedArgsBuilder {
   }
   setWrite(): this {
     this.write = true;
+    return this;
+  }
+  setLinks(): this {
+    this.links = true;
+    return this;
+  }
+  setTree(): this {
+    this.tree = true;
+    return this;
+  }
+  setClean(): this {
+    this.clean = true;
     return this;
   }
   setGraph(): this {
@@ -268,6 +316,26 @@ class ParsedArgsBuilder {
     this.skill = v;
     return this;
   }
+  setConcurrency(v: string): this {
+    this.rawConcurrency = v;
+    return this;
+  }
+  setCheck(v: string): this {
+    this.rawCheck = v;
+    return this;
+  }
+  setMinTagUsage(v: string): this {
+    this.rawMinTagUsage = v;
+    return this;
+  }
+  setGate(v: string): this {
+    this.gate = v;
+    return this;
+  }
+  setCli(): this {
+    this.cli = true;
+    return this;
+  }
   /**
    * Accept a bare (non-flag) positional token. The first bare token becomes
    * `command`; the second becomes `sub`. Subsequent bare tokens are ignored
@@ -292,6 +360,9 @@ class ParsedArgsBuilder {
       fix: this.fixFlag,
       strict: this.strict,
       write: this.write,
+      links: this.links,
+      tree: this.tree,
+      clean: this.clean,
       file: this.file,
       type: this.type,
       folder: this.folder,
@@ -303,6 +374,21 @@ class ParsedArgsBuilder {
       op: this.op,
       label: this.label,
       skill: this.skill,
+      concurrency:
+        this.rawConcurrency !== undefined
+          ? Number.isFinite(Number(this.rawConcurrency))
+            ? Number(this.rawConcurrency)
+            : undefined
+          : undefined,
+      check: this.rawCheck,
+      minTagUsage:
+        this.rawMinTagUsage !== undefined
+          ? Number.isFinite(Number(this.rawMinTagUsage))
+            ? Number(this.rawMinTagUsage)
+            : undefined
+          : undefined,
+      gate: this.gate,
+      cli: this.cli,
     });
   }
 }
@@ -316,6 +402,9 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     else if (a === "--fix") b.setFix();
     else if (a === "--strict") b.setStrict();
     else if (a === "--write") b.setWrite();
+    else if (a === "--links") b.setLinks();
+    else if (a === "--tree") b.setTree();
+    else if (a === "--clean") b.setClean();
     else if (a === "--target") {
       const v = argv[++i];
       if (v) b.setTarget(v);
@@ -350,9 +439,37 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     } else if (a === "--skill") {
       const v = argv[++i];
       if (v) b.setSkill(v);
-    } else if (a && !a.startsWith("-")) b.addPositional(a);
+    } else if (a === "--concurrency") {
+      const v = argv[++i];
+      if (v) b.setConcurrency(v);
+    } else if (a === "--check") {
+      const v = argv[++i];
+      if (v) b.setCheck(v);
+    } else if (a === "--min-tag-usage") {
+      const v = argv[++i];
+      if (v) b.setMinTagUsage(v);
+    } else if (a === "--gate") {
+      const v = argv[++i];
+      if (v) b.setGate(v);
+    } else if (a === "--cli") b.setCli();
+    else if (a && !a.startsWith("-")) b.addPositional(a);
   }
   return b.build();
+}
+
+/**
+ * Read the entire stdin body as a string (the PreToolUse tool-call JSON).
+ * Returns "" when stdin is empty or unavailable — the hook gate then sees an
+ * empty payload and allows (fail-open is the gate's own decision for an empty
+ * file path, not a swallowed error: a malformed body still yields an empty
+ * HookInput and a no-op allow, never a thrown exception).
+ */
+async function readStdin(): Promise<string> {
+  try {
+    return await new Response(Bun.stdin.stream()).text();
+  } catch {
+    return "";
+  }
 }
 
 function emit(report: Report, json: boolean): void {
@@ -381,7 +498,7 @@ function usage(): void {
   );
 }
 
-function main(): number {
+async function main(): Promise<number> {
   const {
     command,
     sub,
@@ -402,6 +519,14 @@ function main(): number {
     op,
     label,
     skill,
+    concurrency,
+    check,
+    minTagUsage,
+    links,
+    tree,
+    clean,
+    gate,
+    cli,
   } = parseArgs(process.argv.slice(2));
 
   if (help || command === undefined) {
@@ -410,13 +535,37 @@ function main(): number {
   }
 
   if (command === "verify") {
-    const report = verify({ target });
+    const report = await verify({ target, concurrency });
     emit(report, json);
     return exitCode(report);
   }
 
+  // lint verb — structural lint of a vault.
+  // `--check <name>` selects a specific check (default: all).
+  // `--concurrency <n>` 1 = serial fallback for debuggability; default = parallel.
+  if (command === "lint") {
+    const report = await lint({
+      target,
+      concurrency,
+      check: resolveLintCheck(check),
+      minTagUsage,
+      file,
+    });
+    emit(report, json);
+    return exitCode(report);
+  }
+
+  // export verb — render the wiki as portable markdown under <vault>/output/.
+  // Migrated from scripts/distribute-wiki.sh; --links/--tree/--clean mirror it.
+  if (command === "export") {
+    const report = exportWiki({ target, links, tree, clean });
+    if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
+    else process.stdout.write(report.message + "\n");
+    return report.ok ? 0 : 1;
+  }
+
   if (command === "doctor") {
-    const report = doctor({ target, fix: fixFlag });
+    const report = await doctor({ target, fix: fixFlag });
     if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
     else {
       const glyph: Record<string, string> = {
@@ -450,7 +599,7 @@ function main(): number {
   }
 
   if (command === "heal") {
-    const report = heal({ target });
+    const report = await heal({ target });
     if (json) process.stdout.write(JSON.stringify(report, null, 2) + "\n");
     else
       process.stdout.write(
@@ -508,6 +657,82 @@ function main(): number {
     return report.message.startsWith("Vault not found") || report.message.startsWith("No CLAUDE.md")
       ? 1
       : 0;
+  }
+
+  // hook verb — the firewall-adjacent entry: read the PreToolUse tool-call JSON
+  // from stdin, run the named security gate, and emit the
+  // {"decision":"block","reason":…} contract on a block (else nothing). Always
+  // exits 0 — the block is signalled by the stdout JSON, not the exit code
+  // (matching every PreToolUse hook except enforce-dmi). The bash wrappers stay
+  // fail-closed: when Bun is absent they emit the block themselves, never
+  // reaching this code.
+  if (command === "hook") {
+    const gateName = resolveGateName(gate);
+    if (gateName === undefined) {
+      process.stderr.write(
+        `hook: --gate <name> is required (known: frontmatter, firewall, check-wikilinks, protect-raw, attachments, dmi, must-rule)\n`,
+      );
+      return 2;
+    }
+
+    // CLI batch mode (frontmatter only) — replaces the awk validate_content loop
+    // in scripts/validate-frontmatter.sh's `--target [--json]` modes
+    // (frontmatter-cli-retire, tmp/migration-plan.md "What is left" #2). Validate
+    // every page under <vault>/wiki/ and emit the {"findings":[…]} envelope
+    // (--json) or a human summary. Exit 2 (bad target) when wiki/ is absent, 1
+    // when any page fails, else 0 — the bash CLI contract verbatim.
+    if (cli) {
+      if (gateName !== "frontmatter") {
+        process.stderr.write(`hook --cli: only --gate frontmatter is supported\n`);
+        return 2;
+      }
+      const resolvedVault = target ?? "";
+      if (resolvedVault === "") {
+        process.stderr.write(`hook --cli: --target <vault> is required\n`);
+        return 2;
+      }
+      const result = frontmatterCli({ vault: resolvedVault });
+      if (result.missingWiki) {
+        // Bad target: the bash CLI emits {"findings":[]} (json) and exits 2.
+        if (json) process.stdout.write(`{"findings":[]}\n`);
+        return 2;
+      }
+      const errors = result.findings.length;
+      if (json) {
+        process.stdout.write(JSON.stringify({ findings: result.findings }) + "\n");
+      } else {
+        // Plain-text mode: one OK:/ERROR: line PER wiki page (the bash green/red
+        // loop contract), not a single vault-level summary. Line-counting
+        // consumers (scripts/eval-ingest-extract.sh:_score_schema, which requires
+        // one ".md" line per page) depend on the per-file granularity
+        // (frontmatter-cli-retire regression fix). The trailing summary line is
+        // retained for the human reader.
+        for (const f of result.files) {
+          if (f.ok) process.stdout.write(`OK:    ${f.file}\n`);
+          else process.stdout.write(`ERROR: ${f.file} — ${f.message ?? ""}\n`);
+        }
+        process.stdout.write(`\n`);
+        if (errors > 0) process.stdout.write(`Errors:   ${errors}\n`);
+        else process.stdout.write(`OK:    All frontmatter valid\n`);
+      }
+      return errors > 0 ? 1 : 0;
+    }
+
+    const stdin = await readStdin();
+    const otherVaultsList: readonly string[] = otherVaults
+      ? otherVaults.split(":").filter((v) => v.length > 0)
+      : [];
+    const result = runHookGate({ gate: gateName, stdin, target, otherVaults: otherVaultsList });
+    // Stdout block JSON (frontmatter/firewall/check-wikilinks/protect-raw/attachments).
+    if (result.block && result.reason !== undefined) {
+      process.stdout.write(JSON.stringify({ decision: "block", reason: result.reason }) + "\n");
+    }
+    // Stderr notice (dmi hard-block, must-rule advisory) written verbatim.
+    if (result.stderr !== "") {
+      process.stderr.write(result.stderr);
+    }
+    // Exit code: 0 for every gate except a dmi hard block (2).
+    return result.exitCode;
   }
 
   if (command === "firewall") {
@@ -666,6 +891,12 @@ function main(): number {
 }
 
 // Guard process.exit so this module is importable by tests without side effects.
+// main() is async (verify + lint are async); resolve before exiting.
 if (import.meta.main) {
-  process.exit(main());
+  main()
+    .then((code) => process.exit(code))
+    .catch((err: unknown) => {
+      process.stderr.write(String(err instanceof Error ? err.message : err) + "\n");
+      process.exit(2);
+    });
 }

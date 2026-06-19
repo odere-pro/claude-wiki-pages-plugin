@@ -1039,3 +1039,86 @@ MD
   assert_output_contains '"decision":"block"'
   assert_output_contains "required-field table"
 }
+
+# --- Phase 3: Bun-required fail-closed (the explicit safety upgrade) ----------
+# When Bun is absent at hook time, the frontmatter SECURITY gate must BLOCK a
+# wiki write with an install-Bun reason — NOT fail open (migration-plan.md
+# Phase 3 + this unit's FAIL-CLOSED requirement). Bun is hidden by running with
+# a PATH that contains only a curated tool dir without `bun`.
+
+# _path_without_bun: build a PATH dir holding the tools the wrapper needs
+# (bash, jq, cat, grep, sed, dirname, basename, printf via bash) but NOT bun,
+# and echo it. Symlinks the resolved absolute path of each tool.
+_path_without_bun() {
+  local tooldir="$BATS_TEST_TMPDIR/nobun-bin"
+  mkdir -p "$tooldir"
+  local t src
+  for t in bash jq cat grep sed dirname basename env awk tr head find; do
+    src=$(command -v "$t" 2>/dev/null || true)
+    [ -n "$src" ] && ln -sf "$src" "$tooldir/$t"
+  done
+  printf '%s' "$tooldir"
+}
+
+@test "validate-frontmatter: FAIL-CLOSED — Bun absent blocks a wiki write with install-Bun reason" {
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test-project/vault/wiki/topics/x.md","content":"# no frontmatter\n"}}'
+  local tooldir
+  tooldir=$(_path_without_bun)
+  # Sanity: bun must be unreachable on the curated PATH.
+  run bash -c "PATH='$tooldir' command -v bun"
+  assert_status 1
+
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/validate-frontmatter.sh'"
+
+  assert_success
+  assert_output_contains '"decision":"block"'
+  assert_output_contains "Bun is required"
+}
+
+@test "validate-frontmatter: FAIL-CLOSED — Bun absent still passes through non-wiki paths" {
+  # Fail-closed must be SCOPED: a missing-Bun box should not block edits the
+  # gate would never have validated (anything outside <vault>/wiki/*.md).
+  local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/elsewhere/notes.md","content":"# anything"}}'
+  local tooldir
+  tooldir=$(_path_without_bun)
+
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; export PATH='$tooldir'; printf '%s' '$json' | '$tooldir/bash' '$REPO_ROOT/scripts/validate-frontmatter.sh'"
+
+  assert_success
+  assert_output_empty
+}
+
+# --- frontmatter-cli-retire: CLI mode delegates to the engine, fail-closed ----
+# The CLI `--target [--json]` path is now a thin wrapper over
+# `engine hook --gate frontmatter --cli`. When Bun is absent the CLI cannot
+# validate, so it exits 2 (cannot validate) — never a silent pass.
+
+@test "validate-frontmatter: CLI --json delegates to engine (clean vault → empty findings)" {
+  run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" \
+    --target "$REPO_ROOT/tests/fixtures/minimal-vault" --json
+  assert_success
+  assert_output_contains '"findings":[]'
+}
+
+@test "validate-frontmatter: CLI --json FAIL-CLOSED — Bun absent exits 2 with empty envelope" {
+  local tooldir
+  tooldir=$(_path_without_bun)
+  # Sanity: bun must be unreachable on the curated PATH.
+  run bash -c "PATH='$tooldir' command -v bun"
+  assert_status 1
+
+  run bash -c "export PATH='$tooldir'; '$tooldir/bash' '$REPO_ROOT/scripts/validate-frontmatter.sh' --target '$REPO_ROOT/tests/fixtures/minimal-vault' --json"
+
+  assert_status 2
+  assert_output_contains '"findings":[]'
+}
+
+@test "validate-frontmatter: CLI (plain) FAIL-CLOSED — Bun absent exits 2 with install-Bun message" {
+  local tooldir
+  tooldir=$(_path_without_bun)
+
+  run bash -c "export PATH='$tooldir'; '$tooldir/bash' '$REPO_ROOT/scripts/validate-frontmatter.sh' --target '$REPO_ROOT/tests/fixtures/minimal-vault'"
+
+  assert_status 2
+  assert_output_contains "Bun is required"
+}

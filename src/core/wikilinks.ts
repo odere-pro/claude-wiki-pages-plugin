@@ -38,7 +38,12 @@ export function markdownLinkViolation(content: string): string | null {
   const { body } = splitFrontmatter(content);
   // Strip fenced code blocks to avoid false positives on examples.
   const stripped = stripFencedBlocks(body);
-  if (/\[.+\]\([^)]+\.md\)/.test(stripped)) {
+  // The 's' (dotAll) flag makes '.' match '\r' (CR, 0x0D) and other control
+  // characters, so a link text containing a carriage-return byte is detected.
+  // Without 's', a CR-containing link like '[the\rsample](page.md)' would not
+  // match because '.' skips '\r' by default. The old bash grep -oE had no such
+  // restriction. See json-envelope.bats test 311 for the regression anchor.
+  if (/\[.+\]\([^)]+\.md\)/s.test(stripped)) {
     return "Wiki file uses [text](file.md) links. Convert to [[Page Title]] wikilinks for Obsidian compatibility.";
   }
   return null;

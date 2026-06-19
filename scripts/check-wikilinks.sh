@@ -1,185 +1,73 @@
 #!/bin/bash
 # PreToolUse: blocks wiki files that use [text](file.md) instead of [[wikilinks]]
-# Usage (CLI): scripts/check-wikilinks.sh [--target <vault-path>]
+# Usage (CLI): scripts/check-wikilinks.sh [--target <vault-path>] [--json]
 # Default target: $CLAUDE_WIKI_PAGES_VAULT (fallback: docs/vault)
+#
+# CLI half: thin wrapper delegating to `engine lint --check md-links`
+#   (migrated from inline bash to the Bun engine; see tmp/migration-plan.md §Phase 1).
+# Hook half: PreToolUse stdin-JSON path stays in bash until Phase 3.
 set -euo pipefail
 
 # shellcheck source=resolve-vault.sh
 source "$(dirname "$0")/resolve-vault.sh"
 VAULT=$(resolve_vault)
 TARGET_SET=0
-JSON_MODE=0
-while [ $# -gt 0 ]; do
-  case "$1" in
+
+# Scan original args to determine mode (do not consume them — pass $@ through).
+ARGS=("$@")
+i=0
+while [ $i -lt ${#ARGS[@]} ]; do
+  case "${ARGS[$i]}" in
     --target)
-      VAULT="${2%/}"
+      i=$((i + 1))
+      VAULT="${ARGS[$i]%/}"
       TARGET_SET=1
-      shift 2
-      ;; # explicit CLI flag overrides auto-detection
-    --json)
-      JSON_MODE=1
-      shift
       ;;
-    *) shift ;;
+    *) ;;
   esac
+  i=$((i + 1))
 done
-VAULT_NAME=$(basename "$VAULT")
 
-# ── JSON helpers (no jq dependency) ──────────────────────────────────────────
-# _json_escape: escape a plain string for embedding in a JSON string value.
-# Escapes: backslash → \\, double-quote → \", newline → \n, tab → \t,
-# carriage-return → \r, backspace → \b, form-feed → \f, and any remaining
-# C0 control character (0x01-0x1F) → \uXXXX (lowercase hex).
-# This satisfies RFC 8259 §7 which forbids unescaped control chars in strings.
-_json_escape() {
-  printf '%s' "$1" | LC_ALL=C awk '
-  BEGIN {
-    ORS = ""
-    # Build ord[] table: ord[char] = decimal byte value for all 256 bytes.
-    for (i = 0; i <= 255; i++) {
-      c = sprintf("%c", i)
-      ord[c] = i
-    }
-  }
-  {
-    n = split($0, chars, "")
-    for (i = 1; i <= n; i++) {
-      c = chars[i]
-      o = ord[c]
-      if      (c == "\\") { printf "%s", "\\\\" }
-      else if (c == "\"") { printf "%s", "\\\"" }
-      else if (o ==  8)   { printf "%s", "\\b"  }
-      else if (o ==  9)   { printf "%s", "\\t"  }
-      else if (o == 12)   { printf "%s", "\\f"  }
-      else if (o == 13)   { printf "%s", "\\r"  }
-      else if (o >= 1 && o <= 31) { printf "\\u%04x", o }
-      else { printf "%s", c }
-    }
-    # awk splits on RS (newline by default); emit \n between input lines
-    printf "%s", "\\n"
-  }
-  ' | sed 's/\\n$//'
-}
-
-# _json_finding_with_file: emit one Finding JSON object with a file field.
-# $1=severity  $2=check  $3=message  $4=file
-_json_finding_with_file() {
-  local sev check msg file
-  sev=$(_json_escape "$1")
-  check=$(_json_escape "$2")
-  msg=$(_json_escape "$3")
-  file=$(_json_escape "$4")
-  printf '{"severity":"%s","check":"%s","message":"%s","file":"%s"}' \
-    "$sev" "$check" "$msg" "$file"
-}
-
-# Returns a plain error message on stdout, or nothing on success.
-# U4 (errors-that-teach): includes the specific offending fragment so the
-# author can locate the line without a separate grep.
-check_content() {
-  local content="$1"
-
-  # Strip frontmatter (everything through the closing ---)
-  local body
-  body=$(echo "$content" | sed '1,/^---$/d')
-
-  # Strip fenced code blocks to avoid false positives on examples
-  body=$(echo "$body" | sed '/^```/,/^```/d')
-
-  local offending
-  offending=$(echo "$body" | grep -oE '\[.+\]\([^)]+\.md\)' | head -1 || true)
-  if [ -n "$offending" ]; then
-    echo "Wiki file uses [text](file.md) links (e.g. ${offending}). Convert to [[Page Title]] wikilinks for Obsidian compatibility."
-  fi
-}
-
-# ── CLI mode ──────────────────────────────────────────────────────────────────
+# ── CLI mode: delegate to the Bun engine ─────────────────────────────────────
+# When called with --target, forward all original arguments to the engine.
+# The engine recognises --target, --json; other flags are silently ignored.
+# Output shape and exit codes are compatible with the original bash behaviour:
+#   exit 0 = clean, exit 1 = violations found, exit 2 = bad args (vault absent).
+#
+# Pre-check: validate the vault's wiki/ directory exists before delegating.
+# The engine returns exit 0 with empty findings for a nonexistent vault
+# (listMarkdownRecursive returns [] when the dir is absent), which would silently
+# succeed on a bad --target path. The old bash CLI half exited 2 in this case
+# (scripts/check-wikilinks.sh:106 in the pre-migration committed HEAD), so we
+# preserve that contract here to keep json-envelope.bats test 301 green.
 if [ "$TARGET_SET" -eq 1 ]; then
-  WIKI="$VAULT/wiki"
-  ERRORS=0
-
-  # Validate the vault directory exists (exit 2 for bad args).
-  if [ ! -d "$WIKI" ]; then
-    if [ "$JSON_MODE" -eq 1 ]; then
-      printf '{"findings":[]}\n'
-    fi
+  if [ ! -d "$VAULT/wiki" ]; then
     exit 2
   fi
-
-  if [ "$JSON_MODE" -eq 1 ]; then
-    # ── JSON mode: collect findings[], emit envelope, exit 0/1 ──────────────
-    FINDINGS_JSON=""
-    FINDING_SEP=""
-
-    while IFS= read -r -d '' file; do
-      wiki_rel="${file#${WIKI}/}"
-      err=$(check_content "$(cat "$file")")
-      if [ -n "$err" ]; then
-        finding=$(_json_finding_with_file "error" "wikilinks" "$err" "$wiki_rel")
-        FINDINGS_JSON="${FINDINGS_JSON}${FINDING_SEP}${finding}"
-        FINDING_SEP=","
-        ERRORS=$((ERRORS + 1))
-      fi
-    done < <(find "$WIKI" -name "*.md" -print0 2>/dev/null)
-
-    printf '{"findings":[%s]}\n' "$FINDINGS_JSON"
-    if [ "$ERRORS" -gt 0 ]; then
-      exit 1
-    fi
-    exit 0
-  fi
-
-  red() { printf '\033[0;31mERROR: %s\033[0m\n' "$1"; }
-  green() { printf '\033[0;32mOK:    %s\033[0m\n' "$1"; }
-
-  while IFS= read -r -d '' file; do
-    err=$(check_content "$(cat "$file")")
-    if [ -n "$err" ]; then
-      red "$(basename "$file") — $err"
-      ERRORS=$((ERRORS + 1))
-    else
-      green "$(basename "$file")"
-    fi
-  done < <(find "$WIKI" -name "*.md" -print0 2>/dev/null)
-
-  printf '\n'
-  if [ "$ERRORS" -gt 0 ]; then
-    printf '\033[0;31mErrors:   %d\033[0m\n' "$ERRORS"
-    exit 1
-  fi
-  printf '\033[0;32mOK:    All wikilinks valid\033[0m\n'
-  exit 0
+  exec bash "$(dirname "$0")/engine.sh" lint --check md-links --target "$VAULT" "$@"
 fi
 
-# ── Hook mode (stdin) ─────────────────────────────────────────────────────────
+# ── Hook mode (stdin) — delegated to the Bun engine (Phase 3 migration) ───────
+# The hot-path PreToolUse decision is now made by `engine hook --gate
+# check-wikilinks` (src/commands/hook/wikilink-gate.ts → src/core/
+# hook-wikilink-check.ts). The stdin shape, the {"decision":"block","reason":…}
+# stdout contract, and the always-exit-0 hook semantics are preserved VERBATIM —
+# the engine emits the same block JSON (the check_content reason for a Write, the
+# "Edit introduces …" reason for an Edit) the bash inline path did.
+#
+# FAIL-OPEN (ADVISORY gate): wikilink style is not a security boundary. When Bun
+# is absent we let the write THROUGH (exit 0) rather than blocking — the opposite
+# of the security gates (firewall / frontmatter / protect-raw / attachments / dmi),
+# which fail closed. A missing-Bun box must never have a wiki edit blocked by an
+# advisory style check.
 INPUT=$(cat)
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // empty')
 
-case "$FILE_PATH" in
-  */${VAULT_NAME}/wiki/*) ;;
-  *) exit 0 ;;
-esac
-
-TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
-if [ "$TOOL" = "Edit" ]; then
-  NEW=$(echo "$INPUT" | jq -r '.tool_input.new_string // empty')
-  if [ -n "$NEW" ]; then
-    local_frag=$(echo "$NEW" | grep -oE '\[.+\]\([^)]+\.md\)' | head -1 || true)
-    if [ -n "$local_frag" ]; then
-      escaped_frag=$(_json_escape "$local_frag")
-      echo "{\"decision\":\"block\",\"reason\":\"Edit introduces [text](file.md) links (e.g. ${escaped_frag}). Use [[Page Title]] wikilinks for Obsidian compatibility.\"}"
-      exit 0
-    fi
-  fi
+if ! command -v bun >/dev/null 2>&1; then
+  # Advisory: fail OPEN — proceed with the write.
   exit 0
 fi
 
-CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // empty')
-[ -z "$CONTENT" ] && exit 0 || true
-
-err=$(check_content "$CONTENT")
-if [ -n "$err" ]; then
-  escaped=$(_json_escape "$err")
-  echo "{\"decision\":\"block\",\"reason\":\"${escaped}\"}"
-fi
+# Pipe the ORIGINAL stdin to the engine entry; --target pins the same resolved
+# vault the bash side computed so the vaultName path filter matches exactly.
+printf '%s' "$INPUT" | bash "$(dirname "$0")/engine.sh" hook --gate check-wikilinks --target "$VAULT"
 exit 0

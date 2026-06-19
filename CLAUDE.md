@@ -59,5 +59,5 @@ co-equal top-level choices in user-facing copy.
 
 - `bash tests/install-deps.sh` — install every dev/test tool (brew on macOS, apt on Linux). Idempotent. `--check` reports status, `--dry-run` previews.
 - `bash tests/run-tests.sh` — run Tier 0 + Tier 1 locally. Also accepts `tier0`, `tier1`, `tier2`, or `all`; `--list` prints the commands without running.
-- `scripts/validate-docs.sh` — glossary gate, enforced in CI Tier 0. Run it locally before committing to catch violations early.
+- `scripts/validate-docs.sh` — glossary + design-drift gate, enforced in CI Tier 0. Now a thin wrapper over `engine lint --check docs` (fail-closes without Bun). Run it locally before committing to catch violations early.
 - `scripts/verify-ingest.sh --target tests/fixtures/reference-vault` — verify the reference vault against the schema.
