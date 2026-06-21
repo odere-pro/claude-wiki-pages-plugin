@@ -87,13 +87,23 @@ _ss_with_timeout() {
     gtimeout "$secs" "$@"
     return $?
   fi
-  # Pure-bash fallback: race command against a sleep watchdog.
+  # Pure-bash fallback: race command against a sleep watchdog. The watchdog kills
+  # the command's DESCENDANTS first (the real worker — bash's foreground child),
+  # not just the wrapper PID: a bare `kill <wrapper>` is DEFERRED by some bash
+  # builds (notably macOS's system bash 3.2) until the wrapper's foreground child
+  # returns, so the deadline would never be enforced (M26). Killing the child
+  # lets the wrapper's own `wait` return immediately. TERM then KILL after a
+  # grace second.
   "$@" &
   local _cmd_pid=$!
   (
     sleep "$secs" 2>/dev/null
-    kill "$_cmd_pid" 2>/dev/null
-  ) &
+    pkill -TERM -P "$_cmd_pid" 2>/dev/null
+    kill -TERM "$_cmd_pid" 2>/dev/null
+    sleep 1 2>/dev/null
+    pkill -KILL -P "$_cmd_pid" 2>/dev/null
+    kill -KILL "$_cmd_pid" 2>/dev/null
+  ) >/dev/null 2>&1 &
   local _wdog_pid=$!
   local _rc=0
   wait "$_cmd_pid" 2>/dev/null || _rc=$?

@@ -91,11 +91,21 @@ _engine_with_timeout() {
   # Pure-bash fallback: run command in background, race a sleep watchdog.
   "$@" &
   local cmd_pid=$!
-  # Watchdog: sleep then kill the command if it is still running.
+  # Watchdog: after the deadline, kill the command's DESCENDANTS first (the real
+  # worker — bash's foreground child), not just the wrapper PID. A bare
+  # `kill <wrapper>` is DEFERRED by some bash builds (notably macOS's system bash
+  # 3.2) until the wrapper's foreground child returns, so the deadline would
+  # never be enforced (M27). Killing the child lets the wrapper's own `wait`
+  # return immediately. TERM first, then KILL after a grace second for anything
+  # that ignores TERM.
   (
     sleep "$secs" 2>/dev/null
-    kill "$cmd_pid" 2>/dev/null
-  ) &
+    pkill -TERM -P "$cmd_pid" 2>/dev/null
+    kill -TERM "$cmd_pid" 2>/dev/null
+    sleep 1 2>/dev/null
+    pkill -KILL -P "$cmd_pid" 2>/dev/null
+    kill -KILL "$cmd_pid" 2>/dev/null
+  ) >/dev/null 2>&1 &
   local wdog_pid=$!
   # Wait for the command; capture its exit status.
   local rc=0
