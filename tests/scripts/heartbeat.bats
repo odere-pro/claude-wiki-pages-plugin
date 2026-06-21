@@ -92,6 +92,10 @@ enable_maintenance() {
   mkdir -p "$FAKE_SCRIPTS"
   cp "$REPO_ROOT/scripts/heartbeat.sh" "$FAKE_SCRIPTS/heartbeat.sh"
   cp "$REPO_ROOT/scripts/resolve-vault.sh" "$FAKE_SCRIPTS/resolve-vault.sh"
+  # B06: resolve-vault.sh sources these focused libs from its own dir; the fake
+  # dir must carry them too or the source fails (No such file) and aborts.
+  cp "$REPO_ROOT/scripts/lib-vault-registry.sh" "$FAKE_SCRIPTS/lib-vault-registry.sh"
+  cp "$REPO_ROOT/scripts/lib-wired-source.sh" "$FAKE_SCRIPTS/lib-wired-source.sh"
   # Stub engine.sh: sleep for 5 s then exit — simulates a hung Bun process.
   printf '#!/bin/bash\nsleep 5\n' >"$FAKE_SCRIPTS/engine.sh"
   chmod +x "$FAKE_SCRIPTS/engine.sh"
@@ -101,7 +105,11 @@ enable_maintenance() {
 
   # Run with a 1-second timeout; the stub engine sleeps 5 s so it must be
   # killed by _engine_with_timeout, which drives fallback to the bash probe.
+  # cd into PROJ so the relative PROJECT_CFG (.claude/claude-wiki-pages.json)
+  # written by enable_maintenance is found — without it heartbeat exits at the
+  # opt-in guard and never reaches the timeout path this test is pinning.
   run bash -c "
+    cd '$PROJ'
     export CLAUDE_WIKI_PAGES_VAULT='$VAULT'
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$PROJ/.claude/claude-wiki-pages/settings.json'
     export CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT=1
