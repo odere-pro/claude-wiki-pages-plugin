@@ -55,6 +55,10 @@ readonly THRESH_QUERY_QUOTE="0.90"
 # collapses every whitespace run to one space (ADR-0017 normalization).
 # shellcheck source=eval-normalize-ws.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/eval-normalize-ws.sh"
+# Shared awk float-math (ratio / meets), single-sourced so both eval gates score
+# from one implementation (ADR-0017).
+# shellcheck source=lib-eval-float.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib-eval-float.sh"
 
 # ── verification core (pure; sourced by offline-query.sh) ────────────────────
 
@@ -187,7 +191,7 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
     while IFS= read -r rq; do
       cut -f1 "$work/citations.tsv" | grep -qFx -- "$rq" && cited_hits=$((cited_hits + 1))
     done < <(jq -r '.required_citations[]' "$gold")
-    recall=$(awk -v h="$cited_hits" -v n="$req_n" 'BEGIN{printf "%.4f", h/n}')
+    recall=$(ratio "$cited_hits" "$req_n")
   fi
 
   # quote_coverage: required quotes present (normalized substring) among cited quotes.
@@ -199,7 +203,7 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
       needed=$(printf '%s' "$needed" | normalize_ws)
       printf '%s' "$cited_all" | grep -qF -- "$needed" && quote_hits=$((quote_hits + 1))
     done < <(jq -r '.required_quotes[]' "$gold")
-    qcov=$(awk -v h="$quote_hits" -v n="$quotes_n" 'BEGIN{printf "%.4f", h/n}')
+    qcov=$(ratio "$quote_hits" "$quotes_n")
   fi
 
   # fabricated citations (the floor) via the shared verification core.
@@ -210,8 +214,8 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
 
   local verdict="fail"
   if [ "$coverage_match" -eq 1 ] && [ "$fabricated" -eq 0 ] &&
-    awk -v r="$recall" -v t="$THRESH_QUERY_RECALL" 'BEGIN{exit !(r>=t)}' &&
-    awk -v q="$qcov" -v t="$THRESH_QUERY_QUOTE" 'BEGIN{exit !(q>=t)}'; then
+    meets "$recall" "$THRESH_QUERY_RECALL" &&
+    meets "$qcov" "$THRESH_QUERY_QUOTE"; then
     verdict="pass"
   fi
 
