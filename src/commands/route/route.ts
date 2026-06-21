@@ -68,20 +68,29 @@ export interface RouteOptions {
 /**
  * The pure decision matrix (ADR-0018 §4). Exported for direct unit testing.
  *
- * | offlinePolicy | claudeReachable | tierApproved | ollamaUp | decision  |
- * | off           | —               | —            | —        | claude    |
- * | strict        | true            | —            | —        | claude    |
- * | strict        | false           | —            | —        | blocked   |
- * | prefer-local  | true            | —            | —        | claude    |
- * | prefer-local  | false           | true         | true     | local     |
- * | prefer-local  | false           | true         | false    | blocked   |
- * | prefer-local  | false           | false        | —        | blocked   |
+ * Provider-neutral by design: the matrix only asks "is the configured LOCAL
+ * model provider reachable" (`localProviderUp`), never "is Ollama up". The
+ * concrete provider (config.localModel.provider — currently `ollama`, with
+ * `lmstudio` reserved) is resolved upstream in resolveRouteInput; the decision
+ * itself is the same regardless of which local provider is configured. (The
+ * full chat/probe adapter stays deliberately bounded — only Ollama is
+ * ADR-0011 eval-governed today — so this is the Adapter seam, not a speculative
+ * multi-provider implementation.)
+ *
+ * | offlinePolicy | claudeReachable | tierApproved | localProviderUp | decision  |
+ * | off           | —               | —            | —               | claude    |
+ * | strict        | true            | —            | —               | claude    |
+ * | strict        | false           | —            | —               | blocked   |
+ * | prefer-local  | true            | —            | —               | claude    |
+ * | prefer-local  | false           | true         | true            | local     |
+ * | prefer-local  | false           | true         | false           | blocked   |
+ * | prefer-local  | false           | false        | —               | blocked   |
  */
 export function decideRoute(
   policy: Config["localModel"]["offlinePolicy"],
   claudeReachable: boolean,
   tierApproved: boolean,
-  ollamaUp: boolean,
+  localProviderUp: boolean,
 ): { decision: RouteDecision; reason: string } {
   if (policy === "off")
     return {
@@ -103,10 +112,11 @@ export function decideRoute(
         "Claude is unreachable and no gate-approved local tier is configured — " +
         "enable localModel with an approved tier/model (see ADR-0018) or run 'config validate'.",
     };
-  if (!ollamaUp)
+  if (!localProviderUp)
     return {
       decision: "blocked",
-      reason: "Claude is unreachable and Ollama is not up — no local fallback available.",
+      reason:
+        "Claude is unreachable and the local model provider is not up — no local fallback available.",
     };
   return {
     decision: "local",
@@ -160,7 +170,8 @@ interface RouteInput {
   readonly tier: Config["localModel"]["tier"];
   readonly tierApproved: boolean;
   readonly claudeReachable: boolean;
-  readonly ollamaUp: boolean;
+  /** Whether the configured LOCAL model provider is reachable (provider-neutral). */
+  readonly localProviderUp: boolean;
   readonly maxParallelExtract: number | undefined;
 }
 
@@ -174,13 +185,16 @@ function resolveRouteInput(config: Config, opts: RouteOptions): RouteInput {
   // Claude state is treated as reachable (prefer the primary), and an unknown
   // Ollama state is treated as not-up (do not assume a fallback exists).
   const claudeReachable = opts.claude !== "unreachable";
-  const ollamaUp = opts.ollama === "up";
+  // `opts.ollama` is the reachability of the configured local provider
+  // (config.localModel.provider). The flag keeps its `--ollama` name for
+  // back-compat, but the routing decision treats it provider-neutrally.
+  const localProviderUp = opts.ollama === "up";
   return {
     policy: config.localModel.offlinePolicy,
     tier: config.localModel.tier,
     tierApproved,
     claudeReachable,
-    ollamaUp,
+    localProviderUp,
     // C12: Config.maintenance now declares maxParallelExtract; no cast needed.
     maxParallelExtract: config.maintenance.maxParallelExtract,
   };
@@ -195,7 +209,7 @@ export function route(opts: RouteOptions = {}): RouteReport {
     input.policy,
     input.claudeReachable,
     input.tierApproved,
-    input.ollamaUp,
+    input.localProviderUp,
   );
 
   // P1-A6: read maintenance.maxParallelExtract — now typed in Config (C12).

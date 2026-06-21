@@ -25,10 +25,11 @@ describe("decideRoute (pure matrix, ADR-0018 §4)", () => {
     expect(r.decision).toBe("local");
   });
 
-  test("prefer-local + unreachable + approved tier + Ollama down → blocked", () => {
+  test("prefer-local + unreachable + approved tier + local provider down → blocked", () => {
     const r = decideRoute("prefer-local", false, true, false);
     expect(r.decision).toBe("blocked");
-    expect(r.reason).toContain("Ollama");
+    // Provider-neutral reason (no longer hardcodes "Ollama").
+    expect(r.reason).toContain("local model provider");
   });
 
   test("prefer-local + unreachable + unapproved tier → blocked", () => {
