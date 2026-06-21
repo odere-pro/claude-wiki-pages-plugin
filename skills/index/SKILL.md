@@ -50,7 +50,9 @@ With frontmatter matching the `index` type schema, and a body that:
   (filename wikilink to the folder note, matching the quoted `"[[<folder>]]"`
   form the schema requires in the root `child_indexes:`).
 - Lists every synthesis note under `## Syntheses`, one line per file, format
-  `- [[<Title>]] — <synthesis_type>`.
+  `- [[<file-basename>|<Title>]] — <synthesis_type>` (piped basename target —
+  a bare `[[<Title>]]` does not resolve to the kebab-case filename and renders
+  as a ghost node).
 - Ends with an auto-generated timestamp: `_Generated <YYYY-MM-DD>._`
 
 Plus one log append:

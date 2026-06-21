@@ -41,7 +41,7 @@ and the **Obsidian write-protection keys** in `vault/.obsidian/app.json`:
 
 ```json
 {
-  "userIgnoreFilters": ["raw/", "_templates/", "_proposed/", "_inbox/"],
+  "userIgnoreFilters": ["raw/", "_templates/", "_proposed/", "_inbox/", "output/", "CLAUDE.md", "wiki/log.md"],
   "newFileLocation": "folder",
   "newFileFolderPath": "_inbox",
   "newLinkFormat": "shortest"
@@ -49,9 +49,17 @@ and the **Obsidian write-protection keys** in `vault/.obsidian/app.json`:
 ```
 
 `userIgnoreFilters` is Obsidian's "Excluded files" setting: `raw/` (provenance
-payload), `_templates/` (scaffolding), `_proposed/` (unreviewed drafts), and
-`_inbox/` (the stub quarantine) disappear from the graph, search, and link
-autocomplete — the Obsidian experience shows only generated wiki pages.
+payload), `_templates/` (scaffolding), `_proposed/` (unreviewed drafts),
+`_inbox/` (the stub quarantine), `output/` (git-ignored scratch deliverables
+incl. `_pipeline-plan-*`), `CLAUDE.md` (the vault schema, not content), and
+`wiki/log.md` (the ops log) disappear from the graph, search, and link
+autocomplete — the Obsidian experience shows only generated wiki pages. These
+exclusions are index-level and robust; the per-file tokens in the `graph.json`
+`search` filter (`wiki/index.md`, `wiki/log.md`) are view-only and unreliable on
+single files, so the bookkeeping artifacts that never need to stay searchable
+(`CLAUDE.md`, `output/`, `wiki/log.md`) are excluded here instead. `wiki/index.md`
+and `wiki/_sources`/`wiki/_synthesis` stay out of `userIgnoreFilters` because
+they must remain searchable for query and ingest.
 
 The three new-file keys route every Obsidian-created note (e.g. a note made by
 clicking an unresolved link) into the excluded `_inbox/` folder instead of the
@@ -62,7 +70,8 @@ vault root — an exact-filename match beats an alias in Obsidian, so a
 root-level stub would silently capture links meant for the canonical page.
 
 If `app.json` is absent, create it with exactly this content. If it exists,
-**merge**: append the missing `_inbox/` entry (and any other missing entry) to
+**merge**: append any missing canonical entry (`raw/`, `_templates/`,
+`_proposed/`, `_inbox/`, `output/`, `CLAUDE.md`, `wiki/log.md`) to
 `userIgnoreFilters`, set each of the three new-file keys only when it is absent
 or differs from the expected value, never remove user entries, and preserve
 every other key unchanged.

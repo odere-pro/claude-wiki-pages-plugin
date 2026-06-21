@@ -15,9 +15,11 @@ no network, no embeddings.
   Parsed and validated; currently unused. Reserved for parallel check execution
   in a later milestone.
 - `--check <name>` — run a single check; default is `all`.
-  Known values: `manifests`, `md-links`, `structural`, `ontology`, `vocabulary`,
-  `dup-claims`, `output`, `docs`, `all`. Note `docs` is repo-scoped (not part of
-  `all`, which is vault-scoped) — it is the CI Tier-0 glossary/design-drift gate.
+  Known values: `manifests`, `md-links`, `ghost-links`, `structural`, `ontology`,
+  `vocabulary`, `dup-claims`, `output`, `docs`, `all`. Note `docs` is repo-scoped
+  (not part of `all`, which is vault-scoped) — it is the CI Tier-0
+  glossary/design-drift gate. `ghost-links` is opt-in (also not part of `all`) —
+  see below.
 
 ## Composition pattern
 
@@ -82,6 +84,28 @@ Detection rules:
 When `check=all`: runs unconditionally on all vaults.
 
 Covered by: [`markdown-link-check.ts`](../../core/markdown-link-check.ts)
+
+### `ghost-links` — alias/title-only links that float as ghost nodes
+
+Detects `[[links]]` the plugin's index resolves but Obsidian does not: links
+that win ONLY at the `alias:`/`title:` tier, never at path/basename. Obsidian
+resolves a written link by path or basename only (schema CLAUDE.md → "Linking
+conventions"), so a bare `[[Context Engineering]]` that matches a page's
+`title:`/`aliases:` but not its filename `context-engineering.md` renders as a
+gray **ghost node** in the graph. The `verify` dangling check treats these as
+resolved (its resolvable set is the path∪basename∪alias∪title superset,
+ADR-0031), so they never surface there — this check closes that blind spot via
+the Obsidian-accurate `resolveLink` (flags `kind` `alias` or `title`).
+
+**Opt-in — NOT part of `check=all`.** `all` is the byte-stable per-vault lint
+pinned by tests and shared fixtures that still carry legacy bare-title links;
+folding ghost-links into `all` would break those assertions and force a fixture
+rewrite. Instead it is invoked explicitly: the curator's link auto-fix path runs
+`lint --check ghost-links` in its diagnose phase, and a human can run it directly
+to audit a vault. Remedy for every finding: rewrite to piped basename form
+`[[file-basename|Display]]`. WARN-severity (`wikilink-ghost`); `exitCode` stays
+`0`. Covered by [`ghost-link-check.ts`](../../core/ghost-link-check.ts),
+[`ghost-link-check.test.ts`](../../core/ghost-link-check.test.ts).
 
 ### `structural` — template-skeleton conformance + no-raw-HTML (S2)
 
