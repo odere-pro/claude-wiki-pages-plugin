@@ -337,9 +337,60 @@ describe("lint --check output — dispatch", () => {
   });
 });
 
+describe("lint --check ghost-links — dispatch", () => {
+  test("clean (no findings) for a vault with no ghost links", async () => {
+    const sb = makeVault(CLEAN_VAULT);
+    try {
+      const report = await lint({ target: sb.vault, check: "ghost-links" });
+      expect(report.command).toBe("lint");
+      expect(report.findings).toHaveLength(0);
+      expect(report.clean).toBe(true);
+    } finally {
+      sb.cleanup();
+    }
+  });
+
+  test("flags a bare link that resolves only via title (ghost node)", async () => {
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 3\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "wiki/topics/aliased-page.md": "---\ntitle: Aliased Page\n---\nBody.\n",
+      "wiki/topics/linker.md": "---\ntitle: Linker\n---\nSee [[Aliased Page]].\n",
+    });
+    try {
+      const report = await lint({ target: sb.vault, check: "ghost-links" });
+      expect(report.warnings).toBeGreaterThan(0);
+      expect(report.findings.some((f) => f.check === "wikilink-ghost")).toBe(true);
+    } finally {
+      sb.cleanup();
+    }
+  });
+
+  test("is NOT part of check=all (opt-in only)", async () => {
+    // A vault whose ONLY issue is a ghost link must lint clean under `all`,
+    // since ghost-links is opt-in and not folded into the byte-stable all-lint.
+    const sb = makeVault({
+      "CLAUDE.md": "---\nschema_version: 3\n---\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "wiki/topics/aliased-page.md": "---\ntitle: Aliased Page\n---\nBody.\n",
+      "wiki/topics/linker.md": "---\ntitle: Linker\n---\nSee [[Aliased Page]].\n",
+    });
+    try {
+      const report = await lint({ target: sb.vault, check: "all" });
+      expect(report.findings.some((f) => f.check === "wikilink-ghost")).toBe(false);
+    } finally {
+      sb.cleanup();
+    }
+  });
+});
+
 describe("resolveLintCheck", () => {
   test("undefined → all", () => {
     expect(resolveLintCheck(undefined)).toBe("all");
+  });
+
+  test("'ghost-links' → ghost-links", () => {
+    expect(resolveLintCheck("ghost-links")).toBe("ghost-links");
   });
 
   test("'vocabulary' → vocabulary", () => {

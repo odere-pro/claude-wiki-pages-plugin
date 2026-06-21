@@ -357,7 +357,7 @@ Add synthesis notes under `## Synthesis` in `wiki/index.md`. Append to `log.md`:
 
 ```
 ## [YYYY-MM-DD] synthesize | <Topic>
-Created [[Synthesis Title]] from N wiki pages across M sources.
+Created [[synthesis-file-basename|Synthesis Title]] from N wiki pages across M sources.
 ```
 
 ### 4.4 Snapshot post — commit the synthesis writes

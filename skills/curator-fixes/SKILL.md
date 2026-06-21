@@ -118,19 +118,32 @@ For every per-folder index — the folder note (`<folder>/<folder>.md`), or lega
 
 For each `[[Target]]` in `log.md` where `Target` matches no real page title/alias, replace with backtick code formatting (e.g., `` `_index` ``).
 
-### 3.7 Resolve broken wikilinks (safe paths only)
+### 3.7 Resolve broken and ghost wikilinks (safe paths only)
 
-For each broken `[[Target]]`:
+Always rewrite to **piped basename form** `[[file-basename|Display]]` — never to a
+page's bare `title:`. Obsidian resolves a written link by path/basename only, so a
+bare `[[Title Case]]` link relying on alias/title is itself a ghost node.
 
-1. **Alias match** — if a page has `Target` in its `aliases:`, update the link to that page's `title:`.
-2. **Unique fuzzy match** — case-only or hyphen-only differences with exactly one candidate page → update.
-3. Anything else → leave the link, surface in the report-only list. Do **not** create stub pages. Do **not** delete the link.
+For each **ghost** link (a `wikilink-ghost` finding from the verifier §1.1b —
+resolves only via `alias:`/`title:`, not path/basename):
+
+1. The finding names the file it resolves to. Rewrite the link to that file's
+   basename in piped form, preserving the existing display text:
+   `[[Context Engineering]]` → `[[context-engineering|Context Engineering]]`.
+2. If the bare target's basename is not unique vault-wide, path-qualify instead.
+
+For each **broken** (dangling) `[[Target]]` that resolves to nothing:
+
+1. **Alias / unique-fuzzy match** — if exactly one page matches `Target` via its
+   `aliases:`, or via a case-only/hyphen-only difference, rewrite the link to that
+   page's basename in piped form `[[file-basename|Display]]`.
+2. Anything else → leave the link, surface in the report-only list. Do **not** create stub pages. Do **not** delete the link.
 
 ### 3.8 Connect orphan pages (link-only, non-destructive)
 
 For each orphan page:
 
-1. Find the containing folder's folder note (or legacy `_index.md`). If the page is not in the body, add `- [[Title]] — summary`.
+1. Find the containing folder's folder note (or legacy `_index.md`). If the page is not in the body, add `- [[file-basename|Title]] — summary` (piped basename, not a bare `[[Title]]`).
 2. For sibling pages in the same folder sharing 2+ sources, add this page to their `related:`.
 
 **Do NOT auto-edit `sources:` fields to connect `type: source` orphans.**

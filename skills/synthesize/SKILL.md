@@ -51,8 +51,10 @@ The file must carry the synthesis frontmatter schema from `vault/CLAUDE.md`:
 - `synthesis_type` — one of `comparison`, `theme`, `contradiction`, `gap`,
   `timeline`. No default.
 - `path: "_synthesis"`.
-- `scope:` — every page the synthesis rests on, as `[[wikilinks]]`. At least
-  two entries (a synthesis of one page is an extended page, not a synthesis).
+- `scope:` — every page the synthesis rests on, as piped-basename
+  `[[file-basename|Title]]` wikilinks (never a bare `[[Title]]` — it does not
+  resolve and renders as a ghost node). At least two entries (a synthesis of
+  one page is an extended page, not a synthesis).
 - `sources:` — every source cited. At least one entry.
 - `aliases:` — first entry equals `title`.
 - `created`, `updated`, `status`, `confidence` per schema defaults.

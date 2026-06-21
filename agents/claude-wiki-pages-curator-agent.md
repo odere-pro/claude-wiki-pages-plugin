@@ -61,6 +61,22 @@ Capture full output. Parse each ERROR and WARN line into a structured issue list
 
 **Do not re-implement these checks.** If a new check is needed, extend the script in a separate change; do not re-derive in prose.
 
+### 1.1b Run the ghost-wikilink check
+
+The always-run verifier treats a link that matches a page's `alias:`/`title:`
+as resolved, but Obsidian resolves only by path/basename — so a bare
+`[[Title Case]]` link that matches a title/alias but not a filename renders as a
+gray **ghost node** in the graph. Surface these with the engine's
+Obsidian-accurate check (not part of `--check all`):
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh" lint --check ghost-links --target vault/ --json
+```
+
+Parse each `wikilink-ghost` finding (file + the bare target it names). These are
+fixed in Phase 3 step 3.7 — rewrite to piped basename form, or prose-ify when no
+unique basename matches. Never leave a ghost link in a wiki page.
+
 ### 1.2 Supplemental checks the script does not cover
 
 Run the supplemental check set (broken wikilinks, orphans, title collisions,
@@ -124,7 +140,9 @@ Apply the nine safe, idempotent, content-preserving auto-fixes **in order**:
 3.1 wrap plain-string `sources:` (and other link fields) in wikilinks · 3.2 fill
 missing `parent:`/`path:` · 3.3 add `title` to `aliases` · 3.4 repair folder-note
 children drift · 3.5 repair `wiki/index.md` · 3.6 clean ghost wikilinks in
-`log.md` · 3.7 resolve broken wikilinks (alias/unique-fuzzy only) · 3.8 connect
+`log.md` · 3.7 resolve broken wikilinks (alias/unique-fuzzy only) **and rewrite
+`wikilink-ghost` findings from §1.1b to piped basename form `[[file-basename|Display]]`
+when exactly one file basename matches the bare target, else prose-ify the link** · 3.8 connect
 orphans link-only — **never auto-edit `sources:` to connect `type: source`
 orphans (forges provenance — Report-only) and never delete an orphan** · 3.9 add
 missing graph color groups.

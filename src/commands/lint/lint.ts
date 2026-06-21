@@ -24,6 +24,7 @@ import { buildReport, type Report } from "../../core/report.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { checkManifests } from "../../core/manifest-check.ts";
 import { checkMarkdownLinks } from "../../core/markdown-link-check.ts";
+import { checkGhostLinks } from "../../core/ghost-link-check.ts";
 import { checkStructural } from "../../core/structural-check.ts";
 import { checkOntology } from "../../core/ontology-lint.ts";
 import { lintVocabulary } from "../../core/vocabulary-lint.ts";
@@ -36,6 +37,7 @@ import { resolveConcurrency, runChecks, type CheckFn } from "../../core/checks-r
 export type LintCheck =
   | "manifests"
   | "md-links"
+  | "ghost-links"
   | "structural"
   | "ontology"
   | "vocabulary"
@@ -48,6 +50,7 @@ export type LintCheck =
 const KNOWN_CHECKS = new Set<LintCheck>([
   "manifests",
   "md-links",
+  "ghost-links",
   "structural",
   "ontology",
   "vocabulary",
@@ -154,6 +157,17 @@ export async function lint(opts: LintOptions = {}): Promise<Report> {
   // Skips bookkeeping files and folder notes (mirrors check_content() exemptions).
   if (check === "md-links") {
     selectedChecks.push({ name: "md-links", fn: () => checkMarkdownLinks(vault) });
+  }
+
+  // Check: ghost-links — links that resolve only via alias/title, never
+  // path/basename. Obsidian resolves a written link by path/basename only, so
+  // these render as gray ghost nodes (ADR-0033 island graph). The remedy is the
+  // piped basename form. Deliberately NOT part of `check=all`: `all` is the
+  // byte-stable per-vault lint pinned by tests + shared fixtures that still
+  // carry legacy bare-title links; this check is opt-in, invoked explicitly by
+  // the lint skill and the curator's link auto-fix path.
+  if (check === "ghost-links") {
+    selectedChecks.push({ name: "ghost-links", fn: () => checkGhostLinks(join(vault, "wiki")) });
   }
 
   // Check: structural — template-skeleton conformance + no-raw-HTML (S2).
