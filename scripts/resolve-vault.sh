@@ -282,19 +282,25 @@ set_vault_path() {
       return 0
     fi
   else
-    # Degraded path: Bun unavailable — fall back to awk sed-replacement.
-    # M30 fix: 'path' is pre-escaped in a BEGIN block before use in sub().
-    # awk's sub() replacement string interprets '&' as the matched text and
-    # '\' as an escape character; passing the raw path directly allows a vault
-    # path such as "/tmp/foo&bar" or "/tmp/foo\nbar" to corrupt the JSON.
-    # Escaping order: backslashes first (so the escaping of '&' doesn't
-    # double-escape), then ampersands — both via gsub() on a local 'safe' copy.
-    # The path value is still passed safely via -v (no shell word-splitting);
-    # only the sub() replacement usage is the injection point being fixed.
+    # Degraded path: Bun unavailable — fall back to an awk rewriter.
+    # M30 fix: never use awk sub()/gsub() to inject the path. A sub() replacement
+    # string interprets '&' as the whole matched text and '\' as an escape, and
+    # passing the value through `-v` makes awk process C-style escapes ('\b',
+    # '\t', …) in it — so a vault path like "/tmp/foo&bar" or "/tmp/foo\bar"
+    # would corrupt the JSON. Instead the value is passed via the environment
+    # (ENVIRON is NOT escape-processed) and emitted with plain print
+    # concatenation (no replacement metacharacters apply), so '&', '\', '|', and
+    # spaces all round-trip verbatim. The matched line's indentation and any
+    # trailing comma are preserved.
     printf '[claude-wiki-pages] WARN: Bun unavailable for settings write — using degraded awk writer\n' >&2
-    if ! awk -v path="$new_path" '
-      BEGIN { safe = path; gsub(/\\/, "\\\\", safe); gsub(/&/, "\\&", safe) }
-      /"current_vault_path"/ { sub(/"current_vault_path"[[:space:]]*:[[:space:]]*"[^"]*"/, "\"current_vault_path\": \"" safe "\"") }
+    if ! CWP_NEW_PATH="$new_path" awk '
+      BEGIN { val = ENVIRON["CWP_NEW_PATH"] }
+      /"current_vault_path"/ {
+        match($0, /^[[:space:]]*/); indent = substr($0, 1, RLENGTH)
+        comma = ($0 ~ /,[[:space:]]*$/) ? "," : ""
+        print indent "\"current_vault_path\": \"" val "\"" comma
+        next
+      }
       { print }
     ' "$CLAUDE_WIKI_PAGES_SETTINGS" >"$tmp" 2>/dev/null; then
       printf '[claude-wiki-pages] WARN: cannot update settings.json\n' >&2
