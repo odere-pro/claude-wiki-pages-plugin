@@ -77,6 +77,50 @@ enable_maintenance() {
   assert_output_empty
 }
 
+@test "heartbeat: completes within deadline when engine hangs (timeout path)" {
+  # This test pins M27: _engine_with_timeout must enforce the deadline so a
+  # hung Bun process cannot block SessionStart indefinitely. We replace
+  # engine.sh with a stub that sleeps longer than the configured timeout, then
+  # assert the heartbeat (a) exits in time and (b) falls through to degraded
+  # mode (CATCHUP line from the bash probe) rather than hanging.
+  enable_maintenance
+
+  # Build a fake engine.sh that sleeps for 5 seconds — longer than the 1 s
+  # timeout we configure below.
+  local FAKE_SCRIPTS
+  FAKE_SCRIPTS="$BATS_TEST_TMPDIR/fake-scripts"
+  mkdir -p "$FAKE_SCRIPTS"
+  cp "$REPO_ROOT/scripts/heartbeat.sh" "$FAKE_SCRIPTS/heartbeat.sh"
+  cp "$REPO_ROOT/scripts/resolve-vault.sh" "$FAKE_SCRIPTS/resolve-vault.sh"
+  # Stub engine.sh: sleep for 5 s then exit — simulates a hung Bun process.
+  printf '#!/bin/bash\nsleep 5\n' >"$FAKE_SCRIPTS/engine.sh"
+  chmod +x "$FAKE_SCRIPTS/engine.sh"
+
+  local START END ELAPSED
+  START=$(date +%s 2>/dev/null || echo 0)
+
+  # Run with a 1-second timeout; the stub engine sleeps 5 s so it must be
+  # killed by _engine_with_timeout, which drives fallback to the bash probe.
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_VAULT='$VAULT'
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$PROJ/.claude/claude-wiki-pages/settings.json'
+    export CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT=1
+    bash '$FAKE_SCRIPTS/heartbeat.sh'
+  "
+  END=$(date +%s 2>/dev/null || echo 0)
+
+  assert_success
+  # Must finish well before the stub's 5 s sleep.  Allow 4 s for process
+  # startup overhead (conservative on slow CI).
+  ELAPSED=$((END - START))
+  if [ "$ELAPSED" -ge 5 ]; then
+    printf 'timeout test: heartbeat took %ds — engine stub was not killed in time\n' "$ELAPSED" >&2
+    return 1
+  fi
+  # Degraded mode must have fired: the bash probe finds new.md unprocessed.
+  assert_output_contains "CATCHUP:"
+}
+
 @test "heartbeat: emits SYNC notice when a wired source has changed docs" {
   command -v bun >/dev/null 2>&1 || skip "SYNC notice is engine-only (needs bun)"
   enable_maintenance

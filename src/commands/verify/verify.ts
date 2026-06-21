@@ -10,11 +10,17 @@
  * before buildReport so byte-identical output is guaranteed regardless of
  * completion order. --concurrency 1 triggers a serial fallback for
  * debuggability.
+ *
+ * Aggregate root: VaultAggregate encapsulates the vault directory structure
+ * (root, wiki sub-path, schema authority) so check functions receive cohesive
+ * domain paths rather than independently derived strings. The aggregate is the
+ * single source of truth for "what does this vault look like on disk" within
+ * the verify command.
  */
 
 import { join } from "node:path";
 import { existsSync } from "../../core/fs.ts";
-import { buildReport, type Finding, type Report } from "../../core/report.ts";
+import { buildReport, type Report, type Finding } from "../../core/report.ts";
 import { checkSchema } from "../../core/schema.ts";
 import { checkIndex, checkSourcesFormat } from "../../core/index-check.ts";
 import {
@@ -29,12 +35,7 @@ import { checkEntityType } from "./check-entity-type.ts";
 import { checkDanglingWikilinks } from "../../core/wikilink-check.ts";
 import { checkCollisions } from "../../core/collision-check.ts";
 import { resolveVault } from "../../core/vault.ts";
-
-/** Minimum allowed concurrency value. */
-const CONCURRENCY_MIN = 1;
-
-/** Maximum allowed concurrency value. */
-const CONCURRENCY_MAX = 32;
+import { resolveConcurrency, runChecks, type CheckFn } from "../../core/checks-runner.ts";
 
 export interface VerifyOptions {
   /** Explicit vault path; overrides four-tier resolution (mirrors `--target`). */
@@ -47,93 +48,104 @@ export interface VerifyOptions {
   readonly concurrency?: number;
 }
 
-/**
- * Validate and clamp a concurrency value to the allowed range.
- * Returns undefined (run all in parallel) for undefined/NaN/values > 1.
- * Returns 1 for 1, so callers can detect the serial-fallback case.
- */
-function resolveConcurrency(raw: number | undefined): number {
-  if (raw === undefined || !Number.isFinite(raw)) return CONCURRENCY_MAX;
-  return Math.max(CONCURRENCY_MIN, Math.min(CONCURRENCY_MAX, Math.floor(raw)));
+// ---------------------------------------------------------------------------
+// Vault aggregate root
+//
+// VaultAggregate is the domain object that encapsulates vault structure within
+// the verify command. It holds the three canonical paths that checks require
+// and is the single place where their derivation is expressed. Callers obtain
+// it only through VaultAggregate.fromRoot(), which enforces the existence
+// precondition — the aggregate cannot be constructed for a missing vault.
+// ---------------------------------------------------------------------------
+
+interface VaultPaths {
+  /** Normalised vault root (no trailing slash). */
+  readonly root: string;
+  /** wiki/ sub-directory — the content tree all wiki-level checks operate on. */
+  readonly wiki: string;
+  /**
+   * Vault's CLAUDE.md — the schema authority (ontology-profile-v1 tables) and
+   * the extension source (entity_type_extensions). checkEntityType calls
+   * parseOntologyProfile which handles missing tables fail-open, so this path
+   * may not exist on disk; that is fine and intentional.
+   */
+  readonly schemaFile: string;
 }
 
 /**
- * Sort findings deterministically by (file, check, severity, message).
- * Pure sort — no mutation of the input array (returns a new sorted array).
+ * Aggregate root for a resolved vault.
+ *
+ * Encapsulates the three canonical sub-paths (root, wiki, schemaFile) so that
+ * verify()'s check-assembly receives a single cohesive value instead of three
+ * independently derived strings. The factory method enforces the existence
+ * check-first invariant: you cannot obtain a VaultAggregate for a vault that
+ * does not exist on disk.
  */
-function sortFindings(findings: readonly Finding[]): Finding[] {
-  return [...findings].sort((a, b) => {
-    const fa = a.file ?? "";
-    const fb = b.file ?? "";
-    if (fa !== fb) return fa < fb ? -1 : 1;
-    if (a.check !== b.check) return a.check < b.check ? -1 : 1;
-    if (a.severity !== b.severity) return a.severity < b.severity ? -1 : 1;
-    return a.message < b.message ? -1 : a.message > b.message ? 1 : 0;
-  });
+class VaultAggregate implements VaultPaths {
+  readonly root: string;
+  readonly wiki: string;
+  readonly schemaFile: string;
+
+  private constructor(root: string) {
+    this.root = root;
+    this.wiki = join(root, "wiki");
+    this.schemaFile = join(root, "CLAUDE.md");
+  }
+
+  /**
+   * Build a VaultAggregate from a raw vault root path, or return a "missing
+   * vault" Finding when the root directory does not exist on disk.
+   *
+   * Schema-check-first is enforced structurally: the aggregate is only
+   * obtainable once the vault root is confirmed present, which is the
+   * precondition checkSchema() requires.
+   */
+  static fromRoot(rawRoot: string): VaultAggregate | Finding {
+    const root = rawRoot.replace(/\/+$/, "");
+    if (!existsSync(root)) {
+      return {
+        severity: "error",
+        check: "vault",
+        message: `Vault directory not found at '${root}'`,
+        file: root,
+      };
+    }
+    return new VaultAggregate(root);
+  }
 }
 
 export async function verify(opts: VerifyOptions = {}): Promise<Report> {
-  const vault = (opts.target ?? resolveVault({ cwd: opts.cwd })).replace(/\/+$/, "");
+  const rawRoot = opts.target ?? resolveVault({ cwd: opts.cwd });
+  const vaultOrFinding = VaultAggregate.fromRoot(rawRoot);
 
-  if (!existsSync(vault)) {
-    return buildReport("verify", vault, [
-      {
-        severity: "error",
-        check: "vault",
-        message: `Vault directory not found at '${vault}'`,
-        file: vault,
-      },
-    ]);
+  // If the factory returned a Finding the vault is missing — short-circuit.
+  if (!(vaultOrFinding instanceof VaultAggregate)) {
+    return buildReport("verify", rawRoot.replace(/\/+$/, ""), [vaultOrFinding]);
   }
 
-  const wiki = join(vault, "wiki");
-  // The vault's own CLAUDE.md is both the schema authority (ontology-profile-v1
-  // tables) and the extension source (entity_type_extensions). checkEntityType
-  // calls parseOntologyProfile which handles missing tables fail-open — so this
-  // check emits zero findings when the vault CLAUDE.md lacks the profile tables.
-  const vaultClaudeMd = join(vault, "CLAUDE.md");
-
+  const vault = vaultOrFinding;
   const concurrency = resolveConcurrency(opts.concurrency);
 
-  // Each check is a thunk returning Finding[] — we run them concurrently or
-  // serially depending on the resolved concurrency value.
-  type CheckFn = () => Finding[] | readonly Finding[];
+  // Each check is a thunk returning Finding[]; runChecks (core/checks-runner.ts)
+  // executes them concurrently — or serially when concurrency === 1 — and returns
+  // the findings deterministically sorted by (file, check, severity, message), so
+  // completion order never affects output (parity-safe: byte-identical guaranteed).
   const checks: CheckFn[] = [
-    () => checkSchema(vault),
-    () => checkIndex(wiki),
-    () => checkSourcesFormat(wiki),
-    () => checkIndexConsistency(wiki),
-    () => checkOrphanSources(wiki),
-    () => checkTopicFolders(wiki),
-    () => checkLegacyIndexFilename(vault, wiki),
-    () => checkCitedSourceStaleness(wiki),
-    () => checkProvenance(wiki),
-    () => checkEntityType(wiki, vaultClaudeMd, vaultClaudeMd),
-    () => checkDanglingWikilinks(wiki),
-    () => checkCollisions(wiki),
+    () => checkSchema(vault.root),
+    () => checkIndex(vault.wiki),
+    () => checkSourcesFormat(vault.wiki),
+    () => checkIndexConsistency(vault.wiki),
+    () => checkOrphanSources(vault.wiki),
+    () => checkTopicFolders(vault.wiki),
+    () => checkLegacyIndexFilename(vault.root, vault.wiki),
+    () => checkCitedSourceStaleness(vault.wiki),
+    () => checkProvenance(vault.wiki),
+    () => checkEntityType(vault.wiki, vault.schemaFile, vault.schemaFile),
+    () => checkDanglingWikilinks(vault.wiki),
+    () => checkCollisions(vault.wiki),
   ];
 
-  let allFindings: readonly Finding[];
+  const sorted = await runChecks(checks, concurrency);
 
-  if (concurrency === 1) {
-    // Serial fallback (n=1) for debuggability — same checks, one at a time.
-    const acc: Finding[] = [];
-    for (const fn of checks) {
-      acc.push(...fn());
-    }
-    allFindings = acc;
-  } else {
-    // Parallel: run all checks concurrently. Promise.all collects results in
-    // declaration order, but we sort afterwards so completion order does not
-    // affect the final output.
-    const results = await Promise.all(checks.map((fn) => Promise.resolve(fn())));
-    allFindings = results.flat();
-  }
-
-  // Deterministic sort by (file, check, severity, message) so the same vault
-  // always produces the same findings in the same order regardless of which
-  // check finished first (parity-safe: byte-identical output guaranteed).
-  const sorted = sortFindings(allFindings);
-
-  return buildReport("verify", vault, sorted);
+  return buildReport("verify", vault.root, sorted);
 }

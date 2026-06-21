@@ -67,3 +67,20 @@ run_wire() {
   assert_status 1
   assert_output_contains "not a git work tree"
 }
+
+@test "wire-source: exits non-zero when wired_add fails (set -e active)" {
+  # Inject a broken wired_add by overriding CLAUDE_WIKI_PAGES_SETTINGS_FILE to a
+  # read-only path so settings-tool.ts cannot write, causing wired_add to return
+  # non-zero.  With set -euo pipefail the script must exit 1 rather than
+  # silently continuing to the WIRED echo and the sync step.
+  local ro_dir="$BATS_TEST_TMPDIR/readonly-dir"
+  mkdir -p "$ro_dir"
+  chmod 555 "$ro_dir"
+  local ro_settings="$ro_dir/settings.json"
+  run bash -c "cd '$PROJ'; export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$ro_settings' CLAUDE_WIKI_PAGES_VAULT='docs/vault'; bash '$REPO_ROOT/scripts/wire-source.sh' add --name proj --path . --vault docs/vault"
+  # Must fail — a broken settings path means wired_add returns non-zero, and
+  # set -e must propagate that to the script exit, not swallow it.
+  assert_status 1
+  refute_output_contains "WIRED: proj"
+  chmod 755 "$ro_dir"
+}

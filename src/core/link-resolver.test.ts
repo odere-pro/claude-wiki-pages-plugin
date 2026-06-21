@@ -10,7 +10,14 @@
 import { test, expect, describe } from "bun:test";
 import { join } from "node:path";
 import { makeVault } from "../test-helpers/sandbox/vault.ts";
-import { buildLinkIndex, resolveLink, resolvableNames } from "./link-resolver.ts";
+import {
+  buildLinkIndex,
+  resolveLink,
+  resolvableNames,
+  wikiDirPath,
+  wikiRelPath,
+  wikilinkTarget,
+} from "./link-resolver.ts";
 
 function wikiOf(files: Record<string, string>): { wiki: string; cleanup: () => void } {
   const sb = makeVault(files);
@@ -31,7 +38,7 @@ describe("resolveLink — priority ladder", () => {
     });
     const idx = buildLinkIndex(wiki);
     const r = resolveLink("install", "", idx);
-    expect(r?.file).toBe("_sources/install.md");
+    expect(r?.file).toBe(wikiRelPath("_sources/install.md"));
     expect(r?.kind).toBe("basename");
     cleanup();
   });
@@ -58,7 +65,7 @@ describe("resolveLink — priority ladder", () => {
     });
     const idx = buildLinkIndex(wiki);
     const r = resolveLink("fancy name", "", idx);
-    expect(r?.file).toBe("topics/page-x.md");
+    expect(r?.file).toBe(wikiRelPath("topics/page-x.md"));
     expect(r?.kind).toBe("alias");
     cleanup();
   });
@@ -72,7 +79,7 @@ describe("resolveLink — priority ladder", () => {
     });
     const idx = buildLinkIndex(wiki);
     const r = resolveLink("title one", "", idx);
-    expect(r?.file).toBe("topics/p1.md");
+    expect(r?.file).toBe(wikiRelPath("topics/p1.md"));
     expect(r?.kind).toBe("title");
     cleanup();
   });
@@ -96,10 +103,16 @@ describe("resolveLink — priority ladder", () => {
       "wiki/topics/installation.md": "---\ntitle: Installation\n---\nbody\n",
     });
     const idx = buildLinkIndex(wiki);
-    expect(resolveLink("INSTALLATION", "", idx)?.file).toBe("topics/installation.md");
-    expect(resolveLink("installation|see here", "", idx)?.file).toBe("topics/installation.md");
-    expect(resolveLink("installation#section", "", idx)?.file).toBe("topics/installation.md");
-    expect(resolveLink("installation^blk", "", idx)?.file).toBe("topics/installation.md");
+    expect(resolveLink("INSTALLATION", "", idx)?.file).toBe(wikiRelPath("topics/installation.md"));
+    expect(resolveLink("installation|see here", "", idx)?.file).toBe(
+      wikiRelPath("topics/installation.md"),
+    );
+    expect(resolveLink("installation#section", "", idx)?.file).toBe(
+      wikiRelPath("topics/installation.md"),
+    );
+    expect(resolveLink("installation^blk", "", idx)?.file).toBe(
+      wikiRelPath("topics/installation.md"),
+    );
     cleanup();
   });
 });
@@ -116,7 +129,7 @@ describe("resolveLink — tie-break", () => {
   test("shortest vault-relative path wins", () => {
     const { wiki, cleanup } = wikiOf(dupVault);
     const idx = buildLinkIndex(wiki);
-    expect(resolveLink("dup", "", idx)?.file).toBe("a/dup.md");
+    expect(resolveLink("dup", "", idx)?.file).toBe(wikiRelPath("a/dup.md"));
     cleanup();
   });
 
@@ -129,8 +142,8 @@ describe("resolveLink — tie-break", () => {
       "wiki/y/dup.md": "---\ntitle: Dup Y\n---\nbody\n",
     });
     const idx = buildLinkIndex(wiki);
-    expect(resolveLink("dup", "x/src.md", idx)?.file).toBe("x/dup.md");
-    expect(resolveLink("dup", "y/src.md", idx)?.file).toBe("y/dup.md");
+    expect(resolveLink("dup", "x/src.md", idx)?.file).toBe(wikiRelPath("x/dup.md"));
+    expect(resolveLink("dup", "y/src.md", idx)?.file).toBe(wikiRelPath("y/dup.md"));
     cleanup();
   });
 
@@ -143,7 +156,7 @@ describe("resolveLink — tie-break", () => {
       "wiki/n/dup.md": "---\ntitle: Dup N\n---\nbody\n",
     });
     const idx = buildLinkIndex(wiki);
-    expect(resolveLink("dup", "", idx)?.file).toBe("m/dup.md");
+    expect(resolveLink("dup", "", idx)?.file).toBe(wikiRelPath("m/dup.md"));
     cleanup();
   });
 });
@@ -166,6 +179,52 @@ describe("resolvableNames", () => {
     // target like `[[how-it-works/installation]]` resolves and must not dangle.
     expect(names.has("how-it-works/installation")).toBe(true); // path, no .md
     expect(names.has("how-it-works/installation.md")).toBe(true); // path, with .md
+    cleanup();
+  });
+});
+
+describe("Value Object factories (N15 — primitive-obsession)", () => {
+  test("wikiDirPath preserves the string value at runtime", () => {
+    const raw = "/vault/wiki";
+    expect(wikiDirPath(raw) as string).toBe(raw);
+  });
+
+  test("wikiRelPath preserves the string value at runtime", () => {
+    const raw = "topics/install.md";
+    expect(wikiRelPath(raw) as string).toBe(raw);
+  });
+
+  test("wikilinkTarget preserves the string value at runtime", () => {
+    const raw = "Install|see here";
+    expect(wikilinkTarget(raw) as string).toBe(raw);
+  });
+
+  test("ResolvedLink.file is a WikiRelPath usable as plain string", () => {
+    const { wiki, cleanup } = wikiOf({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/install.md": "---\ntitle: Install\n---\nbody\n",
+    });
+    const idx = buildLinkIndex(wiki);
+    const r = resolveLink("install", "", idx);
+    // WikiRelPath extends string, so direct string comparison must work.
+    expect(r?.file).toBe(wikiRelPath("topics/install.md"));
+    expect(typeof r?.file).toBe("string");
+    cleanup();
+  });
+
+  test("LinkIndex.files contains WikiRelPath values usable as plain strings", () => {
+    const { wiki, cleanup } = wikiOf({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/a.md": "---\ntitle: A\n---\nbody\n",
+    });
+    const idx = buildLinkIndex(wiki);
+    // files are sorted WikiRelPath values; must be usable as plain strings
+    expect(idx.files.every((f) => typeof f === "string")).toBe(true);
+    expect(idx.files.includes(wikiRelPath("topics/a.md"))).toBe(true);
     cleanup();
   });
 });

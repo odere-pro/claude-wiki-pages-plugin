@@ -8,15 +8,17 @@
  * `git revert <heal>`); on non-convergence the checkpoint is left in place and
  * the unresolved findings are surfaced — the loop never spins forever.
  *
- * M17 (layering note): heal intentionally composes the verify and fix command
- * handlers directly — it IS the verify → fix → re-verify loop, not a generic
- * orchestrator. Shared primitives (git operations, log append, vault resolution)
- * live in core/. No mediator layer is warranted here. Cross-reference:
+ * M17 (DIP fix): `heal` expresses its `verify` and `fix` dependencies as
+ * injectable function types (`VerifyFn` / `FixFn`) on `HealOptions`, defaulting
+ * to the real sibling-command implementations. The lateral imports remain as
+ * default-value providers only — the dependency arrow is inverted so callers and
+ * tests can substitute alternatives without pulling in the sibling modules.
+ * No mediator layer is added; the loop IS the composition. Cross-reference:
  * src/commands/CLAUDE.md — "Commands stay thin — they compose core checks."
  */
 
-import { verify } from "../verify/verify.ts";
-import { fix, type FixChange } from "../fix/fix.ts";
+import { verify as _defaultVerify } from "../verify/verify.ts";
+import { fix as _defaultFix, type FixChange, type FixReport } from "../fix/fix.ts";
 import { resolveVault } from "../../core/vault.ts";
 import {
   ensureRepo,
@@ -28,8 +30,24 @@ import {
 import { appendLog } from "../../core/log.ts";
 import { loadConfig } from "../../data/config/config.ts";
 import { withVaultLockSync } from "../../core/vault-lock.ts";
+import type { Report } from "../../core/report.ts";
 
 const DEFAULT_MAX_ITERATIONS = 5;
+
+/**
+ * The shape of the verify dependency — a function accepting a target path and
+ * returning the structured vault-integrity report. Expressed as a named type so
+ * callers and tests can inject alternative implementations without depending on
+ * the sibling `verify` command module directly.
+ */
+export type VerifyFn = (opts: { target: string }) => Promise<Report>;
+
+/**
+ * The shape of the fix dependency — a function accepting a target path and an
+ * optional today date, returning the structured repair report. Named for the
+ * same reason as `VerifyFn`: injection over lateral coupling.
+ */
+export type FixFn = (opts: { target: string; today?: string }) => FixReport;
 
 export interface HealReport {
   readonly command: "heal";
@@ -54,9 +72,27 @@ export interface HealOptions {
   readonly opId?: string;
   readonly isoTime?: string;
   readonly today?: string;
+  /**
+   * Injectable verify implementation (DIP / M17).
+   * Defaults to the real `verify` command handler. Override in tests or when
+   * composing `heal` inside a larger orchestration without a hard lateral
+   * dependency on the `verify` command module.
+   */
+  readonly _verify?: VerifyFn;
+  /**
+   * Injectable fix implementation (DIP / M17).
+   * Defaults to the real `fix` command handler. Same rationale as `_verify`.
+   */
+  readonly _fix?: FixFn;
 }
 
 export async function heal(opts: HealOptions = {}): Promise<HealReport> {
+  // DIP / M17: resolve injectable dependencies, falling back to the real
+  // sibling-command implementations. This keeps the lateral imports as optional
+  // defaults rather than hardcoded structural couplings.
+  const verifyFn: VerifyFn = opts._verify ?? _defaultVerify;
+  const fixFn: FixFn = opts._fix ?? _defaultFix;
+
   const vault = (opts.target ?? resolveVault({ cwd: opts.cwd })).replace(/\/+$/, "");
   const maxIterations = opts.maxIterations ?? DEFAULT_MAX_ITERATIONS;
   const now = opts.isoTime ?? new Date().toISOString();
@@ -66,7 +102,7 @@ export async function heal(opts: HealOptions = {}): Promise<HealReport> {
   // configured mode; gitCheckpoint.mode is the production control.
   const mode: CheckpointMode = opts.checkpointBranch ? "both" : gitCfg.mode;
 
-  const before = await verify({ target: vault });
+  const before = await verifyFn({ target: vault });
 
   // Already clean — no-op, no git churn.
   if (before.errors === 0) {
@@ -80,10 +116,10 @@ export async function heal(opts: HealOptions = {}): Promise<HealReport> {
   let iterations = 0;
   let last = before;
   while (iterations < maxIterations) {
-    const f = fix({ target: vault, today: opts.today });
+    const f = fixFn({ target: vault, today: opts.today });
     iterations++;
     changes.push(...f.changes);
-    last = await verify({ target: vault });
+    last = await verifyFn({ target: vault });
     if (last.errors === 0) break;
     if (f.changed === 0) break; // no progress — stop rather than spin
   }

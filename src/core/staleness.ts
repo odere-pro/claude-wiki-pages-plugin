@@ -28,7 +28,7 @@ function toRel(wiki: string, file: string): string {
 const WIKILINK_SOURCE = /^\[\[.+\]\]$/;
 
 /** Coerce a YAML date/string field to a trimmed string, or "" when absent. */
-function dateField(fm: Record<string, unknown>, key: string): string {
+export function dateField(fm: Record<string, unknown>, key: string): string {
   const v = fm[key];
   if (typeof v === "string") return v.trim();
   // `yaml` may parse an unquoted `YYYY-MM-DD` as a Date; normalise to ISO day.

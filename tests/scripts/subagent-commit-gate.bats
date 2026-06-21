@@ -114,3 +114,14 @@ run_gate() {
   run git -C "$PROJ" status --porcelain
   assert_output_contains "?? user-wip.ts"
 }
+
+@test "commit-gate: vault path unresolvable → exits 0 (strict-mode guard)" {
+  # Validates that set -euo pipefail + explicit || exit 0 guards on source and
+  # resolve_vault mean a mid-sequence resolution failure still exits 0, never
+  # propagates as a non-zero hook exit that would be a harness error.
+  # Use an empty CLAUDE_WIKI_PAGES_VAULT path that doesn't exist as a directory
+  # to exercise the [ -d "${VAULT}" ] || exit 0 guard path.
+  run bash -c "printf '%s' '{\"agent_name\":\"claude-wiki-pages-ingest-agent\"}' | CLAUDE_WIKI_PAGES_VAULT='/nonexistent/no-such-dir' bash '$REPO_ROOT/scripts/subagent-commit-gate.sh'"
+  assert_success
+  assert_output_empty
+}

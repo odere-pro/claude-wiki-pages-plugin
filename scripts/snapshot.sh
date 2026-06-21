@@ -9,7 +9,7 @@
 # installs too. Honors gitCheckpoint.mode (off → no-op) and is pathspec-scoped
 # to the vault, so a vault inside the user's project repo never stages their
 # unrelated files. ALWAYS exits 0 — snapshot reports, it never gates a write.
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=resolve-vault.sh
@@ -60,10 +60,12 @@ USER_CFG="${CLAUDE_CONFIG_DIR:-$HOME/.config}/claude-wiki-pages/config.json"
 
 cfg_scalar() {
   local filter="$1" val=""
-  command -v jq >/dev/null 2>&1 || return
-  [ -f "$PROJECT_CFG" ] && val=$(jq -r "${filter} // empty" "$PROJECT_CFG" 2>/dev/null)
+  command -v jq >/dev/null 2>&1 || return 0
+  # Use `|| true` so a malformed config file does not abort the caller under
+  # set -e; a missing/invalid key is silently treated as empty (best-effort).
+  [ -f "$PROJECT_CFG" ] && val=$(jq -r "${filter} // empty" "$PROJECT_CFG" 2>/dev/null || true)
   if [ -z "$val" ] && [ -f "$USER_CFG" ]; then
-    val=$(jq -r "${filter} // empty" "$USER_CFG" 2>/dev/null)
+    val=$(jq -r "${filter} // empty" "$USER_CFG" 2>/dev/null || true)
   fi
   printf '%s' "$val"
 }
@@ -80,36 +82,48 @@ GIT=(git -C "$VAULT" -c user.name=claude-wiki-pages
   -c user.email=claude-wiki-pages@users.noreply.github.com
   -c commit.gpgsign=false)
 
-# Guarantee coverage: some repo must contain the vault before any commit.
-if ! git -C "$VAULT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  git -C "$VAULT" init >/dev/null 2>&1 || true
-  "${GIT[@]}" add -A -- . >/dev/null 2>&1 || true
-  "${GIT[@]}" commit --no-verify -m "chore(claude-wiki-pages): initial vault commit" -- . >/dev/null 2>&1 || true
-fi
-
 if [ "$SUB" = "pre" ]; then
-  # Acquire the advisory vault lock to prevent concurrent bash-fallback pre
-  # invocations from racing over the index (H09 — unguarded git ops in the
-  # fallback path). All git operations are inside the lock's critical section.
-  # C01: fail-closed on timeout — skip the git ops rather than run them
-  # outside the lock (race condition fix; was "proceed anyway").
+  # H09 fix: acquire the advisory vault lock BEFORE any git operation,
+  # including ensureRepo.  Putting ensureRepo inside the lock means two
+  # concurrent bash-fallback pre invocations cannot race over git init /
+  # index / the initial commit.  The lock covers the entire pre critical
+  # section: ensureRepo → branch → add → commit.
+  # C01: fail-closed on timeout — skip all git ops rather than run them
+  # outside the lock.
   if ! vault_lock_acquire "$VAULT"; then
     echo "snapshot pre: WARN: could not acquire vault lock — skipping checkpoint to avoid race (C01)" >&2
     echo "snapshot pre: skipped (lock timeout)"
     exit 0
   fi
+  # ensureRepo inside the lock (H09): guarantee coverage without the race.
+  # M33: add uses the explicit scoped pathspec -- . (not -A) so a vault that
+  # lives inside a parent-project repo never stages unrelated files.
+  if ! git -C "$VAULT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$VAULT" init >/dev/null 2>&1 || true
+    "${GIT[@]}" add -- . >/dev/null 2>&1 || true
+    "${GIT[@]}" commit --no-verify -m "chore(claude-wiki-pages): initial vault commit" -- . >/dev/null 2>&1 || true
+  fi
   ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "?")
   if [ "$MODE" = "branch" ] || [ "$MODE" = "both" ]; then
     "${GIT[@]}" branch "cwp/checkpoint/${OP}" >/dev/null 2>&1 || true
   fi
-  # Explicit scoped pathspec (M33): -- <vault-dir> instead of -A alone to
-  # prevent pathspec confusion when the vault inherits a parent-project repo.
+  # Explicit scoped pathspec (M33): -- . instead of -A alone to prevent
+  # pathspec confusion when the vault inherits a parent-project repo.
   "${GIT[@]}" add -- . >/dev/null 2>&1 || true
   "${GIT[@]}" commit --no-verify --allow-empty -m "checkpoint: claude-wiki-pages pre-heal ${ISO} ${OP}" -- . >/dev/null 2>&1 || true
   SHA=$("${GIT[@]}" rev-parse --short HEAD 2>/dev/null || echo "?")
   vault_lock_release "$VAULT"
   echo "snapshot pre: checkpoint ${SHA} (rollback: git revert ${SHA})"
 else
+  # post degraded-path ensureRepo: when pre was skipped or the repo vanished,
+  # recover coverage before the lock.  ensureRepo is idempotent; the
+  # data-mutating sequence (isClean → appendLog → commit) is inside the lock.
+  # M33: use explicit scoped pathspec -- . (not -A) here too.
+  if ! git -C "$VAULT" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "$VAULT" init >/dev/null 2>&1 || true
+    "${GIT[@]}" add -- . >/dev/null 2>&1 || true
+    "${GIT[@]}" commit --no-verify -m "chore(claude-wiki-pages): initial vault commit" -- . >/dev/null 2>&1 || true
+  fi
   if [ -z "$(git -C "$VAULT" status --porcelain -- . 2>/dev/null | head -1)" ]; then
     echo "snapshot post: nothing to commit (vault clean)"
     exit 0

@@ -12,6 +12,8 @@
 #   - Bun absence is handled gracefully (skipped or reported).
 #   - Cn=1.0 when all topic pages are in known clusters.
 #   - dangling links from _sources/ pages are detected.
+#   - strict-mode (set -euo pipefail) is declared so mid-sequence failures
+#     are not silently swallowed (N18-graph-quality).
 
 load '../test_helper/common'
 
@@ -43,6 +45,17 @@ setup() {
 
 teardown() {
   rm -rf "$VAULT"
+}
+
+# ---------------------------------------------------------------------------
+# Strict-mode guard (N18-graph-quality)
+# Every executable script must declare set -euo pipefail so that
+# mid-sequence command failures are not silently swallowed.
+# ---------------------------------------------------------------------------
+
+@test "graph-quality: script declares set -euo pipefail (strict mode)" {
+  run grep -qE '^set -[a-z]*e[a-z]*uo[a-z]* pipefail|^set -euo pipefail' "$SCRIPT"
+  assert_success
 }
 
 # ---------------------------------------------------------------------------

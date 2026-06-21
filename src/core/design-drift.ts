@@ -394,9 +394,14 @@ export function checkDesignDrift(io: RepoIO): readonly Finding[] {
   const featDoc = "docs/design/06-feature-relations.md";
   if (tracked.has(featDoc)) {
     const featContent = io.read(featDoc) ?? "";
-    const actualAgents = [...tracked].filter((f) => /^agents\/[^/]+\.md$/.test(f)).length;
-    const actualSkills = [...tracked].filter((f) => /^skills\/[^/]+\/SKILL\.md$/.test(f)).length;
-    const actualCmds = [...tracked].filter((f) => /^commands\/[^/]+\.md$/.test(f)).length;
+    let actualAgents = 0;
+    let actualSkills = 0;
+    let actualCmds = 0;
+    for (const f of tracked) {
+      if (/^agents\/[^/]+\.md$/.test(f)) actualAgents++;
+      else if (/^skills\/[^/]+\/SKILL\.md$/.test(f)) actualSkills++;
+      else if (/^commands\/[^/]+\.md$/.test(f)) actualCmds++;
+    }
     const actualHooks = new Set(
       [
         ...hooksJson.matchAll(

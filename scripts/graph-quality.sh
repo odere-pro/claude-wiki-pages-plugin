@@ -29,7 +29,7 @@
 #     Ch = resolved wikilink edges touching a hub page / all resolved edges.
 #
 # Exit codes: 0 always (it reports; callers decide gates from the JSON/output).
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 

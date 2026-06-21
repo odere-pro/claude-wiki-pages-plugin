@@ -5,6 +5,8 @@
  *   - checkIndex: missing index.md → error finding
  *   - checkIndex: duplicate entries in index.md → error finding
  *   - checkIndex: page missing from index.md → warn finding
+ *   - checkIndex: _synthesis/ pages excluded from MOC membership check
+ *   - checkIndex: unresolvable wikilinks in children/child_indexes are silently skipped
  *   - checkIndex: well-formed index with all pages → no findings
  *   - checkSourcesFormat: plain string in sources → error finding
  *   - checkSourcesFormat: [[wikilink]] in sources → no finding
@@ -151,6 +153,50 @@ describe("checkIndex — page missing from MOC", () => {
           f.message.includes("_index.md")),
     );
     expect(warns).toHaveLength(0);
+  });
+
+  test("does not warn for pages under _synthesis/ (excluded like _sources/)", () => {
+    // _synthesis/ pages are provenance aggregates, not topic MOC members.
+    // The branch at index-check.ts line 107 must silently skip them.
+    const base = setup();
+    const wiki = makeWiki(base);
+
+    mkdirSync(join(wiki, "_synthesis"), { recursive: true });
+    writeFileSync(
+      join(wiki, "_synthesis", "synth-a.md"),
+      `---\ntitle: "Synthesis A"\ntype: synthesis\n---\n# Synthesis A\n`,
+    );
+    // Root index with no children — _synthesis/ page is unreachable from MOC.
+    writeIndexWithChildren(wiki, []);
+
+    const findings = checkIndex(wiki);
+    const warns = findings.filter((f) => f.check === "index-duplicates" && f.severity === "warn");
+    // _synthesis/ page must NOT produce a "not in MOC" warning.
+    expect(warns.some((w) => w.message.includes("Synthesis A"))).toBe(false);
+    expect(warns.some((w) => w.file?.includes("_synthesis"))).toBe(false);
+  });
+
+  test("silently ignores unresolvable wikilinks in children and child_indexes", () => {
+    // resolveLink returns null when a target has no matching file in the index;
+    // the if (r !== null) guard must skip it without throwing or emitting a finding.
+    const base = setup();
+    const wiki = makeWiki(base);
+
+    writePage(wiki, "real.md", "Real Page");
+    // Root index: children contains a dangling link + a valid one;
+    // child_indexes contains a dangling link too.
+    writeFileSync(
+      join(wiki, "index.md"),
+      `---\ntitle: "Index"\ntype: index\nchildren:\n  - "[[ghost-page|Ghost]]"\n  - "[[real|Real Page]]"\nchild_indexes:\n  - "[[no-such-folder]]"\n---\n# Index\n`,
+    );
+
+    // Must not throw; Real Page is covered; Ghost and no-such-folder have no file.
+    const findings = checkIndex(wiki);
+    const warns = findings.filter((f) => f.check === "index-duplicates" && f.severity === "warn");
+    // "Real Page" is reachable — no warn for it.
+    expect(warns.some((w) => w.message.includes('"Real Page"'))).toBe(false);
+    // checkIndex returned without throwing; result is a plain array.
+    expect(Array.isArray(findings)).toBe(true);
   });
 });
 

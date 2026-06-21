@@ -44,6 +44,7 @@ import { existsSync } from "node:fs";
 import type { Finding } from "./report.ts";
 import { readFileSafe, listMarkdownRecursive } from "./fs.ts";
 import { parseFrontmatter, splitFrontmatter, stringList } from "./frontmatter.ts";
+import { parseTableRow } from "./markdown-table.ts";
 
 /** The `check` field stamped on every finding (matches the bash hook's "frontmatter"). */
 export const FRONTMATTER_CHECK = "frontmatter" as const;
@@ -84,17 +85,6 @@ function cellToken(cell: string): string {
   return cell.trim();
 }
 
-/** Split a markdown table row into trimmed cells, dropping the edge empties. */
-function rowCells(line: string): string[] | null {
-  const trimmed = line.trim();
-  if (!trimmed.startsWith("|")) return null;
-  if (/^\|[\s|:-]+\|?\s*$/.test(trimmed)) return null; // separator row
-  const parts = trimmed.split("|");
-  const cells = parts.slice(1).map((c) => c.trim());
-  if (cells.length > 0 && cells[cells.length - 1] === "") cells.pop();
-  return cells;
-}
-
 /**
  * Why the required-fields table failed to parse, so the caller can emit the same
  * fail-closed message the bash hook did (validate-frontmatter.sh distinguishes
@@ -124,9 +114,8 @@ function parseRequiredFieldsTable(schemaContent: string): RequiredFieldsTable | 
     }
     // A new heading after the table ends the section.
     if (/^#{1,6}\s/.test(trimmed)) break;
-    const cells = rowCells(line);
+    const cells = parseTableRow(line, 2);
     if (cells === null) continue;
-    if (cells.length < 2) continue;
     // Skip the column-header row. Bash matches "Required fields" anywhere on the
     // line (validate-frontmatter.sh `$0 ~ /Required fields/`), so the canonical
     // header `| Type | Required fields | Conditional |` is skipped — checking

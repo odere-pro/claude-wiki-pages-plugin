@@ -351,6 +351,51 @@ _teardown_degenerate_vaults() {
 }
 
 # ---------------------------------------------------------------------------
+# H13 regression guard — DRY normalize_ws consolidation (ADR-0017).
+# eval-ingest-extract.sh must NOT define normalize_ws() inline; the single
+# canonical definition lives in eval-normalize-ws.sh (sourced explicitly).
+# Without this guard a re-introduction of an inline copy would diverge
+# silently from eval-query.sh and restore the duplicate-code smell H13 fixed.
+# ---------------------------------------------------------------------------
+
+@test "eval-ingest-extract: H13 — normalize_ws is NOT defined inline (DRY; sourced from eval-normalize-ws.sh)" {
+  # An inline definition looks like `normalize_ws()` or `function normalize_ws`
+  # on an executable (non-comment) line of the driver itself.
+  run grep -nE '^[^#]*(function[[:space:]]+normalize_ws|normalize_ws[[:space:]]*\(\))' "$DRIVER"
+  local hits
+  hits="$(printf '%s\n' "$output" | grep -vE '^[0-9]+:[[:space:]]*#' || true)"
+  if [ -n "$hits" ]; then
+    printf 'H13 regression: normalize_ws() defined inline in %s — must be sourced from eval-normalize-ws.sh:\n%s\n' "$DRIVER" "$hits" >&2
+    return 1
+  fi
+}
+
+@test "eval-ingest-extract: H13 — source directive for eval-normalize-ws.sh is present" {
+  # The driver must source the shared helper; losing the source directive
+  # silently breaks normalize_ws calls at runtime (unbound variable under -u).
+  run grep -c 'source.*eval-normalize-ws\.sh' "$DRIVER"
+  assert_success
+  # grep -c prints the match count; must be at least 1.
+  [ "${output}" -ge 1 ] || {
+    printf 'H13 regression: eval-normalize-ws.sh is not sourced in %s\n' "$DRIVER" >&2
+    return 1
+  }
+}
+
+@test "eval-ingest-extract: H13 — eval-normalize-ws.sh exists and defines normalize_ws" {
+  local helper="$REPO_ROOT/scripts/eval-normalize-ws.sh"
+  [ -f "$helper" ] || {
+    printf 'H13 regression: eval-normalize-ws.sh is missing: %s\n' "$helper" >&2
+    return 1
+  }
+  # The helper must provide the normalize_ws function; sourcing it and calling
+  # the function with trivial input must succeed and collapse whitespace.
+  run bash -c "source '$helper'; printf 'a  b\tc' | normalize_ws"
+  assert_success
+  assert_output_contains "a b c"
+}
+
+# ---------------------------------------------------------------------------
 # FINDING 2 — the measured-run artifact (PM condition #3), enforced in CODE.
 # --stamp emits the metric block + thresholds stamped with model_id,
 # golden_set_sha (git tree id of the golden set), and a UTC timestamp.
@@ -372,6 +417,8 @@ _setup_eval_artifact_repo() {
     "$EVAL_REPO/skills/init/template"
   cp "$REPO_ROOT/scripts/eval-ingest-extract.sh" \
     "$REPO_ROOT/scripts/eval-normalize-ws.sh" \
+    "$REPO_ROOT/scripts/eval-ingest-extract-selftest.sh" \
+    "$REPO_ROOT/scripts/eval-ingest-extract-artifact.sh" \
     "$REPO_ROOT/scripts/verify-ingest.sh" \
     "$REPO_ROOT/scripts/verify-twins.ts" \
     "$REPO_ROOT/scripts/settings-tool.ts" \
@@ -677,4 +724,35 @@ _make_overciting_candidate() { # $1 = dest dir
   # Baseline headline metrics are schema/fidelity, not the floor (ADR-0020).
   echo "$output" | jq -e '.fabricated_sourced_claims == 0'
   echo "$output" | jq -e '.claim_source_fidelity < 0.97'
+}
+
+# ---------------------------------------------------------------------------
+# N18 regression — strict-mode completeness (set -euo pipefail).
+# The driver must set -e so mid-sequence command failures are not silently
+# swallowed and the gate cannot fail-open via a suppressed error. Two checks:
+#   1. The source line is `set -euo pipefail` (structural property guard).
+#   2. A subshell that sources the driver exits non-zero when a command in a
+#      sequence fails, proving -e is live rather than overridden.
+# ---------------------------------------------------------------------------
+
+@test "eval-ingest-extract: strict-mode line includes -e (N18 — not just -uo pipefail)" {
+  # The set line must be exactly `set -euo pipefail` — not `set -uo pipefail`.
+  run grep -m1 '^set -' "$DRIVER"
+  assert_success
+  assert_output_contains "set -euo pipefail"
+}
+
+@test "eval-ingest-extract: -e is live after sourcing — a failing command in a sequence exits non-zero (N18)" {
+  # Source the driver pure-helper path (BASH_SOURCE[0] != $0 guard keeps main
+  # from firing) then immediately run a sub-sequence where the first command
+  # fails. With set -e the whole subshell must exit non-zero; without it the
+  # shell would continue and the last command would exit 0, masking the error.
+  run bash -c "
+    source '$DRIVER'
+    false
+    exit 0
+  "
+  # bash -c returns the exit code of the last command executed. With set -e,
+  # `false` aborts the script before `exit 0` runs → non-zero exit.
+  [ "$status" -ne 0 ]
 }

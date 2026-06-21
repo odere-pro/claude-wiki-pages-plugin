@@ -51,6 +51,14 @@ die() {
 # The `die` function above must be defined before sourcing.
 # shellcheck source=ollama-chat.sh
 source "$ROOT/scripts/ollama-chat.sh"
+# Defensive guard: fail immediately if the sourced helper did not expose the
+# expected function — prevents silent "command not found" errors at call time
+# when ollama-chat.sh is missing or structurally broken.
+declare -f ollama_chat_call >/dev/null 2>&1 ||
+  {
+    echo "ERROR: ollama_chat_call not defined after sourcing ollama-chat.sh" >&2
+    exit 2
+  }
 
 usage() {
   sed -n '/^# Usage:/,/^set -uo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'

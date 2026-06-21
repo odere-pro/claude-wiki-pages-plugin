@@ -34,7 +34,7 @@
 # Usage:
 #   scripts/eval-query.sh --answer <answer.txt> --gold <gold.json> --vault <vault-dir> [--json]
 #   scripts/eval-query.sh --self-test
-set -uo pipefail
+set -euo pipefail
 
 die() {
   echo "ERROR: $*" >&2
@@ -42,7 +42,7 @@ die() {
 }
 
 usage() {
-  sed -n '/^# Usage:/,/^set -uo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
+  sed -n '/^# Usage:/,/^set -euo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
 }
 
 # M12: named constant for the 0.90 threshold so all three uses share one
@@ -307,12 +307,15 @@ EOF
   fi
 
   # Case 4: a malformed protocol dies rc 2 (never a silent verdict).
+  # The || true guard prevents -e from aborting the outer shell on the expected
+  # non-zero exit; we capture the real rc and check it explicitly.
   printf 'no protocol at all\n' >"$tmp/malformed.txt"
-  (score_answer "$tmp/malformed.txt" "$tmp/gold.json" "$tmp/vault" 0) >/dev/null 2>&1
-  if [ $? -eq 2 ]; then
+  local _c4_rc=0
+  (score_answer "$tmp/malformed.txt" "$tmp/gold.json" "$tmp/vault" 0) >/dev/null 2>&1 || _c4_rc=$?
+  if [ "$_c4_rc" -eq 2 ]; then
     echo "SELF-TEST OK: malformed protocol dies rc 2"
   else
-    echo "SELF-TEST FAIL: malformed protocol did not die rc 2"
+    echo "SELF-TEST FAIL: malformed protocol did not die rc 2 (got rc=$_c4_rc)"
     ok=1
   fi
 

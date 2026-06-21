@@ -161,8 +161,12 @@ describe("checkEntityType — invalid entity_type value", () => {
         f.file.endsWith("test-entity.md"),
     );
     expect(errFinding).toBeDefined();
-    // The message should contain the invalid value
-    expect(errFinding?.message).toContain("persom");
+    // The message must name the allowed set so the author knows what values are valid.
+    // The implementation formats the message as:
+    //   "...has entity_type "persom" which is not in the allowed set [person, ...]"
+    expect(errFinding?.message).toContain("allowed set");
+    // At least one known core member must appear in the listed set.
+    expect(errFinding?.message).toContain("person");
   });
 });
 

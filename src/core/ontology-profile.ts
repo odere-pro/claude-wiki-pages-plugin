@@ -26,6 +26,7 @@
 
 import { readFileSync, existsSync } from "node:fs";
 import type { Finding } from "./report.ts";
+import { parseTableRow } from "./markdown-table.ts";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -66,25 +67,9 @@ export interface ParseFail {
 export type ParseResult = ParseOk | ParseFail;
 
 // ── Markdown table row extractor ───────────────────────────────────────────────
-
-/**
- * Extract raw cell strings from a markdown table body row.
- * Handles leading/trailing `|` and trims whitespace from each cell.
- * Returns null for header/separator rows and rows with too few cells.
- */
-function extractTableRow(line: string, minCells: number): readonly string[] | null {
-  const trimmed = line.trim();
-  if (!trimmed.startsWith("|")) return null;
-  // Skip separator rows: | --- | --- |
-  if (/^\|[\s|:-]+\|?\s*$/.test(trimmed)) return null;
-  const parts = trimmed.split("|");
-  // Drop leading empty string from split on leading "|"
-  const cells = parts.slice(1).map((c) => c.trim());
-  // Drop trailing empty cell from trailing "|"
-  if (cells.length > 0 && cells[cells.length - 1] === "") cells.pop();
-  if (cells.length < minCells) return null;
-  return cells;
-}
+// extractTableRow was a local duplicate of parseTableRow (core/markdown-table.ts).
+// Removed in S16-b (dedup-markdown-table cluster); all callers now use the shared
+// parseTableRow imported from ./markdown-table.ts above.
 
 /**
  * Extract a backtick-wrapped token from a cell, e.g. "`parent`" → "parent".
@@ -166,7 +151,7 @@ function parsePredicateTable(lines: readonly string[]): PredicateEntry[] | null 
       inTable = true;
       // Skip the column-header row
       if (trimmed.includes("Predicate") && trimmed.includes("Domain")) continue;
-      const cells = extractTableRow(line, 4);
+      const cells = parseTableRow(line, 4);
       if (cells === null) continue;
       const cell0 = cells[0];
       const cell1 = cells[1];
@@ -223,7 +208,7 @@ function parseEnumTable(lines: readonly string[]): Map<string, readonly string[]
     if (trimmed.startsWith("|")) {
       inTable = true;
       if (trimmed.includes("Enum") && trimmed.includes("Canonical values")) continue;
-      const cells = extractTableRow(line, 2);
+      const cells = parseTableRow(line, 2);
       if (cells === null) continue;
       const nameCell = cells[0];
       const valuesCell = cells[1];
@@ -354,8 +339,9 @@ export interface ContextContract {
  * Parse the `## Context contract` section from a skill or agent markdown file.
  *
  * Uses the same table-parsing primitives as `parseOntologyProfile`:
- * `extractTableRow` extracts cells; `extractBacktickValues` is NOT used here
- * because the glob column contains path patterns, not backtick-wrapped tokens.
+ * `parseTableRow` (from `core/markdown-table.ts`) extracts cells;
+ * `extractBacktickValues` is NOT used here because the glob column contains
+ * path patterns, not backtick-wrapped tokens.
  *
  * Returns null when the section or the table is absent (graceful absent-case;
  * the `context` verb degrades to empty contract lists).
@@ -389,7 +375,7 @@ export function parseContextContract(skillMd: string): ContextContract | null {
       inTable = true;
       // Skip the column-header row and separator rows.
       if (trimmed.includes("role") && trimmed.includes("globs")) continue;
-      const cells = extractTableRow(line, 2);
+      const cells = parseTableRow(line, 2);
       if (cells === null) continue;
       const roleCell = cells[0];
       const globsCell = cells[1];

@@ -18,7 +18,7 @@
 #   scripts/eval-compare-ollama.sh --models "m1,m2,..." [--cases "c1,c2,..."]
 #       [--out <dir>] [--timeout <sec>] [--retries <n>]
 #   scripts/eval-compare-ollama.sh --help
-set -uo pipefail
+set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CASES_DIR="$ROOT/tests/eval/ingest-extract/cases"

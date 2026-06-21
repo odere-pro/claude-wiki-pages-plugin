@@ -12,7 +12,7 @@
 # Refuses a path that is not a git work tree: change detection is git-diff
 # based, so a wired source must be a repo. The vault path itself is always
 # auto-excluded — the wiki must never ingest its own output.
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=resolve-vault.sh

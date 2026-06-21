@@ -32,7 +32,7 @@
 # Default is a DRY RUN: it reports what would change and writes nothing.
 # `--apply` rewrites the wiki files in place (run inside git; changes are
 # reversible with `git checkout`). Exit 0 always.
-set -uo pipefail
+set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 TARGET=""

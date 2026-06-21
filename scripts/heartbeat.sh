@@ -63,19 +63,50 @@ fi
 # M27: wrap engine.sh with a timeout so the heartbeat cannot block the session
 # indefinitely on a slow or hung Bun process. Default 30 s; overridable via
 # CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT. On timeout the engine probe is skipped
-# and the script falls through to degraded mode.
+# and the script falls through to degraded mode (pure-bash backlog count).
 _ENGINE_TIMEOUT="${CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT:-30}"
 NEEDS=""
 PENDING=0
 DAYS="?"
-# Use timeout when available (GNU coreutils; brew install coreutils on macOS).
-# Without it the engine call is still guarded by the cooldown stamp so it will
-# not repeat on every session start — the timeout is defence-in-depth only.
-if command -v timeout >/dev/null 2>&1; then
-  JSON=$(timeout "$_ENGINE_TIMEOUT" bash "$(dirname "$0")/engine.sh" backlog --target "$VAULT" --json 2>/dev/null || true)
-else
-  JSON=$(bash "$(dirname "$0")/engine.sh" backlog --target "$VAULT" --json 2>/dev/null || true)
-fi
+
+# _engine_with_timeout <seconds> <cmd...>
+# Runs the engine with a hard wall-clock limit regardless of which timeout
+# utility is available:
+#   1. GNU  timeout  (Linux default, macOS with coreutils)
+#   2. BSD  gtimeout (macOS Homebrew coreutils: brew install coreutils)
+#   3. Pure-bash fallback: background the command, sleep in the bg too, and
+#      whichever finishes first kills the other.  This avoids an unbounded
+#      engine call on systems where neither utility is installed.
+_engine_with_timeout() {
+  local secs="$1"
+  shift
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "$secs" "$@"
+    return $?
+  fi
+  if command -v gtimeout >/dev/null 2>&1; then
+    gtimeout "$secs" "$@"
+    return $?
+  fi
+  # Pure-bash fallback: run command in background, race a sleep watchdog.
+  "$@" &
+  local cmd_pid=$!
+  # Watchdog: sleep then kill the command if it is still running.
+  (
+    sleep "$secs" 2>/dev/null
+    kill "$cmd_pid" 2>/dev/null
+  ) &
+  local wdog_pid=$!
+  # Wait for the command; capture its exit status.
+  local rc=0
+  wait "$cmd_pid" 2>/dev/null || rc=$?
+  # Kill the watchdog once the command finishes (it may already be dead).
+  kill "$wdog_pid" 2>/dev/null || true
+  wait "$wdog_pid" 2>/dev/null || true
+  return "$rc"
+}
+
+JSON=$(_engine_with_timeout "$_ENGINE_TIMEOUT" bash "$(dirname "$0")/engine.sh" backlog --target "$VAULT" --json 2>/dev/null || true)
 if [ -n "$JSON" ] && command -v jq >/dev/null 2>&1 && printf '%s' "$JSON" | jq -e . >/dev/null 2>&1; then
   NEEDS=$(printf '%s' "$JSON" | jq -r '.needsCatchup')
   PENDING=$(printf '%s' "$JSON" | jq -r '.pendingRaw | length')
@@ -83,18 +114,25 @@ if [ -n "$JSON" ] && command -v jq >/dev/null 2>&1 && printf '%s' "$JSON" | jq -
 else
   # Degraded mode (no Bun / engine timeout): count raw files lacking a
   # _sources/<stem>.md summary.
-  # M28: avoid a busy-polling loop — use find once with -exec to build the
-  # count without repeatedly forking basename/stat for each file. We pipeline
-  # once to count, then check individual stems only for the matched set.
+  # M28 corrective (monitor pattern): collect both sets once with find — no
+  # per-file bash loop, no repeated stat() calls.  find -exec sh -c checks
+  # each stem in one forked shell rather than looping in the outer shell.
   if [ -d "$VAULT/raw" ]; then
-    while IFS= read -r f; do
-      stem="${f##*/}"
-      stem="${stem%.*}"
-      [ -f "$VAULT/wiki/_sources/${stem}.md" ] || PENDING=$((PENDING + 1))
-    done < <(find "$VAULT/raw" -maxdepth 3 -type f \
-      -not -path '*/assets/*' -not -name '.*' 2>/dev/null)
+    _SOURCES_DIR="$VAULT/wiki/_sources"
+    PENDING=$(
+      find "$VAULT/raw" -maxdepth 3 -type f \
+        -not -path '*/assets/*' -not -name '.*' \
+        -exec sh -c '
+          for f do
+            stem="${f##*/}"; stem="${stem%.*}"
+            [ -f "$1/${stem}.md" ] || printf "%s\n" "$f"
+          done
+        ' _ "$_SOURCES_DIR" {} + 2>/dev/null |
+        wc -l
+    )
+    PENDING="${PENDING// /}" # trim whitespace from wc -l
   fi
-  [ "$PENDING" -gt 0 ] && NEEDS="true" || NEEDS="false"
+  [ "${PENDING:-0}" -gt 0 ] && NEEDS="true" || NEEDS="false"
 fi
 
 EMITTED=0

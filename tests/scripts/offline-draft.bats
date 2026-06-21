@@ -56,6 +56,14 @@ EOF
   [ -x "$DRAFT" ]
 }
 
+# N18-offline: offline-draft.sh must use set -euo pipefail (not set -uo pipefail).
+# Without -e, a mid-sequence failure (e.g. a failing helper call) is silently
+# swallowed and the script continues in an undefined state — a security-relevant
+# silent failure per scripts/CLAUDE.md "Script anatomy".
+@test "offline-draft: uses set -euo pipefail (strict mode includes -e)" {
+  grep -qE '^set -euo pipefail' "$DRAFT"
+}
+
 @test "offline-draft: --help exits 0 and prints usage" {
   run bash "$DRAFT" --help
   assert_success
@@ -96,6 +104,27 @@ EOF
   grep -q 'status: draft' "$proj/vault/_proposed/wiki/index.md"
   # wiki/ is NEVER written by the offline path.
   [ -z "$(find "$proj/vault/wiki" -type f 2>/dev/null)" ]
+}
+
+@test "offline-draft: --endpoint with non-loopback URL is rejected by allow-list (rc 2)" {
+  command -v bun >/dev/null 2>&1 || skip "bun not installed"
+  local proj
+  proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"ingest-extract","offlinePolicy":"prefer-local"}')
+  # An external URL must be rejected before it ever reaches curl — SSRF guard.
+  run bash -c "cd '$proj' && bash '$DRAFT' --target '$proj/vault' --endpoint 'http://169.254.169.254'"
+  assert_status 2
+  assert_output_contains "endpoint rejected by allow-list"
+}
+
+@test "offline-draft: --endpoint with localhost URL passes allow-list validation" {
+  command -v bun >/dev/null 2>&1 || skip "bun not installed"
+  local proj
+  proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"ingest-extract","offlinePolicy":"prefer-local","endpoint":"http://localhost:11434"}')
+  # A loopback override must not be rejected by the allow-list gate itself.
+  # (It will still fail at Gate 3 because no Ollama is running — that is expected.)
+  run bash -c "cd '$proj' && bash '$DRAFT' --target '$proj/vault' --endpoint 'http://localhost:11434'"
+  # Exit 2 from Ollama-unreachable is fine; the message must NOT be allow-list rejection.
+  refute_output_contains "endpoint rejected by allow-list"
 }
 
 @test "offline-draft: a protocol-violating response fails closed with no partial _proposed/" {

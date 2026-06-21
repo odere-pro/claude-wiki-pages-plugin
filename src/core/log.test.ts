@@ -54,4 +54,14 @@ describe("appendLog", () => {
     expect(appendLog(sb.vault, { verb: "heal", summary: "x", today: "2026-06-02" })).toBe(false);
     sb.cleanup();
   });
+
+  test("uses a valid ISO date when today is not injected (wall-clock fallback)", () => {
+    const sb = makeVault({ "wiki/index.md": "---\ntitle: index\n---\n" });
+    const wrote = appendLog(sb.vault, { verb: "sync", summary: "fallback date test" });
+    expect(wrote).toBe(true);
+    const log = readFileSync(join(sb.vault, "wiki/log.md"), "utf8");
+    // Assert format only — never a specific date — so the test is non-flaky
+    expect(log).toMatch(/## \[\d{4}-\d{2}-\d{2}\] sync \| fallback date test/);
+    sb.cleanup();
+  });
 });

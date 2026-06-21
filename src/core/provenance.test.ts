@@ -288,3 +288,58 @@ describe("checkProvenance — skip directories", () => {
     expect(findings.filter((f) => f.check === "provenance-completeness")).toHaveLength(0);
   });
 });
+
+// ── bookkeeping file skip ─────────────────────────────────────────────────────
+
+describe("checkProvenance — bookkeeping file skip (isBookkeepingFile branch)", () => {
+  afterEach(teardown);
+
+  test("skips a file whose basename is in BOOKKEEPING (e.g. log.md)", () => {
+    // log.md stem is in BOOKKEEPING; checkProvenance must skip it entirely even
+    // when its frontmatter declares a source-requiring type with no sources.
+    const base = setup();
+    const wiki = makeWiki(base);
+    writeFileSync(
+      join(wiki, "log.md"),
+      `---\ntitle: "Log"\ntype: entity\nsources: []\n---\n# Log\n`,
+    );
+
+    const findings = checkProvenance(wiki);
+    expect(findings).toHaveLength(0);
+  });
+
+  test("skips a folder note (filename stem matches parent dir name + type: index)", () => {
+    // wiki/topics/topics.md with type: index is a folder note — isBookkeepingFile
+    // returns true and checkProvenance must skip it.
+    const base = setup();
+    const wiki = makeWiki(base);
+    mkdirSync(join(wiki, "topics"), { recursive: true });
+    writeFileSync(
+      join(wiki, "topics", "topics.md"),
+      `---\ntitle: "Topics"\ntype: index\nsources: []\n---\n# Topics\n`,
+    );
+
+    const findings = checkProvenance(wiki);
+    expect(findings).toHaveLength(0);
+  });
+});
+
+// ── CHECK 5b: non-numeric confidence string (NaN guard branch) ────────────────
+
+describe("checkProvenance CHECK 5b — non-numeric confidence string", () => {
+  afterEach(teardown);
+
+  test("no warn when derived:true but confidence is a non-numeric string (NaN guard)", () => {
+    // The NaN guard: if Number("not-a-number") is NaN, confidence stays null
+    // and the >= 0.8 check is never reached — no provenance-consistency warning.
+    const base = setup();
+    const wiki = makeWiki(base);
+    writeFileSync(
+      join(wiki, "nan-confidence.md"),
+      `---\ntitle: "NaN Confidence"\ntype: entity\nsources:\n  - "[[Source]]"\nderived: true\nconfidence: "not-a-number"\n---\n# NaN Confidence\n`,
+    );
+
+    const findings = checkProvenance(wiki);
+    expect(findings.filter((f) => f.check === "provenance-consistency")).toHaveLength(0);
+  });
+});

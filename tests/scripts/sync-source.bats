@@ -93,6 +93,62 @@ run_script() {
   assert_output_contains "not registered"
 }
 
+@test "sync-source: M31 — pull confines writes to DEST_ROOT (a symlinked dest dir cannot redirect a copy outside the vault)" {
+  # The REACHABLE traversal vector is a symlink, not a '..' rel path: git itself
+  # refuses to track an index entry whose path contains '..' (git update-index
+  # --cacheinfo / checkout reject it), so a git-derived rel can never carry '..'.
+  # The confinement that matters is therefore the physical-path (pwd -P) re-check
+  # AFTER mkdir: a dest subdir that is (or becomes) a symlink pointing outside
+  # DEST_ROOT must not let a copied doc escape the vault.
+  DEST_ROOT="$VAULT/raw/wired/proj"
+  OUTSIDE="$BATS_TEST_TMPDIR/outside"
+  mkdir -p "$OUTSIDE"
+
+  # A doc under docs/ (matched by the default docs-only "docs/**" glob), pulled
+  # once so DEST_ROOT/docs/ exists for real.
+  mkdir -p "$PROJ/docs"
+  printf '# note\n' >"$PROJ/docs/note.md"
+  proj_commit "add docs/note.md"
+  run_script sync-source.sh pull --name proj
+  assert_success
+  [ -f "$DEST_ROOT/docs/note.md" ]
+
+  # Sabotage: replace the real dest subdir with a symlink pointing OUTSIDE the
+  # vault (the adversarial-state a prior compromise could leave behind).
+  rm -rf "$DEST_ROOT/docs"
+  ln -s "$OUTSIDE" "$DEST_ROOT/docs"
+
+  # Change the doc upstream and pull again. The physical-path confinement must
+  # detect that DEST_ROOT/docs resolves outside DEST_ROOT and skip the entry —
+  # writing nothing into OUTSIDE.
+  printf '\nmore\n' >>"$PROJ/docs/note.md"
+  proj_commit "change docs/note.md"
+  run_script sync-source.sh pull --name proj
+  assert_success
+
+  # Nothing escaped into OUTSIDE.
+  run bash -c "ls -A '$OUTSIDE'"
+  assert_output_empty
+}
+
+@test "sync-source: N18 — pull exits non-zero (not silently) when the vault directory is missing" {
+  # Guard: set -euo pipefail (with -e) must propagate the hard failure when
+  # the registered vault path no longer exists. Without -e the script would
+  # swallow the mkdir-p failure and report success while doing nothing useful.
+  bun -e "
+const fs = require('fs');
+const d = JSON.parse(fs.readFileSync('$SETTINGS', 'utf8'));
+d.current_vault_path = '$PROJ/does-not-exist';
+if (d.wired_sources && d.wired_sources[0]) {
+  d.wired_sources[0].vault = '$PROJ/does-not-exist';
+}
+fs.writeFileSync('$SETTINGS', JSON.stringify(d));
+"
+  run bash -c "cd '$PROJ'; export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS' CLAUDE_WIKI_PAGES_VAULT='$PROJ/does-not-exist'; bash '$REPO_ROOT/scripts/sync-source.sh' pull --name proj"
+  assert_status 1
+  assert_output_contains "ERROR"
+}
+
 @test "sync-source: M15 — a '|' in a wired field fails closed (no corrupt record split)" {
   # Tamper the stored record so a field carries the reserved '|' delimiter.
   # wired_read must refuse it rather than emit an ambiguous positional record.

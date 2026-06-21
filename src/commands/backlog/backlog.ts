@@ -52,6 +52,17 @@ export interface BacklogOptions {
 
 const DAY_MS = 86_400_000;
 
+/**
+ * Timeout for git subprocess calls in this command (mirrors GIT_TIMEOUT_MS in
+ * core/git.ts — see M29 / H08). Extracted as a named constant so the inline
+ * default of 30 s is not a bare magic number inside gitChangedFiles, and so the
+ * env-var override is applied once at module load rather than per-call.
+ */
+const GIT_TIMEOUT_MS: number = (() => {
+  const v = Number(process.env["CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS"] ?? "");
+  return Number.isFinite(v) && v > 0 ? v : 30_000;
+})();
+
 /** Most recent `## [YYYY-MM-DD] <verb>` date for a given verb, or null. */
 function lastEntryDate(log: string, verb: string): string | null {
   const re = new RegExp(`^##\\s*\\[(\\d{4}-\\d{2}-\\d{2})\\]\\s*${verb}\\b`, "gm");
@@ -99,16 +110,10 @@ function readWiredSources(cwd: string): readonly WiredSourceRecord[] | null {
 function gitChangedFiles(repo: string, lastCommit: string): readonly string[] {
   try {
     const args = lastCommit === "" ? ["ls-files"] : ["diff", "--name-only", `${lastCommit}..HEAD`];
-    // M29: carry the same GIT_TIMEOUT_MS backstop used by git.ts so a held
-    // index.lock or slow repo never blocks heartbeat.sh / SessionStart.
-    const gitTimeoutMs: number = (() => {
-      const v = Number(process.env["CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS"] ?? "");
-      return Number.isFinite(v) && v > 0 ? v : 30_000;
-    })();
     const out = execFileSync("git", ["-C", repo, ...args], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
-      timeout: gitTimeoutMs,
+      timeout: GIT_TIMEOUT_MS,
     });
     return out.split("\n").filter((l) => l.length > 0);
   } catch {

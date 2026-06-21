@@ -37,26 +37,71 @@ import { relative, basename } from "node:path";
 import { listMarkdownRecursive, readFileSafe } from "./fs.ts";
 import { parseFrontmatter, stringList } from "./frontmatter.ts";
 
+// ── Value Objects (branded types) ─────────────────────────────────────────────
+//
+// Three distinct string-domain concepts that were previously represented as
+// bare `string` parameters. The brands are intersection types — a subtype of
+// `string` — so callers that consume these values as plain `string` continue
+// to work without modification.
+
+declare const _wikiDirPath: unique symbol;
+/**
+ * Absolute filesystem path to the vault's `wiki/` directory.
+ * Produced by `wikiDirPath(s)`. Distinct from wiki-relative paths.
+ */
+export type WikiDirPath = string & { readonly [_wikiDirPath]: true };
+
+declare const _wikiRelPath: unique symbol;
+/**
+ * Wiki-relative path with `/` separators, as Obsidian uses.
+ * Examples: `"topics/install.md"`, `"_sources/adr-0001.md"`.
+ * Produced by `wikiRelPath(s)`.
+ */
+export type WikiRelPath = string & { readonly [_wikiRelPath]: true };
+
+declare const _wikilinkTarget: unique symbol;
+/**
+ * Raw wikilink inner text as it appears inside `[[ ]]`, before normalisation.
+ * May contain `|display`, `#heading`, `^block` decorations.
+ * Produced by `wikilinkTarget(s)`.
+ */
+export type WikilinkTarget = string & { readonly [_wikilinkTarget]: true };
+
+/** Cast a string to WikiDirPath. No runtime cost; asserts domain intent. */
+export function wikiDirPath(s: string): WikiDirPath {
+  return s as WikiDirPath;
+}
+
+/** Cast a string to WikiRelPath. No runtime cost; asserts domain intent. */
+export function wikiRelPath(s: string): WikiRelPath {
+  return s as WikiRelPath;
+}
+
+/** Cast a string to WikilinkTarget. No runtime cost; asserts domain intent. */
+export function wikilinkTarget(s: string): WikilinkTarget {
+  return s as WikilinkTarget;
+}
+
 export type ResolveKind = "path" | "basename" | "alias" | "title";
 
 export interface ResolvedLink {
   /** Winning page, as a wiki-relative path with `/` separators. */
-  readonly file: string;
+  readonly file: WikiRelPath;
   /** Which tier resolved it. */
   readonly kind: ResolveKind;
 }
 
 export interface LinkIndex {
   /** Normalised wiki-relative path (with and without `.md`) → file. */
-  readonly byPath: ReadonlyMap<string, string>;
+  readonly byPath: ReadonlyMap<string, WikiRelPath>;
   /** Normalised filename stem → sorted, de-duplicated claiming files. */
-  readonly byBasename: ReadonlyMap<string, readonly string[]>;
+  readonly byBasename: ReadonlyMap<string, readonly WikiRelPath[]>;
   /** Normalised `aliases:` entry → sorted, de-duplicated claiming files. */
-  readonly byAlias: ReadonlyMap<string, readonly string[]>;
+  readonly byAlias: ReadonlyMap<string, readonly WikiRelPath[]>;
   /** Normalised `title:` value → sorted, de-duplicated claiming files. */
-  readonly byTitle: ReadonlyMap<string, readonly string[]>;
+  readonly byTitle: ReadonlyMap<string, readonly WikiRelPath[]>;
   /** All wiki-relative page paths, sorted. */
-  readonly files: readonly string[];
+  readonly files: readonly WikiRelPath[];
 }
 
 // ── Normalisation ─────────────────────────────────────────────────────────────
@@ -84,26 +129,26 @@ export function normaliseTarget(raw: string): string {
 // ── Index construction ──────────────────────────────────────────────────────
 
 /** Wiki-relative path with `/` separators (Obsidian's path form). */
-function toRel(wiki: string, file: string): string {
-  return relative(wiki, file).split(/[\\/]/).join("/");
+function toRel(wiki: WikiDirPath, file: string): WikiRelPath {
+  return wikiRelPath(relative(wiki, file).split(/[\\/]/).join("/"));
 }
 
 /** posix dirname of a `/`-separated relative path ("" when no folder). */
-function relDir(rel: string): string {
+function relDir(rel: WikiRelPath): string {
   const i = rel.lastIndexOf("/");
   return i === -1 ? "" : rel.slice(0, i);
 }
 
 /** Append `file` to the list at `key`, creating it if absent. */
-function push(map: Map<string, string[]>, key: string, file: string): void {
+function push(map: Map<string, WikiRelPath[]>, key: string, file: WikiRelPath): void {
   const cur = map.get(key);
   if (cur === undefined) map.set(key, [file]);
   else cur.push(file);
 }
 
 /** Sort + de-duplicate every list in a name→files map for determinism. */
-function freezeLists(map: Map<string, string[]>): Map<string, readonly string[]> {
-  const out = new Map<string, readonly string[]>();
+function freezeLists(map: Map<string, WikiRelPath[]>): Map<string, readonly WikiRelPath[]> {
+  const out = new Map<string, readonly WikiRelPath[]>();
   for (const [key, files] of map) {
     out.set(key, Object.freeze([...new Set(files)].sort()));
   }
@@ -112,14 +157,15 @@ function freezeLists(map: Map<string, string[]>): Map<string, readonly string[]>
 
 /** Build the resolution index by walking `wiki/` once. */
 export function buildLinkIndex(wiki: string): LinkIndex {
-  const byPath = new Map<string, string>();
-  const byBasename = new Map<string, string[]>();
-  const byAlias = new Map<string, string[]>();
-  const byTitle = new Map<string, string[]>();
-  const files: string[] = [];
+  const wikiDir = wikiDirPath(wiki);
+  const byPath = new Map<string, WikiRelPath>();
+  const byBasename = new Map<string, WikiRelPath[]>();
+  const byAlias = new Map<string, WikiRelPath[]>();
+  const byTitle = new Map<string, WikiRelPath[]>();
+  const files: WikiRelPath[] = [];
 
-  for (const abs of listMarkdownRecursive(wiki)) {
-    const rel = toRel(wiki, abs);
+  for (const abs of listMarkdownRecursive(wikiDir)) {
+    const rel = toRel(wikiDir, abs);
     files.push(rel);
 
     // Path tier: the wiki-relative path, with and without the `.md` suffix.
@@ -159,10 +205,11 @@ export function buildLinkIndex(wiki: string): LinkIndex {
 /**
  * Pick the winning file among tier candidates: shortest path → same folder as
  * the source → alphabetical. `sourceRel` (the linking page, `/`-separated) is
- * used only for the same-folder tie-break; pass "" when there is no source.
+ * used only for the same-folder tie-break; pass `wikiRelPath("")` when there is
+ * no source.
  */
-function tieBreak(candidates: readonly string[], sourceRel: string): string {
-  if (candidates.length === 1) return candidates[0] as string;
+function tieBreak(candidates: readonly WikiRelPath[], sourceRel: WikiRelPath): WikiRelPath {
+  if (candidates.length === 1) return candidates[0] as WikiRelPath;
   const srcDir = relDir(sourceRel);
   const ranked = [...candidates].sort((a, b) => {
     const segA = a.split("/").length;
@@ -173,33 +220,41 @@ function tieBreak(candidates: readonly string[], sourceRel: string): string {
     if (sameA !== sameB) return sameA - sameB;
     return a.localeCompare(b);
   });
-  return ranked[0] as string;
+  return ranked[0] as WikiRelPath;
 }
 
 /**
  * Resolve a raw `[[link]]` target to the page Obsidian would open, or null when
  * it resolves to nothing. `sourceRel` is the wiki-relative path of the linking
- * page (for the same-folder tie-break); "" when not applicable.
+ * page (for the same-folder tie-break); `""` / `wikiRelPath("")` when not
+ * applicable.
+ *
+ * The parameters accept plain `string` for backward compatibility with call
+ * sites in other modules. Internally they are treated as their Value Object
+ * counterparts: `rawTarget` as {@link WikilinkTarget} and `sourceRel` as
+ * {@link WikiRelPath}.
  */
 export function resolveLink(
   rawTarget: string,
   sourceRel: string,
   index: LinkIndex,
 ): ResolvedLink | null {
-  const nt = normaliseTarget(rawTarget);
+  const nt = normaliseTarget(wikilinkTarget(rawTarget));
   if (nt === "") return null;
+
+  const src = wikiRelPath(sourceRel);
 
   const p = index.byPath.get(nt);
   if (p !== undefined) return { file: p, kind: "path" };
 
   const b = index.byBasename.get(nt);
-  if (b !== undefined && b.length > 0) return { file: tieBreak(b, sourceRel), kind: "basename" };
+  if (b !== undefined && b.length > 0) return { file: tieBreak(b, src), kind: "basename" };
 
   const a = index.byAlias.get(nt);
-  if (a !== undefined && a.length > 0) return { file: tieBreak(a, sourceRel), kind: "alias" };
+  if (a !== undefined && a.length > 0) return { file: tieBreak(a, src), kind: "alias" };
 
   const t = index.byTitle.get(nt);
-  if (t !== undefined && t.length > 0) return { file: tieBreak(t, sourceRel), kind: "title" };
+  if (t !== undefined && t.length > 0) return { file: tieBreak(t, src), kind: "title" };
 
   return null;
 }

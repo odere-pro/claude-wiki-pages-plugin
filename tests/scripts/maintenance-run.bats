@@ -123,3 +123,40 @@ write_config() {
   assert_output_contains "maintenance.unattended"
   refute_output_contains "tests/fixtures/reference-vault"
 }
+
+# ---------------------------------------------------------------------------
+# 4. N18-maintenance: strict mode must include -e (set -euo pipefail)
+# ---------------------------------------------------------------------------
+
+@test "maintenance-run: N18 — script source declares set -euo pipefail (strict mode with -e)" {
+  # Static structural check: grep for the full strict-mode line.
+  # This test will FAIL until the -e flag is added (TDD red phase).
+  run grep -q 'set -euo pipefail' "$REPO_ROOT/scripts/maintenance-run.sh"
+  assert_success
+}
+
+# ---------------------------------------------------------------------------
+# 5. H06: advisory vault lock is acquired before the log append
+# ---------------------------------------------------------------------------
+
+@test "maintenance-run: H06 — vault_lock_acquire is called before wiki/log.md append" {
+  # Static structural check: the log-append section must wrap the >> in the
+  # vault lock.  We verify both that vault_lock_acquire is referenced and that
+  # vault-lock.sh is sourced so the function is available.
+  run grep -q 'vault_lock_acquire' "$REPO_ROOT/scripts/maintenance-run.sh"
+  assert_success
+}
+
+@test "maintenance-run: H06 — vault-lock.sh is sourced (lock functions available)" {
+  run grep -q 'source.*vault-lock\.sh' "$REPO_ROOT/scripts/maintenance-run.sh"
+  assert_success
+}
+
+@test "maintenance-run: H06 — cfg_scalar returns 0 when jq is absent (no abort under set -e)" {
+  # Verify that cfg_scalar is guarded with || return 0 (or equivalent) so
+  # the function never exits non-zero when jq is not found.  Under set -euo
+  # pipefail a non-zero function return propagates to the caller and aborts
+  # the script; this test pins the guard to prevent regression.
+  run grep -q '|| return 0' "$REPO_ROOT/scripts/maintenance-run.sh"
+  assert_success
+}

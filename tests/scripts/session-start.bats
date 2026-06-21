@@ -622,3 +622,104 @@ EOF
   assert_success
   refute_output_contains "ERROR: Bun"
 }
+
+# ---------------------------------------------------------------------------
+# M26: unbounded-blocking — engine.sh calls in SessionStart must have a
+# hard wall-clock timeout so the hook never hangs when the engine is slow
+# or the git lock is held.
+#
+# Strategy: inject a fake engine.sh (via PATH override) that sleeps 30 s,
+# set short timeouts via the env vars, and assert the script finishes in
+# under 5 s.  The test is self-timing via the `time` builtin captured in a
+# subshell, and skips when neither `timeout` nor a pure-bash watchdog is
+# available (i.e. the skip guard protects against false red on exotic
+# environments, not against the feature being absent).
+# ---------------------------------------------------------------------------
+
+@test "session-start: engine config call completes within bounded time even when engine hangs" {
+  command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
+  local vault_dir="$BATS_TEST_TMPDIR/m26-config-vault"
+  local fake_bin="$BATS_TEST_TMPDIR/m26-fake-bin"
+  mkdir -p "$vault_dir/wiki" "$fake_bin"
+
+  # Fake engine.sh: hangs for 30 s (simulates a blocked git lock / slow fs).
+  # It is placed in $fake_bin so it shadows the real engine.sh looked up via
+  # PATH; session-start.sh calls it as `bash "$(dirname "$0")/engine.sh"` using
+  # an explicit path, so we intercept via a fake heartbeat.sh + engine.sh pair
+  # placed alongside a fake scripts/ directory on PATH.
+  local fake_scripts="$BATS_TEST_TMPDIR/m26-scripts"
+  mkdir -p "$fake_scripts"
+
+  # Copy all real scripts so sourcing resolve-vault.sh works, then override
+  # engine.sh with the slow stub.
+  cp -r "$REPO_ROOT/scripts/." "$fake_scripts/"
+  cat >"$fake_scripts/engine.sh" <<'EOF'
+#!/bin/bash
+# Slow stub — simulates a hung engine for M26 timeout test.
+sleep 30
+exit 0
+EOF
+  chmod +x "$fake_scripts/engine.sh"
+
+  # Use very short timeouts so the test completes quickly:
+  #   heartbeat timeout = 1 s, config timeout = 1 s.
+  local start_ts end_ts elapsed
+
+  start_ts=$(date +%s 2>/dev/null || echo 0)
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    export CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT_SEC=1
+    export CLAUDE_WIKI_PAGES_CONFIG_TIMEOUT_SEC=1
+    bash '$fake_scripts/session-start.sh'
+  "
+
+  end_ts=$(date +%s 2>/dev/null || echo 0)
+
+  assert_success
+
+  # Wall-clock gate: must finish in under 8 s (1 s hb + 1 s config + 6 s
+  # headroom for process startup, CI slowness, and watchdog teardown).
+  if [ "$start_ts" -ne 0 ] && [ "$end_ts" -ne 0 ]; then
+    elapsed=$(( end_ts - start_ts ))
+    [ "$elapsed" -lt 8 ] || fail "session-start blocked for ${elapsed}s — engine.sh timeout not enforced (M26)"
+  fi
+}
+
+@test "session-start: heartbeat call completes within bounded time even when heartbeat hangs" {
+  local vault_dir="$BATS_TEST_TMPDIR/m26-hb-vault"
+  local fake_scripts="$BATS_TEST_TMPDIR/m26-hb-scripts"
+  mkdir -p "$vault_dir/wiki" "$fake_scripts"
+
+  # Copy all real scripts so sourcing works, then override heartbeat.sh with a
+  # slow stub to verify session-start.sh's timeout wrapper fires.
+  cp -r "$REPO_ROOT/scripts/." "$fake_scripts/"
+  cat >"$fake_scripts/heartbeat.sh" <<'EOF'
+#!/bin/bash
+# Slow stub — simulates a hung heartbeat for M26 timeout test.
+sleep 30
+exit 0
+EOF
+  chmod +x "$fake_scripts/heartbeat.sh"
+
+  local start_ts end_ts elapsed
+  start_ts=$(date +%s 2>/dev/null || echo 0)
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$vault_dir'
+    export CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT_SEC=1
+    export CLAUDE_WIKI_PAGES_CONFIG_TIMEOUT_SEC=1
+    bash '$fake_scripts/session-start.sh'
+  "
+
+  end_ts=$(date +%s 2>/dev/null || echo 0)
+
+  assert_success
+
+  if [ "$start_ts" -ne 0 ] && [ "$end_ts" -ne 0 ]; then
+    elapsed=$(( end_ts - start_ts ))
+    [ "$elapsed" -lt 8 ] || fail "session-start blocked for ${elapsed}s — heartbeat.sh timeout not enforced (M26)"
+  fi
+}

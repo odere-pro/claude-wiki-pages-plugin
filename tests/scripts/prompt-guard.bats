@@ -59,3 +59,38 @@ setup() {
     assert_output_empty
   done
 }
+
+@test "prompt-guard: vault name with regex metacharacters does not cause grep error (regex injection)" {
+  # Pins fix for H04 / injection: VAULT_NAME was interpolated raw into a grep -E
+  # pattern. A vault named e.g. "my(vault)" would cause an ERE syntax error or
+  # allow the parentheses to form an unintended capture group. With the fix the
+  # name is escaped before embedding, so metacharacters are treated as literals.
+  #
+  # The test sets CLAUDE_WIKI_PAGES_VAULT to a tmp dir whose basename contains
+  # regex-special chars, then sends a benign prompt and a raw-edit-intent prompt.
+  # 1) The benign prompt must produce no output.
+  # 2) The raw-edit-intent prompt must still produce the WARNING (i.e. the
+  #    metachar-containing vault name literal is matched, not a broken regex).
+
+  local special_vault
+  special_vault="$(mktemp -d)/my(vault)+test"
+  mkdir -p "$special_vault"
+
+  # Benign: must stay silent despite the metachar-containing vault name.
+  local benign='{"prompt":"Summarize the wiki."}'
+  run bash -c "CLAUDE_WIKI_PAGES_VAULT='$special_vault' printf '%s' '$benign' | CLAUDE_WIKI_PAGES_VAULT='$special_vault' bash '$REPO_ROOT/scripts/prompt-guard.sh'"
+  assert_success
+  assert_output_empty
+
+  # Raw-edit intent mentioning the literal vault name path: must still warn.
+  local vault_basename
+  vault_basename="$(basename "$special_vault")"
+  local intent
+  intent="{\"prompt\":\"Please edit ${vault_basename}/raw/sample.md and fix the typo.\"}"
+  run bash -c "CLAUDE_WIKI_PAGES_VAULT='$special_vault' printf '%s' '$intent' | CLAUDE_WIKI_PAGES_VAULT='$special_vault' bash '$REPO_ROOT/scripts/prompt-guard.sh'"
+  assert_success
+  assert_output_contains "WARNING"
+  assert_output_contains "immutable"
+
+  rm -rf "$(dirname "$special_vault")"
+}

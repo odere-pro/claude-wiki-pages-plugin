@@ -31,7 +31,7 @@
 #       [--case <name>] [--out <dir>] [--endpoint <url>] [--num-ctx <n>]
 #       [--timeout <sec>] [--retries <n>] [--dry-run-prompt]
 #   scripts/eval-produce-baseline.sh --help
-set -uo pipefail
+set -euo pipefail
 
 BROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ICASES_DIR="$BROOT/tests/eval/ingest-extract/cases"

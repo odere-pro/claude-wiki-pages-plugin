@@ -1,6 +1,6 @@
 import { test, expect, describe } from "bun:test";
 import { join } from "node:path";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { okf } from "./okf.ts";
 import { makeVault } from "../../test-helpers/sandbox/vault.ts";
 
@@ -293,5 +293,85 @@ describe("okf dispatch", () => {
     expect(r.ok).toBe(false);
     expect(r.message).toContain("export | import");
     sb.cleanup();
+  });
+});
+
+// ── Clock injection ───────────────────────────────────────────────────────────
+
+describe("okf clock injection", () => {
+  const FIXED_DATE = "2000-01-15";
+  const fixedClock = () => new Date(`${FIXED_DATE}T12:00:00.000Z`);
+
+  test("export: index.md generated field uses injected clock date", () => {
+    const sb = makeVault(WIKI_VAULT);
+    okf({ sub: "export", target: sb.vault, clock: fixedClock });
+    const indexContent = readFileSync(join(sb.vault, "output/okf/index.md"), "utf8");
+    expect(indexContent).toContain(`generated: ${FIXED_DATE}`);
+    sb.cleanup();
+  });
+
+  test("import: date_ingested in source frontmatter uses injected clock date", () => {
+    // First export to create a bundle.
+    const exportSb = makeVault(WIKI_VAULT);
+    okf({ sub: "export", target: exportSb.vault, clock: fixedClock });
+
+    const importSb = makeVault({ "CLAUDE.md": "---\nschema_version: 2\n---\n" });
+    const bundlePath = join(exportSb.vault, "output", "okf");
+    const r = okf({
+      sub: "import",
+      target: importSb.vault,
+      bundlePath,
+      write: true,
+      clock: fixedClock,
+    });
+
+    expect(r.ok).toBe(true);
+    expect(r.files.length).toBeGreaterThan(0);
+
+    const firstFile = r.files[0];
+    expect(firstFile).toBeDefined();
+    const content = readFileSync(join(importSb.vault, firstFile!), "utf8");
+    expect(content).toContain(`date_ingested: ${FIXED_DATE}`);
+
+    exportSb.cleanup();
+    importSb.cleanup();
+  });
+
+  test("import: versioned sibling filename includes injected clock date", () => {
+    // Export, import once (establishes the original), then import again with
+    // modified content to trigger a versioned sibling.
+    const exportSb = makeVault(WIKI_VAULT);
+    okf({ sub: "export", target: exportSb.vault, clock: fixedClock });
+
+    const importSb = makeVault({ "CLAUDE.md": "---\nschema_version: 2\n---\n" });
+    const bundlePath = join(exportSb.vault, "output", "okf");
+
+    // First import: writes originals.
+    okf({ sub: "import", target: importSb.vault, bundlePath, write: true, clock: fixedClock });
+
+    // Overwrite one exported file with different content to simulate changed content.
+    const aiExported = join(exportSb.vault, "output", "okf", "ai.md");
+    const originalContent = readFileSync(aiExported, "utf8");
+    writeFileSync(aiExported, originalContent + "\nchanged line\n", "utf8");
+
+    const VERSIONED_DATE = "2000-02-20";
+    const versionedClock = () => new Date(`${VERSIONED_DATE}T12:00:00.000Z`);
+
+    // Second import: the changed file should produce a versioned sibling.
+    const r2 = okf({
+      sub: "import",
+      target: importSb.vault,
+      bundlePath,
+      write: true,
+      clock: versionedClock,
+    });
+
+    expect(r2.ok).toBe(true);
+    // At least one versioned sibling should be written for the modified file.
+    const versionedFiles = r2.files.filter((f) => f.includes(`--${VERSIONED_DATE}-`));
+    expect(versionedFiles.length).toBeGreaterThan(0);
+
+    exportSb.cleanup();
+    importSb.cleanup();
   });
 });

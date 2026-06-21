@@ -47,6 +47,17 @@ fi
 # provide an explicit ID.
 SESSION_ID="${CLAUDE_WIKI_PAGES_SESSION_ID:-$(printf '%s' "${SCRATCH}${$}" | cksum | awk '{print $1}')}"
 
+# Validate SESSION_ID before using it in a find -name glob and an output path.
+# A caller-supplied value containing '/', '..', or glob metacharacters can
+# escape the agent-sessions directory or widen the idempotency glob.
+# Accepted: [A-Za-z0-9_-]+ only (matches both the cksum-derived default and
+# typical harness-supplied IDs such as "sess-20240101-abc123").
+if ! printf '%s' "${SESSION_ID}" | grep -qE '^[A-Za-z0-9_-]+$'; then
+  printf 'session-memory: invalid SESSION_ID — must match [A-Za-z0-9_-]+, got: %s\n' \
+    "${SESSION_ID}" >&2
+  exit 0
+fi
+
 AGENT_SESSIONS_DIR="${VAULT}/raw/agent-sessions"
 
 # Idempotency check: if a file for this session ID already exists, skip.
@@ -62,22 +73,18 @@ TARGET_FILE="${AGENT_SESSIONS_DIR}/${SESSION_ID}-${TIMESTAMP}.md"
 
 mkdir -p "${AGENT_SESSIONS_DIR}"
 
-cat >"${TARGET_FILE}" <<FRONTMATTER
----
-title: "Agent Session Learning — ${SESSION_ID}"
-type: source
-source_type: agent-session
-created: ${DATE_ONLY}
-date_ingested: ${DATE_ONLY}
-tags: []
-aliases: []
-sources: []
-status: active
-confidence: 0.9
----
-
-${LEARNING}
-FRONTMATTER
+# Write frontmatter using a quoted heredoc delimiter ('FRONTMATTER') so the
+# body is treated as a literal string with NO shell expansion.  The trusted,
+# already-validated variables (SESSION_ID, DATE_ONLY) are substituted before
+# the heredoc via printf so they never touch the evaluation phase.
+# The untrusted LLM-authored content (LEARNING) is appended separately via
+# printf '%s\n' which passes it as a literal argument — no format-string or
+# command-substitution expansion is possible.
+{
+  printf -- '---\ntitle: "Agent Session Learning — %s"\ntype: source\nsource_type: agent-session\ncreated: %s\ndate_ingested: %s\ntags: []\naliases: []\nsources: []\nstatus: active\nconfidence: 0.9\n---\n\n' \
+    "${SESSION_ID}" "${DATE_ONLY}" "${DATE_ONLY}"
+  printf '%s\n' "${LEARNING}"
+} >"${TARGET_FILE}"
 
 # ── 4. Git-commit the new file ────────────────────────────────────────────────
 # Use the same identity constants as src/core/git.ts so commits are consistent.

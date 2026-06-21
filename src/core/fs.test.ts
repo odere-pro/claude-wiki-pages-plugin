@@ -1,9 +1,24 @@
-/** Folder-note predicates (schema v3): isFolderNote, isBookkeepingFile, indexFileOf. */
+/**
+ * fs.ts — two cohesion groups:
+ *   Group 1 (FS primitives): readFileSafe, listMarkdownRecursive, listMarkdownShallow,
+ *                             listSubdirs, existsSync
+ *   Group 2 (Folder-note predicates): isFolderNote, isBookkeepingFile, indexFileOf
+ */
 
 import { test, expect, describe } from "bun:test";
-import { join } from "node:path";
+import { join, basename } from "node:path";
+import { writeFileSync } from "node:fs";
 import { makeVault } from "../test-helpers/sandbox/vault.ts";
-import { isFolderNote, isBookkeepingFile, indexFileOf } from "./fs.ts";
+import {
+  isFolderNote,
+  isBookkeepingFile,
+  indexFileOf,
+  readFileSafe,
+  listMarkdownRecursive,
+  listMarkdownShallow,
+  listSubdirs,
+  existsSync,
+} from "./fs.ts";
 
 const NOTE = "---\ntitle: Topics — Index\ntype: index\nchildren: []\n---\nbody\n";
 const PAGE = "---\ntitle: Topics\ntype: entity\n---\nbody\n";
@@ -83,5 +98,126 @@ describe("indexFileOf", () => {
     const sb = makeVault({ "wiki/topics/topics.md": PAGE });
     expect(indexFileOf(join(sb.vault, "wiki/topics"))).toBeNull();
     sb.cleanup();
+  });
+});
+
+// ── Group 1: FS primitives ─────────────────────────────────────────────────
+
+describe("readFileSafe", () => {
+  test("reads an existing UTF-8 file", () => {
+    const sb = makeVault({ "wiki/page.md": "hello" });
+    expect(readFileSafe(join(sb.vault, "wiki/page.md"))).toBe("hello");
+    sb.cleanup();
+  });
+
+  test("returns null for a missing file (no throw)", () => {
+    expect(readFileSafe("/tmp/cwp-nonexistent-file-xyz.md")).toBeNull();
+  });
+
+  test("returns null for a directory path (no throw)", () => {
+    const sb = makeVault({ "wiki/page.md": "x" });
+    // Passing a directory as the path — should return null, not throw.
+    expect(readFileSafe(join(sb.vault, "wiki"))).toBeNull();
+    sb.cleanup();
+  });
+});
+
+describe("listMarkdownRecursive", () => {
+  test("returns sorted .md paths under a nested tree", () => {
+    const sb = makeVault({
+      "wiki/b/b.md": "",
+      "wiki/a/a.md": "",
+      "wiki/root.md": "",
+      "wiki/a/sub/deep.md": "",
+    });
+    const result = listMarkdownRecursive(join(sb.vault, "wiki"));
+    // Must be sorted and all .md
+    expect(result.every((p) => p.endsWith(".md"))).toBe(true);
+    expect(result).toEqual([...result].sort());
+    expect(result.length).toBe(4);
+    sb.cleanup();
+  });
+
+  test("excludes non-.md files", () => {
+    const sb = makeVault({ "wiki/page.md": "", "wiki/image.png": "" });
+    // Manually write a non-.md file that makeVault would exclude by extension check
+    writeFileSync(join(sb.vault, "wiki", "data.json"), "{}");
+    const result = listMarkdownRecursive(join(sb.vault, "wiki"));
+    expect(result.every((p) => p.endsWith(".md"))).toBe(true);
+    sb.cleanup();
+  });
+
+  test("returns [] for a missing directory (no throw)", () => {
+    expect(listMarkdownRecursive("/tmp/cwp-nonexistent-dir-xyz")).toEqual([]);
+  });
+
+  test("output is deterministic across two calls on the same tree", () => {
+    const sb = makeVault({ "wiki/z.md": "", "wiki/a.md": "", "wiki/m.md": "" });
+    const first = listMarkdownRecursive(join(sb.vault, "wiki"));
+    const second = listMarkdownRecursive(join(sb.vault, "wiki"));
+    expect(first).toEqual(second);
+    sb.cleanup();
+  });
+});
+
+describe("listMarkdownShallow", () => {
+  test("returns only direct .md children, sorted", () => {
+    const sb = makeVault({
+      "wiki/b.md": "",
+      "wiki/a.md": "",
+      "wiki/sub/nested.md": "",
+    });
+    const result = listMarkdownShallow(join(sb.vault, "wiki"));
+    expect(result.map((p) => basename(p))).toEqual(["a.md", "b.md"]);
+    sb.cleanup();
+  });
+
+  test("returns [] for a missing directory (no throw)", () => {
+    expect(listMarkdownShallow("/tmp/cwp-nonexistent-dir-xyz")).toEqual([]);
+  });
+
+  test("excludes directories even when they have .md-like names", () => {
+    const sb = makeVault({ "wiki/real.md": "" });
+    const result = listMarkdownShallow(join(sb.vault, "wiki"));
+    // sub/ dir introduced by makeVault for nested.md is a directory, not a file
+    expect(result.every((p) => p.endsWith(".md"))).toBe(true);
+    sb.cleanup();
+  });
+});
+
+describe("listSubdirs", () => {
+  test("returns immediate subdirectory paths, sorted", () => {
+    const sb = makeVault({
+      "wiki/b/b.md": "",
+      "wiki/a/a.md": "",
+      "wiki/root.md": "",
+    });
+    const result = listSubdirs(join(sb.vault, "wiki"));
+    expect(result.map((p) => basename(p))).toEqual(["a", "b"]);
+    sb.cleanup();
+  });
+
+  test("returns [] for a missing directory (no throw)", () => {
+    expect(listSubdirs("/tmp/cwp-nonexistent-dir-xyz")).toEqual([]);
+  });
+
+  test("does not include files, only directories", () => {
+    const sb = makeVault({ "wiki/page.md": "", "wiki/sub/page.md": "" });
+    const result = listSubdirs(join(sb.vault, "wiki"));
+    expect(result.length).toBe(1);
+    expect(basename(result[0]!)).toBe("sub");
+    sb.cleanup();
+  });
+});
+
+describe("existsSync (re-export)", () => {
+  test("returns true for an existing file", () => {
+    const sb = makeVault({ "wiki/page.md": "x" });
+    expect(existsSync(join(sb.vault, "wiki/page.md"))).toBe(true);
+    sb.cleanup();
+  });
+
+  test("returns false for a missing path", () => {
+    expect(existsSync("/tmp/cwp-nonexistent-xyz.md")).toBe(false);
   });
 });

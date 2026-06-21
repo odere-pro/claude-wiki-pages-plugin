@@ -36,7 +36,7 @@
 # "scheduled" / "autonomous" carrying the source count and a named revert
 # anchor so "git revert <sha>" restores the exact pre-run tree.
 
-set -uo pipefail
+set -euo pipefail
 
 # Canonicalize SCRIPT_DIR using realpath when available (preferred), otherwise
 # fall back to cd + pwd -P.  This ensures _repo_root is case-correct on a
@@ -76,10 +76,12 @@ USER_CFG="${CLAUDE_CONFIG_DIR:-${HOME}/.config}/claude-wiki-pages/config.json"
 
 cfg_scalar() {
   local filter="$1" val=""
-  command -v jq >/dev/null 2>&1 || return
-  [ -f "${PROJECT_CFG}" ] && val=$(jq -r "${filter} // empty" "${PROJECT_CFG}" 2>/dev/null)
+  # Return 0 (empty string) when jq is absent — never propagate a non-zero
+  # exit to the caller, which would abort the script under set -e (N18).
+  command -v jq >/dev/null 2>&1 || return 0
+  [ -f "${PROJECT_CFG}" ] && val=$(jq -r "${filter} // empty" "${PROJECT_CFG}" 2>/dev/null) || true
   if [ -z "${val}" ] && [ -f "${USER_CFG}" ]; then
-    val=$(jq -r "${filter} // empty" "${USER_CFG}" 2>/dev/null)
+    val=$(jq -r "${filter} // empty" "${USER_CFG}" 2>/dev/null) || true
   fi
   printf '%s' "${val}"
 }

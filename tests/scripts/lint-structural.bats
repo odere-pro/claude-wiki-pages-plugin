@@ -271,3 +271,16 @@ EOF
   assert_success
   refute_output_contains "WARN"
 }
+
+# ---------------------------------------------------------------------------
+# H12-str: DRY guard — _page_type() must NOT be re-inlined in lint-structural.sh
+# ---------------------------------------------------------------------------
+
+@test "lint-structural: does not define _page_type() inline (shared helper must live in lib-page-type.sh)" {
+  # Pin the H12 (DRY) fix: _page_type() was extracted to scripts/lib-page-type.sh.
+  # Grep for a function definition line (^_page_type\(\)), not any comment reference.
+  # '|| true' absorbs grep's exit-1 on no-match so Bats sees exit 0; output is the count.
+  run bash -c "grep -cE '^[[:space:]]*_page_type\(\)' '$SCRIPTS_DIR/lint-structural.sh' || true"
+  assert_success
+  [ "$output" -eq 0 ]
+}

@@ -10,7 +10,7 @@
 # NEVER blocks: every step is best-effort and the script always exits 0. It is
 # pathspec-scoped to the vault, so a vault inheriting the parent project repo
 # never swallows the user's unrelated files. Honors gitCheckpoint.mode=off.
-set -uo pipefail
+set -euo pipefail
 
 INPUT=$(cat)
 AGENT_NAME=$(echo "${INPUT}" | jq -r '.agent_name // empty' 2>/dev/null) || AGENT_NAME=""
@@ -21,8 +21,8 @@ case "${AGENT_NAME}" in
 esac
 
 # shellcheck source=resolve-vault.sh
-source "$(dirname "$0")/resolve-vault.sh"
-VAULT=$(resolve_vault)
+source "$(dirname "$0")/resolve-vault.sh" || exit 0
+VAULT=$(resolve_vault) || exit 0
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 case "${VAULT}" in
   /*) ;;

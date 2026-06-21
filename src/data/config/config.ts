@@ -2,10 +2,16 @@
  * Configuration loading: defaults ← user ← project ← env overrides, validated
  * against schemas/config.schema.json.
  *
- * M02 / Architect ruling (document — intentional): Functional config — readonly
- * Config bag + pure loaders (defaults←user←project←env), intentionally anemic.
- * Converting to a class would break the structuredClone/deepMerge pipeline and
- * add no value; see src/data/CLAUDE.md "Config layering" for the contract.
+ * M02 / Architect ruling (document — intentional): Config is a readonly plain-
+ * data interface (intentionally anemic). Encapsulation and tell-don't-ask are
+ * consciously waived here: the four-layer merge pipeline (DEFAULT_CONFIG ←
+ * user ← project ← env) relies on structuredClone + deepMerge over a plain
+ * object; wrapping Config in a class would either break that pipeline or force
+ * a fragile re-serialisation step with no domain benefit. The "business logic"
+ * (checkLocalModelApproval, validateConfig, normalizeConfig) is intentionally
+ * pure-function style — inputs in, result out, no mutation — which suits config
+ * loading better than method dispatch. See src/data/CLAUDE.md §"Config
+ * layering" for the full contract.
  *
  *   user:    ${CLAUDE_CONFIG_DIR:-~/.config}/claude-wiki-pages/config.json
  *   project: .claude/claude-wiki-pages.json

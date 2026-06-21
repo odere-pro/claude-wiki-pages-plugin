@@ -20,7 +20,7 @@
 
 import { existsSync } from "node:fs";
 import { join, dirname } from "node:path";
-import { buildReport, type Finding, type Report } from "../../core/report.ts";
+import { buildReport, type Report } from "../../core/report.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { checkManifests } from "../../core/manifest-check.ts";
 import { checkMarkdownLinks } from "../../core/markdown-link-check.ts";
@@ -30,12 +30,7 @@ import { lintVocabulary } from "../../core/vocabulary-lint.ts";
 import { checkDuplicateClaims } from "../../core/duplicate-claims.ts";
 import { checkOutput } from "../../core/output-check.ts";
 import { checkDocs } from "../../core/docs-check.ts";
-
-/** Minimum allowed concurrency value. */
-const CONCURRENCY_MIN = 1;
-
-/** Maximum allowed concurrency value. */
-const CONCURRENCY_MAX = 32;
+import { resolveConcurrency, runChecks, type CheckFn } from "../../core/checks-runner.ts";
 
 /** Named checks selectable via --check. "all" runs every check. */
 export type LintCheck =
@@ -99,31 +94,6 @@ export interface LintOptions {
 }
 
 /**
- * Validate and clamp a concurrency value to the allowed range.
- * Returns CONCURRENCY_MAX (run all in parallel) for undefined/NaN inputs.
- * Returns 1 for 1, so callers can detect the serial-fallback case.
- */
-function resolveConcurrency(raw: number | undefined): number {
-  if (raw === undefined || !Number.isFinite(raw)) return CONCURRENCY_MAX;
-  return Math.max(CONCURRENCY_MIN, Math.min(CONCURRENCY_MAX, Math.floor(raw)));
-}
-
-/**
- * Sort findings deterministically by (file, check, severity, message).
- * Pure sort — no mutation of the input array (returns a new sorted array).
- */
-function sortFindings(findings: readonly Finding[]): Finding[] {
-  return [...findings].sort((a, b) => {
-    const fa = a.file ?? "";
-    const fb = b.file ?? "";
-    if (fa !== fb) return fa < fb ? -1 : 1;
-    if (a.check !== b.check) return a.check < b.check ? -1 : 1;
-    if (a.severity !== b.severity) return a.severity < b.severity ? -1 : 1;
-    return a.message < b.message ? -1 : a.message > b.message ? 1 : 0;
-  });
-}
-
-/**
  * Resolve the repository root from a vault path.
  *
  * The manifest check operates on `.claude-plugin/plugin.json` which lives at
@@ -159,9 +129,9 @@ export async function lint(opts: LintOptions = {}): Promise<Report> {
   const concurrency = resolveConcurrency(opts.concurrency);
   const check = opts.check ?? "all";
 
-  // Each entry is a named check thunk: { name, fn }.
-  // We run them concurrently (Promise.all) or serially (n=1) then sort.
-  type CheckFn = () => Finding[] | readonly Finding[];
+  // Each entry is a named check thunk: { name, fn }. runChecks
+  // (core/checks-runner.ts) executes them concurrently or serially (n=1) and
+  // returns the findings deterministically sorted — byte-identical output.
   type NamedCheck = { name: string; fn: CheckFn };
 
   const selectedChecks: NamedCheck[] = [];
@@ -274,27 +244,10 @@ export async function lint(opts: LintOptions = {}): Promise<Report> {
     selectedChecks.push({ name: "output", fn: () => checkOutput(vault) });
   }
 
-  let allFindings: readonly Finding[];
-
-  if (concurrency === 1) {
-    // Serial fallback (n=1) for debuggability — same checks, one at a time.
-    const acc: Finding[] = [];
-    for (const { fn } of selectedChecks) {
-      acc.push(...fn());
-    }
-    allFindings = acc;
-  } else {
-    // Parallel: run all selected checks concurrently. Promise.all collects results
-    // in declaration order, but we sort afterwards so completion order does not
-    // affect the final output.
-    const results = await Promise.all(selectedChecks.map(({ fn }) => Promise.resolve(fn())));
-    allFindings = results.flat();
-  }
-
-  // Deterministic sort by (file, check, severity, message) so the same vault
-  // always produces the same findings in the same order regardless of which
-  // check finished first (parity-safe: byte-identical output guaranteed).
-  const sorted = sortFindings(allFindings);
+  const sorted = await runChecks(
+    selectedChecks.map((c) => c.fn),
+    concurrency,
+  );
 
   return buildReport("lint", vault, sorted);
 }

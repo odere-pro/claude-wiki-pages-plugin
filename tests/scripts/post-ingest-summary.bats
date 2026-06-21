@@ -69,3 +69,36 @@ MD
   assert_output_contains "Total sources"
   assert_output_contains "unknown"
 }
+
+# ---------------------------------------------------------------------------
+# MultiEdit payloads (S13): post-ingest-summary must fire for MultiEdit too.
+# A MultiEdit payload has tool_input.file_path but no content field; title
+# falls back to "unknown" since there is no content blob to parse.
+# ---------------------------------------------------------------------------
+
+@test "post-ingest-summary: MultiEdit on _sources/ file emits summary" {
+  local proj="$BATS_TEST_TMPDIR/proj"
+  mkdir -p "$proj/vault/wiki/_sources"
+  # Pre-existing source so count >= 1.
+  : >"$proj/vault/wiki/_sources/existing.md"
+
+  local json_file="$BATS_TEST_TMPDIR/multi-src-input.json"
+  jq -n \
+    --arg path "$proj/vault/wiki/_sources/patched-source.md" \
+    '{tool_name:"MultiEdit", tool_input:{file_path:$path, edits:[]}}' >"$json_file"
+
+  run_hook_with_json "scripts/post-ingest-summary.sh" "$json_file"
+
+  assert_success
+  assert_output_contains "Source ingested"
+  assert_output_contains "Total sources"
+}
+
+@test "post-ingest-summary: MultiEdit on non-sources path is silent" {
+  local json
+  json='{"tool_name":"MultiEdit","tool_input":{"file_path":"/tmp/proj/vault/wiki/topics/page.md","edits":[]}}'
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-ingest-summary.sh'"
+
+  assert_success
+  assert_output_empty
+}

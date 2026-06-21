@@ -70,6 +70,15 @@ _cwp_settings_tool() {
   PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" bun "$_CWP_SCRIPT_DIR/settings-tool.ts" "$@"
 }
 
+# Internal: return 0 when bun is resolvable AND executable on the hardened PATH;
+# return 1 otherwise. Centralises the two-step check (command -v + exec failure
+# 126/127) so every caller uses one predicate instead of duplicating the guard.
+_cwp_bun_available() {
+  PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v bun >/dev/null 2>&1 || return 1
+  # Probe that bun can actually execute (a broken shim resolves but exits 126/127).
+  PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" bun --version >/dev/null 2>&1
+}
+
 # Slugify a string into a directory-name-safe form: lowercase, every run of
 # non-alphanumerics collapses to a single "-", leading/trailing "-" trimmed.
 # Usage: slugify <string>
@@ -119,21 +128,20 @@ _settings_get_field() {
   # parser to avoid silent-wrong-vault bugs from malformed output. This is an
   # accepted trade-off, not to be flattened to shell builtins. The degraded
   # fallback (with a stderr WARN) handles hook shells where Bun is unavailable.
-  if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v bun >/dev/null 2>&1; then
-    local out rc
-    out=$(_cwp_settings_tool get "$settings_file" "$field_name" 2>/dev/null)
-    rc=$?
-    # 126/127 = bun resolved by `command -v` but could not actually run
-    # (broken shim / stripped PATH at exec time) — fall through to the
-    # degraded parser. Any other code is the helper's own verdict (0 = ok,
-    # 1 = malformed JSON) and is passed through unchanged.
-    if [ "$rc" -ne 126 ] && [ "$rc" -ne 127 ]; then
-      if [ -n "$out" ]; then printf '%s\n' "$out"; fi
-      return "$rc"
-    fi
+  #
+  # Chain-of-responsibility: try Bun first; when Bun is unavailable (absent or
+  # broken shim) fall through to the degraded grep/sed handler.
+  if ! _cwp_bun_available; then
+    printf '[claude-wiki-pages] WARN: Bun unavailable — using degraded settings parser\n' >&2
+    _settings_get_field_degraded "$settings_file" "$field_name"
+    return
   fi
-  printf '[claude-wiki-pages] WARN: Bun unavailable — using degraded settings parser\n' >&2
-  _settings_get_field_degraded "$settings_file" "$field_name"
+
+  local out rc
+  out=$(_cwp_settings_tool get "$settings_file" "$field_name" 2>/dev/null)
+  rc=$?
+  [ -n "$out" ] && printf '%s\n' "$out"
+  return "$rc"
 }
 
 # Internal: pure grep/sed fallback for _settings_get_field — TOP-LEVEL STRING
@@ -161,20 +169,36 @@ resolve_vault() {
   # resumed sessions). Any hook that resolves the vault also reifies settings.
   init_vault_settings
 
-  # 1. Explicit env var — used as-is (relative or absolute). This is tier 1, an
-  #    explicit operator / CI override (see CLAUDE.md "Vault location"), so it is
-  #    trusted input and returned verbatim — preserving relative-path overrides
-  #    and exact byte-parity with src/core/vault.ts (the TS twin returns it as-is).
-  #    M32: traversal confinement is enforced at WRITE time by firewall.sh and
-  #    protect-raw.sh (the actual security boundary), not at resolution time.
-  #    Canonicalizing here broke the verbatim contract and was non-portable
-  #    (GNU `realpath -m` resolves a relative value to absolute; BSD realpath has
-  #    no -m), which is why it diverged between Linux CI and macOS.
+  # 1. Explicit env var — used as-is (relative or absolute) when it contains no
+  #    path-traversal components. This is tier 1, an explicit operator / CI override
+  #    (see CLAUDE.md "Vault location"). Relative paths and absolute paths without
+  #    '..' are returned verbatim, preserving the byte-parity contract with
+  #    src/core/vault.ts (the TS twin returns it as-is for safe paths).
+  #    M32: paths containing '..' components are rejected here (WARN + fall-through)
+  #    to prevent directory traversal via an attacker-influenced env var. This check
+  #    is intentionally limited to '..' rejection — NOT full realpath canonicalization
+  #    — so relative paths remain relative (preserving the verbatim contract) and no
+  #    GNU-vs-BSD realpath portability issue arises.
+  #    The write-time firewall (firewall.sh / protect-raw.sh) remains the primary
+  #    confinement boundary; this is a defence-in-depth read-path guard.
   #    LLM_WIKI_VAULT is the deprecated pre-1.0 name, still read as a fallback.
   local env_vault="${CLAUDE_WIKI_PAGES_VAULT:-${LLM_WIKI_VAULT:-}}"
   if [ -n "$env_vault" ]; then
-    echo "$env_vault"
-    return
+    # M32: reject any path that contains a '..' component (path-traversal guard).
+    # Match: a lone '..', or '..' immediately preceded or followed by '/'.
+    # This is portable pure-bash — no external commands, no GNU-only flags.
+    case "$env_vault" in
+      .. | ../*)
+        printf '[claude-wiki-pages] WARN: CLAUDE_WIKI_PAGES_VAULT contains a path-traversal (..) component — ignoring, falling through to next resolution tier\n' >&2
+        ;;
+      */.. | */../*)
+        printf '[claude-wiki-pages] WARN: CLAUDE_WIKI_PAGES_VAULT contains a path-traversal (..) component — ignoring, falling through to next resolution tier\n' >&2
+        ;;
+      *)
+        echo "$env_vault"
+        return
+        ;;
+    esac
   fi
 
   # 2. Settings file current_vault_path
@@ -251,7 +275,7 @@ set_vault_path() {
   # used throughout this file) to set current_vault_path safely via argv, not the
   # awk replacement string. Fall back to the awk writer only when Bun is
   # unavailable (graceful degradation consistent with _settings_get_field).
-  if PATH="$_CLAUDE_WIKI_PAGES_TOOL_PATH" command -v bun >/dev/null 2>&1; then
+  if _cwp_bun_available; then
     if ! _cwp_settings_tool set "$CLAUDE_WIKI_PAGES_SETTINGS" current_vault_path "$new_path" >"$tmp" 2>/dev/null; then
       printf '[claude-wiki-pages] WARN: cannot update settings.json\n' >&2
       rm -f "$tmp" 2>/dev/null
@@ -259,11 +283,18 @@ set_vault_path() {
     fi
   else
     # Degraded path: Bun unavailable — fall back to awk sed-replacement.
-    # Paths with '&' or '\' may not round-trip correctly; a stderr WARN is
-    # emitted. In hook shells this is already known-degraded (M30 accepted risk).
-    printf '[claude-wiki-pages] WARN: Bun unavailable for settings write — using degraded awk writer (paths with & or \\ may not persist correctly)\n' >&2
+    # M30 fix: 'path' is pre-escaped in a BEGIN block before use in sub().
+    # awk's sub() replacement string interprets '&' as the matched text and
+    # '\' as an escape character; passing the raw path directly allows a vault
+    # path such as "/tmp/foo&bar" or "/tmp/foo\nbar" to corrupt the JSON.
+    # Escaping order: backslashes first (so the escaping of '&' doesn't
+    # double-escape), then ampersands — both via gsub() on a local 'safe' copy.
+    # The path value is still passed safely via -v (no shell word-splitting);
+    # only the sub() replacement usage is the injection point being fixed.
+    printf '[claude-wiki-pages] WARN: Bun unavailable for settings write — using degraded awk writer\n' >&2
     if ! awk -v path="$new_path" '
-      /"current_vault_path"/ { sub(/"current_vault_path"[[:space:]]*:[[:space:]]*"[^"]*"/, "\"current_vault_path\": \"" path "\"") }
+      BEGIN { safe = path; gsub(/\\/, "\\\\", safe); gsub(/&/, "\\&", safe) }
+      /"current_vault_path"/ { sub(/"current_vault_path"[[:space:]]*:[[:space:]]*"[^"]*"/, "\"current_vault_path\": \"" safe "\"") }
       { print }
     ' "$CLAUDE_WIKI_PAGES_SETTINGS" >"$tmp" 2>/dev/null; then
       printf '[claude-wiki-pages] WARN: cannot update settings.json\n' >&2
@@ -276,6 +307,39 @@ set_vault_path() {
     rm -f "$tmp" 2>/dev/null
     return 0
   fi
+}
+
+# ── WiredRecord value-object accessor ────────────────────────────────────────
+# M15 (primitive-obsession / value-object): the wired-source record
+#   name|path|vault|lastSyncedCommit
+# is a domain concept emitted as a raw pipe-string by wired_read (lib-wired-source.sh).
+# Positional parsing scattered across every caller is the smell; this function is
+# the single named accessor that encapsulates the split so callers never hard-code
+# the field positions.
+#
+# Usage (inside a `while IFS= read -r _cwp_rec; do … done` loop over wired_read output):
+#   wired_parse_record "$_cwp_rec" NAME SRC_PATH REC_VAULT LAST_COMMIT
+# Sets the four caller-supplied variable names via printf+read (no eval / nameref
+# required, bash 3.2-compatible). Returns 1 and prints a WARN when the record is
+# malformed (fewer than 4 pipe-delimited fields or an empty name).
+#
+# The field order is pinned here and in settings-tool.ts:cmdWiredRead — change
+# both together or the accessor silently mis-maps fields.
+wired_parse_record() {
+  local _rec="$1" _v_name="$2" _v_path="$3" _v_vault="$4" _v_commit="$5"
+  local _f1="" _f2="" _f3="" _f4=""
+  IFS='|' read -r _f1 _f2 _f3 _f4 <<EOF
+$_rec
+EOF
+  if [ -z "$_f1" ]; then
+    printf '[claude-wiki-pages] WARN: wired_parse_record: empty or malformed record\n' >&2
+    return 1
+  fi
+  # Assign to the caller-supplied variable names without eval.
+  printf -v "$_v_name" '%s' "$_f1"
+  printf -v "$_v_path" '%s' "$_f2"
+  printf -v "$_v_vault" '%s' "$_f3"
+  printf -v "$_v_commit" '%s' "$_f4"
 }
 
 # ── Source the extracted concern libs ────────────────────────────────────────
