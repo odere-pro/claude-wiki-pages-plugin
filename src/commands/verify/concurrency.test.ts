@@ -31,13 +31,25 @@ describe("verify — async and deterministic (Phase 2)", () => {
     const report2 = await verify({ target: sb.vault });
     // Two independent runs produce findings in the same order.
     expect(report1.findings).toEqual(report2.findings);
-    // Confirm the sort invariant: each finding is <= the next on the sort key tuple.
+    // Confirm the documented precedence (file → check → severity → message)
+    // field-by-field, NOT by reconstructing the implementation's own \0-joined
+    // sort key. Asserting the spec independently means a regression that sorts on
+    // the wrong field (e.g. severity-first) turns this red, whereas a test that
+    // rebuilds the impl's key template would silently track the bug.
     for (let i = 1; i < report1.findings.length; i++) {
       const a = report1.findings[i - 1]!;
       const b = report1.findings[i]!;
-      const keyA = `${a.file ?? ""}\0${a.check}\0${a.severity}\0${a.message}`;
-      const keyB = `${b.file ?? ""}\0${b.check}\0${b.severity}\0${b.message}`;
-      expect(keyA <= keyB).toBe(true);
+      const fa = a.file ?? "";
+      const fb = b.file ?? "";
+      if (fa !== fb) {
+        expect(fa < fb).toBe(true); // primary key: file ascending
+      } else if (a.check !== b.check) {
+        expect(a.check < b.check).toBe(true); // then check
+      } else if (a.severity !== b.severity) {
+        expect(a.severity < b.severity).toBe(true); // then severity
+      } else {
+        expect(a.message <= b.message).toBe(true); // then message
+      }
     }
     sb.cleanup();
   });
