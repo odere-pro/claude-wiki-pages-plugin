@@ -110,8 +110,12 @@ teardown() {
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\nbody"
 
-  # Shadow bun with a function that doesn't exist so command -v bun fails.
-  run env PATH="/nonexistent_bin_dir" bash "$SCRIPT" --target "$VAULT"
+  # Strip PATH so `command -v bun` fails (bun-unavailable simulation). Invoke
+  # bash by ABSOLUTE path — with PATH gone, `env` could not otherwise find the
+  # interpreter itself (the BW01 over-strip: status 127 before the script ran).
+  local bash_bin
+  bash_bin="$(command -v bash)"
+  run env PATH="/nonexistent_bin_dir" "$bash_bin" "$SCRIPT" --target "$VAULT"
   assert_success
   assert_output_contains "Bun not found"
 }
