@@ -24,6 +24,7 @@
 
 import { resolve, dirname, basename, isAbsolute } from "node:path";
 import { realpathSync, lstatSync, readlinkSync } from "node:fs";
+import { SYMLINK_LOOP_MAX } from "./symlink-limit.ts";
 
 export type FirewallMode = "enforce" | "warn" | "off";
 
@@ -112,9 +113,8 @@ function physicalPath(filePath: string): string {
   }
   // Iteratively dereference leaf symlinks (dangling allowed), peeling any newly
   // non-existent tail each round.
-  // B04: Linux MAXSYMLINKS is 40; we use the same ceiling. (Pre twin-retirement
-  // this matched a named _SYMLINK_LOOP_MAX=40 in firewall.sh; that copy is gone.)
-  const SYMLINK_LOOP_MAX = 40;
+  // B04: SYMLINK_LOOP_MAX (Linux MAXSYMLINKS, 40) is single-sourced from
+  // core/symlink-limit.ts — shared with protect-raw-check.ts / protect-raw-gate.ts.
   let guard = 0;
   while (guard < SYMLINK_LOOP_MAX && isSymlink(target)) {
     const link = readlinkSync(target);

@@ -28,12 +28,11 @@ import { lstatSync, readlinkSync, realpathSync, existsSync } from "node:fs";
 import { splitFrontmatter } from "../../core/frontmatter.ts";
 import type { HookInput } from "../../core/hook-input.ts";
 import type { HookDecision } from "./frontmatter-gate.ts";
+import { SYMLINK_LOOP_MAX } from "../../core/symlink-limit.ts";
 
 /** Frozen allow decision (the bash `exit 0` with no block JSON). */
 const ALLOW: HookDecision = Object.freeze({ block: false });
 
-/** Linux MAXSYMLINKS; mirrors firewall.{sh,ts} and protect-raw-check.ts. */
-const SYMLINK_LOOP_MAX = 40;
 
 /** `^source_type:[[:space:]]*agent-session[[:space:]]*$` (the bash marker). */
 const AGENT_SESSION_MARKER = /^source_type:[ \t]*agent-session[ \t]*$/m;
