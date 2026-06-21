@@ -12,6 +12,7 @@
 
 import { test, expect, describe } from "bun:test";
 import { TOPIC_TEMPLATE, PROJECT_TEMPLATE } from "./templates.ts";
+import { parseFrontmatter } from "../core/frontmatter.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -175,6 +176,45 @@ describe("PROJECT_TEMPLATE — placeholders", () => {
   test("contains {{objective}} placeholder in body", () => {
     expect(PROJECT_TEMPLATE).toContain("{{objective}}");
   });
+});
+
+// ---------------------------------------------------------------------------
+// Suite: YAML-validity contract (S24 de-coupling)
+//
+// Assert the CONTRACT — the frontmatter parses as valid YAML through the
+// engine's own parser and carries every required key — rather than pinning the
+// exact byte layout. This is the coverage the regex-only checks above lacked: a
+// malformed value (bad indentation, an unbalanced quote) would slip past a
+// `^field:` regex but fail real YAML parsing.
+// ---------------------------------------------------------------------------
+
+const REQUIRED_KEYS_BY_TYPE: Record<string, readonly string[]> = {
+  topic: [...SHARED_FIELDS, "type", "summary", "key_pages"],
+  project: [...SHARED_FIELDS, "type", "objective", "project_status", "members"],
+};
+
+describe("template frontmatter — parses as valid YAML with all required keys", () => {
+  const cases: readonly [string, string, string][] = [
+    ["TOPIC_TEMPLATE", TOPIC_TEMPLATE, "topic"],
+    ["PROJECT_TEMPLATE", PROJECT_TEMPLATE, "project"],
+  ];
+
+  for (const [name, template, type] of cases) {
+    test(`${name} frontmatter is valid YAML (parses without throwing)`, () => {
+      expect(() => parseFrontmatter(template)).not.toThrow();
+      const fm = parseFrontmatter(template);
+      expect(typeof fm).toBe("object");
+      expect(fm).not.toBeNull();
+    });
+
+    test(`${name} carries every required ${type} key when parsed`, () => {
+      const fm = parseFrontmatter(template);
+      for (const key of REQUIRED_KEYS_BY_TYPE[type]!) {
+        expect(Object.prototype.hasOwnProperty.call(fm, key)).toBe(true);
+      }
+      expect(fm.type).toBe(type);
+    });
+  }
 });
 
 // ---------------------------------------------------------------------------
