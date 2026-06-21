@@ -35,7 +35,7 @@
 #                                    # timeout backoff (doubles per attempt)
 #       [--dry-run-prompt]
 #   scripts/eval-produce-ollama.sh --help
-set -uo pipefail
+set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CASES_DIR="$ROOT/tests/eval/ingest-extract/cases"
@@ -49,8 +49,17 @@ die() {
 # M10: source the shared Ollama curl+backoff helper (DRY — previously
 # triplicated across this file, offline-draft.sh, and eval-produce-ollama-query.sh).
 # The `die` function above must be defined before sourcing.
+# Existence-guarded source: under `set -e`, `source` of a MISSING file aborts the
+# shell outright (even with `|| true`), so a `[ -f ]` guard is the only set-e-safe
+# form. A missing/broken helper then falls through to the defensive guard below
+# (exit 2) instead of a bare exit 1.
 # shellcheck source=ollama-chat.sh
-source "$ROOT/scripts/ollama-chat.sh"
+[ -f "$ROOT/scripts/ollama-chat.sh" ] && source "$ROOT/scripts/ollama-chat.sh"
+# SSRF allow-list shared with the runtime probe path (single-sourced); same
+# existence-guarded form. If absent, validate_ollama_endpoint is undefined and the
+# preflight fails closed via `|| die`.
+# shellcheck source=lib-ollama-endpoint.sh
+[ -f "$ROOT/scripts/lib-ollama-endpoint.sh" ] && source "$ROOT/scripts/lib-ollama-endpoint.sh"
 # Defensive guard: fail immediately if the sourced helper did not expose the
 # expected function — prevents silent "command not found" errors at call time
 # when ollama-chat.sh is missing or structurally broken.
@@ -364,6 +373,7 @@ main() {
   # Preflight (skipped for --dry-run-prompt): endpoint up + model pulled.
   if [ "$DRY_RUN" -eq 0 ]; then
     local tags
+    validate_ollama_endpoint "$ENDPOINT" || die "refused unsafe Ollama endpoint: $ENDPOINT"
     tags=$(curl -sS --fail --connect-timeout 5 "$ENDPOINT/api/tags" 2>/dev/null) ||
       die "Ollama endpoint unreachable: $ENDPOINT"
     printf '%s' "$tags" | jq -e --arg m "$MODEL" '.models[] | select(.name == $m)' >/dev/null ||

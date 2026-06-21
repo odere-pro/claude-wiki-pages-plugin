@@ -14,6 +14,9 @@ import {
   applyCheckpointMode,
   commit,
   commitHeal,
+  push,
+  parseGitTimeoutMs,
+  DEFAULT_GIT_TIMEOUT_MS,
   defaultGitProvider,
 } from "./git.ts";
 
@@ -61,6 +64,18 @@ describe("ensureRepo", () => {
     const sha = head(dir);
     ensureRepo(dir);
     expect(head(dir)).toBe(sha);
+  });
+
+  test("is a no-op on an existing repo with dirty changes — does NOT stage/commit them", () => {
+    // The early `if (isRepo(dir)) return;` branch must not touch a working tree
+    // that already has uncommitted work (e.g. a vault mid-edit). Without the
+    // early return, ensureRepo's `git add -A` + commit would swallow the dirt.
+    ensureRepo(dir);
+    const sha = head(dir);
+    writeFile("uncommitted.md", "work in progress");
+    ensureRepo(dir);
+    expect(head(dir)).toBe(sha); // no new commit
+    expect(isClean(dir)).toBe(false); // the dirty file is still uncommitted
   });
 });
 
@@ -215,6 +230,44 @@ describe("commitHeal", () => {
     expect(msg).toContain("(1 iteration)");
     expect(msg).not.toContain("iterations");
   });
+
+  test("returns null outside a repo (the add/commit fail and there is no HEAD)", () => {
+    // `dir` is a plain tmpdir (not git-init'd) — every git call fails, so
+    // head() resolves to null and commitHeal propagates it. The failure path
+    // must degrade to null, never throw.
+    expect(() => commitHeal(dir, "opNope", 1)).not.toThrow();
+    expect(commitHeal(dir, "opNope", 1)).toBeNull();
+  });
+
+  test("does not create a new commit when the index.lock is held (M29 failure branch)", () => {
+    // A crashed git process can leave .git/index.lock behind; a subsequent
+    // `git add`/`commit` then fails fast. commitHeal must not fabricate a
+    // commit — it returns the unchanged prior HEAD and leaves the change
+    // uncommitted, rather than hanging or throwing.
+    ensureRepo(dir);
+    const before = head(dir);
+    writeFile("blocked.md", "change that cannot be committed under a lock");
+    writeFileSync(join(dir, ".git", "index.lock"), "");
+    const sha = commitHeal(dir, "opLocked", 1);
+    rmSync(join(dir, ".git", "index.lock"), { force: true });
+    expect(sha).toBe(before); // no new commit was created
+    expect(isClean(dir)).toBe(false); // the change is still uncommitted
+  });
+});
+
+describe("push (best-effort, opt-in)", () => {
+  test("returns ok:false when there is no upstream/remote — never throws", () => {
+    ensureRepo(dir);
+    // No remote configured → `git push` exits non-zero; push() must degrade to
+    // ok:false so an engine op is never blocked by a push problem.
+    expect(() => push(dir)).not.toThrow();
+    expect(push(dir).ok).toBe(false);
+  });
+
+  test("returns ok:false outside a repo", () => {
+    // Plain tmpdir, not git-init'd — push fails and is caught as ok:false.
+    expect(push(dir).ok).toBe(false);
+  });
 });
 
 // ── Timeout contract (H08 / M29) ─────────────────────────────────────────────
@@ -245,29 +298,21 @@ describe("commitHeal", () => {
 
 describe("GIT_TIMEOUT_MS env override (H08 / M29)", () => {
   test("CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS: a positive integer is parsed as the timeout", () => {
-    // The env var is read once at module load via an IIFE, so we cannot mutate
-    // it mid-test.  Instead we verify the *parsing rule* by re-evaluating it
-    // inline with representative values.
-    const parse = (raw: string | undefined): number => {
-      const v = Number(raw ?? "");
-      return Number.isFinite(v) && v > 0 ? v : 30_000;
-    };
-    expect(parse("5000")).toBe(5_000);
-    expect(parse("1")).toBe(1);
-    expect(parse("60000")).toBe(60_000);
+    // Exercise the REAL exported parser (parseGitTimeoutMs) — not a re-derived
+    // copy — so a regression in git.ts's parsing rule turns this test red.
+    expect(parseGitTimeoutMs("5000")).toBe(5_000);
+    expect(parseGitTimeoutMs("1")).toBe(1);
+    expect(parseGitTimeoutMs("60000")).toBe(60_000);
   });
 
-  test("CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS: invalid values fall back to 30 000 ms", () => {
-    const parse = (raw: string | undefined): number => {
-      const v = Number(raw ?? "");
-      return Number.isFinite(v) && v > 0 ? v : 30_000;
-    };
-    expect(parse("")).toBe(30_000);
-    expect(parse(undefined)).toBe(30_000);
-    expect(parse("NaN")).toBe(30_000);
-    expect(parse("0")).toBe(30_000);
-    expect(parse("-1")).toBe(30_000);
-    expect(parse("abc")).toBe(30_000);
+  test("CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS: invalid values fall back to the default", () => {
+    expect(DEFAULT_GIT_TIMEOUT_MS).toBe(30_000);
+    expect(parseGitTimeoutMs("")).toBe(DEFAULT_GIT_TIMEOUT_MS);
+    expect(parseGitTimeoutMs(undefined)).toBe(DEFAULT_GIT_TIMEOUT_MS);
+    expect(parseGitTimeoutMs("NaN")).toBe(DEFAULT_GIT_TIMEOUT_MS);
+    expect(parseGitTimeoutMs("0")).toBe(DEFAULT_GIT_TIMEOUT_MS);
+    expect(parseGitTimeoutMs("-1")).toBe(DEFAULT_GIT_TIMEOUT_MS);
+    expect(parseGitTimeoutMs("abc")).toBe(DEFAULT_GIT_TIMEOUT_MS);
   });
 
   test("git operations on a non-repo path return ok:false and do not throw (timeout-safe path)", () => {

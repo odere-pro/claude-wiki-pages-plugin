@@ -174,50 +174,10 @@ cb_record_failure() {
   ) 9>>"$CB_LOCK_FILE"
 }
 
-# validate_ollama_endpoint — enforce a host allow-list so that a misconfigured
-# or attacker-supplied endpoint cannot be used as an SSRF vector to reach
-# internal services (e.g. cloud IMDS at 169.254.169.254).
-#
-# Allowed hosts (case-insensitive):
-#   localhost           — the well-known loopback name
-#   127.0.0.0/8         — the full loopback range (127.x.x.x with exactly
-#                         three octets of 0-255 each)
-#
-# The extraction pipeline:
-#   1. Strip the scheme (http:// or https://).
-#   2. Strip userinfo (anything before @) — prevents 127.0.0.1@evil.com bypass.
-#   3. Strip the port and any path suffix.
-#   4. Lower-case for case-insensitive comparison.
-#
-# The 127.x.x.x pattern is anchored with a regex to match ONLY the loopback
-# block — 127. followed by three dot-separated decimal groups — preventing
-# 127.0.0.1.evil.com from matching the previously unanchored glob '127.*'.
-#
-# Prints nothing on success; writes an error to stderr and returns 1 on denial.
-validate_ollama_endpoint() { # $1 = endpoint URL
-  local url="$1"
-  # Strip scheme, then userinfo (@), then port and path.
-  local host
-  host=$(printf '%s' "$url" |
-    sed 's|^[^:]*://||' |
-    sed 's|^[^@]*@||' |
-    sed 's|[:/].*||' |
-    tr '[:upper:]' '[:lower:]')
-  case "$host" in
-    localhost) return 0 ;;
-    *)
-      # Anchor the 127.x.x.x check: must be exactly 127.<octet>.<octet>.<octet>
-      # with no trailing characters.  printf|grep is POSIX-portable and avoids
-      # the unanchored glob '127.*' that matched 127.0.0.1.evil.com.
-      if printf '%s' "$host" | grep -qE '^127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$'; then
-        return 0
-      fi
-      printf 'ERROR: Ollama endpoint host "%s" is not on the allow-list (must be localhost or 127.x.x.x)\n' \
-        "$host" >&2
-      return 1
-      ;;
-  esac
-}
+# validate_ollama_endpoint — SSRF host allow-list. Single-sourced from
+# lib-ollama-endpoint.sh so the runtime probe path and the dev/eval produce
+# scripts enforce the identical allow-list (no copy-paste drift).
+source "$ROOT/scripts/lib-ollama-endpoint.sh"
 
 # probe_claude_api — the Gateway for the Anthropic Claude API reachability check.
 #
