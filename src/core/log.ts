@@ -64,6 +64,13 @@ export function appendLog(vault: string, entry: LogEntry): boolean {
   ].join("\n");
 
   const next = existing.replace(/\s*$/, "\n") + block.replace(/^\n/, "") + "\n";
-  writeFileSync(logPath, next.replace(/\n{3,}/g, "\n\n"));
+  try {
+    writeFileSync(logPath, next.replace(/\n{3,}/g, "\n\n"));
+  } catch {
+    // The log is a best-effort trace, not load-bearing data. A write failure
+    // (e.g. EACCES on a read-only wiki/) must not abort the operation that was
+    // being logged — report "did not write" consistent with the boolean contract.
+    return false;
+  }
   return true;
 }

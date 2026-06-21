@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readFileSync, chmodSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { appendLog } from "./log.ts";
 import { makeVault } from "../test-helpers/sandbox/vault.ts";
@@ -52,6 +52,32 @@ describe("appendLog", () => {
   test("returns false when the vault has no wiki/", () => {
     const sb = makeVault({ "CLAUDE.md": "x" });
     expect(appendLog(sb.vault, { verb: "heal", summary: "x", today: "2026-06-02" })).toBe(false);
+    sb.cleanup();
+  });
+
+  test("returns false (does not throw) when the log file is not writable", () => {
+    const sb = makeVault(VAULT);
+    const logPath = join(sb.vault, "wiki/log.md");
+    chmodSync(logPath, 0o444);
+
+    // Guard: skip where chmod is a no-op (root bypasses perms; some FS ignore
+    // the mode). If the owner-write bit survived the chmod, the negative
+    // condition can't be created — assert nothing rather than give a false pass.
+    const writableBitGone = (statSync(logPath).mode & 0o200) === 0;
+    const isRoot = typeof process.getuid === "function" && process.getuid() === 0;
+    if (!writableBitGone || isRoot) {
+      chmodSync(logPath, 0o644);
+      sb.cleanup();
+      return;
+    }
+
+    let wrote: boolean | undefined;
+    expect(() => {
+      wrote = appendLog(sb.vault, { verb: "heal", summary: "blocked write", today: "2026-06-02" });
+    }).not.toThrow();
+    expect(wrote).toBe(false);
+
+    chmodSync(logPath, 0o644); // restore so cleanup can remove it
     sb.cleanup();
   });
 
