@@ -33,7 +33,6 @@ import { SYMLINK_LOOP_MAX } from "../../core/symlink-limit.ts";
 /** Frozen allow decision (the bash `exit 0` with no block JSON). */
 const ALLOW: HookDecision = Object.freeze({ block: false });
 
-
 /** `^source_type:[[:space:]]*agent-session[[:space:]]*$` (the bash marker). */
 const AGENT_SESSION_MARKER = /^source_type:[ \t]*agent-session[ \t]*$/m;
 
