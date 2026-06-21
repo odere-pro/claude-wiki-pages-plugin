@@ -92,9 +92,12 @@ run_self_test() {
   for loc in C en_US.UTF-8; do
     # Run in a SUBSHELL: score_candidate dies via `exit 2` on a rejected gold,
     # which would otherwise terminate this whole self-test. The subshell captures
-    # that as its own rc so the loop can assert it.
-    (LC_ALL="$loc" score_candidate "$trap_dir/candidate-fabricates" "$empty_gold" text) >/dev/null 2>&1
-    rc=$?
+    # that as its own rc so the loop can assert it. The `|| rc=$?` guard is
+    # required under `set -e` (inherited from the sourcing driver): without it the
+    # expected non-zero subshell exit would abort the self-test instead of being
+    # asserted.
+    rc=0
+    (LC_ALL="$loc" score_candidate "$trap_dir/candidate-fabricates" "$empty_gold" text) >/dev/null 2>&1 || rc=$?
     if [ "$rc" -eq 2 ]; then
       echo "SELF-TEST OK: empty-claim gold is rejected (die rc=2) under ${loc}"
     else
