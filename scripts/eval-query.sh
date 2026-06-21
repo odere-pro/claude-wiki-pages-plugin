@@ -230,7 +230,7 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
     [ -n "$problems" ] && printf '%s\n' "$problems"
     echo "coverage: got=$got_cov expected=$exp_cov match=$coverage_match"
     echo "citation_recall: $recall  quote_coverage: $qcov  fabricated: $fabricated"
-    echo "VERDICT: $verdict"
+    echo "VERDICT: $(printf '%s' "$verdict" | tr '[:lower:]' '[:upper:]')"
   fi
   [ "$verdict" = "pass" ]
 }
