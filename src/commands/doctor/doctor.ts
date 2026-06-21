@@ -417,9 +417,7 @@ export async function doctor(opts: DoctorOptions = {}): Promise<DoctorReport> {
   };
   // Bounded fan-out (order-preserving) instead of an unbounded Promise.all, so
   // the checks honour the same concurrency ceiling the engine uses elsewhere.
-  const results = await mapBounded(CHECKS, CONCURRENCY_MAX, (check) =>
-    Promise.resolve(check(ctx)),
-  );
+  const results = await mapBounded(CHECKS, CONCURRENCY_MAX, (check) => Promise.resolve(check(ctx)));
   return { command: "doctor", vault, results, worst: worstOf(results) };
 }
 

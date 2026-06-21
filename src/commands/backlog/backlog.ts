@@ -16,6 +16,13 @@ import { listRawFiles, MANIFEST_RELATIVE } from "../../core/manifest.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { globToRegExp } from "../../core/firewall.ts";
 
+/**
+ * Minimum cell count for a manifest table row to be a real data row. The
+ * schema-v2 source manifest has at least four columns (raw_file, status, …),
+ * so a split with fewer cells is a separator/header fragment, not a source row.
+ */
+const MIN_MANIFEST_COLUMNS = 4;
+
 /** Per-wired-source change count since its last sync point. */
 export interface WiredChange {
   readonly name: string;
@@ -137,7 +144,11 @@ function pendingFromManifest(manifest: string): string[] | null {
     .filter((l) => l.trim().startsWith("|") && l.includes("|"))
     .map((l) => l.split("|").map((c) => c.trim()))
     .filter(
-      (cells) => cells.length >= 4 && cells[1] && cells[1] !== "raw_file" && cells[1] !== "---",
+      (cells) =>
+        cells.length >= MIN_MANIFEST_COLUMNS &&
+        cells[1] &&
+        cells[1] !== "raw_file" &&
+        cells[1] !== "---",
     );
   if (rows.length === 0) return null;
   return rows.filter((c) => c[2] === "pending").map((c) => c[1] as string);
