@@ -48,6 +48,32 @@ export function sortFindings(findings: readonly Finding[]): Finding[] {
   });
 }
 
+/**
+ * Run an async mapper over `items` with at most `limit` calls in flight at once,
+ * preserving input order in the returned array.
+ *
+ * `runChecks` covers synchronous `CheckFn[]`; this is its async sibling for
+ * callers whose producers are `async (item) => R` and whose result order must
+ * match the input order (e.g. `doctor`'s ordered CHECKS array). Same batching
+ * (thread-pool) shape: no more than `limit` tasks run concurrently.
+ */
+export async function mapBounded<T, R>(
+  items: readonly T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const bound = Math.max(1, Math.floor(limit));
+  const out: R[] = [];
+  for (let i = 0; i < items.length; i += bound) {
+    const batch = items.slice(i, i + bound);
+    // Promise.all preserves intra-batch order, and batches run in index order,
+    // so push() yields a result array aligned with the input order.
+    const results = await Promise.all(batch.map((item, j) => fn(item, i + j)));
+    out.push(...results);
+  }
+  return out;
+}
+
 /** A synchronous check thunk that returns zero or more findings. */
 export type CheckFn = () => Finding[] | readonly Finding[];
 

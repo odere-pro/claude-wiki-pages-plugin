@@ -10,6 +10,7 @@ import type { Finding } from "./report.ts";
 import {
   CONCURRENCY_MAX,
   CONCURRENCY_MIN,
+  mapBounded,
   resolveConcurrency,
   runChecks,
   sortFindings,
@@ -211,5 +212,46 @@ describe("runChecks (bounded parallel, concurrency>1)", () => {
     ]);
     const results = await runChecks(checks, 4);
     expect(results).toHaveLength(4);
+  });
+});
+
+describe("mapBounded", () => {
+  test("preserves input order even when later items resolve first", async () => {
+    const items = [30, 10, 20, 0];
+    const out = await mapBounded(items, 2, async (ms, i) => {
+      await new Promise((r) => setTimeout(r, ms));
+      return `${i}:${ms}`;
+    });
+    expect(out).toEqual(["0:30", "1:10", "2:20", "3:0"]);
+  });
+
+  test("never exceeds the bound tasks in-flight simultaneously", async () => {
+    let inFlight = 0;
+    let peak = 0;
+    const bound = 3;
+    const items = Array.from({ length: 11 }, (_, i) => i);
+    await mapBounded(items, bound, async (i) => {
+      inFlight += 1;
+      peak = Math.max(peak, inFlight);
+      await new Promise((r) => setTimeout(r, 1));
+      inFlight -= 1;
+      return i;
+    });
+    expect(peak).toBeLessThanOrEqual(bound);
+  });
+
+  test("passes the correct absolute index across batches", async () => {
+    const items = ["a", "b", "c", "d", "e"];
+    const out = await mapBounded(items, 2, async (item, i) => `${i}${item}`);
+    expect(out).toEqual(["0a", "1b", "2c", "3d", "4e"]);
+  });
+
+  test("handles an empty array", async () => {
+    expect(await mapBounded([], 4, async (x) => x)).toEqual([]);
+  });
+
+  test("clamps a non-positive limit to at least 1", async () => {
+    const out = await mapBounded([1, 2, 3], 0, async (x) => x * 2);
+    expect(out).toEqual([2, 4, 6]);
   });
 });

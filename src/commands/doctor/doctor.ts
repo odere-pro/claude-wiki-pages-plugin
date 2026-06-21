@@ -18,6 +18,7 @@ import { readFileSafe, existsSync } from "../../core/fs.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { declaredSchemaVersion, SUPPORTED_SCHEMA_VERSIONS } from "../../core/schema.ts";
 import { isRepo, ensureRepo, repoRoot } from "../../core/git.ts";
+import { mapBounded, CONCURRENCY_MAX } from "../../core/checks-runner.ts";
 import { verify } from "../verify/verify.ts";
 
 export type DoctorStatus = "pass" | "warn" | "fail" | "fixed" | "skip";
@@ -414,7 +415,11 @@ export async function doctor(opts: DoctorOptions = {}): Promise<DoctorReport> {
     fix: opts.fix ?? false,
     runner: opts.runner ?? defaultRunner,
   };
-  const results = await Promise.all(CHECKS.map((check) => check(ctx)));
+  // Bounded fan-out (order-preserving) instead of an unbounded Promise.all, so
+  // the checks honour the same concurrency ceiling the engine uses elsewhere.
+  const results = await mapBounded(CHECKS, CONCURRENCY_MAX, (check) =>
+    Promise.resolve(check(ctx)),
+  );
   return { command: "doctor", vault, results, worst: worstOf(results) };
 }
 
