@@ -118,6 +118,14 @@ function escapeRegExp(s: string): string {
  * falls through to fail-closed, matching the bash "bundled template unreadable"
  * branch.
  */
+/**
+ * Upper bound on how many parent directories to walk when locating the bundled
+ * template — deep enough to climb from src/ or dist/ to the plugin root from any
+ * realistic checkout, with the `parent === dir` filesystem-root check as the
+ * real terminator.
+ */
+const MAX_TEMPLATE_SEARCH_DEPTH = 12;
+
 function defaultBundledSchema(): string {
   const rel = join("skills", "init", "template", "CLAUDE.md");
   const fromEnv = process.env["CLAUDE_PLUGIN_ROOT"];
@@ -127,7 +135,7 @@ function defaultBundledSchema(): string {
   }
   let dir = import.meta.dir;
   // Walk up to the filesystem root looking for the shipped template.
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < MAX_TEMPLATE_SEARCH_DEPTH; i++) {
     const candidate = join(dir, rel);
     if (existsSync(candidate)) return candidate;
     const parent = dirname(dir);

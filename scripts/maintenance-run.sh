@@ -36,7 +36,7 @@
 # "scheduled" / "autonomous" carrying the source count and a named revert
 # anchor so "git revert <sha>" restores the exact pre-run tree.
 
-set -uo pipefail
+set -euo pipefail
 
 # Canonicalize SCRIPT_DIR using realpath when available (preferred), otherwise
 # fall back to cd + pwd -P.  This ensures _repo_root is case-correct on a
@@ -76,10 +76,12 @@ USER_CFG="${CLAUDE_CONFIG_DIR:-${HOME}/.config}/claude-wiki-pages/config.json"
 
 cfg_scalar() {
   local filter="$1" val=""
-  command -v jq >/dev/null 2>&1 || return
-  [ -f "${PROJECT_CFG}" ] && val=$(jq -r "${filter} // empty" "${PROJECT_CFG}" 2>/dev/null)
+  # Return 0 (empty string) when jq is absent — never propagate a non-zero
+  # exit to the caller, which would abort the script under set -e (N18).
+  command -v jq >/dev/null 2>&1 || return 0
+  [ -f "${PROJECT_CFG}" ] && val=$(jq -r "${filter} // empty" "${PROJECT_CFG}" 2>/dev/null) || true
   if [ -z "${val}" ] && [ -f "${USER_CFG}" ]; then
-    val=$(jq -r "${filter} // empty" "${USER_CFG}" 2>/dev/null)
+    val=$(jq -r "${filter} // empty" "${USER_CFG}" 2>/dev/null) || true
   fi
   printf '%s' "${val}"
 }
@@ -173,27 +175,21 @@ fi
 TODAY=$(date -u +%Y-%m-%d 2>/dev/null || echo "0000-00-00")
 ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo "?")
 if [ -f "${VAULT}/wiki/log.md" ]; then
-  # Acquire the advisory vault lock before appending to wiki/log.md to avoid
-  # racing with a concurrent cron run or with the agent's own appendLog call
-  # (H06 — unguarded >> append). The lock is released after the append.
+  # Assemble the whole audit entry as ONE string so the append is a single
+  # write() — atomic across processes when under PIPE_BUF (the POSIX O_APPEND
+  # guarantee). This means even the lock-failure branch below cannot interleave
+  # or truncate the log when two concurrent cron runs both miss the lock (H06).
+  _log_entry=$(printf '\n## [%s] scheduled-upkeep | autonomous maintenance-run started %s\n\n- vault: %s\n- pending sources: %s (capped at maxPerRun=%s)\n- syncWiredOnRun: %s\n- undo: git -C %s revert <post-snapshot-sha>\n' \
+    "${TODAY}" "${ISO}" "${VAULT}" "${PENDING}" "${MAX_PER_RUN}" "${SYNC_WIRED:-false}" "${VAULT}")
+  # Prefer the advisory vault lock; the single-write append is the fallback's
+  # safety net when the lock is unavailable.
   if vault_lock_acquire "${VAULT}"; then
-    {
-      printf '\n## [%s] scheduled-upkeep | autonomous maintenance-run started %s\n\n' "${TODAY}" "${ISO}"
-      printf -- '- vault: %s\n' "${VAULT}"
-      printf -- '- pending sources: %s (capped at maxPerRun=%s)\n' "${PENDING}" "${MAX_PER_RUN}"
-      printf -- '- syncWiredOnRun: %s\n' "${SYNC_WIRED:-false}"
-      printf -- '- undo: git -C %s revert <post-snapshot-sha>\n' "${VAULT}"
-    } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
+    printf '%s' "${_log_entry}" >>"${VAULT}/wiki/log.md" 2>/dev/null || true
     vault_lock_release "${VAULT}"
   else
-    # Lock unavailable — append anyway; the lock is advisory and best-effort.
-    {
-      printf '\n## [%s] scheduled-upkeep | autonomous maintenance-run started %s\n\n' "${TODAY}" "${ISO}"
-      printf -- '- vault: %s\n' "${VAULT}"
-      printf -- '- pending sources: %s (capped at maxPerRun=%s)\n' "${PENDING}" "${MAX_PER_RUN}"
-      printf -- '- syncWiredOnRun: %s\n' "${SYNC_WIRED:-false}"
-      printf -- '- undo: git -C %s revert <post-snapshot-sha>\n' "${VAULT}"
-    } >>"${VAULT}/wiki/log.md" 2>/dev/null || true
+    # Lock unavailable — the single atomic write above is race-safe under
+    # PIPE_BUF, so appending without the lock cannot corrupt the log.
+    printf '%s' "${_log_entry}" >>"${VAULT}/wiki/log.md" 2>/dev/null || true
   fi
 fi
 

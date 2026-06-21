@@ -40,6 +40,42 @@ setup() {
   [ -x "$DRIVER" ]
 }
 
+# ---------------------------------------------------------------------------
+# M10: shared ollama-chat.sh helper is sourced and the defensive guard fires
+# ---------------------------------------------------------------------------
+
+@test "eval-produce-ollama: sourcing exposes ollama_chat_call (DRY helper wired)" {
+  # Verify the M10 DRY extraction: sourcing the driver must expose ollama_chat_call
+  # because eval-produce-ollama.sh sources ollama-chat.sh at load time.
+  run bash -c "
+    die() { printf 'DIE: %s\n' \"\$1\" >&2; exit 2; }
+    source '$DRIVER'
+    declare -f ollama_chat_call >/dev/null && echo 'function present'
+  "
+  assert_success
+  assert_output_contains "function present"
+}
+
+@test "eval-produce-ollama: defensive guard exits 2 when ollama-chat.sh is structurally broken" {
+  # The guard fires when ollama-chat.sh sources successfully but does NOT define
+  # ollama_chat_call (models a stub or broken helper). ROOT is derived from
+  # BASH_SOURCE[0] inside the driver, so we copy the driver into a fake scripts/
+  # tree so that dirname resolves to the fake tree rather than the real repo root.
+  local fake_scripts="$BATS_TEST_TMPDIR/fake-scripts"
+  local fake_driver="$fake_scripts/eval-produce-ollama.sh"
+  mkdir -p "$fake_scripts"
+  cp "$DRIVER" "$fake_driver"
+  # Stub ollama-chat.sh that sources without error but never defines ollama_chat_call.
+  printf '#!/bin/bash\n# stub: intentionally omits ollama_chat_call\n' \
+    >"$fake_scripts/ollama-chat.sh"
+
+  # The source + guard lines run at script load time (before main/--help).
+  # Any invocation must trip the guard and exit 2 with a clear message.
+  run bash "$fake_driver" --model m --dry-run-prompt
+  assert_status 2
+  assert_output_contains "ollama_chat_call not defined"
+}
+
 @test "eval-produce-ollama: --help exits 0 and prints usage" {
   run bash "$DRIVER" --help
   assert_success

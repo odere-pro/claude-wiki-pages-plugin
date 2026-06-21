@@ -202,6 +202,44 @@ teardown() {
   assert_output_contains "WARN"
 }
 
+@test "set_vault_path: degraded awk path handles ampersand in vault path without corruption (M30)" {
+  # M30 injection fix: awk sub() replacement string interprets '&' as the matched
+  # text. A raw vault path containing '&' (e.g. "projects/foo&bar-vault") would
+  # corrupt the JSON when passed directly as the replacement string.
+  # This test forces the degraded awk writer (Bun unavailable) by overriding
+  # _cwp_bun_available to return 1, then verifies the literal path is preserved.
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    _cwp_bun_available() { return 1; }
+    set_vault_path 'projects/foo&bar-vault' 2>/dev/null
+  "
+
+  assert_success
+  grep -q '"current_vault_path": "projects/foo&bar-vault"' "$SETTINGS_TMP"
+}
+
+@test "set_vault_path: degraded awk path handles backslash in vault path without corruption (M30)" {
+  # M30 injection fix: awk sub() replacement string interprets '\' as an escape.
+  # A vault path with a backslash (unusual but valid) would produce garbled JSON.
+  # Override _cwp_bun_available to force the degraded awk writer.
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c '
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='"'$SETTINGS_TMP'"'
+    source '"'$REPO_ROOT/scripts/resolve-vault.sh'"'
+    _cwp_bun_available() { return 1; }
+    set_vault_path '"'projects/foo\\bar-vault'"' 2>/dev/null
+  '
+
+  assert_success
+  grep -q '"current_vault_path": "projects/foo\\bar-vault"' "$SETTINGS_TMP"
+}
+
 @test "set-vault.sh: warns when vault path does not exist on disk" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
@@ -1220,4 +1258,93 @@ _make_shim_dir() {
   assert_success
   assert_output_contains "rc=1"
   refute_output_contains "degraded settings parser"
+}
+
+# ── M32: path-traversal confinement in env-var tier (Tier 1) ─────────────────
+#
+# CLAUDE_WIKI_PAGES_VAULT is an operator/CI override, but must not allow a
+# path-traversal vector (.. components) to escape the intended directory tree.
+# The fix rejects any env-var value containing a '..' path component with a
+# WARN to stderr and falls through to the next resolution tier.
+# Legitimate values (relative, absolute, no ..) are returned verbatim.
+
+@test "M32 path-traversal: CLAUDE_WIKI_PAGES_VAULT with .. component is rejected with WARN" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='../../etc/passwd'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault 2>&1
+  "
+
+  assert_success
+  # Must emit a WARN about the traversal rejection
+  assert_output_contains "WARN"
+  assert_output_contains ".."
+  # Must NOT return the traversal path — must fall through to a safe tier
+  refute_output_contains "../../etc/passwd"
+}
+
+@test "M32 path-traversal: CLAUDE_WIKI_PAGES_VAULT with embedded .. component is rejected" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "safe/custom-vault"\n}\n' >"$SETTINGS_TMP"
+
+  # A path with .. embedded in the middle, not just at the start
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='docs/../../../secret'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault 2>/dev/null
+  "
+
+  assert_success
+  # Must NOT return the traversal path; must fall through to tier 2 (safe/custom-vault)
+  refute_output_contains "docs/../../../secret"
+  [ "$output" = "safe/custom-vault" ]
+}
+
+@test "M32 path-traversal: legitimate relative CLAUDE_WIKI_PAGES_VAULT (no ..) still returned verbatim" {
+  # Regression guard: a normal relative path must not be affected by the fix.
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='docs/my-project-vault'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault
+  "
+
+  assert_success
+  [ "$output" = "docs/my-project-vault" ]
+}
+
+@test "M32 path-traversal: legitimate absolute CLAUDE_WIKI_PAGES_VAULT (no ..) still returned verbatim" {
+  # Regression guard: an absolute path with no .. must pass through unchanged.
+  local abs_vault="/tmp/ci-vault"
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    export CLAUDE_WIKI_PAGES_VAULT='$abs_vault'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault
+  "
+
+  assert_success
+  [ "$output" = "$abs_vault" ]
+}
+
+@test "M32 path-traversal: LLM_WIKI_VAULT (deprecated) with .. is also rejected" {
+  mkdir -p "$(dirname "$SETTINGS_TMP")"
+  printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
+
+  run bash -c "
+    export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
+    unset CLAUDE_WIKI_PAGES_VAULT
+    export LLM_WIKI_VAULT='../../sensitive'
+    source '$REPO_ROOT/scripts/resolve-vault.sh'
+    resolve_vault 2>&1
+  "
+
+  assert_success
+  assert_output_contains "WARN"
+  refute_output_contains "../../sensitive"
 }

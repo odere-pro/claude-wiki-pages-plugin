@@ -16,6 +16,13 @@ import { listRawFiles, MANIFEST_RELATIVE } from "../../core/manifest.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { globToRegExp } from "../../core/firewall.ts";
 
+/**
+ * Minimum cell count for a manifest table row to be a real data row. The
+ * schema-v2 source manifest has at least four columns (raw_file, status, …),
+ * so a split with fewer cells is a separator/header fragment, not a source row.
+ */
+const MIN_MANIFEST_COLUMNS = 4;
+
 /** Per-wired-source change count since its last sync point. */
 export interface WiredChange {
   readonly name: string;
@@ -51,6 +58,17 @@ export interface BacklogOptions {
 }
 
 const DAY_MS = 86_400_000;
+
+/**
+ * Timeout for git subprocess calls in this command (mirrors GIT_TIMEOUT_MS in
+ * core/git.ts — see M29 / H08). Extracted as a named constant so the inline
+ * default of 30 s is not a bare magic number inside gitChangedFiles, and so the
+ * env-var override is applied once at module load rather than per-call.
+ */
+const GIT_TIMEOUT_MS: number = (() => {
+  const v = Number(process.env["CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS"] ?? "");
+  return Number.isFinite(v) && v > 0 ? v : 30_000;
+})();
 
 /** Most recent `## [YYYY-MM-DD] <verb>` date for a given verb, or null. */
 function lastEntryDate(log: string, verb: string): string | null {
@@ -99,16 +117,10 @@ function readWiredSources(cwd: string): readonly WiredSourceRecord[] | null {
 function gitChangedFiles(repo: string, lastCommit: string): readonly string[] {
   try {
     const args = lastCommit === "" ? ["ls-files"] : ["diff", "--name-only", `${lastCommit}..HEAD`];
-    // M29: carry the same GIT_TIMEOUT_MS backstop used by git.ts so a held
-    // index.lock or slow repo never blocks heartbeat.sh / SessionStart.
-    const gitTimeoutMs: number = (() => {
-      const v = Number(process.env["CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS"] ?? "");
-      return Number.isFinite(v) && v > 0 ? v : 30_000;
-    })();
     const out = execFileSync("git", ["-C", repo, ...args], {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
-      timeout: gitTimeoutMs,
+      timeout: GIT_TIMEOUT_MS,
     });
     return out.split("\n").filter((l) => l.length > 0);
   } catch {
@@ -132,7 +144,11 @@ function pendingFromManifest(manifest: string): string[] | null {
     .filter((l) => l.trim().startsWith("|") && l.includes("|"))
     .map((l) => l.split("|").map((c) => c.trim()))
     .filter(
-      (cells) => cells.length >= 4 && cells[1] && cells[1] !== "raw_file" && cells[1] !== "---",
+      (cells) =>
+        cells.length >= MIN_MANIFEST_COLUMNS &&
+        cells[1] &&
+        cells[1] !== "raw_file" &&
+        cells[1] !== "---",
     );
   if (rows.length === 0) return null;
   return rows.filter((c) => c[2] === "pending").map((c) => c[1] as string);

@@ -31,6 +31,7 @@ import { resolve, dirname, basename, isAbsolute } from "node:path";
 import { realpathSync, lstatSync, readlinkSync, existsSync } from "node:fs";
 import { splitFrontmatter } from "./frontmatter";
 import type { Finding } from "./report";
+import { SYMLINK_LOOP_MAX } from "./symlink-limit";
 
 /** Tool names the PreToolUse `Write|Edit` matcher can deliver. */
 export type WriteTool = string;
@@ -47,7 +48,6 @@ export interface RawWriteRequest {
 }
 
 const CHECK = "raw-immutable";
-const SYMLINK_LOOP_MAX = 40; // Linux MAXSYMLINKS; mirrors firewall.{sh,ts}.
 const AGENT_SESSION_MARKER = /^source_type:[ \t]*agent-session[ \t]*$/m;
 
 /** Does `p` exist on disk as a node (including a dangling symlink)? */

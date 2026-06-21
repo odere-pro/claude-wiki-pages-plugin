@@ -45,10 +45,15 @@ fi
 # Ollama call in the quality gate and offline drafting workflows.
 # Override by passing different values directly to ollama_chat_call if needed
 # (the function signature takes explicit parameters, not these globals).
-readonly OLLAMA_DEFAULT_TEMPERATURE=0
-readonly OLLAMA_DEFAULT_SEED=42
-readonly OLLAMA_DEFAULT_TOP_P=1
-readonly OLLAMA_DEFAULT_NUM_PREDICT=-1
+#
+# Guard each readonly with a set-check so that sourcing this file a second time
+# (e.g. eval-produce-baseline.sh sources both eval-produce-ollama.sh and
+# eval-produce-ollama-query.sh, each of which sources ollama-chat.sh) does not
+# trigger a "readonly variable" error when -e is active in the caller.
+[ -z "${OLLAMA_DEFAULT_TEMPERATURE+x}" ] && readonly OLLAMA_DEFAULT_TEMPERATURE=0
+[ -z "${OLLAMA_DEFAULT_SEED+x}" ] && readonly OLLAMA_DEFAULT_SEED=42
+[ -z "${OLLAMA_DEFAULT_TOP_P+x}" ] && readonly OLLAMA_DEFAULT_TOP_P=1
+[ -z "${OLLAMA_DEFAULT_NUM_PREDICT+x}" ] && readonly OLLAMA_DEFAULT_NUM_PREDICT=-1
 
 # ── Core function ─────────────────────────────────────────────────────────────
 

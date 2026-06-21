@@ -105,3 +105,27 @@ install_noop_stub() {
   run_rename --from wiki/topics/old-page.md --to wiki/topics/taken.md
   assert_status 2
 }
+
+@test "obsidian-rename: realpath confinement blocks wiki/-prefixed traversal (../../escape)" {
+  # H03 regression guard: a path like wiki/../../escape.md starts with wiki/
+  # so a string-glob check would pass it, but realpath confinement must reject
+  # it because its canonical target escapes vault/wiki/.
+  install_working_stub
+  run_rename --from wiki/topics/old-page.md --to wiki/../../escape.md
+  assert_status 2
+  assert_output_contains "escapes the vault"
+  # Absolute path shorthand must also be blocked.
+  run_rename --from wiki/topics/old-page.md --to /tmp/escape.md
+  assert_status 2
+}
+
+# ── N18-obsidian-rename: strict mode must include -e ────────────────────────
+# Without set -e a failing command mid-sequence (e.g. a failing jq call or a
+# failed vault resolution) is silently swallowed and execution continues with
+# invalid state — a classic insecure-configuration vulnerability.
+# This test will FAIL until set -euo pipefail replaces set -uo pipefail.
+@test "obsidian-rename: N18 — script source declares set -euo pipefail (strict mode with -e)" {
+  # Static structural check: grep for the full strict-mode line.
+  run grep -q 'set -euo pipefail' "$REPO_ROOT/scripts/obsidian-rename.sh"
+  assert_success
+}

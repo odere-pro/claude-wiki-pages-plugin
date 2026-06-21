@@ -91,11 +91,22 @@ if ! command -v bun >/dev/null 2>&1; then
   # Other paths pass through (the engine's path filter would have allowed them),
   # so a missing-Bun box does not block unrelated edits.
   _fp=$(printf '%s' "$INPUT" | jq -r '.tool_input.file_path // .tool_input.file // empty' 2>/dev/null || true)
-  case "$_fp" in
-    */"${VAULT_NAME}"/wiki/*.md)
-      emit_block_decision "frontmatter gate: Bun is required to validate wiki frontmatter but was not found. Install Bun from https://bun.sh, then retry the write. (Security gate fails closed — the write is blocked until validation can run.)"
-      ;;
-  esac
+  if [ -n "$_fp" ]; then
+    # Canonicalise the directory (target may not exist yet) and re-append base so
+    # a LLM-crafted path with ../ traversal sequences cannot evade the scope check.
+    _dir=$(dirname "$_fp")
+    _base=$(basename "$_fp")
+    if cd "$_dir" 2>/dev/null; then
+      _fp_canon="$(pwd -P)/$_base"
+    else
+      _fp_canon="$_fp"
+    fi
+    case "$_fp_canon" in
+      */"${VAULT_NAME}"/wiki/*.md)
+        emit_block_decision "frontmatter gate: Bun is required to validate wiki frontmatter but was not found. Install Bun from https://bun.sh, then retry the write. (Security gate fails closed — the write is blocked until validation can run.)"
+        ;;
+    esac
+  fi
   exit 0
 fi
 

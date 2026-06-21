@@ -402,6 +402,69 @@ _fm_field() {
   printf '%s' "$line" | sed "s/^${field}:[[:space:]]*//" | tr -d "\"'"
 }
 
+# Helper: emit every source markdown file under <sources_dir>, sorted. This is
+# the single candidate set every resolution tier below walks — extracting it
+# keeps the three tiers byte-identical in what they iterate (find flags + sort
+# order are the parity-sensitive part).
+_source_candidates() {
+  find "$1" -name '*.md' -not -name '.gitkeep' -type f | sort
+}
+
+# Tier 1: exact wiki-relative path (a path-qualified target like
+# "_sources/adr-0001-foo"), case-insensitive, trailing .md stripped on both sides.
+# Args: <nt_noext> <sources_dir> <wiki_dir>. Prints the first match or nothing.
+_match_source_by_path() {
+  local nt_noext="$1" sources_dir="$2" wiki_dir="$3"
+  local candidate cand_rel cand_norm
+  while IFS= read -r candidate; do
+    cand_rel="${candidate#"$wiki_dir"/}"
+    cand_norm=$(printf '%s' "$cand_rel" | tr '[:upper:]' '[:lower:]')
+    cand_norm="${cand_norm%.md}"
+    if [ "$cand_norm" = "$nt_noext" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done < <(_source_candidates "$sources_dir")
+  return 0
+}
+
+# Tier 2: filename basename (case-insensitive).
+# Args: <nt_noext> <sources_dir>. Prints the first match or nothing.
+_match_source_by_basename() {
+  local nt_noext="$1" sources_dir="$2"
+  local candidate stem stem_norm
+  while IFS= read -r candidate; do
+    stem=$(basename "$candidate" .md)
+    stem_norm=$(printf '%s' "$stem" | tr '[:upper:]' '[:lower:]')
+    if [ "$stem_norm" = "$nt_noext" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done < <(_source_candidates "$sources_dir")
+  return 0
+}
+
+# Tier 3/4: title: then aliases: (exact, kept as a superset of what Obsidian
+# resolves). Args: <target> <sources_dir>. Prints the first match or nothing.
+_match_source_by_title_alias() {
+  local target="$1" sources_dir="$2"
+  local candidate title aliases_line
+  while IFS= read -r candidate; do
+    title=$(_fm_field "$candidate" "title")
+    if [ "$title" = "$target" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+    aliases_line=$(sed -n '/^---$/,/^---$/p' "$candidate" |
+      grep -m1 -E "^aliases:" || true)
+    if [ -n "$aliases_line" ] && echo "$aliases_line" | grep -qF "\"${target}\""; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done < <(_source_candidates "$sources_dir")
+  return 0
+}
+
 # Helper: given a cited wikilink target (without [[ ]], pipe already stripped),
 # find the source file in _sources/ it resolves to. Resolution order mirrors the
 # engine resolveLink (ADR-0031): exact wiki-relative PATH (with/without .md,
@@ -412,54 +475,34 @@ _fm_field() {
 _resolve_source_wikilink() {
   local target="$1"
   local sources_dir="$2"
+  [ -d "$sources_dir" ] || return 0
   local wiki_dir
   wiki_dir=$(dirname "$sources_dir")
-  [ -d "$sources_dir" ] || return 0
-  # Normalise the target to lowercase for case-insensitive path/basename match.
-  local nt
+  # Normalise the target to lowercase for case-insensitive path/basename match,
+  # trailing .md stripped (shared by Tier 1 and Tier 2).
+  local nt nt_noext
   nt=$(printf '%s' "$target" | tr '[:upper:]' '[:lower:]')
+  nt_noext="${nt%.md}"
 
-  # Tier 1: exact wiki-relative path (a path-qualified target like
-  # "_sources/adr-0001-foo"). Strip a trailing .md before comparing.
-  local nt_noext="${nt%.md}"
-  local cand_rel cand_norm
-  while IFS= read -r candidate; do
-    cand_rel="${candidate#"$wiki_dir"/}"
-    cand_norm=$(printf '%s' "$cand_rel" | tr '[:upper:]' '[:lower:]')
-    cand_norm="${cand_norm%.md}"
-    if [ "$cand_norm" = "$nt_noext" ]; then
-      printf '%s\n' "$candidate"
-      return 0
-    fi
-  done < <(find "$sources_dir" -name '*.md' -not -name '.gitkeep' -type f | sort)
+  local match
+  match=$(_match_source_by_path "$nt_noext" "$sources_dir" "$wiki_dir")
+  [ -n "$match" ] && {
+    printf '%s\n' "$match"
+    return 0
+  }
 
-  # Tier 2: filename basename (case-insensitive).
-  local stem stem_norm
-  while IFS= read -r candidate; do
-    stem=$(basename "$candidate" .md)
-    stem_norm=$(printf '%s' "$stem" | tr '[:upper:]' '[:lower:]')
-    if [ "$stem_norm" = "$nt_noext" ]; then
-      printf '%s\n' "$candidate"
-      return 0
-    fi
-  done < <(find "$sources_dir" -name '*.md' -not -name '.gitkeep' -type f | sort)
+  match=$(_match_source_by_basename "$nt_noext" "$sources_dir")
+  [ -n "$match" ] && {
+    printf '%s\n' "$match"
+    return 0
+  }
 
-  # Tier 3/4: title: then aliases: (exact, as before — kept as a superset).
-  while IFS= read -r candidate; do
-    local title
-    title=$(_fm_field "$candidate" "title")
-    if [ "$title" = "$target" ]; then
-      printf '%s\n' "$candidate"
-      return 0
-    fi
-    local aliases_line
-    aliases_line=$(sed -n '/^---$/,/^---$/p' "$candidate" |
-      grep -m1 -E "^aliases:" || true)
-    if [ -n "$aliases_line" ] && echo "$aliases_line" | grep -qF "\"${target}\""; then
-      printf '%s\n' "$candidate"
-      return 0
-    fi
-  done < <(find "$sources_dir" -name '*.md' -not -name '.gitkeep' -type f | sort)
+  match=$(_match_source_by_title_alias "$target" "$sources_dir")
+  [ -n "$match" ] && {
+    printf '%s\n' "$match"
+    return 0
+  }
+
   # Not found
   return 0
 }
@@ -476,6 +519,52 @@ _source_best_date() {
   d=$(_fm_field "$file" "date_published")
   [ -n "$d" ] && printf '%s\n' "$d" && return
   printf ''
+}
+
+# Helper: evaluate one sources: wikilink entry for staleness (CHECK 4 / S4).
+# Emits a WARN for dangling or stale entries; increments WARNINGS and
+# STALE_SOURCE_FOUND via nameref-like side-effect (caller passes var names).
+# Using early returns keeps the nesting flat (max 1 level deep).
+# Usage: _check_source_entry <entry> <filepath> <page_updated> <page_basename>
+#   Globals mutated: WARNINGS  STALE_SOURCE_FOUND
+_check_source_entry() {
+  local entry="$1"
+  local filepath="$2"
+  local page_updated="$3"
+  local page_basename="$4"
+
+  # Not a wikilink — plain-string check is CHECK 2; skip silently.
+  echo "$entry" | grep -qE '^\[\[.+\]\]$' || return 0
+
+  # Strip [[ and ]] and any alias suffix after |.
+  local target
+  target=$(echo "$entry" | sed 's/^\[\[//' | sed 's/\]\]$//' | cut -d'|' -f1)
+
+  # Resolve to a file in _sources/.
+  local source_file
+  source_file=$(_resolve_source_wikilink "$target" "$WIKI/_sources")
+  if [ -z "$source_file" ]; then
+    yellow "dangling-source: \"${target}\" cited by ${page_basename}.md could not be resolved in _sources/"
+    WARNINGS=$((WARNINGS + 1))
+    STALE_SOURCE_FOUND=$((STALE_SOURCE_FOUND + 1))
+    return 0
+  fi
+
+  local source_date
+  source_date=$(_source_best_date "$source_file")
+  # Source has no date field — cannot evaluate staleness.
+  [ -z "$source_date" ] && return 0
+
+  # Stale when source_date is strictly greater than page_updated (ISO lexicographic).
+  if [[ "$source_date" > "$page_updated" ]]; then
+    local page_title
+    page_title=$(_fm_field "$filepath" "title")
+    [ -z "$page_title" ] && page_title="$page_basename"
+    yellow "stale-source: \"${page_title}\" (${page_basename}.md) updated ${page_updated} but cited source \"${target}\" has date ${source_date}"
+    WARNINGS=$((WARNINGS + 1))
+    STALE_SOURCE_FOUND=$((STALE_SOURCE_FOUND + 1))
+  fi
+  return 0
 }
 
 STALE_SOURCE_FOUND=0
@@ -502,32 +591,7 @@ while IFS= read -r filepath; do
 
   while IFS= read -r entry; do
     [ -z "$entry" ] && continue
-    # Only process [[wikilink]] entries (plain-string check is CHECK 2).
-    if echo "$entry" | grep -qE '^\[\[.+\]\]$'; then
-      # Strip [[ and ]] to get target name; also strip alias suffix after |.
-      TARGET=$(echo "$entry" | sed 's/^\[\[//' | sed 's/\]\]$//' | cut -d'|' -f1)
-      # Resolve to a file in _sources/.
-      SOURCE_FILE=$(_resolve_source_wikilink "$TARGET" "$WIKI/_sources")
-      if [ -z "$SOURCE_FILE" ]; then
-        yellow "dangling-source: \"${TARGET}\" cited by $(basename "$filepath") could not be resolved in _sources/"
-        WARNINGS=$((WARNINGS + 1))
-        STALE_SOURCE_FOUND=$((STALE_SOURCE_FOUND + 1))
-        continue
-      fi
-      SOURCE_DATE=$(_source_best_date "$SOURCE_FILE")
-      if [ -z "$SOURCE_DATE" ]; then
-        continue # source has no date field — cannot evaluate staleness
-      fi
-      # Compare YYYY-MM-DD strings lexicographically (valid for ISO dates).
-      # Stale when source_date is strictly greater than page_updated.
-      if [[ "$SOURCE_DATE" > "$PAGE_UPDATED" ]]; then
-        PAGE_TITLE=$(_fm_field "$filepath" "title")
-        [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
-        yellow "stale-source: \"${PAGE_TITLE}\" ($(basename "$filepath")) updated ${PAGE_UPDATED} but cited source \"${TARGET}\" has date ${SOURCE_DATE}"
-        WARNINGS=$((WARNINGS + 1))
-        STALE_SOURCE_FOUND=$((STALE_SOURCE_FOUND + 1))
-      fi
-    fi
+    _check_source_entry "$entry" "$filepath" "$PAGE_UPDATED" "$BASENAME"
   done <<<"$PAGE_SOURCES"
 done < <(find "$WIKI" -name '*.md' -type f | sort)
 

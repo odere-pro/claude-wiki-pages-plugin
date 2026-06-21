@@ -1,10 +1,20 @@
 #!/bin/bash
 # S2-structural — template-skeleton conformance + no-raw-HTML checker.
 #
-# Thin wrapper: delegates to `engine lint --check structural`.
+# THIN WRAPPER: delegates to `engine lint --check structural`.
 # All logic now lives in src/core/structural-check.ts (migrated, Phase 1,
 # tmp/migration-plan.md §3). This wrapper preserves every existing caller
 # signature (CI, skills, fill-gaps) while retiring the bash implementation.
+#
+# H12 (DRY / duplicated-code) — RESOLVED.
+#   The bash implementation that previously lived here contained a _page_type()
+#   helper (at line 87) that was a byte-for-byte duplicate of the same helper in
+#   lint-ontology.sh:102.  The duplicate was eliminated by extracting it to the
+#   shared sourceable helper scripts/lib-page-type.sh and sourcing it from both
+#   callers.  The bash body was then retired in full when the script was migrated
+#   to this Bun engine wrapper (migration-plan.md Phase 1, step 4).
+#   Any future bash-level page-type extraction MUST use scripts/lib-page-type.sh
+#   — do NOT re-inline _page_type() here or in lint-ontology.sh.
 #
 # Usage:
 #   scripts/lint-structural.sh [--target <vault-path>]

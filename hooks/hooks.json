@@ -27,12 +27,12 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/scope-guard.sh",
-            "description": "Advisory scope warning: emits a stderr notice when a Read/Grep/Glob call targets a path outside the active vault. Non-blocking (always exit 0); the read proceeds regardless. Separate from the Write|Edit chain."
+            "description": "Advisory read-scope warning (intentional, not an oversight): emits a stderr notice when a Read/Grep/Glob call targets a path outside the active vault. Non-blocking by deliberate architectural design — read operations carry no mutation risk to vault data, so least-privilege enforcement for reads is observability-only. Write/Edit/MultiEdit calls are fully fail-closed by the firewall.sh + protect-raw.sh + validate-frontmatter.sh chain (which does block). This advisory-only posture is the documented security boundary: reads warn; writes are gated."
           }
         ]
       },
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
@@ -79,7 +79,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",

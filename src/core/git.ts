@@ -71,10 +71,21 @@ export interface GitProvider {
  * a local repository; large repos with slow I/O can increase via the env var
  * CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS.
  */
-const GIT_TIMEOUT_MS: number = (() => {
-  const v = Number(process.env["CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS"] ?? "");
-  return Number.isFinite(v) && v > 0 ? v : 30_000;
-})();
+/** Default git subprocess timeout when the env override is unset/invalid. */
+export const DEFAULT_GIT_TIMEOUT_MS = 30_000;
+
+/**
+ * Parse the `CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS` override into a positive,
+ * finite millisecond value, falling back to {@link DEFAULT_GIT_TIMEOUT_MS} for
+ * unset / NaN / non-positive inputs. Exported so the parsing rule is testable
+ * against the real implementation (not a re-derived copy).
+ */
+export function parseGitTimeoutMs(raw: string | undefined): number {
+  const v = Number(raw ?? "");
+  return Number.isFinite(v) && v > 0 ? v : DEFAULT_GIT_TIMEOUT_MS;
+}
+
+const GIT_TIMEOUT_MS: number = parseGitTimeoutMs(process.env["CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS"]);
 
 function git(cwd: string, args: readonly string[]): GitResult {
   try {

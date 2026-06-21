@@ -28,7 +28,7 @@
 #   scripts/offline-query.sh --question "<question>" [--target <vault>]
 #       [--endpoint <url>] [--timeout <sec>] [--retries <n>] [--max-pages <n>]
 #   scripts/offline-query.sh --help
-set -uo pipefail
+set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Sourcing order matters: eval-query.sh defines die/normalize_ws/parse_answer/

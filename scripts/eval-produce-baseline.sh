@@ -31,7 +31,7 @@
 #       [--case <name>] [--out <dir>] [--endpoint <url>] [--num-ctx <n>]
 #       [--timeout <sec>] [--retries <n>] [--dry-run-prompt]
 #   scripts/eval-produce-baseline.sh --help
-set -uo pipefail
+set -euo pipefail
 
 BROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ICASES_DIR="$BROOT/tests/eval/ingest-extract/cases"
@@ -285,6 +285,7 @@ baseline_main() {
 
   if [ "$BDRY_RUN" -eq 0 ]; then
     local tags
+    validate_ollama_endpoint "$QENDPOINT" || die "refused unsafe Ollama endpoint: $QENDPOINT"
     tags=$(curl -sS --fail --connect-timeout 5 "$QENDPOINT/api/tags" 2>/dev/null) ||
       die "Ollama endpoint unreachable: $QENDPOINT"
     printf '%s' "$tags" | jq -e --arg m "$MODEL" '.models[] | select(.name == $m)' >/dev/null ||

@@ -3,35 +3,58 @@
  *
  * The race condition cluster (H07/H08 — isClean→appendLog→commit TOCTOU) is
  * addressed by wrapping every critical section (check-then-act on git state)
- * in `withVaultLock`. The lock is process-level (a Map of per-vault
- * Promise chains); it eliminates races between concurrent calls within the
- * same process. For cross-process mutual exclusion (concurrent cron jobs,
- * separate `snapshot.sh` invocations), the companion `vault-lock.sh` flock
- * covers the bash fallback path.
+ * in `withVaultLockSync` (sync callers) or `withVaultLock` (async callers).
+ * Both are process-level, per-vault serializers: they eliminate races between
+ * concurrent calls within the same process. For cross-process mutual exclusion
+ * (concurrent cron jobs, separate `snapshot.sh` invocations), the companion
+ * `vault-lock.sh` flock covers the bash fallback path.
  *
- * Usage:
- *   import { withVaultLock } from "./vault-lock.ts";
- *   const result = await withVaultLock(vault, async () => {
- *     // critical section: isClean → appendLog → commit
- *   });
- *
- * The lock is a simple Promise chain per vault path (a "monitor" / serializer
- * pattern): each caller waits for the previous one's Promise to settle before
- * running its own critical section. Timeouts are enforced per-call via
- * `lockTimeoutMs` (default 30 000 ms).
+ * ## Sync path (`withVaultLockSync`)
  *
  * For the synchronous engine (all existing git.ts operations are synchronous),
  * `withVaultLockSync` wraps a synchronous critical section without changing
- * the call signature of the commands that use it. It serializes via a
- * per-process mutex map (an object acting as a read-write lock: one writer
- * at a time, no concurrent readers allowed during write). This is sufficient
- * for the single-threaded Bun/Node.js event loop.
+ * the call signature of the commands that use it. It serializes via a boolean
+ * flag + FIFO queue per vault. Re-entrant acquisition in synchronous code is
+ * detected and throws (C02) — a single sync call stack cannot block and then
+ * resume, so re-entrance is a caller bug, not a race.
+ *
+ *   const result = withVaultLockSync(vault, () => { ... });
+ *
+ * ## Async path (`withVaultLock`) — N17 / monitor pattern
+ *
+ * For async callers (present and future — including any refactor that introduces
+ * `await` in snapshot/propose/migrate paths), `withVaultLock` serializes via
+ * a per-vault Promise chain (the "monitor" pattern): each caller appends its
+ * critical section to a settled Promise for the vault, so at most one async
+ * critical section runs at a time. Concurrent callers are queued (not rejected)
+ * and run in FIFO arrival order. The lock is always released — even when fn()
+ * rejects — so the chain never stalls.
+ *
+ *   const result = await withVaultLock(vault, async () => { ... });
+ *
+ * Both variants are per-vault: locks on different vault paths are fully
+ * independent and never block each other.
  */
 
 /** Per-vault lock state: a boolean flag (locked/unlocked). */
 const _locks = new Map<string, boolean>();
 /** Queue of waiters per vault (FIFO). */
 const _queues = new Map<string, Array<() => void>>();
+
+// ── Async monitor (Promise-chain serializer) — N17 ───────────────────────────
+//
+// One settled Promise per vault acts as the "tail" of the queue.  Each new
+// caller chains onto the current tail: it waits for the previous critical
+// section to settle (resolve OR reject), then runs its own section.  After the
+// section completes (or throws), the chain tail advances to the new Promise so
+// the next waiter can chain onto it.
+//
+// This is the standard JS/TS "async mutex via Promise chaining" (monitor)
+// pattern.  It is O(1) per call, never blocks the event loop, and has no
+// external dependencies.
+
+/** Settled Promise tails per vault — the async queue head. */
+const _asyncTails = new Map<string, Promise<unknown>>();
 
 /**
  * Acquire a per-vault mutex synchronously. Callers that arrive while the lock
@@ -54,6 +77,12 @@ const _queues = new Map<string, Array<() => void>>();
  * throw converts a silent failure into a loud one.
  */
 export function acquireVaultLockSync(vault: string): () => void {
+  if (!vault) {
+    throw new Error(
+      "vault-lock: empty vault key is not valid. " +
+        "Every caller must supply a non-empty vault path to ensure per-vault isolation.",
+    );
+  }
   const current = _locks.get(vault) ?? false;
   if (!current) {
     _locks.set(vault, true);
@@ -93,4 +122,57 @@ export function withVaultLockSync<T>(vault: string, fn: () => T): T {
   } finally {
     release();
   }
+}
+
+/**
+ * Run `fn` inside an exclusive per-vault async lock (monitor / Promise-chain
+ * serializer pattern — N17).
+ *
+ * Concurrent async callers for the same vault are queued via a per-vault
+ * Promise chain and executed one at a time in FIFO arrival order.  The lock
+ * is always released — even when `fn` rejects — so the chain never stalls.
+ * Callers on different vault paths are fully independent and never block each
+ * other.
+ *
+ * Usage:
+ *   const result = await withVaultLock(vault, async () => {
+ *     // critical section: isClean → appendLog → commit
+ *   });
+ */
+export function withVaultLock<T>(vault: string, fn: () => Promise<T>): Promise<T> {
+  if (!vault) {
+    return Promise.reject(
+      new Error(
+        "vault-lock: empty vault key is not valid. " +
+          "Every caller must supply a non-empty vault path to ensure per-vault isolation.",
+      ),
+    );
+  }
+  // Retrieve (or create) the settled tail for this vault.  We chain our
+  // critical section onto the tail so this caller cannot start until all
+  // previous callers for the same vault have settled.
+  const tail = _asyncTails.get(vault) ?? Promise.resolve();
+
+  // Build the new link in the chain.  `next` is our critical-section Promise.
+  // We use a void-typed chain tail so error propagation from previous callers
+  // does not bleed into this caller — each critical section stands alone.
+  const next: Promise<T> = tail.then(
+    () => fn(),
+    () => fn(),
+  );
+
+  // Advance the vault's tail to the new Promise, stripped of its value type
+  // (so the Map stays homogeneous and errors do not propagate forward).
+  // We suppress rejections on the stored tail so Node.js does not emit an
+  // "unhandledRejection" for the queued promise — the actual rejection is
+  // forwarded to the original caller via `next`.
+  _asyncTails.set(
+    vault,
+    next.then(
+      () => undefined,
+      () => undefined,
+    ),
+  );
+
+  return next;
 }

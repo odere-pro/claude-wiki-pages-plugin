@@ -32,8 +32,11 @@
 # Default is a DRY RUN: it reports what would change and writes nothing.
 # `--apply` rewrites the wiki files in place (run inside git; changes are
 # reversible with `git checkout`). Exit 0 always.
-set -uo pipefail
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+set -euo pipefail
+# Resolve our own dir without requiring `dirname` on PATH: the bun-absent skip
+# guard below must be reachable even when PATH is stripped of all externals
+# (a degraded/hardened shell). Fall back to pure-bash parameter expansion.
+SCRIPT_DIR="$(cd "$(dirname "$0")" 2>/dev/null && pwd)" || SCRIPT_DIR="${0%/*}"
 
 TARGET=""
 APPLY=0

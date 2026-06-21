@@ -142,6 +142,67 @@ MD
   assert_output_empty
 }
 
+# ---------------------------------------------------------------------------
+# MultiEdit payloads (S13): post-wiki-write must fire for MultiEdit too.
+# A MultiEdit payload has tool_input.file_path at the top level but no
+# content field; the script reads the title from the file on disk instead.
+# ---------------------------------------------------------------------------
+
+@test "post-wiki-write: MultiEdit on wiki file reminds when folder has no index file" {
+  local proj="$BATS_TEST_TMPDIR/proj"
+  mkdir -p "$proj/vault/wiki/topics"
+  # Write the file to disk so the script can read the title from it.
+  cat >"$proj/vault/wiki/topics/multi-page.md" <<'MD'
+---
+title: "Multi Page"
+type: entity
+---
+
+# Multi Page
+MD
+  printf '%s\n' '- [[Multi Page]]' >"$proj/vault/wiki/index.md"
+
+  local json_file="$BATS_TEST_TMPDIR/multi-input.json"
+  jq -n \
+    --arg path "$proj/vault/wiki/topics/multi-page.md" \
+    '{tool_name:"MultiEdit", tool_input:{file_path:$path, edits:[]}}' >"$json_file"
+
+  run_hook_with_json "scripts/post-wiki-write.sh" "$json_file"
+
+  assert_success
+  assert_output_contains "has no index file"
+}
+
+@test "post-wiki-write: MultiEdit on a folder note is silent (bookkeeping)" {
+  local proj="$BATS_TEST_TMPDIR/proj"
+  mkdir -p "$proj/vault/wiki/topics"
+  cat >"$proj/vault/wiki/topics/topics.md" <<'MD'
+---
+title: "Topics — Index"
+type: index
+---
+MD
+
+  local json_file="$BATS_TEST_TMPDIR/multi-fn-input.json"
+  jq -n \
+    --arg path "$proj/vault/wiki/topics/topics.md" \
+    '{tool_name:"MultiEdit", tool_input:{file_path:$path, edits:[]}}' >"$json_file"
+
+  run_hook_with_json "scripts/post-wiki-write.sh" "$json_file"
+
+  assert_success
+  assert_output_empty
+}
+
+@test "post-wiki-write: MultiEdit on non-wiki path is silent" {
+  local json
+  json='{"tool_name":"MultiEdit","tool_input":{"file_path":"/tmp/elsewhere/note.md","edits":[]}}'
+  run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-wiki-write.sh'"
+
+  assert_success
+  assert_output_empty
+}
+
 @test "post-wiki-write: silent on index.md / log.md / dashboard.md / _index.md bookkeeping files" {
   # Exercise every name in the skip list so a mutation that drops any single
   # name from the `case` is caught.

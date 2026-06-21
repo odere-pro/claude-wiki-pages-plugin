@@ -5,11 +5,37 @@
  * (scripts/verify-ingest.sh, scripts/check-wikilinks.sh) so the Bun port can
  * be checked against them line-for-line by the parity gate.
  *
- * Functional/immutable by design (frozen data + free functions); not an OO
- * model. The Report + free-function shape (buildReport/renderText/exitCode) is
- * the engine's chosen functional, immutable convention — adding methods would
- * fight immutability and the verify-parity contract (next? stays JSON-only,
- * renderText intentionally ignores it). See src/core/CLAUDE.md "Result model".
+ * ## Design ruling — functional value-object, not OO domain object
+ *
+ * `Finding` and `Report` are **value-objects** in the domain-model sense: they
+ * carry identity only through their field values and are fully immutable
+ * (`Object.freeze`). Behaviour that operates on them (`buildReport`,
+ * `renderText`, `exitCode`) lives as free functions rather than methods,
+ * because:
+ *
+ *  1. **Immutability contract** — `Object.freeze` prevents adding properties
+ *     after construction; instance methods on a frozen prototype are the only
+ *     alternative, but they couple the value-object to a class hierarchy that
+ *     makes spread-extension (`{ ...base, next: [...] }`) cumbersome and risks
+ *     losing prototype methods on the extended object.
+ *
+ *  2. **Parity contract** — `renderText` must produce byte-identical output to
+ *     the bash verifiers (pinned by gate-05). Free functions are easier to
+ *     keep stable and auditable than OO dispatch chains.
+ *
+ *  3. **`next?` is JSON-only** — `renderText` intentionally ignores `next` so
+ *     the text path stays parity-safe. A method on `Report` would obscure this
+ *     intentional non-inclusion.
+ *
+ * This is the **value-object corrective pattern** applied in a functional
+ * idiom: the types express a rich, typed domain concept (not a bag of `any`),
+ * behaviour is co-located in the same module, and immutability is enforced at
+ * runtime. Wrapping in a class would add no safety and would fight all three
+ * constraints above.
+ *
+ * Architect ruling (2026-06): **do not convert to class-based OO**. The
+ * functional value-object shape is the binding convention for this module.
+ * See also src/core/CLAUDE.md §"Result model".
  */
 
 /**

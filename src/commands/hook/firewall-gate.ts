@@ -7,7 +7,7 @@
  * parsed HookInput plus the resolved active vault (and the sibling-vault set) and
  * returns a HookDecision the CLI serialises into the
  * `{"decision":"block","reason":…}` contract. The decision authority itself stays
- * in src/core/firewall.ts (via firewallCheck) — this module adds only the
+ * in src/core/firewall.ts (via decide) — this module adds only the
  * hook-specific wrapping the bash hook performed:
  *
  *   1. Empty file_path → allow (the bash `[ -z "$FILE_PATH" ] && exit 0`).
@@ -28,7 +28,8 @@
 
 import { basename } from "node:path";
 import type { HookInput } from "../../core/hook-input.ts";
-import { firewallCheck } from "../firewall/firewall.ts";
+import { decide } from "../../core/firewall.ts";
+import { loadConfig } from "../../data/config/config.ts";
 import type { HookDecision } from "./frontmatter-gate.ts";
 
 /** Frozen allow decision (the bash `exit 0` with no block JSON). */
@@ -84,17 +85,20 @@ export function firewallHookGate(opts: FirewallGateOptions): HookDecision {
   // Empty file path → allow (the bash `[ -z "$FILE_PATH" ] && exit 0`).
   if (input.filePath === "") return ALLOW;
 
-  const report = firewallCheck({
-    target: vault,
-    cwd: opts.cwd,
-    file: input.filePath,
+  const { firewall } = loadConfig({ cwd: opts.cwd }).config;
+  const decision = decide(input.filePath, {
+    enabled: firewall.enabled,
+    mode: firewall.mode,
+    vault: vault.replace(/\/+$/, ""),
+    allowPaths: firewall.allowPaths,
+    denyPaths: firewall.denyPaths,
     otherVaults: opts.otherVaults ?? [],
   });
 
   // allow (inside vault / off / disabled), AND warn mode (allowed===true even on
   // a boundary hit) → never block. The bash warn branch advises on stderr; the
   // CLI mirrors that. enforce blocks → emit the redacted reason.
-  if (report.allowed) return ALLOW;
+  if (decision.allowed) return ALLOW;
 
-  return Object.freeze({ block: true, reason: blockReason(report.matchedRule, report.vault) });
+  return Object.freeze({ block: true, reason: blockReason(decision.matchedRule, vault) });
 }

@@ -1,5 +1,5 @@
 import { test, expect, describe } from "bun:test";
-import { stem, stemTokens } from "./stem.ts";
+import { stem, stemTokens, tokenize } from "./stem.ts";
 
 describe("stem — pure Porter 1980", () => {
   // ── (4) Spec table from the task brief ──────────────────────────────────────
@@ -52,6 +52,37 @@ describe("stem — pure Porter 1980", () => {
   test("happy → happi", () => expect(stem("happy")).toBe("happi"));
   test("sky → sky (no change)", () => expect(stem("sky")).toBe("sky"));
 
+  // ── tokenize helper (shared; N14) ────────────────────────────────────────────
+  test("tokenize splits on non-alphanumeric and lowercases", () => {
+    expect(tokenize("Retrieval Augmented Generation")).toEqual([
+      "retrieval",
+      "augmented",
+      "generation",
+    ]);
+  });
+
+  test("tokenize drops single-char tokens", () => {
+    expect(tokenize("a b running")).toEqual(["running"]);
+  });
+
+  test("tokenize produces the same token list as the stemTokens input step", () => {
+    const text = "Running Cars Automobile";
+    const tokens = tokenize(text);
+    // stemTokens must contain exactly the stems of those tokens
+    const stemmed = stemTokens(text);
+    for (const t of tokens) {
+      expect(stemmed.has(stem(t))).toBe(true);
+    }
+  });
+
+  test("tokenize empty string yields empty array", () => {
+    expect(tokenize("")).toEqual([]);
+  });
+
+  test("tokenize punctuation-only string yields empty array", () => {
+    expect(tokenize("--- *** !!!")).toEqual([]);
+  });
+
   // ── stemTokens helper ────────────────────────────────────────────────────────
   test("stemTokens returns Set of stemmed forms", () => {
     const result = stemTokens("running cars automobile");
@@ -65,5 +96,35 @@ describe("stem — pure Porter 1980", () => {
     expect(result.has("a")).toBe(false);
     expect(result.has("b")).toBe(false);
     expect(result.has(stem("running"))).toBe(true);
+  });
+
+  // ── N14 DRY contract: stemTokens === tokenize(text).map(stem) as a Set ───────
+  // Guards against future drift where stemTokens might re-introduce an inline
+  // tokenization step instead of delegating to the shared tokenize() (N14).
+  test("N14: stemTokens output equals new Set(tokenize(text).map(stem))", () => {
+    const cases = [
+      "Running Cars Automobile",
+      "graph retrieval augmented generation",
+      "  a  b  c  punctuation!!!  words  ",
+      "",
+      "UPPER CASE tokens",
+      "hyphenated-words and under_scores",
+    ];
+    for (const text of cases) {
+      const fromHelper = stemTokens(text);
+      const fromComposition = new Set(tokenize(text).map(stem));
+      expect([...fromHelper].sort()).toEqual([...fromComposition].sort());
+    }
+  });
+
+  test("N14: stemTokens delegates single-char filter to tokenize (not re-implemented)", () => {
+    // If stemTokens had its own inline split it might differ from tokenize's filter.
+    // Verify the single-char boundary is identical: "ab" passes, "a" is dropped.
+    const withSingleChar = stemTokens("a ab");
+    const withSingleCharDirect = new Set(tokenize("a ab").map(stem));
+    expect([...withSingleChar].sort()).toEqual([...withSingleCharDirect].sort());
+    // "ab" is kept (length === 2); "a" is dropped (length === 1)
+    expect(withSingleChar.has(stem("ab"))).toBe(true);
+    expect(withSingleChar.has("a")).toBe(false);
   });
 });

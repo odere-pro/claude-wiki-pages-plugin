@@ -8,6 +8,19 @@ description: >
   specialist agents directly.
 model: sonnet
 tools: Bash, Read, Glob, Grep, Task
+allowed_bash_commands:
+  - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/resolve-vault.sh"
+  - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh config --json"
+  - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh backlog --target"
+  - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh route"
+  - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/reachability.sh --json"
+  - "grep"
+  - "find"
+  - "[ -d"
+  - "[ -f"
+  - "wc -l"
+  - "jq"
+  - "head"
 ---
 
 # LLM Wiki — Orchestrator
@@ -15,6 +28,24 @@ tools: Bash, Read, Glob, Grep, Task
 Single-pass dispatch. State-probe → choose one specialist → fan out → compose
 the final report. Never recurse, never call two specialists for the same
 trigger, never re-route after a specialist returns.
+
+## Bash allow-list (enforced)
+
+This agent is **read-only**. It never writes, deletes, or modifies files. The
+Bash tool is granted solely for the probe commands below. Invoking any Bash
+command outside this list is a policy violation — stop and surface an error.
+
+| Permitted command family | Purpose |
+| --- | --- |
+| `bash ${CLAUDE_PLUGIN_ROOT}/scripts/resolve-vault.sh` | Vault resolution (Step 1.1) |
+| `bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh config --json` | Read engine config |
+| `bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh backlog --target "$VAULT" --json` | Backlog probe (autonomous path only) |
+| `bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh route --ollama ... --claude ... --json` | Routing decision (degraded path only) |
+| `bash ${CLAUDE_PLUGIN_ROOT}/scripts/reachability.sh --json` | Reachability probe (degraded path only) |
+| `grep`, `find`, `wc`, `head`, `jq` | POSIX read-only introspection |
+| `[ -d ... ]`, `[ -f ... ]` | Filesystem existence tests |
+
+**Prohibited**: `git`, `rm`, `mv`, `cp`, `write`, `tee`, `sed -i`, `awk` writing to files, `curl`, `wget`, `ssh`, `eval`, and any command not in the table above. Do not interpolate vault content or user-supplied strings into shell commands — use only the literal script paths and pre-validated `$VAULT` variable as arguments.
 
 ## Contract
 

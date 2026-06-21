@@ -68,27 +68,72 @@ if ! command -v jq >/dev/null 2>&1; then
   echo "NOTICE: jq is not installed — the schema-enforcing hooks (firewall, frontmatter, raw-protect) cannot parse tool-call JSON and writes pass through unchecked. Install: brew install jq (macOS) or sudo apt-get install jq (Linux), then restart the session. See /claude-wiki-pages:doctor."
 fi
 
+# _ss_with_timeout <secs> <cmd...>
+# Runs a command with a hard wall-clock limit regardless of which timeout
+# utility is available:
+#   1. GNU  timeout  (Linux default, macOS with coreutils)
+#   2. BSD  gtimeout (macOS Homebrew coreutils: brew install coreutils)
+#   3. Pure-bash fallback: background the command, race a sleep watchdog, and
+#      kill whichever finishes last.  Avoids an unbounded call on systems where
+#      neither utility is installed.  Mirrors the pattern in heartbeat.sh.
+_ss_with_timeout() {
+  local secs="$1"
+  shift
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "$secs" "$@"
+    return $?
+  fi
+  if command -v gtimeout >/dev/null 2>&1; then
+    gtimeout "$secs" "$@"
+    return $?
+  fi
+  # Pure-bash fallback: race command against a sleep watchdog. The watchdog kills
+  # the command's DESCENDANTS first (the real worker — bash's foreground child),
+  # not just the wrapper PID: a bare `kill <wrapper>` is DEFERRED by some bash
+  # builds (notably macOS's system bash 3.2) until the wrapper's foreground child
+  # returns, so the deadline would never be enforced (M26). Killing the child
+  # lets the wrapper's own `wait` return immediately. TERM then KILL after a
+  # grace second.
+  "$@" &
+  local _cmd_pid=$!
+  (
+    sleep "$secs" 2>/dev/null
+    pkill -TERM -P "$_cmd_pid" 2>/dev/null
+    kill -TERM "$_cmd_pid" 2>/dev/null
+    sleep 1 2>/dev/null
+    pkill -KILL -P "$_cmd_pid" 2>/dev/null
+    kill -KILL "$_cmd_pid" 2>/dev/null
+  ) >/dev/null 2>&1 &
+  local _wdog_pid=$!
+  local _rc=0
+  wait "$_cmd_pid" 2>/dev/null || _rc=$?
+  kill "$_wdog_pid" 2>/dev/null || true
+  wait "$_wdog_pid" 2>/dev/null || true
+  return "$_rc"
+}
+
 # Surface a maintenance catch-up recommendation when enabled (maintenance.enabled).
 # Silent no-op by default; never mutates the vault.
 # M26: wrap heartbeat.sh with a timeout so SessionStart cannot hang when the
 # engine.sh backlog call blocks (e.g. on a slow filesystem or a hung git lock).
 # 10 s is generous for a heartbeat probe; adjust via CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT_SEC.
+# _ss_with_timeout provides a pure-bash watchdog on systems without GNU/BSD timeout.
 _hb_timeout="${CLAUDE_WIKI_PAGES_HEARTBEAT_TIMEOUT_SEC:-10}"
-if command -v timeout >/dev/null 2>&1; then
-  timeout "${_hb_timeout}" bash "$(dirname "$0")/heartbeat.sh" || true
-else
-  bash "$(dirname "$0")/heartbeat.sh" || true
-fi
+_ss_with_timeout "${_hb_timeout}" bash "$(dirname "$0")/heartbeat.sh" || true
 
 # Degraded-mode advisory (ADR-0018): when a local model is enabled AND an offline
 # policy is set, probe reachability and surface which tier is available or BLOCKED.
 # Strictly opt-in — silent unless localModel.enabled && offlinePolicy != "off" —
 # and best-effort: the probe has hard timeouts and the whole block is wrapped so a
 # miss never aborts the hook. No network is touched in the default (off) policy.
+# M26: wrap the engine config call with a bounded timeout so SessionStart cannot
+# hang when the engine blocks (e.g. on a slow filesystem or a hung git lock).
+# Default 10 s; overridable via CLAUDE_WIKI_PAGES_CONFIG_TIMEOUT_SEC.
+_cfg_timeout="${CLAUDE_WIKI_PAGES_CONFIG_TIMEOUT_SEC:-10}"
 if command -v bun >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
   # `config` exits 1 when localModelErrors is non-empty; `|| true` keeps the
   # captured JSON (command substitution captures stdout regardless of exit code).
-  _cfg=$(bash "$(dirname "$0")/engine.sh" config --json 2>/dev/null) || true
+  _cfg=$(_ss_with_timeout "${_cfg_timeout}" bash "$(dirname "$0")/engine.sh" config --json 2>/dev/null) || true
   if [ -n "${_cfg}" ]; then
     _lm_enabled=$(printf '%s' "${_cfg}" | jq -r '.config.localModel.enabled' 2>/dev/null) || _lm_enabled="false"
     _policy=$(printf '%s' "${_cfg}" | jq -r '.config.localModel.offlinePolicy // "off"' 2>/dev/null) || _policy="off"

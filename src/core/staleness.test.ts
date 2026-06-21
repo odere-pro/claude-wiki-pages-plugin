@@ -3,18 +3,22 @@
  *
  * Covers:
  *   - dateField: Date instance branch (M21 — yaml may parse YYYY-MM-DD as Date)
+ *   - dateField: invalid Date (NaN) returns "" — defensive guard
+ *   - dateField: number value coerced to string
  *   - checkCitedSourceStaleness: happy-path (no findings when source is older)
  *   - checkCitedSourceStaleness: stale finding when source is newer than page
  *   - checkCitedSourceStaleness: dangling-source warning for unresolved wikilink
  *   - checkCitedSourceStaleness: skip when page has no `updated:` field
  *   - checkCitedSourceStaleness: skip source when source has no date fields
+ *   - checkCitedSourceStaleness: piped wikilink [[target|display]] resolved by target part
+ *   - checkCitedSourceStaleness: wikilink resolving to non-_sources wiki page is dangling
  */
 
 import { test, expect, describe, afterEach } from "bun:test";
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkCitedSourceStaleness } from "./staleness.ts";
+import { checkCitedSourceStaleness, dateField } from "./staleness.ts";
 
 let tmpDir: string;
 
@@ -89,6 +93,52 @@ function writePage(
     `---\ntitle: "${title}"\ntype: ${type}\n${updatedLine}\n${sourcesYaml}\n---\n# ${title}\n`,
   );
 }
+
+// ── dateField unit tests (M21) ────────────────────────────────────────────────
+// Direct unit tests for the dateField helper, which is exported so each
+// branch can be asserted in isolation without a full vault round-trip.
+
+describe("dateField — direct unit tests", () => {
+  test("returns trimmed string when value is a plain string", () => {
+    expect(dateField({ updated: "  2024-06-15  " }, "updated")).toBe("2024-06-15");
+  });
+
+  test("returns '' when key is absent", () => {
+    expect(dateField({}, "updated")).toBe("");
+  });
+
+  test("returns '' when value is null", () => {
+    expect(dateField({ updated: null }, "updated")).toBe("");
+  });
+
+  test("returns '' when value is undefined", () => {
+    expect(dateField({ updated: undefined }, "updated")).toBe("");
+  });
+
+  test("returns ISO day string when value is a valid Date instance (M21 — yaml Date branch)", () => {
+    // The yaml library parses an unquoted YYYY-MM-DD scalar as a Date object.
+    // dateField must normalise it to the ISO day slice "YYYY-MM-DD".
+    const d = new Date("2024-03-15T00:00:00.000Z");
+    expect(dateField({ updated: d }, "updated")).toBe("2024-03-15");
+  });
+
+  test("returns '' when value is an invalid Date (NaN guard)", () => {
+    // An invalid Date (NaN time) must not produce a nonsense string — the
+    // Number.isNaN guard in dateField ensures we return "" instead of "Invalid Date".
+    const bad = new Date("not-a-date");
+    // Engine behaviour: dateField must return "" so invalid dates are silently
+    // skipped rather than producing a non-empty, nonsense comparison string.
+    expect(dateField({ updated: bad }, "updated")).toBe("");
+    // Contrast: a valid Date must NOT return "", so the two branches are distinct.
+    const good = new Date("2024-06-15T00:00:00.000Z");
+    expect(dateField({ updated: good }, "updated")).toBe("2024-06-15");
+  });
+
+  test("returns string representation when value is a number (bare-year branch)", () => {
+    // A bare YAML integer such as `updated: 2023` is parsed as the number 2023.
+    expect(dateField({ updated: 2023 }, "updated")).toBe("2023");
+  });
+});
 
 // ── dateField Date-instance branch (M21) ──────────────────────────────────────
 
@@ -303,6 +353,157 @@ describe("checkCitedSourceStaleness — dangling source", () => {
     expect(findings.filter((f) => f.message.includes("dangling-source"))).toHaveLength(0);
     // Should NOT be stale either (source older)
     expect(findings.filter((f) => f.message.includes("stale-source"))).toHaveLength(0);
+  });
+});
+
+// ── dateField number branch ───────────────────────────────────────────────────
+
+describe("dateField — number value in date field", () => {
+  afterEach(teardown);
+
+  test("source with a numeric updated field (e.g. bare year) is coerced to string", () => {
+    // dateField handles `typeof v === "number"` by returning String(v).
+    // A bare 4-digit year in YAML (e.g. `updated: 2023`) is parsed as a number.
+    // The resulting string "2023" is lexicographically < "2024-01-01", so no stale
+    // finding should be emitted (source "date" "2023" < page "2024-01-01").
+    const base = setup();
+    const { wiki, sourcesDir } = makeWiki(base);
+
+    // Write source with numeric year — yaml parses this as a number (2023), not a string.
+    writeFileSync(
+      join(sourcesDir, "numeric-date.md"),
+      `---\ntitle: "Numeric Date Source"\ntype: source\nupdated: 2023\n---\n# Numeric Date Source\n`,
+    );
+    writePage(wiki, "page-numeric.md", {
+      title: "Page With Numeric Source",
+      updated: "2024-01-01",
+      sources: ["[[Numeric Date Source]]"],
+    });
+    writeFileSync(join(wiki, "index.md"), "# Index\n");
+
+    const findings = checkCitedSourceStaleness(wiki);
+    // "2023" < "2024-01-01" lexicographically — source is not newer, so no stale finding.
+    const stale = findings.filter(
+      (f) => f.check === "stale-source" && f.message.includes("stale-source"),
+    );
+    expect(stale).toHaveLength(0);
+    // No dangling either — source resolved
+    expect(findings.filter((f) => f.message.includes("dangling-source"))).toHaveLength(0);
+  });
+
+  test("source with a numeric updated field newer than page triggers stale finding", () => {
+    // "2026" > "2024-01-01" lexicographically — ensures the number branch leads to a stale hit.
+    const base = setup();
+    const { wiki, sourcesDir } = makeWiki(base);
+
+    writeFileSync(
+      join(sourcesDir, "future-numeric.md"),
+      `---\ntitle: "Future Numeric Source"\ntype: source\nupdated: 2026\n---\n# Future Numeric Source\n`,
+    );
+    writePage(wiki, "page-future-numeric.md", {
+      title: "Page Future Numeric",
+      updated: "2024-01-01",
+      sources: ["[[Future Numeric Source]]"],
+    });
+    writeFileSync(join(wiki, "index.md"), "# Index\n");
+
+    const findings = checkCitedSourceStaleness(wiki);
+    const stale = findings.filter(
+      (f) => f.check === "stale-source" && f.message.includes("stale-source"),
+    );
+    expect(stale.length).toBeGreaterThanOrEqual(1);
+    expect(stale[0]!.message).toContain("Future Numeric Source");
+  });
+});
+
+// ── piped wikilink format ─────────────────────────────────────────────────────
+
+describe("checkCitedSourceStaleness — piped wikilink [[target|display]]", () => {
+  afterEach(teardown);
+
+  test("resolves [[target|display name]] by the target part, ignoring display text", () => {
+    // stripWikilink + split("|")[0] extracts "target" from [[target|display name]].
+    // This exercises the `.split("|")[0]?.trim()` branch in checkCitedSourceStaleness.
+    const base = setup();
+    const { wiki, sourcesDir } = makeWiki(base);
+
+    writeSource(sourcesDir, "piped-source.md", {
+      title: "Piped Source",
+      updated: "2023-01-01",
+    });
+    writePage(wiki, "page-piped.md", {
+      title: "Page With Piped Wikilink",
+      updated: "2024-01-01",
+      sources: ["[[Piped Source|Custom Display Name]]"],
+    });
+    writeFileSync(join(wiki, "index.md"), "# Index\n");
+
+    const findings = checkCitedSourceStaleness(wiki);
+    // Source (2023) is older than page (2024) — no stale finding
+    expect(findings.filter((f) => f.message.includes("stale-source"))).toHaveLength(0);
+    // And it resolves — no dangling finding
+    expect(findings.filter((f) => f.message.includes("dangling-source"))).toHaveLength(0);
+  });
+
+  test("piped wikilink to newer source emits stale finding with original target reference", () => {
+    const base = setup();
+    const { wiki, sourcesDir } = makeWiki(base);
+
+    writeSource(sourcesDir, "piped-new.md", {
+      title: "Piped New Source",
+      updated: "2025-06-01",
+    });
+    writePage(wiki, "page-piped-stale.md", {
+      title: "Stale Piped Page",
+      updated: "2024-01-01",
+      sources: ["[[Piped New Source|See Also: Piped New Source]]"],
+    });
+    writeFileSync(join(wiki, "index.md"), "# Index\n");
+
+    const findings = checkCitedSourceStaleness(wiki);
+    const stale = findings.filter(
+      (f) => f.check === "stale-source" && f.message.includes("stale-source"),
+    );
+    expect(stale).toHaveLength(1);
+    expect(stale[0]!.message).toContain("2025-06-01");
+    expect(stale[0]!.message).toContain("2024-01-01");
+  });
+});
+
+// ── resolved-to-non-sources wiki page ────────────────────────────────────────
+
+describe("checkCitedSourceStaleness — wikilink resolves to non-_sources page", () => {
+  afterEach(teardown);
+
+  test("wikilink resolving to a regular wiki page (not in _sources/) is treated as dangling", () => {
+    // resolveLink may succeed (file exists in wiki/), but sourceFmByRel will not
+    // have an entry for it because the pre-parse loop filters to _sources/ only.
+    // The srcFm===null branch fires and emits a dangling-source finding.
+    const base = setup();
+    const { wiki } = makeWiki(base);
+
+    // A regular wiki page (not in _sources/)
+    writePage(wiki, "not-a-source.md", {
+      title: "Not A Source",
+      updated: "2025-01-01",
+      type: "entity",
+    });
+    // Another page citing it as if it were a source
+    writePage(wiki, "citing-non-source.md", {
+      title: "Citing Non Source",
+      updated: "2024-01-01",
+      sources: ["[[Not A Source]]"],
+    });
+    writeFileSync(join(wiki, "index.md"), "# Index\n");
+
+    const findings = checkCitedSourceStaleness(wiki);
+    // The link resolves in the wiki index, but NOT to a _sources/ page,
+    // so srcFm is null → dangling-source finding.
+    const dangling = findings.filter(
+      (f) => f.check === "stale-source" && f.message.includes("dangling-source"),
+    );
+    expect(dangling).toHaveLength(1);
+    expect(dangling[0]!.message).toContain("Not A Source");
   });
 });
 

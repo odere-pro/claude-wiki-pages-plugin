@@ -34,7 +34,7 @@ import { listMarkdownRecursive, readFileSafe, BOOKKEEPING } from "../../core/fs.
 import { parseFrontmatter, titleOf, stringList, splitFrontmatter } from "../../core/frontmatter.ts";
 import { resolveVault } from "../../core/vault.ts";
 import { loadLexicon, synonymsOf } from "../../core/vocabulary.ts";
-import { stem, stemTokens } from "../../core/stem.ts";
+import { stem, stemTokens, tokenize } from "../../core/stem.ts";
 import { walk, R2_EDGES } from "../../core/graph.ts";
 
 /**
@@ -176,11 +176,14 @@ function sortMatchComponents(components: readonly MatchComponent[]): readonly Ma
   });
 }
 
+/**
+ * Tokenize a query string into lowercase words, dropping single-char tokens.
+ * Delegates to the shared `tokenize()` from `core/stem.ts` — single source
+ * of truth for the tokenize step (DRY; N14). Both the query path here and the
+ * `stemTokens` helper used by the stem channel now share one implementation.
+ */
 function terms(query: string): string[] {
-  return query
-    .toLowerCase()
-    .split(/[^a-z0-9]+/)
-    .filter((t) => t.length > 1);
+  return tokenize(query);
 }
 
 function countOccurrences(haystack: string, needle: string): number {
@@ -215,6 +218,14 @@ export function search(opts: SearchOptions): SearchReport {
 
   // Tier-2: load the synonym lexicon (absent file → empty, never throws).
   const lexicon = loadLexicon(vault);
+
+  // Pre-expand synonyms once per query term (value-object: own the data locally,
+  // never reach back into `lexicon` inside the per-page scoring loop).
+  // synonymsOf is deterministic — same (lexicon, term) → same sorted array — so
+  // computing it here and reusing it per page is behaviorally identical.
+  const termSyns = new Map<string, readonly string[]>(
+    qTerms.map((t) => [t, synonymsOf(lexicon, t)]),
+  );
 
   const hits: SearchHit[] = [];
   for (const file of listMarkdownRecursive(wiki)) {
@@ -289,7 +300,7 @@ export function search(opts: SearchOptions): SearchReport {
     // A (source, field) pair is only emitted if the source term did NOT already
     // score that field via the exact channel above.
     for (const t of qTerms) {
-      const syns = synonymsOf(lexicon, t);
+      const syns = termSyns.get(t) ?? [];
       if (syns.length === 0) continue;
       if (!exactTitleTerms.has(t) && syns.some((s) => titleHay.includes(s))) {
         score += W_TERM_TITLE_SYNONYM;

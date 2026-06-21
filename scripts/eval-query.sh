@@ -34,7 +34,7 @@
 # Usage:
 #   scripts/eval-query.sh --answer <answer.txt> --gold <gold.json> --vault <vault-dir> [--json]
 #   scripts/eval-query.sh --self-test
-set -uo pipefail
+set -euo pipefail
 
 die() {
   echo "ERROR: $*" >&2
@@ -42,7 +42,7 @@ die() {
 }
 
 usage() {
-  sed -n '/^# Usage:/,/^set -uo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
+  sed -n '/^# Usage:/,/^set -euo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
 }
 
 # M12: named constant for the 0.90 threshold so all three uses share one
@@ -55,6 +55,10 @@ readonly THRESH_QUERY_QUOTE="0.90"
 # collapses every whitespace run to one space (ADR-0017 normalization).
 # shellcheck source=eval-normalize-ws.sh
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/eval-normalize-ws.sh"
+# Shared awk float-math (ratio / meets), single-sourced so both eval gates score
+# from one implementation (ADR-0017).
+# shellcheck source=lib-eval-float.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib-eval-float.sh"
 
 # ── verification core (pure; sourced by offline-query.sh) ────────────────────
 
@@ -187,7 +191,7 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
     while IFS= read -r rq; do
       cut -f1 "$work/citations.tsv" | grep -qFx -- "$rq" && cited_hits=$((cited_hits + 1))
     done < <(jq -r '.required_citations[]' "$gold")
-    recall=$(awk -v h="$cited_hits" -v n="$req_n" 'BEGIN{printf "%.4f", h/n}')
+    recall=$(ratio "$cited_hits" "$req_n")
   fi
 
   # quote_coverage: required quotes present (normalized substring) among cited quotes.
@@ -199,7 +203,7 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
       needed=$(printf '%s' "$needed" | normalize_ws)
       printf '%s' "$cited_all" | grep -qF -- "$needed" && quote_hits=$((quote_hits + 1))
     done < <(jq -r '.required_quotes[]' "$gold")
-    qcov=$(awk -v h="$quote_hits" -v n="$quotes_n" 'BEGIN{printf "%.4f", h/n}')
+    qcov=$(ratio "$quote_hits" "$quotes_n")
   fi
 
   # fabricated citations (the floor) via the shared verification core.
@@ -210,8 +214,8 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
 
   local verdict="fail"
   if [ "$coverage_match" -eq 1 ] && [ "$fabricated" -eq 0 ] &&
-    awk -v r="$recall" -v t="$THRESH_QUERY_RECALL" 'BEGIN{exit !(r>=t)}' &&
-    awk -v q="$qcov" -v t="$THRESH_QUERY_QUOTE" 'BEGIN{exit !(q>=t)}'; then
+    meets "$recall" "$THRESH_QUERY_RECALL" &&
+    meets "$qcov" "$THRESH_QUERY_QUOTE"; then
     verdict="pass"
   fi
 
@@ -230,7 +234,7 @@ score_answer() { # $1 = answer file, $2 = gold.json, $3 = vault, $4 = json flag
     [ -n "$problems" ] && printf '%s\n' "$problems"
     echo "coverage: got=$got_cov expected=$exp_cov match=$coverage_match"
     echo "citation_recall: $recall  quote_coverage: $qcov  fabricated: $fabricated"
-    echo "VERDICT: $verdict"
+    echo "VERDICT: $(printf '%s' "$verdict" | tr '[:lower:]' '[:upper:]')"
   fi
   [ "$verdict" = "pass" ]
 }
@@ -307,12 +311,15 @@ EOF
   fi
 
   # Case 4: a malformed protocol dies rc 2 (never a silent verdict).
+  # The || true guard prevents -e from aborting the outer shell on the expected
+  # non-zero exit; we capture the real rc and check it explicitly.
   printf 'no protocol at all\n' >"$tmp/malformed.txt"
-  (score_answer "$tmp/malformed.txt" "$tmp/gold.json" "$tmp/vault" 0) >/dev/null 2>&1
-  if [ $? -eq 2 ]; then
+  local _c4_rc=0
+  (score_answer "$tmp/malformed.txt" "$tmp/gold.json" "$tmp/vault" 0) >/dev/null 2>&1 || _c4_rc=$?
+  if [ "$_c4_rc" -eq 2 ]; then
     echo "SELF-TEST OK: malformed protocol dies rc 2"
   else
-    echo "SELF-TEST FAIL: malformed protocol did not die rc 2"
+    echo "SELF-TEST FAIL: malformed protocol did not die rc 2 (got rc=$_c4_rc)"
     ok=1
   fi
 

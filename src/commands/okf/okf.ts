@@ -41,6 +41,9 @@ export interface OkfResult {
   readonly skipped: readonly string[];
 }
 
+/** Injectable clock — returns the current Date. Defaults to `() => new Date()`. */
+export type ClockFn = () => Date;
+
 export interface OkfOptions {
   readonly sub: string | undefined;
   readonly target?: string;
@@ -52,6 +55,11 @@ export interface OkfOptions {
   readonly bundlePath?: string;
   /** import: dry-run by default; `--write` commits the copy. */
   readonly write?: boolean;
+  /**
+   * Injectable clock for deterministic date stamps in export index and import
+   * source frontmatter / versioned filenames. Defaults to `() => new Date()`.
+   */
+  readonly clock?: ClockFn;
 }
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -115,7 +123,7 @@ function buildExportBody(content: string): string {
  * Export the vault's `wiki/` tree as a portable OKF bundle under
  * `vault/output/okf/`. Returns the list of written paths.
  */
-function exportOkf(vault: string): OkfResult {
+function exportOkf(vault: string, clock: ClockFn): OkfResult {
   const wikiDir = join(vault, "wiki");
   if (!existsSync(wikiDir)) {
     return {
@@ -193,7 +201,7 @@ function exportOkf(vault: string): OkfResult {
   const indexLines: string[] = [
     "---",
     `title: "OKF Bundle Index"`,
-    `generated: ${new Date().toISOString().slice(0, 10)}`,
+    `generated: ${clock().toISOString().slice(0, 10)}`,
     "---",
     "",
     "# OKF Bundle Index",
@@ -260,13 +268,17 @@ function parseBundleIndex(bundleDir: string): readonly string[] {
  * Vault source schema: type → source_type, resource → url, title, description, tags,
  *   plus stamp date_ingested, source_type, status.
  */
-function buildSourceFrontmatter(fm: Record<string, unknown>, bundleName: string): string {
+function buildSourceFrontmatter(
+  fm: Record<string, unknown>,
+  bundleName: string,
+  clock: ClockFn,
+): string {
   const title = typeof fm["title"] === "string" ? fm["title"] : "";
   const description = typeof fm["description"] === "string" ? fm["description"] : "";
   const tags = stringList(fm["tags"]);
   const resource = typeof fm["resource"] === "string" ? fm["resource"] : "";
   const url = typeof fm["url"] === "string" ? fm["url"] : resource;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = clock().toISOString().slice(0, 10);
 
   const lines: string[] = ["---"];
   if (title) lines.push(`title: ${JSON.stringify(title)}`);
@@ -290,7 +302,7 @@ function buildSourceFrontmatter(fm: Record<string, unknown>, bundleName: string)
  *   - Exact content already exists in any snapshot: skip.
  *   - Never overwrite existing files.
  */
-function importOkf(vault: string, bundlePath: string, doWrite: boolean): OkfResult {
+function importOkf(vault: string, bundlePath: string, doWrite: boolean, clock: ClockFn): OkfResult {
   if (!existsSync(bundlePath)) {
     return {
       command: "okf",
@@ -304,7 +316,7 @@ function importOkf(vault: string, bundlePath: string, doWrite: boolean): OkfResu
 
   const bundleName = basename(bundlePath);
   const destRoot = join(vault, "raw", "okf", bundleName);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = clock().toISOString().slice(0, 10);
 
   // Parse the bundle index to discover which paths exist.
   const indexedPaths = parseBundleIndex(bundlePath);
@@ -343,7 +355,7 @@ function importOkf(vault: string, bundlePath: string, doWrite: boolean): OkfResu
     // Build the transformed import content first so we can deduplicate on it.
     const fm = parseFrontmatter(content);
     const { body } = splitFrontmatter(content);
-    const sourceFm = buildSourceFrontmatter(fm, bundleName);
+    const sourceFm = buildSourceFrontmatter(fm, bundleName, clock);
     const importContent = sourceFm + "\n" + body;
 
     // sha8 of the TRANSFORMED content — used for dedup and versioned naming.
@@ -408,14 +420,15 @@ function importOkf(vault: string, bundlePath: string, doWrite: boolean): OkfResu
 export function okf(opts: OkfOptions): OkfResult {
   const vault = (opts.target ?? resolveVault({ cwd: opts.cwd })).replace(/\/+$/, "");
   const sub = opts.sub ?? "";
+  const clock: ClockFn = opts.clock ?? (() => new Date());
 
   if (sub === "export") {
-    return exportOkf(vault);
+    return exportOkf(vault, clock);
   }
 
   if (sub === "import") {
     const bundlePath = opts.bundlePath ?? join(vault, "output", "okf");
-    return importOkf(vault, bundlePath, opts.write === true);
+    return importOkf(vault, bundlePath, opts.write === true, clock);
   }
 
   return {

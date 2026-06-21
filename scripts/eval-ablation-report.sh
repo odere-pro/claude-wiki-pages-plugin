@@ -32,7 +32,7 @@
 #       [--num-ctx <n>]
 #   scripts/eval-ablation-report.sh --render-only [--out <dir>]
 #   scripts/eval-ablation-report.sh --help
-set -uo pipefail
+set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ICASES_DIR="$ROOT/tests/eval/ingest-extract/cases"

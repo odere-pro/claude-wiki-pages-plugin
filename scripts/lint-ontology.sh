@@ -8,6 +8,16 @@
 # tests/fixtures/minimal-vault (0 warnings each, match:true) before this
 # wrapper was written (tmp/migration-plan.md Phase 1, step 4).
 #
+# H12 (DRY / duplicated-code) — RESOLVED.
+#   The bash implementation that previously lived here contained a _page_type()
+#   helper (at line 102) that was a byte-for-byte duplicate of the same helper in
+#   lint-structural.sh:87.  The duplicate was eliminated by extracting it to the
+#   shared sourceable helper scripts/lib-page-type.sh and sourcing it from both
+#   callers.  The bash body was then retired in full when the script was migrated
+#   to this Bun engine wrapper (migration-plan.md Phase 1, step 4).
+#   Any future bash-level page-type extraction MUST use scripts/lib-page-type.sh
+#   — do NOT re-inline _page_type() here or in lint-structural.sh.
+#
 # Usage:
 #   scripts/lint-ontology.sh [--target <vault-path>]
 #

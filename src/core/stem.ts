@@ -280,11 +280,26 @@ export function stem(token: string): string {
   return w;
 }
 
-/** Convenience: tokenise a string into lowercase words and stem each. */
-export function stemTokens(text: string): ReadonlySet<string> {
-  const tokens = text
+/**
+ * Shared tokenizer: lowercase → split on non-alphanumeric → drop single-char
+ * tokens. This is the canonical tokenize step used by both the search ranker
+ * (`search.ts` `terms()`) and `stemTokens`. Exported so callers share one
+ * implementation (DRY; N14).
+ */
+export function tokenize(text: string): string[] {
+  return text
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter((t) => t.length > 1);
-  return new Set(tokens.map(stem));
+}
+
+/**
+ * Convenience: tokenise a string into lowercase words and stem each.
+ *
+ * Delegates the tokenization step to `tokenize()` — the single shared
+ * implementation (DRY; N14). No inline split or case-fold is performed here;
+ * the only logic added on top of `tokenize` is the `.map(stem)` pass.
+ */
+export function stemTokens(text: string): ReadonlySet<string> {
+  return new Set(tokenize(text).map(stem));
 }

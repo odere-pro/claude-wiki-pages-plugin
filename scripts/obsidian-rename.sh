@@ -29,7 +29,7 @@
 #
 # Vault scoping per skills/obsidian-vault: every CLI call carries the resolved
 # vault explicitly; never the CLI's "current" vault.
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=resolve-vault.sh

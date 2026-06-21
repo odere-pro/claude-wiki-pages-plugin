@@ -227,10 +227,6 @@ function isExempt(rel: string, exemptions: readonly string[]): boolean {
       if (norm === ex) return true;
     }
   }
-  // Check for raw/ embedded anywhere (vault raw/ dirs)
-  if (/(^|\/)raw\//.test(norm)) {
-    // raw/ is always exempt from SEO check — but we check it per-exemption above
-  }
   return false;
 }
 
@@ -363,112 +359,151 @@ export interface DocsCheckOptions {
   readonly git?: boolean;
 }
 
-// ── Check 0: banned strings ───────────────────────────────────────────────────
+// ── Generic iterate/read/test/collect skeleton ────────────────────────────────
 
-function runBannedStrings(repoRoot: string, files: readonly string[]): Finding[] {
+/**
+ * Strategy interface for a single per-file pattern check.
+ *
+ * `run` receives the repo-relative path and the file's content and returns
+ * either a `Finding` (violation found) or `null` (no violation).  The
+ * `isExempt` predicate is evaluated by the driver before `run` is called, so
+ * strategies never need to repeat that guard.
+ *
+ * Using the Strategy pattern here eliminates the 5× repeated
+ * iterate/read/test/collect skeleton (Golden Hammer finding S06).
+ */
+interface FileCheckStrategy {
+  readonly isExempt: (rel: string) => boolean;
+  readonly run: (rel: string, content: string) => Finding | null;
+}
+
+/**
+ * Drive a `FileCheckStrategy` over `files`, reading each file once and
+ * delegating the test+build step to the strategy.  Returns all non-null
+ * findings in file-visit order.
+ */
+function runFileCheck(
+  repoRoot: string,
+  files: readonly string[],
+  strategy: FileCheckStrategy,
+): Finding[] {
   const findings: Finding[] = [];
   for (const rel of files) {
-    if (isExempt(rel, BAN_EXEMPT_PREFIXES)) continue;
+    if (strategy.isExempt(rel)) continue;
     const content = readSafe(join(repoRoot, rel));
     if (content === null) continue;
+    const finding = strategy.run(rel, content);
+    if (finding !== null) findings.push(finding);
+  }
+  return findings;
+}
+
+// ── Check 0: banned strings ───────────────────────────────────────────────────
+
+/** Strategy: first-matching banned pattern per file (mirrors bash BAN_HITS). */
+const bannedStringsStrategy: FileCheckStrategy = {
+  isExempt: (rel) => isExempt(rel, BAN_EXEMPT_PREFIXES),
+  run(rel, content) {
     for (const pattern of BANNED_PATTERNS) {
       if (pattern.test(content)) {
-        findings.push({
+        return {
           severity: "error",
           check: `${CHECK_PREFIX}-banned`,
           message: `banned string (${pattern.source}) in ${rel}`,
           file: rel,
-        });
-        // One finding per file (file-level report, mirrors bash BAN_HITS per file)
-        break;
+        };
       }
     }
-  }
-  return findings;
+    return null;
+  },
+};
+
+function runBannedStrings(repoRoot: string, files: readonly string[]): Finding[] {
+  return runFileCheck(repoRoot, files, bannedStringsStrategy);
 }
 
 // ── Check 0b: retired skill name llm-wiki ─────────────────────────────────────
 
+/** Strategy: detect backtick-wrapped `llm-wiki` or /claude-wiki-pages:llm-wiki. */
+const retiredSkillStrategy: FileCheckStrategy = {
+  isExempt: (rel) => isExempt(rel, BAN_EXEMPT_PREFIXES),
+  run(rel, content) {
+    if (!RETIRED_SKILL_RE.test(content)) return null;
+    return {
+      severity: "error",
+      check: `${CHECK_PREFIX}-retired-skill`,
+      message: `retired skill name \`llm-wiki\` in ${rel} (use \`init\`)`,
+      file: rel,
+    };
+  },
+};
+
 function runRetiredSkill(repoRoot: string, mdFiles: readonly string[]): Finding[] {
-  const findings: Finding[] = [];
-  for (const rel of mdFiles) {
-    if (isExempt(rel, BAN_EXEMPT_PREFIXES)) continue;
-    const content = readSafe(join(repoRoot, rel));
-    if (content === null) continue;
-    if (RETIRED_SKILL_RE.test(content)) {
-      findings.push({
-        severity: "error",
-        check: `${CHECK_PREFIX}-retired-skill`,
-        message: `retired skill name \`llm-wiki\` in ${rel} (use \`init\`)`,
-        file: rel,
-      });
-    }
-  }
-  return findings;
+  return runFileCheck(repoRoot, mdFiles, retiredSkillStrategy);
 }
 
 // ── Check 1: SEO-register leaks ───────────────────────────────────────────────
 
-function runSeoLeaks(repoRoot: string, files: readonly string[]): Finding[] {
-  const findings: Finding[] = [];
-  for (const rel of files) {
-    if (isSeoExempt(rel)) continue;
-    const content = readSafe(join(repoRoot, rel));
-    if (content === null) continue;
+/** Strategy: first-matching SEO-register term per file (mirrors bash SEO_HITS). */
+const seoLeaksStrategy: FileCheckStrategy = {
+  isExempt: isSeoExempt,
+  run(rel, content) {
     for (const pattern of SEO_PATTERNS) {
       if (pattern.test(content)) {
-        findings.push({
+        return {
           severity: "error",
           check: `${CHECK_PREFIX}-seo`,
           message: `SEO-register term (${pattern.source}) in ${rel}`,
           file: rel,
-        });
-        // One finding per file (mirrors bash SEO_HITS per file)
-        break;
+        };
       }
     }
-  }
-  return findings;
+    return null;
+  },
+};
+
+function runSeoLeaks(repoRoot: string, files: readonly string[]): Finding[] {
+  return runFileCheck(repoRoot, files, seoLeaksStrategy);
 }
 
 // ── Check 2: layer capitalization ─────────────────────────────────────────────
 
+/** Strategy: detect lowercase layer references. */
+const layerCapStrategy: FileCheckStrategy = {
+  isExempt: (rel) => isExempt(rel, BAN_EXEMPT_PREFIXES),
+  run(rel, content) {
+    if (!LAYER_DRIFT_RE.test(content)) return null;
+    return {
+      severity: "error",
+      check: `${CHECK_PREFIX}-layer-cap`,
+      message: `lowercase layer reference in ${rel}`,
+      file: rel,
+    };
+  },
+};
+
 function runLayerCap(repoRoot: string, mdFiles: readonly string[]): Finding[] {
-  const findings: Finding[] = [];
-  for (const rel of mdFiles) {
-    if (isExempt(rel, BAN_EXEMPT_PREFIXES)) continue;
-    const content = readSafe(join(repoRoot, rel));
-    if (content === null) continue;
-    if (LAYER_DRIFT_RE.test(content)) {
-      findings.push({
-        severity: "error",
-        check: `${CHECK_PREFIX}-layer-cap`,
-        message: `lowercase layer reference in ${rel}`,
-        file: rel,
-      });
-    }
-  }
-  return findings;
+  return runFileCheck(repoRoot, mdFiles, layerCapStrategy);
 }
 
 // ── Check 3: bare slash commands ──────────────────────────────────────────────
 
+/** Strategy: detect backtick-wrapped slash commands missing the namespace prefix. */
+const bareSlashStrategy: FileCheckStrategy = {
+  isExempt: (rel) => isExempt(rel, BAN_EXEMPT_PREFIXES),
+  run(rel, content) {
+    if (!NAMESPACED_NAMES_RE.test(content)) return null;
+    return {
+      severity: "error",
+      check: `${CHECK_PREFIX}-bare-slash`,
+      message: `bare slash command in ${rel} (missing /claude-wiki-pages: prefix)`,
+      file: rel,
+    };
+  },
+};
+
 function runBareSlash(repoRoot: string, mdFiles: readonly string[]): Finding[] {
-  const findings: Finding[] = [];
-  for (const rel of mdFiles) {
-    if (isExempt(rel, BAN_EXEMPT_PREFIXES)) continue;
-    const content = readSafe(join(repoRoot, rel));
-    if (content === null) continue;
-    if (NAMESPACED_NAMES_RE.test(content)) {
-      findings.push({
-        severity: "error",
-        check: `${CHECK_PREFIX}-bare-slash`,
-        message: `bare slash command in ${rel} (missing /claude-wiki-pages: prefix)`,
-        file: rel,
-      });
-    }
-  }
-  return findings;
+  return runFileCheck(repoRoot, mdFiles, bareSlashStrategy);
 }
 
 // ── Check 4: slash-command references resolve ──────────────────────────────────

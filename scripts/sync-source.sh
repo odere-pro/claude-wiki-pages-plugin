@@ -17,7 +17,7 @@
 #
 # status always exits 0. pull exits 1 only on a hard failure (no settings,
 # unknown name, vault missing).
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=resolve-vault.sh
@@ -142,6 +142,12 @@ while IFS='|' read -r NAME SRC_PATH REC_VAULT LAST_COMMIT; do
   fi
 
   DEST_ROOT="${VAULT}/raw/wired/${NAME}"
+  # DEST_ROOT is the owned, deterministic confinement root
+  # (<vault>/raw/wired/<name>, derived from VAULT+NAME — never from the
+  # git-derived rel). Create it up front so the per-entry physical-path
+  # confinement below can resolve it on a first pull (it does not exist yet then).
+  # This creates ONLY the confinement root, never a rel-derived subdirectory.
+  mkdir -p "$DEST_ROOT" 2>/dev/null || true
   TODAY=$(date -u +%Y-%m-%d 2>/dev/null || echo "0000-00-00")
   PULLED=0
   SKIPPED=0
@@ -187,22 +193,55 @@ while IFS='|' read -r NAME SRC_PATH REC_VAULT LAST_COMMIT; do
       }
     fi
     # M31: confine the resolved destination to DEST_ROOT using physical-path
-    # comparison before writing. A git-derived rel path that contains ".." or
-    # symlink components (possible with adversarial wired-source repos) could
-    # otherwise escape the raw/wired/<name>/ subtree.
+    # comparison BEFORE any filesystem mutation. A git-derived rel path that
+    # contains ".." or symlink components (possible with adversarial wired-source
+    # repos) could otherwise escape the raw/wired/<name>/ subtree.
+    #
+    # IMPORTANT: resolve DEST_ROOT first (created above as the owned root), then synthesise the
+    # logical absolute destination path WITHOUT calling mkdir first — so we never
+    # create directories outside DEST_ROOT even if the confinement check rejects.
+    _abs_dest_root=$(cd "$DEST_ROOT" 2>/dev/null && pwd -P) || {
+      echo "[claude-wiki-pages] WARN: could not resolve DEST_ROOT \"$DEST_ROOT\" — skipped" >&2
+      continue
+    }
+    # Synthesise the canonical path by normalising the relative segment against the
+    # DEST_ROOT without touching the filesystem: replace any ".." components.
+    _logical="${_abs_dest_root}/${rel}"
+    # Resolve ".." lexically before mkdir so we detect traversal before mutation.
+    _canon_dest=""
+    IFS='/' read -ra _segs <<<"$_logical"
+    _parts=()
+    for _seg in "${_segs[@]}"; do
+      case "$_seg" in
+        "" | .) : ;;
+        ..) [ ${#_parts[@]} -gt 0 ] && {
+          _last=$((${#_parts[@]} - 1))
+          unset "_parts[$_last]"
+        } ;;
+        *) _parts+=("$_seg") ;;
+      esac
+    done
+    printf -v _canon_dest '/%s' "${_parts[@]}" # rebuild absolute path (/-joined; empty parts → "/")
+    # Reject the entry if the lexically-resolved destination escapes DEST_ROOT.
+    case "$_canon_dest" in
+      "${_abs_dest_root}/"*) : ;; # confined — allow
+      *)
+        echo "[claude-wiki-pages] WARN: dest escapes DEST_ROOT (traversal in rel \"$rel\") — skipped" >&2
+        continue
+        ;;
+    esac
+    # Also reject if dest_dir contains a symlink that would redirect outside
+    # DEST_ROOT: create the directory only after the lexical check passes, then
+    # re-verify with pwd -P (physical path after symlink resolution).
     mkdir -p "$dest_dir" 2>/dev/null || true
     _abs_dest=$(cd "$dest_dir" 2>/dev/null && printf '%s/%s' "$(pwd -P)" "$base") || {
       echo "[claude-wiki-pages] WARN: could not resolve dest dir \"$dest_dir\" — skipped" >&2
       continue
     }
-    _abs_dest_root=$(cd "$DEST_ROOT" 2>/dev/null && pwd -P) || {
-      echo "[claude-wiki-pages] WARN: could not resolve DEST_ROOT \"$DEST_ROOT\" — skipped" >&2
-      continue
-    }
     case "$_abs_dest" in
-      "${_abs_dest_root}/"*) : ;; # confined — allow
+      "${_abs_dest_root}/"*) : ;; # confined after symlink resolution — allow
       *)
-        echo "[claude-wiki-pages] WARN: dest \"$_abs_dest\" escapes DEST_ROOT — skipped" >&2
+        echo "[claude-wiki-pages] WARN: dest \"$_abs_dest\" escapes DEST_ROOT after symlink resolution — skipped" >&2
         continue
         ;;
     esac

@@ -1,13 +1,25 @@
 /**
  * Four-tier vault resolution — faithful port of scripts/resolve-vault.sh.
  *
- * H15 / Architect ruling (document — intentional hub): resolveVault is the SINGLE
- * sanctioned vault-resolution entry point for all commands. Being imported by 10+ of
- * 14 command modules is an intentional one-X fan-in, not a coupling smell. The hub
- * is the parity twin of scripts/resolve-vault.sh (pinned by gate semantics in
- * src/core/CLAUDE.md "Parity mirrors"). Forking resolution would create a second
- * source of truth. The interface is stabilised via ResolveOptions; callers may not
- * by-pass this function and call lower-level helpers directly.
+ * H15 / Architect ruling (intentional hub, stabilised interface):
+ *
+ *   resolveVault is the SINGLE sanctioned vault-resolution entry point for all
+ *   commands. Being imported by 10+ of 14 command modules is an intentional
+ *   one-X fan-in, not a coupling smell. The hub is the parity twin of
+ *   scripts/resolve-vault.sh (pinned by gate semantics in src/core/CLAUDE.md
+ *   "Parity mirrors"). Forking resolution would create a second source of truth.
+ *
+ *   Surface area is stabilised in two tiers:
+ *
+ *   1. ResolveOptions — the only tunable knobs (cwd, env, settingsFile).
+ *      Callers must NOT call lower-level helpers (readCurrentVaultPath,
+ *      autoDetect, findClaudeMds) directly.
+ *
+ *   2. resolveVaultPath(opts) — the canonical "resolve + normalise" helper
+ *      consumed by every command.  It accepts an optional explicit `target`
+ *      (the --target CLI flag) and applies the uniform trailing-slash strip.
+ *      All 11 command call-sites should migrate to this helper so that any
+ *      future change to normalisation lives in exactly one place.
  *
  * Order (first match wins):
  *   1. CLAUDE_WIKI_PAGES_VAULT env var   (LLM_WIKI_VAULT honoured as a deprecated fallback)
@@ -51,6 +63,31 @@ export function resolveVault(opts: ResolveOptions = {}): string {
 
   // 4. Default.
   return DEFAULT_VAULT;
+}
+
+/**
+ * Canonical "resolve + normalise" entry point for command handlers.
+ *
+ * This is the preferred call site for all 11 command modules that currently
+ * inline `(opts.target ?? resolveVault({ cwd: opts.cwd })).replace(/\/+$/, "")`.
+ * Centralising the trailing-slash strip here means future normalisation changes
+ * (e.g. path.resolve, symlink expansion) are a one-line edit in this file, not
+ * a search-and-replace across the command tree.
+ *
+ * Usage:
+ *   const vault = resolveVaultPath({ cwd: opts.cwd, target: opts.target });
+ *
+ * @param params.target  - If present, used verbatim (the --target CLI flag);
+ *                         resolution is skipped.
+ * @param params.cwd     - Working directory for resolution (default: process.cwd()).
+ * @param params.env     - Environment map (default: process.env).
+ * @param params.settingsFile - Override the settings file path (used in tests).
+ */
+export function resolveVaultPath(
+  params: ResolveOptions & { readonly target?: string } = {},
+): string {
+  const raw = params.target ?? resolveVault(params);
+  return raw.replace(/\/+$/, "");
 }
 
 function readCurrentVaultPath(settingsFile: string): string | null {
