@@ -38,16 +38,42 @@ as one revertible `snapshot:` commit. Both calls always exit 0 and honor
 
 ## Step 1 — Graph colors
 
-Goal: every top-level topic folder under `vault/wiki/` has a distinct color group in `.obsidian/graph.json`. The `obsidian-graph-colors` skill is the procedural authority; this step invokes it programmatically.
+Goal: `.obsidian/graph.json` and `.obsidian/app.json` carry the topic-island
+filter, the wiki-only exclusions, and a distinct color group per top-level
+topic folder under `vault/wiki/` — on **every** run, not just the first.
 
 1. Resolve the vault path from the orchestrator's payload. Do **not** re-probe; trust the orchestrator.
-2. List top-level folders in `vault/wiki/` (depth 1, excluding `_sources`, `_synthesis`, and any leading-underscore folder).
-3. Read current graph color groups from `vault/.obsidian/graph.json` if it exists. If absent, create the minimum scaffold per the `obsidian-graph-colors` skill.
-4. For each top-level folder without a corresponding color group, append a new group with `path:wiki/<folder>` and the next unused palette color. Insert before the `_sources` / `_synthesis` special groups (there is no index catch-all — folder notes take their topic's color via the topic's `path:` group).
-5. Assert the **wiki-only exclusions and Obsidian write-protection keys** (per the `obsidian-graph-colors` skill): ensure `vault/.obsidian/app.json` has a `userIgnoreFilters` array containing `raw/`, `_templates/`, `_proposed/`, `_inbox/`, `output/`, `CLAUDE.md`, and `wiki/log.md`, plus the three new-file keys `newFileLocation: "folder"`, `newFileFolderPath: "_inbox"`, and `newLinkFormat: "shortest"`. Merge-only: create the file if absent; append any missing canonical entry to `userIgnoreFilters`; set each of the three keys only when it is absent or differs; preserve every other key; never remove user entries. The `_inbox/` quarantine keeps Obsidian-created stub notes out of the vault root so they never shadow a real wiki page (an exact-filename match beats an alias in Obsidian); `output/`, `CLAUDE.md`, and `wiki/log.md` keep bookkeeping artifacts out of the graph at the index level (the `graph.json` per-file search tokens are unreliable on single files). Never add color groups for the excluded paths — the graph shows only generated wiki pages.
-6. Persist via `obsidian eval` + `graph.saveOptions()` (per the `obsidian-cli` reference skill). If `obsidian eval` is unavailable (Obsidian CLI not installed, or no running instance), apply the **headless fallback** from the `obsidian-graph-colors` skill's apply contract: write `vault/.obsidian/graph.json` directly — modify only `colorGroups` and `collapse-color-groups`, preserve every other key — then print exactly `[fallback] graph-colors: wrote .obsidian/graph.json directly (restart Obsidian to load)` and continue.
+2. Run the deterministic writer — it is the authority for this step:
 
-Idempotency rule: a folder that already has a color group, an exclusion entry already present in `userIgnoreFilters`, and a new-file key already set to its expected value, are left untouched. Adding three new folders followed by a re-run produces zero further changes. Both files are regenerable cache: if `graph.json` is missing or mangled, rebuild it from the scaffold + topic tree rather than repairing it by hand (see the skill's "Regenerate from scratch" section).
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/scripts/apply-obsidian-config.sh" --target <vault> --json
+   ```
+
+   It is idempotent and merge-only: it asserts the graph **filters** (`search`
+   island filter, `hideUnresolved: true`, `showTags: false`,
+   `showAttachments: false`, `showOrphans: true`), appends a `path:wiki/<folder>`
+   color group for every topic folder that lacks one (preserving existing
+   colors), and asserts `app.json` `userIgnoreFilters` + the new-file keys
+   (`newFileLocation`/`newFileFolderPath`/`newLinkFormat`) — preserving every
+   other key in both files. Report the `graph[…]`/`app[…]` change summary it
+   prints; `unchanged` confirms idempotency.
+
+3. **Why a script, not prose (ADR-0035):** Obsidian writes its own `graph.json`
+   with harmful defaults (`search:""`, `hideUnresolved:false`, `showTags:true`)
+   the moment a user opens the graph. The earlier prose path only wrote the
+   filter scaffold when `graph.json` was *absent* and otherwise patched
+   `colorGroups` alone, so those defaults survived and `raw/` + `_sources/` leaked
+   into the graph as a gray sprawl. The script asserts the filters every run, so
+   the config always converges regardless of what Obsidian left behind.
+
+4. *(optional, Obsidian-CLI only)* If a live Obsidian instance is reachable,
+   refresh open graph views via `obsidian eval` per the `obsidian-cli` reference
+   skill so the change shows without a restart. Skip silently if unavailable —
+   the script has already persisted the config to disk; the user reloads on next
+   launch.
+
+Both `.obsidian/` files are regenerable cache (ADR-0023): if either is missing or
+mangled, the script rebuilds it from scratch rather than failing the run.
 
 ## Step 2 — Regenerate `wiki/index.md`
 
