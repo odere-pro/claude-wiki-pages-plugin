@@ -156,6 +156,23 @@ run top to bottom and the first block short-circuits the write.
 - [`check-duplicate-claims.sh`](./check-duplicate-claims.sh) — advisory
   duplicate-claim warning across `source_quotes`.
 
+### Deterministic Obsidian-side writers (ADR-0035)
+
+The polish/curator agents call these instead of describing the writes in prose,
+so the Obsidian-side config and ghost-link heal can no longer silently not-happen.
+Both are idempotent and support `--check` (exit 3 on drift) for the end-of-run gate.
+
+- [`apply-obsidian-config.sh`](./apply-obsidian-config.sh) — deterministic,
+  merge-only writer for `.obsidian/graph.json` (island `search` filter,
+  `hideUnresolved:true`, `showTags:false`, per-topic color groups) and `app.json`
+  (`userIgnoreFilters` + new-file keys). Asserts the filters on **every** run, not
+  just when `graph.json` is absent — the bug ADR-0035 fixes. A thin wrapper over
+  [`apply-obsidian-config.ts`](./apply-obsidian-config.ts).
+- [`heal-ghost-links.sh`](./heal-ghost-links.sh) — deterministically rewrites
+  title/alias-only ghost wikilinks (e.g. `sources:` entries written as
+  `[[Source: <title>]]`) to piped basename form, reusing the engine's ghost
+  resolver. A thin wrapper over [`heal-ghost-links.ts`](./heal-ghost-links.ts).
+
 ### Ingest and export
 
 - [`scaffold-vault.sh`](./scaffold-vault.sh) — idempotent, no-clobber vault
