@@ -39,10 +39,19 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 // shared sources and the MOC. The pages stay in the vault — they are just not
 // drawn. Kept byte-identical to the obsidian-graph-colors skill's documented
 // scaffold so the two never drift.
+// NOTE: wiki/index.md is deliberately NOT excluded — it is the ROOT hub node,
+// drawn and distinctly coloured so every island visibly hangs off one findable
+// entry point (the "there must always be a ROOT" requirement). Only the
+// bookkeeping log and the scaffolding folders are hidden.
 const ISLAND_FILTER =
   '-path:"raw/" -path:"_templates/" -path:"_proposed/" -path:"_inbox/" ' +
   '-path:"output/" -path:"wiki/_sources/" -path:"wiki/_synthesis/" ' +
-  '-path:"wiki/index.md" -path:"wiki/log.md"';
+  '-path:"wiki/log.md"';
+
+// The ROOT hub group: index.md gets its own distinct colour so it stands out as
+// the entry point among the per-topic island colours. Asserted on every run.
+const ROOT_QUERY = "path:wiki/index.md";
+const ROOT_COLOR = { a: 1, rgb: 16777215 }; // bright white — distinct from PALETTE
 
 // The graph view filters this script enforces every run (merge-only — all other
 // keys, including the force-simulation params and `scale`, are preserved).
@@ -127,6 +136,12 @@ function reconcileColorGroups(
     groups.map((g) => (g as Json)?.query).filter((q): q is string => typeof q === "string"),
   );
   let added = 0;
+  // The ROOT hub group first, so index.md is always distinctly coloured.
+  if (!have.has(ROOT_QUERY)) {
+    groups.push({ query: ROOT_QUERY, color: ROOT_COLOR });
+    have.add(ROOT_QUERY);
+    added += 1;
+  }
   for (const topic of topics) {
     const query = `path:wiki/${topic}`;
     if (have.has(query)) continue;

@@ -15,11 +15,14 @@
  * Usage: bun scripts/heal-orphan-sources.ts --target <vault> [--write]
  */
 
-import { join } from "node:path";
-import { readFileSync, writeFileSync } from "node:fs";
+import { join, relative } from "node:path";
+import { readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { buildLinkIndex, resolveLink } from "../src/core/link-resolver.ts";
 import { extractWikilinks } from "../src/core/wikilinks.ts";
+import { readFileSafe } from "../src/core/fs.ts";
+import { parseFrontmatter } from "../src/core/frontmatter.ts";
+import { SPECIAL_DIRS } from "../src/core/topics.ts";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
@@ -35,16 +38,45 @@ if (!target) {
 const wiki = join(target, "wiki");
 const index = buildLinkIndex(wiki);
 
-// Folder-note display titles for the 7 topics (target = basename, resolves by path/basename).
-const TOPIC_TITLE: Record<string, string> = {
-  engine: "Wiki Engine",
-  "how-it-works": "How It Works",
-  "knowledge-graph": "Knowledge Graph",
-  llm: "LLM",
-  obsidian: "Obsidian",
-  plugin: "claude-wiki-pages Plugin",
-  "wiki-pages": "Wiki Pages",
-};
+/**
+ * Topic folder → display title, DERIVED from the vault's own folder notes
+ * (`<topic>/<topic>.md` `title:`, falling back to the folder name). Vault-
+ * agnostic: works on any vault's folder set, not a hardcoded dogfood list.
+ */
+function deriveTopicTitles(): Record<string, string> {
+  const out: Record<string, string> = {};
+  let entries: string[] = [];
+  try {
+    entries = readdirSync(wiki);
+  } catch {
+    return out;
+  }
+  for (const name of entries.sort()) {
+    if (SPECIAL_DIRS.has(name) || name.startsWith(".")) continue;
+    try {
+      if (!statSync(join(wiki, name)).isDirectory()) continue;
+    } catch {
+      continue;
+    }
+    let title = name;
+    const fm = parseFrontmatter(readFileSafe(join(wiki, name, `${name}.md`)) ?? "");
+    if (typeof fm["title"] === "string" && fm["title"].trim() !== "") title = fm["title"].trim();
+    out[name] = title;
+  }
+  return out;
+}
+const TOPIC_TITLE = deriveTopicTitles();
+
+// Git toplevel for the vault, so `git show HEAD:<repo-relative path>` works on
+// any repo — not the hardcoded dogfood `docs/claude-wiki-pages-plugin-vault/…`.
+let gitRoot: string | null = null;
+try {
+  gitRoot = execFileSync("git", ["-C", target, "rev-parse", "--show-toplevel"], {
+    encoding: "utf8",
+  }).trim();
+} catch {
+  /* vault is not in a git repo — pre-strip history is simply unavailable */
+}
 
 /** Top-level topic folder of a wiki-relative path, or null for specials/root. */
 function topicOf(rel: string): string | null {
@@ -71,15 +103,17 @@ const orphans = index.files.filter(
 let healed = 0;
 const unresolved: string[] = [];
 for (const rel of orphans) {
-  // Pre-strip content from git HEAD.
+  // Pre-strip content from git HEAD (vault-relative path under the git root).
   let head = "";
-  try {
-    head = execFileSync("git", ["show", `HEAD:docs/claude-wiki-pages-plugin-vault/wiki/${rel}`], {
-      cwd: process.cwd(),
-      encoding: "utf8",
-    });
-  } catch {
-    /* file may be new since HEAD */
+  if (gitRoot !== null) {
+    const gitRel = relative(gitRoot, join(wiki, rel)).split(/[\\/]/).join("/");
+    try {
+      head = execFileSync("git", ["-C", gitRoot, "show", `HEAD:${gitRel}`], {
+        encoding: "utf8",
+      });
+    } catch {
+      /* file may be new since HEAD */
+    }
   }
   const counts = new Map<string, number>();
   for (const raw of extractWikilinks(head)) {

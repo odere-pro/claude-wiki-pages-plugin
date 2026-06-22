@@ -1,6 +1,6 @@
 {
   "name": "claude-wiki-pages",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "A Claude Code plugin for Obsidian — Karpathy's LLM Wiki shipped as a four-layer, hook-enforced agent stack with multi-agent orchestration.",
   "author": {
     "name": "Aleksandr Derechei",

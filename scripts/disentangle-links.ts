@@ -23,16 +23,8 @@ import { writeFileSync } from "node:fs";
 import { listMarkdownRecursive, readFileSafe } from "../src/core/fs.ts";
 import { parseFrontmatter, stringList } from "../src/core/frontmatter.ts";
 import { resolveLink, normaliseTarget, type LinkIndex } from "../src/core/link-resolver.ts";
+import { deriveTopics } from "../src/core/topics.ts";
 
-const CLUSTERS = [
-  "plugin",
-  "wiki-pages",
-  "llm",
-  "obsidian",
-  "engine",
-  "knowledge-graph",
-  "how-it-works",
-];
 const LINK_RE = /\[\[([^[\]]+?)\]\]/g;
 // Association frontmatter fields whose cross-topic entries fuse the graph. Spine
 // fields (parent/children/child_indexes) and provenance (sources) are NOT pruned.
@@ -45,10 +37,6 @@ const PRUNE_FIELDS = new Set([
   "contradicts",
   "supersedes",
 ]);
-// The visible ROOT entity — its links to per-topic folder notes are an allowed
-// cross-topic spine (ADR-0033). Override with DL_ROOT_ENTITY; "" disables.
-const ROOT_ENTITY = process.env.DL_ROOT_ENTITY ?? "wiki/plugin/claude-wiki-pages-plugin.md";
-
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
   return i !== -1 ? process.argv[i + 1] : undefined;
@@ -117,6 +105,16 @@ const apply = process.argv.includes("--apply");
 const asJson = process.argv.includes("--json");
 const vault = target;
 const wiki = join(vault, "wiki");
+
+// Topic clusters derived from THIS vault's own top-level wiki/ folders (the one
+// shared derivation — same source of truth as graph-quality). Drives folder-note
+// recognition and cluster classification on any vault, not the dogfood seven.
+const CLUSTERS = deriveTopics(wiki);
+// The visible ROOT entity whose links to per-topic folder notes are an allowed
+// cross-topic spine (ADR-0033). Universal default: the vault's index/MOC root
+// (always present, always the entry point — see the ROOT-hub work). Override
+// with DL_ROOT_ENTITY for a vault with a dedicated root entity page; "" disables.
+const ROOT_ENTITY = process.env.DL_ROOT_ENTITY ?? "wiki/index.md";
 
 interface Page {
   full: string;

@@ -26,6 +26,7 @@
 
 import { join, relative, basename } from "node:path";
 import { listMarkdownRecursive, readFileSafe } from "../src/core/fs.ts";
+import { deriveTopics } from "../src/core/topics.ts";
 import { parseFrontmatter, stringList } from "../src/core/frontmatter.ts";
 import { stripCode } from "../src/core/wikilink-check.ts";
 import {
@@ -36,16 +37,6 @@ import {
   type LinkIndex,
 } from "../src/core/link-resolver.ts";
 
-// The 7 core topic clusters (top-level folders under wiki/).
-const CLUSTERS = [
-  "plugin",
-  "wiki-pages",
-  "llm",
-  "obsidian",
-  "engine",
-  "knowledge-graph",
-  "how-it-works",
-];
 const SCRATCH_DIRS = ["output", "_inbox"];
 const LINK_RE = /\[\[([^[\]]+?)\]\]/g;
 
@@ -54,9 +45,10 @@ function arg(name: string): string | undefined {
   return i !== -1 ? process.argv[i + 1] : undefined;
 }
 
-/** Strip `|display`/`#heading`/`^block` but PRESERVE case (dangling-report key). */
+/** Strip `|display`/`#heading`/`^block` + escaped-pipe `\`, PRESERVE case (report key). */
 function linkTarget(raw: string): string {
-  return raw.split("|")[0]!.split("#")[0]!.split("^")[0]!.trim();
+  const t = raw.split("|")[0]!.split("#")[0]!.split("^")[0]!.trim();
+  return t.endsWith("\\") ? t.slice(0, -1) : t;
 }
 
 /** All `[[target]]` strings in a page, code-stripped, cleaned, case-preserved. */
@@ -90,6 +82,10 @@ if (target === undefined) {
 const asJson = process.argv.includes("--json");
 const vault = target;
 const wiki = join(vault, "wiki");
+
+// Topic clusters derived from this vault's own top-level wiki/ folders (the
+// one shared derivation, so disentangle-links/heal-orphan-sources never drift).
+const CLUSTERS = deriveTopics(wiki);
 
 // ── gather wiki pages + the wiki-relative resolution index ───────────────────
 const index = buildLinkIndex(wiki);

@@ -113,6 +113,7 @@ export function checkDanglingWikilinks(wiki: string): readonly Finding[] {
         let display = raw;
         const pipeIdx = display.indexOf("|");
         if (pipeIdx !== -1) display = display.slice(0, pipeIdx);
+        if (display.endsWith("\\")) display = display.slice(0, -1);
         const hashIdx = display.indexOf("#");
         if (hashIdx !== -1) display = display.slice(0, hashIdx);
         const caretIdx = display.indexOf("^");

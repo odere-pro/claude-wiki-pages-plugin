@@ -111,14 +111,23 @@ export interface LinkIndex {
  * `|display` (from the first `|`), `#heading` (from the first `#`), `^block`
  * (from the first `^`), then `.trim().toLowerCase()`.
  *
- * Mirrors `normalise_target()` in scripts/verify-ingest.sh and graph-quality.sh
- * (pinned by gate-05 for the dangling path). Shared here so the resolver, the
- * dangling check, and the collision check all normalise identically.
+ * A wikilink written inside a markdown table cell escapes its pipe as `\|` so
+ * the pipe does not break the table (`[[entity-name\|Entity Name]]`, the form
+ * the schema prescribes for source citations). The escaped pipe is still a
+ * display separator, so after cutting at the first `|` a trailing `\` is dropped
+ * — otherwise the target survives as `entity-name\` and dangles as a ghost twin
+ * of the real `entity-name` page (the bug this strip fixes).
+ *
+ * Mirrors `normaliseTarget()` in scripts/verify-twins.ts and the `linkTarget`
+ * helpers in scripts/graph-quality.ts (pinned by gate-05 for the dangling path).
+ * Shared here so the resolver, the dangling check, and the collision check all
+ * normalise identically.
  */
 export function normaliseTarget(raw: string): string {
   let t = raw;
   const pipe = t.indexOf("|");
   if (pipe !== -1) t = t.slice(0, pipe);
+  if (t.endsWith("\\")) t = t.slice(0, -1);
   const hash = t.indexOf("#");
   if (hash !== -1) t = t.slice(0, hash);
   const caret = t.indexOf("^");

@@ -80,23 +80,30 @@ function stripCode(text: string): string {
   return res.join("\n");
 }
 
-/** Strip `[[`/`]]` then `|display`/`#heading`/`^block`; return normalised. */
+/**
+ * Strip `[[`/`]]` then `|display`/`#heading`/`^block`; return normalised. A
+ * table-cell wikilink escapes its pipe as `\|`; drop the trailing `\` left after
+ * the pipe cut so `[[entity-name\|Entity Name]]` resolves to `entity-name`, not
+ * the ghost `entity-name\`. Mirrors normaliseTarget in src/core/link-resolver.ts.
+ */
 function linkTarget(raw: string): string {
   let t = raw.replace(/^\[\[/, "").replace(/\]\]$/, "");
   for (const sep of ["|", "#", "^"]) {
     const idx = t.indexOf(sep);
     if (idx !== -1) t = t.slice(0, idx);
   }
+  if (t.endsWith("\\")) t = t.slice(0, -1);
   return norm(t);
 }
 
-/** normalise_target (dangling block): strip |/#/^ then trim+lower; no [[ ]]. */
+/** normalise_target (dangling block): strip |/#/^ + escaped-pipe `\`, trim+lower. */
 function normaliseTarget(raw: string): string {
   let t = raw;
   for (const sep of ["|", "#", "^"]) {
     const idx = t.indexOf(sep);
     if (idx !== -1) t = t.slice(0, idx);
   }
+  if (t.endsWith("\\")) t = t.slice(0, -1);
   return t.trim().toLowerCase();
 }
 
