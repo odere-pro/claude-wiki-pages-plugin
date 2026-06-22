@@ -66,16 +66,23 @@ Capture full output. Parse each ERROR and WARN line into a structured issue list
 The always-run verifier treats a link that matches a page's `alias:`/`title:`
 as resolved, but Obsidian resolves only by path/basename — so a bare
 `[[Title Case]]` link that matches a title/alias but not a filename renders as a
-gray **ghost node** in the graph. Surface these with the engine's
-Obsidian-accurate check (not part of `--check all`):
+gray **ghost node** in the graph. A real ingest leaves 100+ of these (body
+source citations such as `[[Source: ADR 0001 — …]]`), so healing them must NOT
+depend on the LLM rewriting each finding by hand. Run the **deterministic
+healer** — it is the authority for this fix (ADR-0035):
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh" lint --check ghost-links --target vault/ --json
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/heal-ghost-links.sh" --target vault/ --json
 ```
 
-Parse each `wikilink-ghost` finding (file + the bare target it names). These are
-fixed in Phase 3 step 3.7 — rewrite to piped basename form, or prose-ify when no
-unique basename matches. Never leave a ghost link in a wiki page.
+It rewrites every title/alias-only ghost to piped basename form
+`[[file-basename|Display]]` (preserving display text and any `#heading`/`^block`
+anchor), and is idempotent. Report the rewrite count it prints. To audit without
+writing, use `lint --check ghost-links` or `heal-ghost-links.sh --check`
+(exit 3 = ghosts remain). **End-of-run gate (§5):** the curator's final step
+runs `heal-ghost-links.sh --check` and `apply-obsidian-config.sh --check`; the
+run cannot report success while either reports drift. Never leave a ghost link
+in a wiki page.
 
 ### 1.2 Supplemental checks the script does not cover
 
@@ -140,12 +147,14 @@ Apply the nine safe, idempotent, content-preserving auto-fixes **in order**:
 3.1 wrap plain-string `sources:` (and other link fields) in wikilinks · 3.2 fill
 missing `parent:`/`path:` · 3.3 add `title` to `aliases` · 3.4 repair folder-note
 children drift · 3.5 repair `wiki/index.md` · 3.6 clean ghost wikilinks in
-`log.md` · 3.7 resolve broken wikilinks (alias/unique-fuzzy only) **and rewrite
-`wikilink-ghost` findings from §1.1b to piped basename form `[[file-basename|Display]]`
-when exactly one file basename matches the bare target, else prose-ify the link** · 3.8 connect
+`log.md` · 3.7 **rewrite every `wikilink-ghost` to piped basename form by running
+`scripts/heal-ghost-links.sh --target vault/` (deterministic, idempotent — do
+not hand-rewrite); then resolve remaining broken (dangling) wikilinks via
+alias/unique-fuzzy match only** · 3.8 connect
 orphans link-only — **never auto-edit `sources:` to connect `type: source`
-orphans (forges provenance — Report-only) and never delete an orphan** · 3.9 add
-missing graph color groups.
+orphans (forges provenance — Report-only) and never delete an orphan** · 3.9 run
+`scripts/apply-obsidian-config.sh --target vault/` (deterministic graph filters,
+exclusions, and per-topic color groups — supersedes hand-built color groups).
 
 ## Phase 4 — Judgment fixes (automatic, under the checkpoint)
 
@@ -186,9 +195,19 @@ when Bun is absent; always exits 0).
 
 ```bash
 "$VERIFY" vault/
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/heal-ghost-links.sh" --target vault/ --check
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/apply-obsidian-config.sh" --target vault/ --check
 ```
 
-Capture output. Compare ERROR/WARN counts before and after. Do **not** run a second fix pass — this is the final verification.
+Capture output. Compare ERROR/WARN counts before and after. Do **not** run a
+second fix pass — this is the final verification.
+
+**End-of-run gate (ADR-0035).** `verify` is structural and is deliberately blind
+to ghost links (Obsidian-only failures) and to `.obsidian/` graph config. The two
+`--check` calls above close that gap: each exits 3 on drift. The run **cannot
+report success while either reports drift** — if Phase 3 (3.7 / 3.9) ran, both are
+already clean. This is what stops a pipeline from logging "dangling island links
+closed" while 100+ ghost nodes remain (the failure ADR-0035 fixes).
 
 ---
 
