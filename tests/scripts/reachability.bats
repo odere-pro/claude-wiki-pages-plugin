@@ -234,13 +234,19 @@ exit 0
 EOF
   chmod +x "$fake_bin/curl"
 
-  # Pre-seed an open state whose cooldown has elapsed → half-open on next call.
+  # Pre-seed an open state whose cooldown elapsed long ago (openedAt=1, epoch
+  # 1970) → half-open on the next call regardless of cooldown size. A large
+  # cooldown keeps the post-reopen re-read deterministic: when the failed trial
+  # re-opens the breaker with openedAt=now, the final cb_state read must still
+  # report "open". A tight cooldown (e.g. 1 s) makes that read flaky on slow
+  # runners — a second-boundary crossing between re-open and re-read would
+  # flip it back to half-open.
   printf '{"state":"open","failures":3,"openedAt":1}\n' >"$cb_file"
 
   run env PATH="$fake_bin:$PATH" \
     CLAUDE_WIKI_PAGES_CB_STATE="$cb_file" \
     CLAUDE_WIKI_PAGES_CB_THRESHOLD=3 \
-    CLAUDE_WIKI_PAGES_CB_COOLDOWN=1 \
+    CLAUDE_WIKI_PAGES_CB_COOLDOWN=9999 \
     bash "$PROBE" --policy prefer-local --endpoint http://127.0.0.1:11434
   assert_success
   # Trial probe failed → breaker back to open, Ollama down.
