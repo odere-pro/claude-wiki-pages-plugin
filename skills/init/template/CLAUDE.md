@@ -556,6 +556,8 @@ These skills were written for a **flat** directory layout: `wiki/sources/`, `wik
 | No per-folder index files                                     | A folder note in every topic folder          | Create the folder note (`wiki/<topic>/<topic>.md`) when creating a topic folder  |
 | No `aliases` on indexes                                       | Required on every folder note                | Add topic name variants (slug, title case, abbreviations)                        |
 
+> **Table-cell citations.** Inside a markdown **table** (e.g. the `_sources/manifest.md` source ledger) a wikilink's pipe is escaped as `\|` so it does not break the cell: `[[source-note\|Source Note]]`. The link resolver strips that trailing `\`, so the citation resolves to `source-note` and does **not** dangle as a ghost node. In **frontmatter** `sources:` (not a table) use a plain pipe: `[[source-note|Source Note]]`.
+
 When running `/claude-wiki-pages:ingest`: follow the 13-step ingest rules in this document, not the skill's simpler defaults. The skill provides the workflow structure; this document provides the schema.
 
 When running `/claude-wiki-pages:lint`: check everything the skill checks PLUS the additional rules in this document (index consistency, parent/path validation, confidence thresholds, type field validation, nesting depth).

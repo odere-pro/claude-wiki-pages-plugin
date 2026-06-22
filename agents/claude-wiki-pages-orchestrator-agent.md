@@ -14,6 +14,8 @@ allowed_bash_commands:
   - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh backlog --target"
   - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh route"
   - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/reachability.sh --json"
+  - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/health-score.sh --target"
+  - "bash ${CLAUDE_PLUGIN_ROOT}/scripts/graph-quality.sh --target"
   - "grep"
   - "find"
   - "[ -d"
@@ -42,6 +44,8 @@ command outside this list is a policy violation — stop and surface an error.
 | `bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh backlog --target "$VAULT" --json` | Backlog probe (autonomous path only) |
 | `bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh route --ollama ... --claude ... --json` | Routing decision (degraded path only) |
 | `bash ${CLAUDE_PLUGIN_ROOT}/scripts/reachability.sh --json` | Reachability probe (degraded path only) |
+| `bash ${CLAUDE_PLUGIN_ROOT}/scripts/health-score.sh --target "$VAULT" --json` | Self-health probe (Step 1) — read-only |
+| `bash ${CLAUDE_PLUGIN_ROOT}/scripts/graph-quality.sh --target "$VAULT" --json` | Graph-quality probe (read-only) |
 | `grep`, `find`, `wc`, `head`, `jq` | POSIX read-only introspection |
 | `[ -d ... ]`, `[ -f ... ]` | Filesystem existence tests |
 
@@ -76,6 +80,7 @@ Run, in this order:
 | `last_log_entry`    | The most recent `## [date] <verb>` line in `$VAULT/wiki/log.md`                                                                                                                                                                                                                                                                 | "ingest", "lint", "fix", or ""  |
 | `autonomous`        | `maintenance.enabled` from config (`bash ${CLAUDE_PLUGIN_ROOT}/scripts/engine.sh config --json \| jq -r .config.maintenance.enabled`). Only when true, also probe `needs_catchup` via `engine.sh backlog --target "$VAULT" --json`.                                                                                             | bool (+ needs_catchup)          |
 | `pending_drafts`    | Count of `*.md` under `$VAULT/_proposed/` (`find "$VAULT/_proposed" -name '*.md' 2>/dev/null \| wc -l`)                                                                                                                                                                                                                         | int (count)                     |
+| `graph_health`      | `bash ${CLAUDE_PLUGIN_ROOT}/scripts/health-score.sh --target "$VAULT" --json` → cache `.score`, `.grade`, `.needsHeal`, and `.issues[]`. Read-only; the single detect signal for graph/config drift (dangling, orphans, low Cn, stale `.obsidian`, ghost links). Skipped only when `vault_exists` is false.                       | {score, grade, needsHeal, issues} |
 | `degraded.decision` | **Only when** `localModel.enabled && offlinePolicy != "off"` (from `engine.sh config --json`): run `bash ${CLAUDE_PLUGIN_ROOT}/scripts/reachability.sh --json`, then `engine.sh route --ollama <o> --claude <c> --json`, and cache `.decision`. Otherwise the decision is `claude` (the normal path) and no network is touched. | "claude", "local", or "blocked" |
 
 If `vault_exists` is false, `schema_version` is empty, and `raw_pending` is therefore unknown — that's the wizard branch in Step 2.
@@ -98,11 +103,14 @@ Walk this table top-to-bottom. The first matching row wins. Stop walking after t
 | `raw_pending > 0` AND `degraded.decision == "local"`                                                                                                                            | Skill `/claude-wiki-pages:draft` (Claude unreachable → local offline drafting into `_proposed/` for later review)                                                                                                                           | `{vault_path: "$VAULT", scope: "<N> new sources"}`             |
 | `raw_pending > 0`                                                                                                                                                               | Agent `claude-wiki-pages-ingest-agent`                                                                                                                                                                                                      | `{vault_path: "$VAULT", scope: "<N> new sources"}`             |
 | `last_log_entry == "ingest"` (lint never ran after a previous ingest)                                                                                                           | Agent `claude-wiki-pages-curator-agent`                                                                                                                                                                                                     | `{vault_path: "$VAULT", mode: "audit-and-fix"}`                |
-| **Fill-gaps intent** — the prompt asks to "fill the knowledge gaps", "complete the wiki", "no empty pages/links", or "cluster the graph around \<topics\>"            | Skill `/claude-wiki-pages:fill-gaps` (stage curated repo sources → ingest by topic → author hub pages → resolve every dangling link → enrich → heal + verify)                                                                                | `{vault_path: "$VAULT"}`                                       |
+| **Fill-gaps / populate intent** — the prompt asks to "fill the knowledge gaps", "complete the wiki", "no empty pages/links", "populate missing subtopics", "enrich the wiki", or "cluster the graph around \<topics\>"            | Skill `/claude-wiki-pages:fill-gaps` (discover the project's topics → ingest by topic → author hub pages → expand any structured catalog into family pages → resolve every dangling link → enrich → heal + verify)                                                                                | `{vault_path: "$VAULT"}`                                       |
+| **Heal / repair intent OR detected drift** — the prompt asks to "fix/heal/repair the graph", "detect issues and autofix", "clean up", "something feels wrong", "I updated the plugin" — OR `graph_health.needsHeal == true` (dangling, orphans, low Cn, stale `.obsidian` config, or ghost links detected) | Agent `claude-wiki-pages-polish-agent` (self-heal pass: ghost-heal → disentangle → orphan-reconnect → graph colors → index/MOC → health). This is the "run `wiki` after a plugin update → detect + autofix" path. | `{vault_path: "$VAULT", mode: "heal"}` |
 | User prompt matches an analytical verb: `query`, `ask`, `summarize`, `report`, `compile`, `extract`, `compare`, `challenge`, `dashboard`, or starts with `?`/`what`/`why`/`how` | Agent `claude-wiki-pages-analyst-agent`                                                                                                                                                                                                     | `{vault_path: "$VAULT", question: "$ARGUMENTS"}`               |
 | Anything else                                                                                                                                                                   | Ask one clarifying question                                                                                                                                                                                                                 | (no fan-out)                                                   |
 
 **Why this order.** Bootstrap before explicit project-intake before maintenance before query. A fresh vault always onboards (row 1), where the wizard offers the project-intake choice. On an existing vault, an explicit "ingest the whole project" intent (row 2) wins over autonomous catch-up and over analytical queries, so the user's stated goal — turn the repo's docs into wiki pages — is honored before anything else. A user who asks an analytical question against a vault with new pending sources gets the ingest first — their question is more useful answered against fresh state. They can always run `/claude-wiki-pages:wiki <question>` again after.
+
+The **heal/drift row** sits after the build/ingest rows and before query: real new work (ingest, review, curate) takes priority, but a vault that is otherwise idle yet shows graph drift — the common case right after a **plugin update**, when new healers ship — routes to the polish self-heal automatically, so a plain `/claude-wiki-pages:wiki` with no arguments detects and fixes the graph without the user naming the problem. Because `graph_health.needsHeal` is a cheap read-only probe, this row also fires when the user explicitly asks to "fix/heal" the graph.
 
 **Intent detection is a bounded keyword match, not an NLP classifier** — the same lightweight prompt read the analytical-verb row already uses. When in doubt between project-intake and a plain re-ingest of already-staged sources, prefer the plain `raw_pending > 0` row; the wire step is idempotent, so a missed match costs nothing.
 
@@ -118,6 +126,7 @@ After `claude-wiki-pages-ingest-agent` or `claude-wiki-pages-curator-agent` retu
 
 - The wizard ran (row 1) — it already produced the scaffold; polish would no-op against an empty wiki.
 - The maintenance agent ran (autonomous row) — it already runs polish internally as part of its loop; a second pass would be wasted work.
+- **The polish agent was itself the chosen specialist (heal route)** — it already ran its full self-heal pass; do not run it twice.
 - The analyst ran (last row) — analyst is read-mostly; polish runs are wasted work after a query.
 - The selected specialist returned an error — fix the error first; polish has no useful state to operate on.
 
@@ -133,7 +142,8 @@ After the specialist (and, where applicable, polish) returns:
 2. If polish ran, surface its `POLISH:` block under `## Polish`.
 3. Add a one-paragraph summary under `## Outcome`: what changed in `$VAULT`, what the user should know, the suggested next `/claude-wiki-pages:wiki` invocation (always the one advertised entry verb), and — when the specialist produced a checkpoint commit — the undo clause: _"To undo the last structural change: `git revert <checkpoint>`"_ where `<checkpoint>` is the SHA printed by the specialist. This references the existing git-checkpoint mechanism used by every write-path specialist; do not invent a separate undo surface.
 4. If the wizard ran (Step 2 row 1), parse its `NEXT_STEP:` trailing line. If `ingest_pending=true`, end the report with: _"A bundled sample source is ready in `raw/`. Run `/claude-wiki-pages:wiki` again to ingest it and get your first cited answer."_ (Do not chain in this turn — the wizard already did one fan-out's worth of work.)
-5. Stop. Do not invoke another specialist.
+5. Add a `## Health` line from the Step-1 `graph_health` probe: `<score>/100 (<grade>) — <healthy | heal recommended>`, and when `needsHeal` is true list the `issues[]`. When a write specialist ran, this is the post-heal estimate (re-read it if the specialist healed); otherwise it is the current state. This is the always-present "is my wiki healthy" signal the user sees on every `/claude-wiki-pages:wiki` run.
+6. Stop. Do not invoke another specialist.
 
 ---
 

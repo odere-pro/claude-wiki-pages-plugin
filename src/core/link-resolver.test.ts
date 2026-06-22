@@ -115,6 +115,25 @@ describe("resolveLink — priority ladder", () => {
     );
     cleanup();
   });
+
+  test("strips the escaped-pipe `\\|` used in markdown table cells", () => {
+    // A wikilink cited inside a table escapes its pipe as `\|`; the trailing `\`
+    // must not survive into the target, or it dangles as a ghost twin.
+    const { wiki, cleanup } = wikiOf({
+      "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/pattern-scanner.md": "---\ntitle: Pattern Scanner\n---\nbody\n",
+    });
+    const idx = buildLinkIndex(wiki);
+    expect(resolveLink("pattern-scanner\\|pattern-scanner", "", idx)?.file).toBe(
+      wikiRelPath("topics/pattern-scanner.md"),
+    );
+    expect(resolveLink("pattern-scanner\\|Pattern Scanner", "", idx)?.file).toBe(
+      wikiRelPath("topics/pattern-scanner.md"),
+    );
+    cleanup();
+  });
 });
 
 describe("resolveLink — tie-break", () => {

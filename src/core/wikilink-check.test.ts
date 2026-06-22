@@ -156,6 +156,23 @@ describe("checkDanglingWikilinks", () => {
     sb.cleanup();
   });
 
+  test("escaped-pipe `\\|` in a table cell is not a dangling ghost", () => {
+    const files: Record<string, string> = {
+      "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
+      "wiki/index.md": "---\ntitle: index\n---\n- [[Real Page]]\n",
+      "wiki/log.md": "---\ntitle: log\n---\n",
+      "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n",
+      // Manifest-style table citation: `[[real-page\|Real Page]]` must resolve
+      // to real-page.md, not dangle as the ghost `real-page\`.
+      "wiki/_sources/manifest.md":
+        "---\ntitle: manifest\n---\n| src | page |\n| --- | --- |\n| x | [[real-page\\|Real Page]] |\n",
+    };
+    const sb = makeVault(files);
+    const findings = checkDanglingWikilinks(join(sb.vault, "wiki"));
+    expect(findings.filter((f) => f.check === "wikilink-dangling")).toHaveLength(0);
+    sb.cleanup();
+  });
+
   test("#heading anchor is stripped before resolution", () => {
     const files: Record<string, string> = {
       "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
