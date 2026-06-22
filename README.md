@@ -70,6 +70,12 @@ flowchart TD
 
 `/claude-wiki-pages:doctor` checks all of these and tells you exactly what to install. The `SessionStart` hook prints a one-line notice if Bun is missing.
 
+**macOS one-liner.** Install every dependency above (Homebrew, `git`, `jq`, Bun) and patch your PATH in one idempotent step:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/odere-pro/claude-wiki-pages-plugin/main/install-macos.sh | bash
+```
+
 **OS:** macOS or Linux verified. Windows/WSL unverified for hook scripts; markdown-only paths should work.
 
 ---
@@ -81,7 +87,7 @@ flowchart TD
 /plugin install claude-wiki-pages
 ```
 
-Local-clone install, update, and uninstall: see [docs/install.md](./docs/install.md).
+macOS one-command dependency setup, scriptable per-project enablement, local-clone install, update, and uninstall: see [docs/install.md](./docs/install.md).
 
 ---
 

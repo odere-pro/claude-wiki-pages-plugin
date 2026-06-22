@@ -2,6 +2,29 @@
 
 Three ways to install `claude-wiki-pages`. Pick the one that matches your situation.
 
+## Quick start — macOS (one command)
+
+A fresh Mac needs four tools on `PATH`: Homebrew, `git`, `jq`, and **Bun** (the engine). [`install-macos.sh`](../install-macos.sh) installs whichever are missing and patches your shell profile (`~/.zshrc` or `~/.bash_profile`). One-time, idempotent — safe to re-run:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/odere-pro/claude-wiki-pages-plugin/main/install-macos.sh | bash
+```
+
+Flags: `--check` (report status, change nothing) · `--dry-run` · `--with-obsidian` (graph parity, D11) · `--with-ollama` (offline drafting). Then open a **new terminal** so the PATH change applies, and confirm with `bun --version`.
+
+**Add the plugin to a project** — run this in the project's root folder. It enables the plugin from the published marketplace via the project's `.claude/settings.json` (merges with any existing settings; needs `jq`, which the installer set up):
+
+```sh
+mkdir -p .claude
+jq -e . .claude/settings.json >/dev/null 2>&1 || echo '{}' > .claude/settings.json
+tmp=$(mktemp) && jq '
+    .extraKnownMarketplaces["odere-pro"] = {source:{source:"github",repo:"odere-pro/claude-software-3-0-marketplace"}}
+  | .enabledPlugins["claude-wiki-pages@odere-pro"] = true
+' .claude/settings.json > "$tmp" && mv "$tmp" .claude/settings.json
+```
+
+Start Claude Code in that folder (it fetches and enables the plugin on launch), then run `/claude-wiki-pages:wiki` to scaffold a vault, ingest, self-heal, and query. Prefer doing it interactively instead of editing settings? Use the marketplace commands under [Remote](#remote--marketplace) below.
+
 ## Prerequisites
 
 - [Claude Code](https://docs.claude.com/en/docs/claude-code) `>= 2.0`, signed in.
