@@ -404,6 +404,8 @@ Each row states: which predicate, which page class may originate the link (domai
 > The graph-traversal primitive (Brief §6) takes its edge set from this table. R2 `--graph` walks the provenance/association core — `sources`+`related`+`depends_on` — to N≤2; the remaining rows (`key_pages`, `members`, `scope`, `children`, `child_indexes`, `parent`) are the MOC/descent edges C1 uses. `contradicts`/`supersedes` are available to R3/synthesis. An edge violating a row's domain/range is a future S1-check lint finding, NOT a traversal the engine follows.
 >
 > **Topic-locality (ADR-0033).** The association predicates `related`, `depends_on`, `key_pages`, `members`, `scope`, `contradicts`, and `supersedes` are additionally constrained: both endpoints must live in the **same top-level topic folder**. A cross-topic association is written as prose, not a typed link, so the graph stays a set of topic islands. `parent`/`sources`/`children`/`child_indexes` are exempt (they target the navigation spine or `_sources/`, which the topic graph excludes from view).
+>
+> **Strict tree (ADR-0036).** The stricter successor demotes the association predicates further still: even a _same-topic_ `related`/`depends_on`/`key_pages`/`members`/`scope`/`contradicts`/`supersedes` value renders as a nested **tag**, not a graph edge. Among visible topic pages only the `parent`/`children`/`child_indexes` spine (plus the single ROOT→folder-note connector) draws edges; every associative relationship is a `family/…`-style tag. `scripts/strict-tree-reduce.sh` performs the demotion and records a `topic/<group>` tag for a demoted cross-tree reference (tag de-cycling). `sources:` provenance is unchanged.
 
 ### Enum list
 
@@ -507,6 +509,7 @@ These rules keep pages scannable in Obsidian and in plain-markdown viewers. They
 > A `[[wikilink]]` between two **topic pages** must stay **within the same top-level topic folder**. Do not link a page in one topic folder to a page in another: a cross-topic `[[link]]` fuses the two topics in the graph and, repeated across the tree, collapses the topic islands into a hairball. Write a cross-topic reference as **plain prose** (the page's title as text), not a wikilink.
 > Exempt — these never count against topic-locality: the navigation spine `parent:` (up to the folder note, then `index.md`), provenance `sources:` → `_sources/**`, and a folder note's `children:`/`child_indexes:` (its own pages). The association fields `related`/`depends_on`/`key_pages`/`members`/`scope`/`contradicts`/`supersedes` must point only to same-topic pages.
 > Rule of thumb: **a link is allowed unless both endpoints are topic pages in different top-level folders.** Remediate an existing vault with `bash scripts/disentangle-links.sh --apply` (dry-run by default).
+> Stricter still under **strict tree (ADR-0036)**: among visible topic pages only the `parent`/`children`/`child_indexes` spine and the ROOT→folder-note connector are `[[wikilinks]]`; every association — `related`, a "see also", an ancestor or cross-tree reference — becomes a nested **tag**, not an edge. Remediate with `bash scripts/strict-tree-reduce.sh --apply` (dry-run by default).
 
 ## Naming conventions
 

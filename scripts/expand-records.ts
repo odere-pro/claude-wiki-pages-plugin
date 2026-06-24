@@ -22,6 +22,7 @@
  *                     [--title-field <name>]        default: name → title → label
  *                     [--hub-field <name>]          default: category → family → group
  *                     [--tag-fields <a,b,c>]        default: family,severity,principle
+ *                     [--relation-fields <a,b>]     cross-record refs → field/value tags
  *                     [--type entity|concept]       default: concept
  *                     [--entity-type-field <name>]  default: entity_type (entities only)
  *                     [--date <YYYY-MM-DD>]         default: source file's mtime
@@ -68,6 +69,17 @@ const tagFields = tagFieldsArg
       .map((s) => s.trim())
       .filter(Boolean)
   : ["family", "severity", "principle"];
+// Cross-record relation fields (#57): array-valued cross-references like
+// `corrective_patterns` or `resolves`. Each value becomes a `<field>/<value>`
+// nested tag — never a wikilink — so the relationship is discoverable in the tag
+// view without fusing the strict tree. Opt-in (default none); corpus-specific.
+const relationFieldsArg = arg("--relation-fields");
+const relationFields = relationFieldsArg
+  ? relationFieldsArg
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  : [];
 const pageType = (arg("--type") ?? "concept") as "entity" | "concept";
 const entityTypeField = arg("--entity-type-field") ?? "entity_type";
 
@@ -197,6 +209,36 @@ function fieldToTags(rec: RecordMap, field: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Append `links` (`[[target|Display]]` strings) to an inline YAML array field
+ * (`field: [...]`) in `text`, deduped by the link's target (the part before `|`).
+ * Returns [newText, addedCount]. A block-style or absent field is left unchanged
+ * (added 0) so YAML is never malformed and idempotency holds.
+ */
+function appendInlineArray(text: string, field: string, links: string[]): [string, number] {
+  const lines = text.split("\n");
+  const re = new RegExp(`^(\\s*${field}:\\s*)\\[(.*)\\]\\s*$`);
+  const targetOf = (s: string): string =>
+    (/\[\[([^\]|#^]+)/.exec(s)?.[1] ?? s).trim().toLowerCase();
+  for (let i = 0; i < lines.length; i++) {
+    const m = re.exec(lines[i]!);
+    if (!m) continue;
+    const existing = [...m[2]!.matchAll(/"([^"]*)"/g)].map((x) => x[1]!);
+    const have = new Set(existing.map(targetOf));
+    let added = 0;
+    for (const l of links) {
+      if (have.has(targetOf(l))) continue;
+      existing.push(l);
+      have.add(targetOf(l));
+      added += 1;
+    }
+    if (added === 0) return [text, 0];
+    lines[i] = m[1]! + "[" + existing.map((e) => `"${e}"`).join(", ") + "]";
+    return [lines.join("\n"), added];
+  }
+  return [text, 0];
+}
+
 // ── resolve field name fallbacks ──────────────────────────────────────────────
 
 const titleField = titleFieldOverride ?? firstPresent(records, ["name", "title", "label", idField]);
@@ -273,23 +315,65 @@ const sourceNoteRel = `_sources/${sourceLinkSlug}.md`;
   specs.push({ abs, rel: sourceNoteRel, text, kind: "source", isNew });
 }
 
-// Collect distinct hub slugs (preserve insertion order for stable output).
-const hubSlugs: string[] = [];
-const seenHubs = new Set<string>();
-for (const rec of records) {
-  const hubVal = str(rec[hubField]);
-  if (!hubVal) continue;
-  const hs = slugify(hubVal);
-  if (hs && !seenHubs.has(hs)) {
-    seenHubs.add(hs);
-    hubSlugs.push(hs);
-  }
-}
-
-// Hub folder-note specs — type: index, parent → topic folder note.
 const topicSlug = slugify(topic);
 const topicTitle = titleCase(topicSlug);
 
+// First pass: per-record metadata, computed once so the hub folder notes can list
+// their records as `children:` (MOC reachability) and the record pages share the
+// same slug/title — no second derivation can drift.
+interface RecMeta {
+  slug: string;
+  title: string;
+  hs: string; // hub slug; "" when the record has no hub
+  tags: string[];
+  summary: string;
+  entityType: string;
+}
+const recMetas: RecMeta[] = [];
+const seenRecSlugs = new Set<string>();
+for (const rec of records) {
+  const rawId = getStr(rec, idField);
+  const rawTitle = getStr(rec, titleField, "name", "title", "label", idField);
+  if (!rawId && !rawTitle) continue;
+  const slug = rawId ? slugify(rawId) : slugify(rawTitle);
+  if (!slug || seenRecSlugs.has(slug)) continue;
+  seenRecSlugs.add(slug);
+  const hubVal = str(rec[hubField]);
+  // Tags: the page's topic slug (schema policy — topic slug + cross-cutting tags)
+  // + nested taxonomy from the tag fields + cross-record relations as tags.
+  const tags = [topicSlug];
+  for (const tf of [...tagFields, ...relationFields]) tags.push(...fieldToTags(rec, tf));
+  recMetas.push({
+    slug,
+    title: rawTitle || titleCase(slug),
+    hs: hubVal ? slugify(hubVal) : "",
+    tags: [...new Set(tags)],
+    summary: getStr(rec, "summary", "description", "definition", "overview"),
+    entityType: getStr(rec, entityTypeField) || "tool",
+  });
+}
+
+// Group record child-links by hub (and collect hubless records) for the folder
+// notes' `children:` lists, preserving record order for stable output.
+const childLink = (m: RecMeta): string => `[[${m.slug}|${m.title.replace(/"/g, '\\"')}]]`;
+const childLinksByHub = new Map<string, string[]>();
+const hublessChildLinks: string[] = [];
+const hubSlugs: string[] = [];
+const seenHubs = new Set<string>();
+for (const m of recMetas) {
+  if (m.hs) {
+    if (!seenHubs.has(m.hs)) {
+      seenHubs.add(m.hs);
+      hubSlugs.push(m.hs);
+    }
+    (childLinksByHub.get(m.hs) ?? childLinksByHub.set(m.hs, []).get(m.hs)!).push(childLink(m));
+  } else {
+    hublessChildLinks.push(childLink(m));
+  }
+}
+
+// Hub folder-note specs — type: index, parent → topic folder note, children → its
+// records (so the fan-out is born MOC-reachable, not just strict-tree-clean).
 for (const hs of hubSlugs) {
   const ht = titleCase(hs);
   const rel = `${topic}/${hs}/${hs}.md`;
@@ -297,6 +381,7 @@ for (const hs of hubSlugs) {
   seenRels.add(rel);
   const abs = join(wikiDir, rel);
   const isNew = !existsSync(abs);
+  const children = (childLinksByHub.get(hs) ?? []).map((l) => `"${l}"`).join(", ");
 
   const text =
     [
@@ -306,9 +391,9 @@ for (const hs of hubSlugs) {
       `aliases: ["${hs}", "${ht}"]`,
       `parent: "[[${topicSlug}|${topicTitle}]]"`,
       `path: "${topic}/${hs}"`,
-      `children: []`,
+      `children: [${children}]`,
       `child_indexes: []`,
-      `tags: []`,
+      `tags: ["${topicSlug}"]`,
       `created: ${today}`,
       `updated: ${today}`,
       `---`,
@@ -318,51 +403,26 @@ for (const hs of hubSlugs) {
 }
 
 // Per-record page specs.
-for (const rec of records) {
-  const rawId = getStr(rec, idField);
-  const rawTitle = getStr(rec, titleField, "name", "title", "label", idField);
-  if (!rawId && !rawTitle) continue;
-
-  const slug = rawId ? slugify(rawId) : slugify(rawTitle);
-  if (!slug) continue;
-  const title = rawTitle || titleCase(slug);
-
-  const hubVal = str(rec[hubField]);
-  const hs = hubVal ? slugify(hubVal) : "";
-  const rel = hs ? `${topic}/${hs}/${slug}.md` : `${topic}/${slug}.md`;
-
+for (const m of recMetas) {
+  const rel = m.hs ? `${topic}/${m.hs}/${m.slug}.md` : `${topic}/${m.slug}.md`;
   if (seenRels.has(rel)) continue;
   seenRels.add(rel);
   const abs = join(wikiDir, rel);
   const isNew = !existsSync(abs);
 
   // Parent: hub folder note if hub exists, else topic folder note.
-  const parentSlug = hs || topicSlug;
-  const parentTitle = hs ? titleCase(hs) : topicTitle;
-  const pathField = hs ? `${topic}/${hs}` : topic;
+  const parentSlug = m.hs || topicSlug;
+  const parentTitle = m.hs ? titleCase(m.hs) : topicTitle;
+  const pathField = m.hs ? `${topic}/${m.hs}` : topic;
 
-  // Nested taxonomy tags from configured tag fields.
-  const tags: string[] = [];
-  for (const tf of tagFields) {
-    tags.push(...fieldToTags(rec, tf));
-  }
-
-  // Summary / description from common field names.
-  const summary = getStr(rec, "summary", "description", "definition", "overview");
-
-  const fmLines = [`---`, `title: "${title.replace(/"/g, '\\"')}"`, `type: ${pageType}`];
-
-  if (pageType === "entity") {
-    const et = getStr(rec, entityTypeField) || "tool";
-    fmLines.push(`entity_type: ${et}`);
-  }
-
+  const fmLines = [`---`, `title: "${m.title.replace(/"/g, '\\"')}"`, `type: ${pageType}`];
+  if (pageType === "entity") fmLines.push(`entity_type: ${m.entityType}`);
   fmLines.push(
-    `aliases: ["${slug}"]`,
+    `aliases: ["${m.slug}"]`,
     `parent: "[[${parentSlug}|${parentTitle}]]"`,
     `path: "${pathField}"`,
     `sources: ["[[${sourceLinkSlug}|${sourceLinkTitle}]]"]`,
-    `tags: [${tags.map((t) => `"${t}"`).join(", ")}]`,
+    `tags: [${m.tags.map((t) => `"${t}"`).join(", ")}]`,
     `created: ${today}`,
     `updated: ${today}`,
     `update_count: 1`,
@@ -371,17 +431,11 @@ for (const rec of records) {
     `---`,
   );
 
-  const bodyLines = [`\n# ${title}\n`];
-  if (summary) bodyLines.push(`\n${summary}\n`);
+  const bodyLines = [`\n# ${m.title}\n`];
+  if (m.summary) bodyLines.push(`\n${m.summary}\n`);
   bodyLines.push(`\n## Key Points\n`);
 
-  specs.push({
-    abs,
-    rel,
-    text: fmLines.join("\n") + bodyLines.join(""),
-    kind: "record",
-    isNew,
-  });
+  specs.push({ abs, rel, text: fmLines.join("\n") + bodyLines.join(""), kind: "record", isNew });
 }
 
 // ── write pass ────────────────────────────────────────────────────────────────
@@ -399,6 +453,35 @@ for (const spec of specs) {
     const dir = dirname(spec.abs);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     writeFileSync(spec.abs, spec.text);
+  }
+}
+
+// Make the fan-out MOC-reachable from index.md: append the new hub folder notes to
+// the topic folder note's `child_indexes:` (and any hubless records to its
+// `children:`), append-only. Without this the hubs are unreachable from the root
+// MOC and verify-ingest emits "not reachable from index.md" warnings. Only inline
+// `field: [...]` arrays are updated; a block-style or missing topic note is left
+// for the polish MOC pass. Idempotent: links already present are not re-added.
+const topicNoteAbs = join(wikiDir, `${topic}/${topicSlug}.md`);
+const hubIndexLinks = hubSlugs.map((hs) => `[[${hs}|${titleCase(hs)}]]`);
+let topicNoteUpdated = false;
+if (apply && existsSync(topicNoteAbs)) {
+  const orig = readFileSafe(topicNoteAbs) ?? "";
+  let next = orig;
+  let added = 0;
+  if (hubIndexLinks.length) {
+    const [t, n] = appendInlineArray(next, "child_indexes", hubIndexLinks);
+    next = t;
+    added += n;
+  }
+  if (hublessChildLinks.length) {
+    const [t, n] = appendInlineArray(next, "children", hublessChildLinks);
+    next = t;
+    added += n;
+  }
+  if (added > 0 && next !== orig) {
+    writeFileSync(topicNoteAbs, next);
+    topicNoteUpdated = true;
   }
 }
 
@@ -420,7 +503,9 @@ const result = {
   hubsExisting,
   sourceNote: sourceNoteRel,
   sourceNoteCreated,
+  topicNoteUpdated,
   tagFields,
+  relationFields,
   pages: specs.map((s) => ({ path: s.rel, kind: s.kind, isNew: s.isNew })),
 };
 

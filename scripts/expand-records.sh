@@ -18,6 +18,7 @@
 #                              [--title-field name]
 #                              [--hub-field name]
 #                              [--tag-fields a,b,c]
+#                              [--relation-fields a,b]
 #                              [--type entity|concept]
 #                              [--date YYYY-MM-DD]
 #
@@ -51,7 +52,7 @@ while [ $# -gt 0 ]; do
       ARGS_EXTRA+=("$1")
       shift
       ;;
-    --id-field | --title-field | --hub-field | --tag-fields | --type | --entity-type-field | --date)
+    --id-field | --title-field | --hub-field | --tag-fields | --relation-fields | --type | --entity-type-field | --date)
       ARGS_EXTRA+=("$1" "${2:-}")
       shift 2
       ;;

@@ -25,6 +25,10 @@ setup() {
 title: Wiki Index
 type: index
 aliases: ["Wiki Index", "ROOT"]
+parent: ""
+path: ""
+children: []
+child_indexes: ["[[concepts|Concepts]]"]
 created: 2026-06-24
 updated: 2026-06-24
 ---
@@ -152,4 +156,48 @@ teardown() {
   run bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply --json
   assert_success
   assert_eq "$(printf '%s' "$output" | jq -r '.pagesNew')" "0"
+}
+
+@test "expand-records: output is born MOC-reachable (verify-ingest reports 0 warnings)" {
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
+  bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply >/dev/null
+  run bash "$REPO_ROOT/scripts/verify-ingest.sh" --target "$VAULT"
+  # Hubs list their records and the topic folder note lists the hubs, so every
+  # generated page is reachable from index.md — no MOC warnings (not just
+  # strict-tree-clean, but born verify-clean).
+  assert_output_contains "Warnings: 0"
+  refute_output_contains "not reachable from index.md"
+  refute_output_contains "empty children list"
+}
+
+@test "expand-records: hub note lists its records; topic note lists the hubs (MOC spine)" {
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
+  bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply >/dev/null
+  # Hub children: includes its records.
+  run grep -F '[[srp|Single Responsibility Principle]]' "$VAULT/wiki/concepts/solid-principles/solid-principles.md"
+  assert_success
+  # Topic folder note child_indexes: gains the new hubs (append-only update).
+  run grep -F '[[solid-principles|Solid Principles]]' "$VAULT/wiki/concepts/concepts.md"
+  assert_success
+}
+
+@test "expand-records: each record carries the topic-slug tag (schema 3-6 tag policy)" {
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
+  bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply >/dev/null
+  run grep -E '^tags:.*"concepts"' "$VAULT/wiki/concepts/solid-principles/srp.md"
+  assert_success
+}
+
+@test "expand-records: --relation-fields maps cross-record relations to nested tags" {
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
+  cat >"$VAULT/raw/smells.json" <<'EOF'
+[
+  {"id":"god-object","name":"God Object","category":"code-smells","family":"oop","corrective_patterns":["facade","extract-class"]}
+]
+EOF
+  bash "$SCRIPT" --target "$VAULT" --source raw/smells.json --topic concepts --relation-fields corrective_patterns --apply >/dev/null
+  run grep -E '^tags:.*corrective_patterns/facade' "$VAULT/wiki/concepts/code-smells/god-object.md"
+  assert_success
+  run grep -E '^tags:.*corrective_patterns/extract-class' "$VAULT/wiki/concepts/code-smells/god-object.md"
+  assert_success
 }

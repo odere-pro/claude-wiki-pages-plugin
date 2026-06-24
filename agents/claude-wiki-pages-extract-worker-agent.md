@@ -61,6 +61,32 @@ Any change that adds Write, Edit, or Bash to the tools line blocks merge.
 
 ## Extraction procedure
 
+### Step E0 — Structured-record fan-out detection (ADR-0036 / #57)
+
+Before extracting per item, check whether the source is **record-oriented**: a
+JSON/YAML top-level array, or a CSV with a header row, of uniform objects (a
+glossary, a catalog, a table). If so, do NOT extract one envelope item per
+record — emit a `record_fan_out` recommendation (below) and return early. The
+ingest-agent (the writer, which holds shell access) runs
+`bash scripts/expand-records.sh --target <vault> --source <path> --topic <folder> --apply`
+with the recommended mapping; that deterministic pass generates the per-record
+pages, the family/category hub folder notes, the `parent:` spine, and the nested
+taxonomy tags — born tree-shaped and MOC-reachable. This read-only worker only
+DETECTS and recommends; it never runs the fan-out itself.
+
+Recommend the mapping by inspecting the records' keys:
+
+- `id_field` — the stable identifier (`id`, else the title field).
+- `title_field` — `name` → `title` → `label`.
+- `hub_field` — `category` → `family` → `group` (the tree-interior grouping).
+- `tag_fields` — small-cardinality classifier fields (`family`, `severity`,
+  `principle`, …) that become `field/value` nested tags.
+- `relation_fields` — array-valued cross-references (`corrective_patterns`,
+  `resolves`, …) that also become nested tags, never wikilinks.
+- `type` — `entity` when records name discrete things, else `concept`.
+
+A non-record source (prose, a single document) skips E0 and proceeds to E1.
+
 ### Step E1 — Read the assigned source
 
 Read the full content of `vault_root/<source_path>`. Record the file's last
@@ -130,6 +156,19 @@ extract_envelope:
   extracted_at: "<YYYY-MM-DD>"
   source_format: "text" # or "pdf"; carry through from raw/ file
   attachment_path: "" # non-empty only when source_format: pdf
+
+  # ── structured-record fan-out (set ONLY when Step E0 detects a record source);
+  #    when detected:true the ingest-agent runs expand-records for this source
+  #    and ignores items/predicates below.
+  record_fan_out:
+    detected: false
+    topic: "" # recommended topic folder under wiki/
+    id_field: "id"
+    title_field: "name"
+    hub_field: "category"
+    tag_fields: ["family", "severity", "principle"]
+    relation_fields: []
+    type: "concept" # or "entity"
 
   # ── source note fields ─────────────────────────────────────────────────
   source_note:
