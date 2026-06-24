@@ -23,6 +23,7 @@
  *                     [--hub-field <name>]          default: category → family → group
  *                     [--tag-fields <a,b,c>]        default: family,severity,principle
  *                     [--relation-fields <a,b>]     cross-record refs → field/value tags
+ *                     [--records-key <name>]        array property when the source wraps it
  *                     [--type entity|concept]       default: concept
  *                     [--entity-type-field <name>]  default: entity_type (entities only)
  *                     [--date <YYYY-MM-DD>]         default: source file's mtime
@@ -82,6 +83,11 @@ const relationFields = relationFieldsArg
   : [];
 const pageType = (arg("--type") ?? "concept") as "entity" | "concept";
 const entityTypeField = arg("--entity-type-field") ?? "entity_type";
+// When the source is an OBJECT wrapping the record array (e.g. a glossary
+// `{ vocabulary, entities: [...] }`), the array property to fan out. Optional —
+// auto-detected from common wrapper keys (entities/records/items/data/rows) or
+// the single array-valued property when omitted.
+const recordsKey = arg("--records-key");
 
 // Resolve source path: absolute, vault-relative, or raw/-relative.
 function resolveSource(vaultRoot: string, src: string): string {
@@ -136,19 +142,39 @@ function parseCsv(content: string): RecordMap[] {
   });
 }
 
+// Common keys under which a JSON/YAML document wraps its record array.
+const WRAPPER_KEYS = ["entities", "records", "items", "data", "rows"];
+
+/**
+ * Coerce a parsed JSON/YAML document to the record array. A top-level array is
+ * used directly; an OBJECT is unwrapped via `--records-key` (explicit), else a
+ * known wrapper key, else its single array-valued property. Throws a helpful
+ * error naming the array-valued keys when it cannot decide.
+ */
+function coerceToArray(parsed: unknown, key: string | undefined, fmt: string): RecordMap[] {
+  if (Array.isArray(parsed)) return parsed as RecordMap[];
+  if (parsed !== null && typeof parsed === "object") {
+    const obj = parsed as Record<string, unknown>;
+    if (key !== undefined) {
+      if (Array.isArray(obj[key])) return obj[key] as RecordMap[];
+      throw new Error(`${fmt} source has no array at --records-key "${key}"`);
+    }
+    for (const k of WRAPPER_KEYS) if (Array.isArray(obj[k])) return obj[k] as RecordMap[];
+    const arrayKeys = Object.keys(obj).filter((k) => Array.isArray(obj[k]));
+    if (arrayKeys.length === 1) return obj[arrayKeys[0]!] as RecordMap[];
+    throw new Error(
+      `${fmt} source is an object, not an array — pass --records-key <name> ` +
+        `(array-valued keys: ${arrayKeys.join(", ") || "none"})`,
+    );
+  }
+  throw new Error(`${fmt} source must be an array, or an object containing one`);
+}
+
 function loadRecords(path: string): RecordMap[] {
   const content = readFileSafe(path) ?? "";
   const ext = path.split(".").pop()?.toLowerCase() ?? "";
-  if (ext === "json") {
-    const parsed = JSON.parse(content) as unknown;
-    if (!Array.isArray(parsed)) throw new Error("JSON source must be a top-level array");
-    return parsed as RecordMap[];
-  }
-  if (ext === "yaml" || ext === "yml") {
-    const parsed = parseYaml(content) as unknown;
-    if (!Array.isArray(parsed)) throw new Error("YAML source must be a top-level array");
-    return parsed as RecordMap[];
-  }
+  if (ext === "json") return coerceToArray(JSON.parse(content), recordsKey, "JSON");
+  if (ext === "yaml" || ext === "yml") return coerceToArray(parseYaml(content), recordsKey, "YAML");
   if (ext === "csv") return parseCsv(content);
   throw new Error(`Unsupported format .${ext} — supported: .json .yaml .yml .csv`);
 }

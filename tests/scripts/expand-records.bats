@@ -218,6 +218,30 @@ EOF
   assert_success
 }
 
+@test "expand-records: unwraps a records array nested under an object key (auto-detect)" {
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
+  # The real glossary.json is { vocabulary, entities: [...] } — not a top-level
+  # array. expand-records must auto-detect the entities[] wrapper and fan it out.
+  cat >"$VAULT/raw/wrapped.json" <<'EOF'
+{"vocabulary":{"weights":1},"entities":[{"id":"srp","name":"SRP","category":"solid","family":"oop"},{"id":"god","name":"God Object","category":"smells","family":"oop"}]}
+EOF
+  bash "$SCRIPT" --target "$VAULT" --source raw/wrapped.json --topic concepts --apply >/dev/null
+  assert [ -f "$VAULT/wiki/concepts/solid/srp.md" ]
+  run bash "$REPO_ROOT/scripts/verify-ingest.sh" --target "$VAULT"
+  assert_output_contains "All checks passed"
+}
+
+@test "expand-records: --records-key names the array when wrapping is ambiguous" {
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
+  command -v jq >/dev/null 2>&1 || skip "jq not available"
+  cat >"$VAULT/raw/multi.json" <<'EOF'
+{"primary":[{"id":"a","name":"A","category":"c"}],"secondary":[{"id":"b","name":"B"}]}
+EOF
+  run bash "$SCRIPT" --target "$VAULT" --source raw/multi.json --topic concepts --records-key primary --apply --json
+  assert_success
+  assert_eq "$(printf '%s' "$output" | jq -r '.recordsRead')" "1"
+}
+
 @test "expand-records: a source named after its topic is deconflicted (no basename collision)" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   # source file basename == topic → _sources/concepts.md would collide with
