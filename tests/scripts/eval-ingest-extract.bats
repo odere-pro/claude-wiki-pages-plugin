@@ -420,6 +420,7 @@ _setup_eval_artifact_repo() {
     "$REPO_ROOT/scripts/eval-ingest-extract-selftest.sh" \
     "$REPO_ROOT/scripts/eval-ingest-extract-artifact.sh" \
     "$REPO_ROOT/scripts/lib-eval-float.sh" \
+    "$REPO_ROOT/scripts/lib-fm-field.sh" \
     "$REPO_ROOT/scripts/verify-ingest.sh" \
     "$REPO_ROOT/scripts/verify-twins.ts" \
     "$REPO_ROOT/scripts/settings-tool.ts" \
