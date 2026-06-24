@@ -34,6 +34,20 @@
  *
  * Both variants are per-vault: locks on different vault paths are fully
  * independent and never block each other.
+ *
+ * ## Single-mode invariant (cross-mode guard)
+ *
+ * The sync flag (`_locks`) and the async chain (`_asyncTails`) are independent
+ * mechanisms, so on their own they would NOT mutually exclude: a
+ * `withVaultLockSync` holder and a `withVaultLock` holder on the SAME vault
+ * could run concurrently across an async boundary. No production caller mixes
+ * the two modes today (every caller is sync), but the docstring above invites
+ * future async refactors, which is exactly when the modes could mix and the
+ * guarantee would silently break. To keep that latent footgun loud rather than
+ * silent, a vault may be held in at most ONE mode at a time: acquiring a sync
+ * lock while an async critical section is in flight (or vice versa) throws
+ * immediately. `_asyncActive` tracks whether an async section is currently
+ * executing for a vault so the sync path can see it.
  */
 
 /** Per-vault lock state: a boolean flag (locked/unlocked). */
@@ -55,6 +69,13 @@ const _queues = new Map<string, Array<() => void>>();
 
 /** Settled Promise tails per vault — the async queue head. */
 const _asyncTails = new Map<string, Promise<unknown>>();
+/**
+ * Whether an async critical section (`withVaultLock` fn) is currently executing
+ * for a vault. Set true just before `fn()` runs and cleared when it settles, so
+ * the sync path can detect — and reject — a cross-mode acquisition while an
+ * async section is in flight across an `await` boundary.
+ */
+const _asyncActive = new Map<string, boolean>();
 
 /**
  * Acquire a per-vault mutex synchronously. Callers that arrive while the lock
@@ -81,6 +102,15 @@ export function acquireVaultLockSync(vault: string): () => void {
     throw new Error(
       "vault-lock: empty vault key is not valid. " +
         "Every caller must supply a non-empty vault path to ensure per-vault isolation.",
+    );
+  }
+  // Cross-mode guard: a vault held by an in-flight async critical section must
+  // not also be acquired synchronously (the single-mode invariant). Throw loud
+  // rather than let the two serializers run concurrently and unguarded.
+  if (_asyncActive.get(vault)) {
+    throw new Error(
+      `vault-lock: cannot acquire a sync lock for vault "${vault}" while an async lock ` +
+        "(withVaultLock) is held on the same vault. Hold a vault in one mode at a time.",
     );
   }
   const current = _locks.get(vault) ?? false;
@@ -153,13 +183,29 @@ export function withVaultLock<T>(vault: string, fn: () => Promise<T>): Promise<T
   // previous callers for the same vault have settled.
   const tail = _asyncTails.get(vault) ?? Promise.resolve();
 
+  // Run our critical section once the tail settles. At execution time enforce
+  // the single-mode invariant (reciprocal to acquireVaultLockSync's guard): if
+  // a sync lock is held on this vault, reject rather than run concurrently.
+  // `_asyncActive` brackets fn() so a sync caller across an await sees us.
+  const run = async (): Promise<T> => {
+    if (_locks.get(vault)) {
+      throw new Error(
+        `vault-lock: cannot acquire an async lock for vault "${vault}" while a sync lock ` +
+          "(withVaultLockSync) is held on the same vault. Hold a vault in one mode at a time.",
+      );
+    }
+    _asyncActive.set(vault, true);
+    try {
+      return await fn();
+    } finally {
+      _asyncActive.delete(vault);
+    }
+  };
+
   // Build the new link in the chain.  `next` is our critical-section Promise.
   // We use a void-typed chain tail so error propagation from previous callers
   // does not bleed into this caller — each critical section stands alone.
-  const next: Promise<T> = tail.then(
-    () => fn(),
-    () => fn(),
-  );
+  const next: Promise<T> = tail.then(run, run);
 
   // Advance the vault's tail to the new Promise, stripped of its value type
   // (so the Map stays homogeneous and errors do not propagate forward).

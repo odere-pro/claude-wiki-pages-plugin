@@ -236,3 +236,50 @@ describe("withVaultLock (async)", () => {
     expect(order).toEqual([1, 2, 3]);
   });
 });
+
+describe("single-mode invariant (cross-mode guard)", () => {
+  // The sync flag and async chain are independent serializers; without a guard
+  // a sync holder and an async holder on the same vault could run concurrently.
+  // These pin the fail-fast guard that keeps a vault in one mode at a time.
+
+  test("acquiring a sync lock while an async section is in flight throws", async () => {
+    const vault = "/tmp/cross-mode-async-then-sync";
+    let sawError: Error | null = null;
+    let asyncRan = false;
+
+    const asyncDone = withVaultLock(vault, async () => {
+      asyncRan = true;
+      // Yield so a sync caller can attempt acquisition mid-flight.
+      await new Promise<void>((res) => setTimeout(res, 10));
+      // While we are still in flight, a sync acquisition must throw.
+      try {
+        withVaultLockSync(vault, () => "should-not-run");
+      } catch (e) {
+        sawError = e as Error;
+      }
+      return "async-result";
+    });
+
+    expect(await asyncDone).toBe("async-result");
+    expect(asyncRan).toBe(true);
+    expect(sawError).not.toBeNull();
+    expect(sawError!.message).toContain("while an async lock");
+  });
+
+  test("async lock for a vault held by a sync lock rejects", async () => {
+    const vault = "/tmp/cross-mode-sync-then-async";
+    // Hold the sync lock, then attempt an async acquisition before releasing.
+    const release = acquireVaultLockSync(vault);
+    const asyncAttempt = withVaultLock(vault, async () => "should-not-run");
+    await expect(asyncAttempt).rejects.toThrow("while a sync lock");
+    release();
+  });
+
+  test("after an async section settles, a sync lock acquires cleanly", async () => {
+    const vault = "/tmp/cross-mode-sequential";
+    await withVaultLock(vault, async () => "first");
+    // No async section in flight now — sync must succeed.
+    const result = withVaultLockSync(vault, () => "second");
+    expect(result).toBe("second");
+  });
+});

@@ -66,6 +66,8 @@ source "${ROOT}/scripts/eval-normalize-ws.sh"
 # so both eval gates score from one implementation (ADR-0017).
 # shellcheck source=lib-eval-float.sh
 source "${ROOT}/scripts/lib-eval-float.sh"
+# shellcheck source=lib-fm-field.sh
+source "${ROOT}/scripts/lib-fm-field.sh"
 
 # Facade: source focused sub-modules so this file owns only utilities + data
 # extraction + scoring + CLI routing. Self-test and artifact management live in
@@ -217,16 +219,9 @@ extract_page_paths() {
   done < <(find "$wiki" -name '*.md' -type f | LC_ALL=C sort) | LC_ALL=C sort
 }
 
-# C10: consolidated scalar frontmatter field extractor, named _fm_field to
-# match the identical helper in verify-ingest.sh (DRY — the former _fm_field
-# was a near-duplicate). Extracts the first occurrence of <field>: from the
-# YAML frontmatter of <file>, strips quotes, returns empty when absent.
-_fm_field() {
-  local file="$1" field="$2" line
-  line=$(sed -n '/^---$/,/^---$/p' "$file" | grep -m1 -E "^${field}:[[:space:]]" || true)
-  [ -z "$line" ] && return 0
-  printf '%s' "$line" | sed "s/^${field}:[[:space:]]*//" | tr -d "\"'"
-}
+# C10: the scalar frontmatter field extractor `_fm_field` is now the single
+# canonical implementation in the sourced scripts/lib-fm-field.sh (shared with
+# verify-ingest.sh), sourced near the top of this file.
 
 # Count lines in a value safely (0 for empty string).
 count_lines() {
