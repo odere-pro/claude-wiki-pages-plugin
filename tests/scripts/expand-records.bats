@@ -201,3 +201,34 @@ EOF
   run grep -E '^tags:.*corrective_patterns/extract-class' "$VAULT/wiki/concepts/code-smells/god-object.md"
   assert_success
 }
+
+@test "expand-records: a record title with a double-quote stays born verify-clean" {
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
+  cat >"$VAULT/raw/quoted.json" <<'EOF'
+[{"id":"say","name":"He said \"hello\" loudly","category":"quotes-cat","family":"oop"}]
+EOF
+  bash "$SCRIPT" --target "$VAULT" --source raw/quoted.json --topic concepts --apply >/dev/null
+  run bash "$REPO_ROOT/scripts/verify-ingest.sh" --target "$VAULT"
+  # The hub child link uses a quote-sanitized display, so the structural verifier's
+  # list parser does not mis-split it into a phantom child (regression: was Errors 1).
+  assert_output_contains "All checks passed"
+  refute_output_contains "no matching page found"
+  # The page's own title keeps the real (escaped) quote.
+  run grep -F 'title: "He said' "$VAULT/wiki/concepts/quotes-cat/say.md"
+  assert_success
+}
+
+@test "expand-records: a source named after its topic is deconflicted (no basename collision)" {
+  command -v bun >/dev/null 2>&1 || skip "bun not available"
+  # source file basename == topic → _sources/concepts.md would collide with
+  # concepts/concepts.md by basename and misroute the parent spine to the source.
+  cp "$VAULT/raw/records.json" "$VAULT/raw/concepts.json"
+  bash "$SCRIPT" --target "$VAULT" --source raw/concepts.json --topic concepts --apply >/dev/null
+  run bash "$REPO_ROOT/scripts/verify-ingest.sh" --target "$VAULT"
+  assert_output_contains "All checks passed"
+  # No basename-collision warning (the success line "No wikilink collisions found"
+  # also contains "collision", so assert against the specific warning text).
+  refute_output_contains "resolves to 2 pages"
+  # The source note got a deconflicted basename, not concepts.md.
+  assert [ -f "$VAULT/wiki/_sources/concepts-source.md" ]
+}

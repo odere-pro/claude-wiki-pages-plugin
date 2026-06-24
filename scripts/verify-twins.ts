@@ -112,7 +112,12 @@ function parseList(rest: string, lines: string[], j: number): [string[], number]
   const vals: string[] = [];
   rest = rest.trim();
   if (rest.startsWith("[")) {
-    const items = [...rest.matchAll(/"([^"]*)"|'([^']*)'/g)];
+    // Escape-aware: a quoted item may legitimately contain a backslash-escaped
+    // quote (e.g. a wikilink whose display title has a `"`). A non-escape-aware
+    // regex would split such an item in two and invent a phantom list entry. This
+    // matches how the engine's `yaml`-library parser reads the same array, keeping
+    // the gate-05 twin in agreement on every input (quote-free fixtures unchanged).
+    const items = [...rest.matchAll(/"((?:\\.|[^"\\])*)"|'((?:\\.|[^'\\])*)'/g)];
     if (items.length) {
       for (const it of items) {
         const v = it[1] ?? it[2] ?? "";

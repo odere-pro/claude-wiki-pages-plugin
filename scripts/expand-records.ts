@@ -244,10 +244,11 @@ function appendInlineArray(text: string, field: string, links: string[]): [strin
 const titleField = titleFieldOverride ?? firstPresent(records, ["name", "title", "label", idField]);
 const hubField = hubFieldOverride ?? firstPresent(records, ["category", "family", "group"]);
 
-// Source link slug for `sources:` frontmatter
+// Source file metadata for `sources:` provenance. The source-note link slug is
+// finalised AFTER the record/hub slugs are known so it can be deconflicted from
+// them (see the deconfliction below) — a source named after its topic must not
+// collide with the topic folder note by basename.
 const sourceFileBase = basename(sourcePath).replace(/\.[^.]+$/, "");
-const sourceLinkSlug = slugify(sourceFileBase);
-const sourceLinkTitle = titleCase(sourceLinkSlug);
 const sourceRelPath = relative(vault, sourcePath);
 
 // Date stamp for `created`/`updated`/`date_ingested`. Deterministic by design:
@@ -283,37 +284,6 @@ interface PageSpec {
 const wikiDir = join(vault, "wiki");
 const specs: PageSpec[] = [];
 const seenRels = new Set<string>();
-
-// Source summary note (wiki/_sources/<slug>.md). Every generated page cites this
-// in `sources:`, so it MUST exist or those links dangle (schema: provenance is
-// non-negotiable). Created here when absent so the fan-out is born verify-clean,
-// not just strict-tree-clean. Never overwrites an existing source note — if the
-// file was already ingested with richer metadata, that wins.
-const sourceNoteRel = `_sources/${sourceLinkSlug}.md`;
-{
-  const abs = join(wikiDir, sourceNoteRel);
-  const isNew = !existsSync(abs);
-  seenRels.add(sourceNoteRel);
-  const text =
-    [
-      `---`,
-      `title: "${sourceLinkTitle}"`,
-      `type: source`,
-      `source_type: manual`,
-      `source_format: text`,
-      `date_ingested: ${today}`,
-      `tags: []`,
-      `aliases: ["${sourceLinkSlug}"]`,
-      `sources: []`,
-      `created: ${today}`,
-      `updated: ${today}`,
-      `status: active`,
-      `confidence: 1.0`,
-      `---`,
-    ].join("\n") +
-    `\n\n# ${sourceLinkTitle}\n\n## Metadata\n\nStructured record source: \`${sourceRelPath}\`\n\n## Summary\n\nFanned out into per-record pages under \`wiki/${topic}/\` by expand-records.\n`;
-  specs.push({ abs, rel: sourceNoteRel, text, kind: "source", isNew });
-}
 
 const topicSlug = slugify(topic);
 const topicTitle = titleCase(topicSlug);
@@ -355,7 +325,18 @@ for (const rec of records) {
 
 // Group record child-links by hub (and collect hubless records) for the folder
 // notes' `children:` lists, preserving record order for stable output.
-const childLink = (m: RecMeta): string => `[[${m.slug}|${m.title.replace(/"/g, '\\"')}]]`;
+//
+// Sanitize the wikilink DISPLAY title: a `"` would need YAML-escaping inside the
+// inline `children: [...]` array, which the structural verifier's list parser
+// (a non-escape-aware regex) then mis-splits into a phantom child; `[ ] | # ^`
+// would break the wikilink/anchor syntax itself. The page's own `title:` keeps
+// the real (escaped) text — only the link label is sanitized.
+const linkDisplay = (t: string): string =>
+  t
+    .replace(/["[\]|#^]/g, (c) => (c === '"' ? "'" : " "))
+    .replace(/\s+/g, " ")
+    .trim();
+const childLink = (m: RecMeta): string => `[[${m.slug}|${linkDisplay(m.title)}]]`;
 const childLinksByHub = new Map<string, string[]>();
 const hublessChildLinks: string[] = [];
 const hubSlugs: string[] = [];
@@ -370,6 +351,48 @@ for (const m of recMetas) {
   } else {
     hublessChildLinks.push(childLink(m));
   }
+}
+
+// Finalise the source-note slug, deconflicted from the generated folder-note and
+// record basenames. A source named after its topic (e.g. principles.json → topic
+// principles) would otherwise put `_sources/principles.md` and
+// `principles/principles.md` in a basename collision, and the `parent:` spine
+// would silently misroute to the source note (Obsidian resolves `[[principles]]`
+// by basename). Append `-source` until the slug is unique.
+const reservedSlugs = new Set<string>([topicSlug, ...hubSlugs, ...recMetas.map((m) => m.slug)]);
+let sourceLinkSlug = slugify(sourceFileBase) || "source";
+while (reservedSlugs.has(sourceLinkSlug)) sourceLinkSlug += "-source";
+const sourceLinkTitle = titleCase(sourceLinkSlug);
+const sourceNoteRel = `_sources/${sourceLinkSlug}.md`;
+
+// Source summary note (wiki/_sources/<slug>.md). Every generated page cites this
+// in `sources:`, so it MUST exist or those links dangle (schema: provenance is
+// non-negotiable). Created here when absent so the fan-out is born verify-clean,
+// not just strict-tree-clean. Never overwrites an existing source note — if the
+// file was already ingested with richer metadata, that wins.
+{
+  const abs = join(wikiDir, sourceNoteRel);
+  const isNew = !existsSync(abs);
+  seenRels.add(sourceNoteRel);
+  const text =
+    [
+      `---`,
+      `title: "${sourceLinkTitle}"`,
+      `type: source`,
+      `source_type: manual`,
+      `source_format: text`,
+      `date_ingested: ${today}`,
+      `tags: []`,
+      `aliases: ["${sourceLinkSlug}"]`,
+      `sources: []`,
+      `created: ${today}`,
+      `updated: ${today}`,
+      `status: active`,
+      `confidence: 1.0`,
+      `---`,
+    ].join("\n") +
+    `\n\n# ${sourceLinkTitle}\n\n## Metadata\n\nStructured record source: \`${sourceRelPath}\`\n\n## Summary\n\nFanned out into per-record pages under \`wiki/${topic}/\` by expand-records.\n`;
+  specs.push({ abs, rel: sourceNoteRel, text, kind: "source", isNew });
 }
 
 // Hub folder-note specs — type: index, parent → topic folder note, children → its
