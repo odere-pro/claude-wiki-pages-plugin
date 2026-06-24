@@ -1,6 +1,13 @@
 # ADR-0033: Topic-local linking and the topic-island graph view
 
-- **Status:** Proposed
+> [!important] Superseded by [ADR-0036](./ADR-0036-strict-tree-topology.md)
+> The topic-local linking *rule* below is superseded by strict-tree (ADR-0036),
+> and its remediation script `scripts/disentangle-links.sh` has been **retired** —
+> `scripts/strict-tree-reduce.sh` (whose keep predicate is a strict subset) is now
+> the sole link reducer. ADR-0033's connectivity metric, island view filter, and
+> ROOT-hub remain in force. This ADR is kept as the historical record.
+
+- **Status:** Superseded by ADR-0036
 - **Date:** 2026-06-15
 - **Builds on:** [ADR-0022](./ADR-0022-folder-notes-and-graph-quality.md) (folder notes + cluster metric), [ADR-0023](./ADR-0023-wiki-only-graph.md) (wiki-only graph, `userIgnoreFilters`), [ADR-0030](./ADR-0030-obsidian-accurate-resolution-and-collision.md) (Obsidian-accurate resolution), [ADR-0031](./ADR-0031-graph-connectivity-orphans-shadows.md) (connectivity metric)
 - **Anchor:** §4 (Layer 1 — Data), the schema authority (`skills/init/template/CLAUDE.md`), the `obsidian-graph-colors` skill, `scripts/graph-quality.sh`

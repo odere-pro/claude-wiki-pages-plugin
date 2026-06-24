@@ -366,6 +366,15 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 - **Bookkeeping tags** (`source`, `index`, `adr`, `session`) classify provenance, not theme; they are fine but do not count toward the 3–6 semantic tags.
 - **Format:** lowercase kebab-case in the frontmatter `tags:` array; never inline `#hashtags` in body text (they fragment the tag set).
 
+**Nested tag taxonomy (ADR-0036).** For structured knowledge domains (design patterns, principles, code smells, standards), use slash-nested tags to express hierarchy without graph edges:
+
+- `family/<x>` — the overarching knowledge family, e.g. `family/oop`, `family/distributed-systems`
+- `severity/<x>` — impact level, e.g. `severity/critical`, `severity/high`, `severity/medium`
+- `principle/<x>` — the design principle this page relates to, e.g. `principle/srp`, `principle/cohesion`
+- `topic/<x>` — cross-tree relationship to another topic tree (ADR-0036 §3). **Do not author these by hand**: `strict-tree-reduce --apply` adds them automatically when a `[[wikilink]]` to another tree is demoted. Writing them manually is fine for bootstrap, but the tool is authoritative.
+
+No `#` prefix in the `tags:` array (Obsidian handles the `#` display automatically for frontmatter tags). Nested tags appear in Obsidian's tag pane as collapsible hierarchies, so `family/oop` nests under `family/`. `expand-records.ts` sets `family/`, `severity/`, and `principle/` tags directly from structured source fields — pages produced this way are born tree-shaped with no wikilinks to demote.
+
 **`created` / `updated`** use `YYYY-MM-DD` format.
 
 ## Ontology profile (`ontology-profile-v1`)
@@ -395,6 +404,8 @@ Each row states: which predicate, which page class may originate the link (domai
 > The graph-traversal primitive (Brief §6) takes its edge set from this table. R2 `--graph` walks the provenance/association core — `sources`+`related`+`depends_on` — to N≤2; the remaining rows (`key_pages`, `members`, `scope`, `children`, `child_indexes`, `parent`) are the MOC/descent edges C1 uses. `contradicts`/`supersedes` are available to R3/synthesis. An edge violating a row's domain/range is a future S1-check lint finding, NOT a traversal the engine follows.
 >
 > **Topic-locality (ADR-0033).** The association predicates `related`, `depends_on`, `key_pages`, `members`, `scope`, `contradicts`, and `supersedes` are additionally constrained: both endpoints must live in the **same top-level topic folder**. A cross-topic association is written as prose, not a typed link, so the graph stays a set of topic islands. `parent`/`sources`/`children`/`child_indexes` are exempt (they target the navigation spine or `_sources/`, which the topic graph excludes from view).
+>
+> **Strict tree (ADR-0036).** The stricter successor demotes the association predicates further still: even a _same-topic_ `related`/`depends_on`/`key_pages`/`members`/`scope`/`contradicts`/`supersedes` value renders as a nested **tag**, not a graph edge. Among visible topic pages only the `parent`/`children`/`child_indexes` spine (plus the single ROOT→folder-note connector) draws edges; every associative relationship is a `family/…`-style tag. `scripts/strict-tree-reduce.sh` performs the demotion and records a `topic/<group>` tag for a demoted cross-tree reference (tag de-cycling). `sources:` provenance is unchanged.
 
 ### Enum list
 
@@ -455,7 +466,7 @@ Check for:
 - **Index aliases** — every folder note must have `aliases` reflecting the topic (slug, title case, abbreviations).
 - **Legacy index filename** — a `_index.md` in a schema_version 3 vault (verify WARN `legacy-index-filename`; remediation: run `bash scripts/engine.sh migrate --write`).
 - **Plain-string hierarchy links** — `parent`/`children`/`child_indexes` values that are not quoted `"[[wikilink]]"`s (no graph edge is produced).
-- **Cross-topic links** — a `[[wikilink]]` or association field (`related`/`depends_on`/`key_pages`/`members`/`scope`) pointing from a topic page to a page in a **different** top-level topic folder (ADR-0033 topic-locality). Info-level; remediate with `bash scripts/disentangle-links.sh --apply`. The spine (`parent`), provenance (`sources`), and folder-note `children`/`child_indexes` are exempt.
+- **Non-spine links** — among visible topic pages, any `[[wikilink]]` or association field (`related`/`depends_on`/`key_pages`/`members`/`scope`) that is **not** a `parent↔child` spine edge or the ROOT→folder-note connector (ADR-0036 strict tree). Info-level; remediate with `bash scripts/strict-tree-reduce.sh --apply` (each demoted cross-tree edge becomes a nested `topic/<tree>` tag). The spine (`parent`), provenance (`sources`), and folder-note `children`/`child_indexes` are exempt.
 - **Missing parent/path** — notes with missing or incorrect `parent`/`path` fields.
 - **Excessive nesting** — folders deeper than four levels (signal to refactor).
 - **Index consistency** — `wiki/index.md` matches actual wiki contents.
@@ -494,10 +505,10 @@ These rules keep pages scannable in Obsidian and in plain-markdown viewers. They
 - In frontmatter, use typed relationship fields (`contradicts`, `supersedes`, `depends_on`) for semantic links — also in piped basename form.
 - Wikilink display text uses Title Case page titles; the link target is always the file basename (or wiki-relative path), never the title.
 
-> [!important] Topic-local linking — keep the graph as topic islands (ADR-0033)
-> A `[[wikilink]]` between two **topic pages** must stay **within the same top-level topic folder**. Do not link a page in one topic folder to a page in another: a cross-topic `[[link]]` fuses the two topics in the graph and, repeated across the tree, collapses the topic islands into a hairball. Write a cross-topic reference as **plain prose** (the page's title as text), not a wikilink.
-> Exempt — these never count against topic-locality: the navigation spine `parent:` (up to the folder note, then `index.md`), provenance `sources:` → `_sources/**`, and a folder note's `children:`/`child_indexes:` (its own pages). The association fields `related`/`depends_on`/`key_pages`/`members`/`scope`/`contradicts`/`supersedes` must point only to same-topic pages.
-> Rule of thumb: **a link is allowed unless both endpoints are topic pages in different top-level folders.** Remediate an existing vault with `bash scripts/disentangle-links.sh --apply` (dry-run by default).
+> [!important] Strict-tree linking — the graph is the `parent:` spine, nothing else (ADR-0036)
+> Among **visible topic pages**, the ONLY `[[wikilinks]]` are the navigation spine — a page's `parent:` (up to its folder note, then `index.md`) and a folder note's `children:`/`child_indexes:` — plus the single ROOT `index.md`→folder-note connector. Every other reference — a sibling "see also", a link to a non-adjacent ancestor, a cross-topic mention — is written as **plain prose** (the page's title as text) or carried as a nested **tag** (`topic/<group>`, `family/<x>`), never as an edge. A non-spine edge fuses the tree into a hairball and is exactly what this rule forbids.
+> Exempt — never demoted: the spine `parent:`/`children:`/`child_indexes:` and provenance `sources:` → `_sources/**`. The association fields `related`/`depends_on`/`key_pages`/`members`/`scope`/`contradicts`/`supersedes` carry **no** graph edges among visible pages — express the relationship as a nested tag instead.
+> Rule of thumb: **keep a link iff it is a `parent↔child` spine edge or the ROOT→folder-note spine; demote everything else.** Remediate an existing vault with `bash scripts/strict-tree-reduce.sh --apply` (dry-run by default); each demoted cross-tree edge is recorded as a nested `topic/<tree>` tag so the relationship stays discoverable in the tag view without an edge.
 
 ## Naming conventions
 

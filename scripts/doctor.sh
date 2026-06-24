@@ -177,5 +177,23 @@ if command -v obsidian >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
   fi
 fi
 
+# ─── 8. Strict-tree conformance (advisory; parity with TS doctor D12) ──────
+# Reports whether the wiki graph is a strict tree (spine-only edges, ADR-0036).
+# Purely advisory: silent without bun/jq or on parse failure; never changes the
+# 0–5 exit contract above.
+if command -v bun >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+  TREE_JSON="$(bun "$PLUGIN_ROOT/scripts/graph-quality.ts" --target "$VAULT" --json 2>/dev/null || true)"
+  if [ -n "$TREE_JSON" ]; then
+    CONFORMANCE="$(printf '%s' "$TREE_JSON" | jq -r 'try .treeConformance catch empty' 2>/dev/null || true)"
+    NONSPINE="$(printf '%s' "$TREE_JSON" | jq -r 'try .nonSpineEdgeCount catch empty' 2>/dev/null || true)"
+    CROSS="$(printf '%s' "$TREE_JSON" | jq -r 'try .crossTreeEdgeCount catch empty' 2>/dev/null || true)"
+    if [ -n "$NONSPINE" ] && [ "$NONSPINE" -gt 0 ] 2>/dev/null; then
+      printf '\033[0;33mNOTE:\033[0m strict-tree: conformance=%s, %s non-spine edge(s) (%s cross-tree) — run /claude-wiki-pages:fix to reshape to the parent spine\n' "$CONFORMANCE" "$NONSPINE" "$CROSS"
+    elif [ -n "$CONFORMANCE" ]; then
+      green "strict-tree: conformance=$CONFORMANCE (spine-only)"
+    fi
+  fi
+fi
+
 printf '\n\033[0;32mhealthy.\033[0m vault=%s schema=%s\n' "$VAULT" "$SCHEMA_VERSION"
 exit 0

@@ -247,7 +247,7 @@ describe("validateContent — extension rules (beyond bash, additive)", () => {
     expect(msg).toContain("sources");
   });
 
-  test("schema_version present but not 1 or 2 is flagged", () => {
+  test("schema_version present but unsupported (e.g. 9) is flagged", () => {
     sb = vaultWith({});
     const content = CLEAN_CONCEPT.replace("type: concept", "schema_version: 9\ntype: concept");
     const msg = validateContent("topics/biology/photosynthesis.md", content, schemaPath(sb));
@@ -257,6 +257,16 @@ describe("validateContent — extension rules (beyond bash, additive)", () => {
   test("schema_version 2 is accepted", () => {
     sb = vaultWith({});
     const content = CLEAN_CONCEPT.replace("type: concept", "schema_version: 2\ntype: concept");
+    const msg = validateContent("topics/biology/photosynthesis.md", content, schemaPath(sb));
+    expect(msg).toBeNull();
+  });
+
+  // Regression: the validator must accept the SHIPPED schema_version (3). It
+  // previously hardcoded a private Set([1,2]) and rejected every conformant v3
+  // page authored to the template — now it derives the set from schema.ts.
+  test("schema_version 3 (the shipped default) is accepted", () => {
+    sb = vaultWith({});
+    const content = CLEAN_CONCEPT.replace("type: concept", "schema_version: 3\ntype: concept");
     const msg = validateContent("topics/biology/photosynthesis.md", content, schemaPath(sb));
     expect(msg).toBeNull();
   });

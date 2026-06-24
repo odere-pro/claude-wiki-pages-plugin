@@ -34,29 +34,49 @@
 import { join } from "node:path";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 
-// The island/search filter (ADR-0033): excludes the connective scaffolding so
-// the graph renders as topic islands rather than one hairball fused through
-// shared sources and the MOC. The pages stay in the vault — they are just not
-// drawn. Kept byte-identical to the obsidian-graph-colors skill's documented
-// scaffold so the two never drift.
+// The island/search filter base (ADR-0033 / ADR-0036): excludes the connective
+// scaffolding so the graph renders as topic islands rather than one hairball
+// fused through shared sources and the MOC. The pages stay in the vault — they
+// are just not drawn. Kept byte-identical to the obsidian-graph-colors skill's
+// documented scaffold so the two never drift.
 // NOTE: wiki/index.md is deliberately NOT excluded — it is the ROOT hub node,
 // drawn and distinctly coloured so every island visibly hangs off one findable
 // entry point (the "there must always be a ROOT" requirement). Only the
 // bookkeeping log and the scaffolding folders are hidden.
-const ISLAND_FILTER =
+// Cross-cutting folders (ADR-0036) are appended by buildIslandFilter() below.
+const ISLAND_FILTER_BASE =
   '-path:"raw/" -path:"_templates/" -path:"_proposed/" -path:"_inbox/" ' +
   '-path:"output/" -path:"wiki/_sources/" -path:"wiki/_synthesis/" ' +
   '-path:"wiki/log.md"';
+
+/**
+ * Build the full island search filter by appending `-path:"wiki/<folder>/"` for
+ * each cross-cutting folder (ADR-0036). Cross-cutting folders (e.g. `principles`)
+ * over-connect the graph because they contain pages referenced from every topic;
+ * excluding them from the graph view recovers topic-island separation without
+ * removing the pages from the vault.
+ *
+ * Set via env var `CLAUDE_WIKI_PAGES_CROSS_CUTTING` (comma-separated folder
+ * names under `wiki/`). Default: `"principles"`. Pass `""` to disable.
+ */
+function buildIslandFilter(crossCutting: readonly string[]): string {
+  let filter = ISLAND_FILTER_BASE;
+  for (const folder of crossCutting) {
+    if (folder) filter += ` -path:"wiki/${folder}/"`;
+  }
+  return filter;
+}
 
 // The ROOT hub group: index.md gets its own distinct colour so it stands out as
 // the entry point among the per-topic island colours. Asserted on every run.
 const ROOT_QUERY = "path:wiki/index.md";
 const ROOT_COLOR = { a: 1, rgb: 16777215 }; // bright white — distinct from PALETTE
 
-// The graph view filters this script enforces every run (merge-only — all other
-// keys, including the force-simulation params and `scale`, are preserved).
-const GRAPH_FILTERS: Record<string, string | boolean> = {
-  search: ISLAND_FILTER,
+// The non-search graph view filters this script enforces every run (merge-only —
+// all other keys, including the force-simulation params and `scale`, are
+// preserved). The `search` key is computed dynamically by buildIslandFilter()
+// so cross-cutting folders are included.
+const GRAPH_FILTER_KEYS: Record<string, string | boolean> = {
   showTags: false,
   showAttachments: false,
   hideUnresolved: true,
@@ -153,11 +173,16 @@ function reconcileColorGroups(
   return { groups, added };
 }
 
-/** Merge GRAPH_FILTERS + colorGroups into graph config. Returns [next, changed]. */
-function reconcileGraph(graph: Json, topics: string[]): [Json, string[]] {
+/** Merge graph filter keys + colorGroups into graph config. Returns [next, changed]. */
+function reconcileGraph(graph: Json, topics: string[], islandFilter: string): [Json, string[]] {
   const next: Json = { ...graph };
   const changed: string[] = [];
-  for (const [key, value] of Object.entries(GRAPH_FILTERS)) {
+  // Apply the dynamic search filter first, then the static boolean keys.
+  const allFilters: Record<string, string | boolean> = {
+    search: islandFilter,
+    ...GRAPH_FILTER_KEYS,
+  };
+  for (const [key, value] of Object.entries(allFilters)) {
     if (next[key] !== value) {
       next[key] = value;
       changed.push(key);
@@ -176,15 +201,22 @@ function reconcileGraph(graph: Json, topics: string[]): [Json, string[]] {
 }
 
 /** Merge userIgnoreFilters (append-only) + new-file keys into app config. */
-function reconcileApp(app: Json): [Json, string[]] {
+function reconcileApp(app: Json, crossCutting: readonly string[]): [Json, string[]] {
   const next: Json = { ...app };
   const changed: string[] = [];
   const have = Array.isArray(app.userIgnoreFilters)
     ? (app.userIgnoreFilters as unknown[]).filter((e): e is string => typeof e === "string")
     : [];
   const merged = [...have];
+  // Base exclusions.
   for (const entry of USER_IGNORE_FILTERS) {
     if (!merged.includes(entry)) merged.push(entry);
+  }
+  // Cross-cutting folder exclusions (ADR-0036): e.g. "wiki/principles/" so that
+  // folder disappears from graph, search, and link autocomplete index-wide.
+  for (const folder of crossCutting) {
+    const entry = `wiki/${folder}/`;
+    if (folder && !merged.includes(entry)) merged.push(entry);
   }
   if (merged.length !== have.length || !Array.isArray(app.userIgnoreFilters)) {
     next.userIgnoreFilters = merged;
@@ -208,9 +240,18 @@ function main(): void {
   const appPath = join(obsidian, "app.json");
   const wiki = join(target, "wiki");
 
+  // Cross-cutting folders (ADR-0036): comma-separated folder names under wiki/.
+  // E.g. "principles,cross-cutting". Pass "" to disable. Default: "principles".
+  const crossCuttingRaw = process.env.CLAUDE_WIKI_PAGES_CROSS_CUTTING ?? "principles";
+  const crossCuttingFolders = crossCuttingRaw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const islandFilter = buildIslandFilter(crossCuttingFolders);
+
   const topics = topicFolders(wiki);
-  const [graphNext, graphChanged] = reconcileGraph(loadJson(graphPath), topics);
-  const [appNext, appChanged] = reconcileApp(loadJson(appPath));
+  const [graphNext, graphChanged] = reconcileGraph(loadJson(graphPath), topics, islandFilter);
+  const [appNext, appChanged] = reconcileApp(loadJson(appPath), crossCuttingFolders);
   const drift = graphChanged.length > 0 || appChanged.length > 0;
 
   if (!checkOnly && drift) {
@@ -225,6 +266,7 @@ function main(): void {
     vault: target,
     mode: checkOnly ? "check" : "write",
     topics,
+    crossCuttingFolders,
     graph: graphChanged.length ? graphChanged : "unchanged",
     app: appChanged.length ? appChanged : "unchanged",
   };

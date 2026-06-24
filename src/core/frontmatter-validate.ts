@@ -27,8 +27,8 @@
  *   7. Provenance shape — `sources` must be a YAML list (or single wikilink
  *      string), never a scalar; `derived: true` must keep `confidence < 0.8`;
  *      `confidence`, when present, must be a number in [0, 1].
- *   8. `schema_version`, when present, must be 1 or 2 (src/core/schema.ts
- *      supports both — TEAM-BRIEF §3).
+ *   8. `schema_version`, when present, must be a version `src/core/schema.ts`
+ *      accepts — the single source of truth, not a private copy (TEAM-BRIEF §3).
  *
  * Provenance fields are sacred — these rules only *strengthen* sources /
  * source_quotes / derived / confidence; they never weaken them (TEAM-BRIEF §5).
@@ -45,6 +45,8 @@ import type { Finding } from "./report.ts";
 import { readFileSafe, listMarkdownRecursive } from "./fs.ts";
 import { parseFrontmatter, splitFrontmatter, stringList } from "./frontmatter.ts";
 import { parseTableRow } from "./markdown-table.ts";
+import { SUPPORTED_SCHEMA_VERSIONS } from "./schema.ts";
+import { DERIVED_CONFIDENCE_CEILING } from "./provenance.ts";
 
 /** The `check` field stamped on every finding (matches the bash hook's "frontmatter"). */
 export const FRONTMATTER_CHECK = "frontmatter" as const;
@@ -58,11 +60,8 @@ const UNIVERSAL_FIELDS = ["type", "title"] as const;
  */
 const PATH_CHECKED_TYPES = new Set(["entity", "concept", "topic", "project", "synthesis", "index"]);
 
-/** Confidence ceiling above which a `derived: true` page is inconsistent (provenance.ts parity). */
-const DERIVED_CONFIDENCE_CEILING = 0.8;
-
-/** schema_version values the engine accepts (src/core/schema.ts). */
-const SUPPORTED_SCHEMA_VERSIONS = new Set([1, 2]);
+// `DERIVED_CONFIDENCE_CEILING` (provenance.ts) and `SUPPORTED_SCHEMA_VERSIONS`
+// (schema.ts) are imported above — single source of truth, no private copies.
 
 // ── Schema-table parsing (single source of truth, ADR-0014) ──────────────────
 
@@ -243,7 +242,7 @@ function checkConfidenceRange(fm: Record<string, unknown>): string | null {
   return null;
 }
 
-/** Rule 8: `schema_version`, when present, must be a supported version (1 or 2). */
+/** Rule 8: `schema_version`, when present, must be a version `schema.ts` accepts. */
 function checkSchemaVersion(fm: Record<string, unknown>): string | null {
   if (!hasField(fm, "schema_version")) return null;
   const raw = fm["schema_version"];
@@ -253,8 +252,8 @@ function checkSchemaVersion(fm: Record<string, unknown>): string | null {
     const parsed = Number(raw);
     if (!Number.isNaN(parsed)) version = parsed;
   }
-  if (version === null || !SUPPORTED_SCHEMA_VERSIONS.has(version)) {
-    return `schema_version: ${String(raw)} is not supported — must be 1 or 2.`;
+  if (version === null || !SUPPORTED_SCHEMA_VERSIONS.includes(version)) {
+    return `schema_version: ${String(raw)} is not supported — must be ${SUPPORTED_SCHEMA_VERSIONS.join(" or ")}.`;
   }
   return null;
 }

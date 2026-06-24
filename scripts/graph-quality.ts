@@ -29,6 +29,7 @@ import { listMarkdownRecursive, readFileSafe } from "../src/core/fs.ts";
 import { deriveTopics } from "../src/core/topics.ts";
 import { parseFrontmatter, stringList } from "../src/core/frontmatter.ts";
 import { stripCode } from "../src/core/wikilink-check.ts";
+import { computeTreeMetric } from "../src/core/tree-metric.ts";
 import {
   buildLinkIndex,
   resolveLink,
@@ -70,7 +71,6 @@ interface Page {
   stem: string;
   links: string[];
   cluster: string;
-  isHub: boolean;
   isSpecial: boolean;
 }
 
@@ -84,7 +84,7 @@ const vault = target;
 const wiki = join(vault, "wiki");
 
 // Topic clusters derived from this vault's own top-level wiki/ folders (the
-// one shared derivation, so disentangle-links/heal-orphan-sources never drift).
+// one shared derivation, so strict-tree-reduce/heal-orphan-sources never drift).
 const CLUSTERS = deriveTopics(wiki);
 
 // ── gather wiki pages + the wiki-relative resolution index ───────────────────
@@ -107,7 +107,6 @@ for (const abs of listMarkdownRecursive(wiki)) {
     stem,
     links: pageLinks(text),
     cluster: CLUSTERS.includes(top) ? top : "other",
-    isHub: parts.length === 2 && parts[1] === top + ".md" && CLUSTERS.includes(top),
     isSpecial,
   });
 }
@@ -135,44 +134,10 @@ const clusterCounts: Record<string, number> = {};
 for (const c of [...CLUSTERS, "other"]) clusterCounts[c] = 0;
 for (const p of topicPages) clusterCounts[p.cluster] = (clusterCounts[p.cluster] ?? 0) + 1;
 
-// Hub names + every resolvable name → owning cluster (for the edge metrics).
-const hubNames = new Set<string>();
-const name2cluster = new Map<string, string>();
-for (const p of pages) {
-  const owner = p.isSpecial ? "special" : p.cluster;
-  const text = readFileSafe(join(wiki, p.rel)) ?? "";
-  const fm = parseFrontmatter(text);
-  const title = typeof fm["title"] === "string" ? fm["title"].trim() : "";
-  const names = [p.stem.toLowerCase()];
-  if (title) names.push(title.toLowerCase());
-  for (const a of stringList(fm["aliases"])) names.push(a.trim().toLowerCase());
-  for (const nm of names) {
-    if (p.isHub) hubNames.add(nm);
-    if (!name2cluster.has(nm)) name2cluster.set(nm, owner);
-  }
-}
-
-let edgesTotal = 0;
-let edgesHub = 0;
-let ceTotal = 0;
-let ceIn = 0;
-for (const p of pages) {
-  const srcInCluster = !p.isSpecial && CLUSTERS.includes(p.cluster);
-  for (const raw of p.links) {
-    if (!raw) continue;
-    const n = normaliseTarget(raw);
-    if (!resolvable.has(n)) continue; // dangling links are not edges
-    edgesTotal++;
-    if (p.isHub || hubNames.has(n)) edgesHub++;
-    const tgtCluster = name2cluster.get(n);
-    if (!p.isSpecial && tgtCluster !== undefined && tgtCluster !== "special") {
-      ceTotal++;
-      if (srcInCluster && CLUSTERS.includes(tgtCluster)) ceIn++;
-    }
-  }
-}
-const Ch = edgesTotal ? edgesHub / edgesTotal : 0;
-const Ce = ceTotal ? ceIn / ceTotal : 0;
+// The cluster edge-concentration metrics (Ch = hub-edge fraction, Ce =
+// within-cluster edge fraction; ADR-0022/0033) are retired under strict-tree
+// (ADR-0036): treeConformance + maxSaturation (computed below) are the stricter,
+// more informative successors. Cn (the filing ratio above) is orthogonal and stays.
 
 // ── connectivity / orphans / shadows (vault-relative universe) ───────────────
 // Build a combined index over wiki nodes + scratch pages, keyed VAULT-relative
@@ -290,6 +255,9 @@ const connectivity = {
   shadows: shadowsSorted,
 };
 
+// ── strict-tree metric (ADR-0036) — the one classifier in src/core ───────────
+const tree = computeTreeMetric(wiki);
+
 const round4 = (x: number): number => Math.round(x * 10000) / 10000;
 const result = {
   vault,
@@ -299,13 +267,16 @@ const result = {
   nodes: topicPages.length,
   nodesInClusters: inClusters.length,
   Cn: round4(Cn),
-  edgesTotal,
-  edgesTouchingHub: edgesHub,
-  Ch: round4(Ch),
-  edgesBetweenTopics: ceTotal,
-  edgesWithinClusters: ceIn,
-  Ce: round4(Ce),
   clusters: clusterCounts,
+  // ADR-0036 strict-tree conformance: spine-only edges among visible topic pages.
+  spineEdgeCount: tree.spineEdgeCount,
+  nonSpineEdgeCount: tree.nonSpineEdgeCount,
+  crossTreeEdgeCount: tree.crossTreeEdgeCount,
+  transitiveRedundantEdgeCount: tree.transitiveRedundantEdgeCount,
+  cycleCount: tree.cycleCount,
+  multiParentCount: tree.multiParentCount,
+  maxSaturation: tree.maxSaturation,
+  treeConformance: round4(tree.treeConformance),
   connectivity,
 };
 
@@ -321,11 +292,11 @@ if (asJson) {
   if (danglingList.length > 25) console.log(`  … and ${danglingList.length - 25} more`);
   console.log(`nodes: ${result.nodes}  in-clusters: ${result.nodesInClusters}  Cn=${result.Cn}`);
   console.log(
-    `edges: ${result.edgesTotal}  within-clusters: ${result.edgesWithinClusters}/${result.edgesBetweenTopics}  Ce=${result.Ce}  touching-hub: ${result.edgesTouchingHub}  Ch=${result.Ch}`,
-  );
-  console.log(
     "cluster sizes: " +
       [...CLUSTERS, "other"].map((c) => `${c}=${clusterCounts[c] ?? 0}`).join(", "),
+  );
+  console.log(
+    `strict-tree: conformance=${result.treeConformance}  spine=${result.spineEdgeCount}  non-spine=${result.nonSpineEdgeCount}  cross-tree=${result.crossTreeEdgeCount}  transitive-redundant=${result.transitiveRedundantEdgeCount}  cycles=${result.cycleCount}  multi-parent=${result.multiParentCount}  max-saturation=${result.maxSaturation}`,
   );
   const cc = result.connectivity;
   console.log(

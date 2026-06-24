@@ -81,6 +81,31 @@ why they were rejected: [`docs/local-models.md`](../../docs/local-models.md).
    `proposed_by: "<provider>:<model>"` and `status: draft` in the frontmatter.
 4. Stop. **Do not promote.** Tell the user to run `/claude-wiki-pages:review`.
 
+## Nested tag taxonomy (ADR-0036)
+
+When drafting pages for a structured knowledge domain (design patterns,
+principles, code smells, API fields, standards), populate the `tags:` field
+with slash-nested taxonomy tags instead of leaving it empty. These tags are
+the cross-cutting metadata layer — they let the Obsidian tag view pivot
+across topic trees without drawing graph edges.
+
+**Mapping rule**: convert structured source fields directly to tags:
+
+| Source field | Tag form | Example |
+|---|---|---|
+| `family: "oop"` | `family/<value>` | `"family/oop"` |
+| `severity: "high"` | `severity/<value>` | `"severity/high"` |
+| `principle: "srp"` | `principle/<value>` | `"principle/srp"` |
+| `category: "solid"` | (used for hub, not tag) | — |
+
+**Do not** add `[[wikilinks]]` to pages in other topic trees — use
+`topic/<tree>` tags for cross-tree associations instead. The `strict-tree-reduce`
+tool adds `topic/<x>` automatically when it demotes cross-tree wikilinks; you
+can also add them directly during drafting.
+
+For array sources (JSON/YAML glossaries), use `expand-records.sh` instead of
+drafting by hand — it sets tags, parent, and path mechanically for all records.
+
 ## Boundaries
 
 - Writes only under `draftTarget` (`_proposed/`). Never writes `wiki/` directly —

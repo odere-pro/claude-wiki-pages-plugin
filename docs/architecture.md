@@ -33,13 +33,13 @@ Slash commands and hooks turn the architecture into a contract. `commands/wiki.m
 
 ## Obsidian graph: topic islands
 
-The vault's wiki pages form a topic-island graph in Obsidian's graph view. Each top-level topic folder (`engine/`, `plugin/`, `wiki-pages/`, `llm/`, `obsidian/`, `knowledge-graph/`, `how-it-works/`) is one island; wikilinks between visible topic pages must stay within the same top-level folder. Cross-topic references are written as plain prose, not wikilinks. This is the **topic-local linking** rule (ADR-0033).
+The vault's wiki pages form a **strict tree** in Obsidian's graph view — each top-level topic folder (`engine/`, `plugin/`, `wiki-pages/`, `llm/`, `obsidian/`, `knowledge-graph/`, `how-it-works/`) is one island hanging off the ROOT. Among visible topic pages the only wikilinks are the `parent` spine (page → folder note → ROOT); every other reference — a sibling, a cross-topic mention, a non-adjacent ancestor — is written as plain prose or carried as a nested tag, never a wikilink. This is the **strict-tree linking** rule (ADR-0036), the stricter successor to topic-local (ADR-0033).
 
 The connective scaffolding — `wiki/_sources/`, `wiki/_synthesis/`, `wiki/index.md`, and `wiki/log.md` — is excluded from `.obsidian/graph.json`'s search filter so the islands render cleanly. Provenance (`sources:` citations) is fully preserved in the data; the exclusion is a view choice, not a data deletion. The filter is regenerable: the `obsidian-graph-colors` skill rebuilds it deterministically from the vault's topic tree.
 
-The graph's **root entry point** is `wiki/plugin/claude-wiki-pages-plugin.md`. That entity page links the seven topic folder notes so the graph reads as a central root with seven island lobes rather than an unconnected scatter.
+The graph's **root entry point** is the vault MOC `wiki/index.md` — the ROOT hub (un-hidden from the island filter, aliased `ROOT`). It links the topic folder notes so the graph reads as a central root with one lobe per topic rather than an unconnected scatter.
 
-`scripts/graph-quality.sh` measures graph health. `scripts/disentangle-links.sh` is the remediation pass: it demotes cross-topic body wikilinks to plain text and prunes cross-topic entries from association frontmatter fields (`related`, `depends_on`, `key_pages`, etc.) without ever touching `parent`/`sources`/`children` or creating dangling links.
+`scripts/graph-quality.sh` (and the read-only `scripts/tree-lint.sh`) measure graph health. `scripts/strict-tree-reduce.sh` is the remediation pass (ADR-0036, the strict-tree successor to the retired topic-local pass): it demotes every non-spine body wikilink to plain text and prunes non-spine entries from association frontmatter fields (`related`, `depends_on`, `key_pages`, etc.) — recording a nested `topic/<tree>` tag for each demoted cross-tree edge — without ever touching `parent`/`sources`/`children` or creating dangling links.
 
 ## Deterministic engine verbs
 

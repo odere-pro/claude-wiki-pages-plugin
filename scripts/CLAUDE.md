@@ -44,7 +44,7 @@ run top to bottom and the first block short-circuits the write.
 | `PreToolUse` | `Write\|Edit\|MultiEdit` | [`enforce-dmi.sh`](./enforce-dmi.sh) (path-filtered) |
 | `PreToolUse` | `Write\|Edit\|MultiEdit` | [`enforce-must-rule.sh`](./enforce-must-rule.sh) (path-filtered) |
 | `PostToolUse` | `Write\|Edit` | [`post-wiki-write.sh`](./post-wiki-write.sh), [`post-ingest-summary.sh`](./post-ingest-summary.sh) |
-| `SubagentStop` | — | [`subagent-lint-gate.sh`](./subagent-lint-gate.sh), [`subagent-ingest-gate.sh`](./subagent-ingest-gate.sh), [`subagent-commit-gate.sh`](./subagent-commit-gate.sh) |
+| `SubagentStop` | — | [`subagent-lint-gate.sh`](./subagent-lint-gate.sh), [`subagent-ingest-gate.sh`](./subagent-ingest-gate.sh), [`subagent-tree-gate.sh`](./subagent-tree-gate.sh), [`subagent-commit-gate.sh`](./subagent-commit-gate.sh) |
 | `Stop` | — | [`session-memory.sh`](./session-memory.sh) |
 | `SessionEnd` | — | [`session-memory.sh`](./session-memory.sh) |
 
@@ -109,6 +109,13 @@ run top to bottom and the first block short-circuits the write.
   agent reports unresolved errors.
 - [`subagent-ingest-gate.sh`](./subagent-ingest-gate.sh) — run verification and
   warn on a half-written wiki after the ingest agent stops.
+- [`subagent-tree-gate.sh`](./subagent-tree-gate.sh) — strict-tree conformance
+  gate (ADR-0036): after the polish/maintenance agents return, run `tree-lint`
+  and warn (non-blocking) when cross-tree edges, parent-chain cycles, or
+  multi-parent pages remain — the signal that the `strict-tree-reduce` self-heal
+  did not converge. Read-only; degrades silently without Bun. Gates only the
+  agents that own the tree heal (not ingest/curator, whose tree is healed later
+  by polish in orchestrator Step 3).
 - [`subagent-commit-gate.sh`](./subagent-commit-gate.sh) — commit backstop:
   after a write-path agent returns, commit any vault changes left uncommitted
   (pathspec-scoped; honors `gitCheckpoint.mode=off`; creates the repo when
@@ -145,14 +152,25 @@ run top to bottom and the first block short-circuits the write.
   metric. A thin bash wrapper over [`graph-quality.ts`](./graph-quality.ts)
   (Bun), which reuses the engine's resolver. Read-only. Used by the `fill-gaps`
   skill.
-- [`disentangle-links.sh`](./disentangle-links.sh) — topic-local linking
-  remediation (ADR-0033): demotes cross-topic `[[wikilinks]]` to plain text and
-  prunes cross-topic association frontmatter so the graph forms topic islands
-  instead of a hairball. Dry-run by default; `--apply` rewrites in place
-  (git-checkpointed). A thin bash wrapper over
-  [`disentangle-links.ts`](./disentangle-links.ts) (Bun); mirrors
-  `graph-quality.sh`'s resolver. Never touches `parent`/`sources`/`children` or
-  creates dangling links.
+- [`tree-lint.sh`](./tree-lint.sh) — read-only strict-tree conformance report
+  (ADR-0036): against the `parent:` spine, lists orphans, multi-parent pages,
+  parent-chain cycles, oversaturated nodes, and every non-spine edge among visible
+  topic pages (each tagged cross-tree, transitive-redundant, or intra-tree). The
+  detector half of the strict-tree machinery; remediation twin is
+  `strict-tree-reduce.sh`. A thin bash wrapper over [`tree-lint.ts`](./tree-lint.ts),
+  which reuses the one edge classifier [`../src/core/tree-metric.ts`](../src/core/tree-metric.ts)
+  and the one spine derivation [`../src/core/spine.ts`](../src/core/spine.ts). Read-only.
+- [`strict-tree-reduce.sh`](./strict-tree-reduce.sh) — strict-tree remediation
+  (ADR-0036), the SOLE link reducer: demotes every
+  NON-spine `[[wikilink]]` among visible topic pages (siblings, transitive-redundant
+  ancestor links, cross-tree mentions) to plain text and prunes non-spine
+  association frontmatter, so the graph draws only the `parent:` spine. A demoted
+  cross-tree edge records a nested `topic/<tree>` tag on the source (tag de-cycle).
+  Dry-run by default; `--apply` rewrites in place (git-checkpointed by the polish
+  agent). Never touches `parent`/`sources`/`children`/`child_indexes`, never
+  creates dangling links, idempotent on a tree-shaped vault. A thin bash wrapper
+  over [`strict-tree-reduce.ts`](./strict-tree-reduce.ts); owns the demote core
+  [`../src/core/link-demote.ts`](../src/core/link-demote.ts).
 - [`check-duplicate-claims.sh`](./check-duplicate-claims.sh) — advisory
   duplicate-claim warning across `source_quotes`.
 
@@ -201,9 +219,10 @@ Each is invoked directly by a bash script via `bun <helper> …`.
   half of the vault-resolution spine, called by `resolve-vault.sh`,
   `lib-vault-registry.sh`, and `lib-wired-source.sh`. The flat top-level string
   reads keep their grep/sed degraded fallback for when Bun itself is absent.
-- [`graph-quality.ts`](./graph-quality.ts), [`disentangle-links.ts`](./disentangle-links.ts)
-  — the analysis engines behind the like-named wrappers; reuse the engine's
-  resolver in [`../src/core/link-resolver.ts`](../src/core/link-resolver.ts).
+- [`graph-quality.ts`](./graph-quality.ts), [`strict-tree-reduce.ts`](./strict-tree-reduce.ts),
+  [`tree-lint.ts`](./tree-lint.ts) — the analysis engines behind the like-named
+  wrappers; reuse the engine's resolver in
+  [`../src/core/link-resolver.ts`](../src/core/link-resolver.ts).
 - [`verify-twins.ts`](./verify-twins.ts) — the five structural checks
   [`verify-ingest.sh`](./verify-ingest.sh) runs that need a real parser
   (MOC reachability, index consistency, orphan sources, dangling links,

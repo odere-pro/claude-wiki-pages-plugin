@@ -8,10 +8,10 @@ objective: ""
 project_status: planned
 members: [] # piped basename links, e.g. ["[[related-entity|Related Entity]]"]
 sources: [] # piped basename links, e.g. ["[[source-note|Source Note]]"]
-related: [] # piped basename links, e.g. ["[[related-project|Related Project]]"]
+related: [] # strict-tree: kept as tags not wikilinks; use topic/<name> tags for cross-tree associations
 source_quotes: []
 derived: false
-tags: []
+tags: [] # slash-nested taxonomy: ["family/oop", "severity/high", "topic/<related-tree>"]
 created:
 updated:
 update_count: 1

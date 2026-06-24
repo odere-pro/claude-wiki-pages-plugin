@@ -7,7 +7,7 @@ parent: "[[parent-folder|Parent Index]]" # piped basename link to the folder not
 path: ""
 sources: [] # piped basename links, e.g. ["[[source-note|Source Note]]"]
 related: [] # piped basename links, e.g. ["[[related-entity|Related Entity]]"]
-tags: []
+tags: [] # slash-nested taxonomy: ["family/oop", "severity/high", "topic/<related-tree>"]
 created:
 updated:
 update_count: 1

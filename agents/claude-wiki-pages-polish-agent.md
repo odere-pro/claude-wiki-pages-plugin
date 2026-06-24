@@ -46,17 +46,20 @@ clean vault is a no-op. Run in this order, capturing each tool's summary:
 
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/heal-ghost-links.sh" --target <vault> --json
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/disentangle-links.sh" --target <vault> --apply --json
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/strict-tree-reduce.sh" --target <vault> --apply --json
 bun  "${CLAUDE_PLUGIN_ROOT}/scripts/heal-orphan-sources.ts" --target <vault> --write
 ```
 
 1. **`heal-ghost-links`** — rewrites title/alias-only ghost wikilinks to piped
    basename form (the empty-node fix). Skip silently if it reports `unchanged`.
-2. **`disentangle-links --apply`** — demotes cross-topic body links and prunes
-   cross-topic association frontmatter so the graph forms topic **islands**
-   instead of one fused hairball. It derives the topics from the vault's own
-   `wiki/` folders (never a fixed list) and never touches
-   `parent`/`sources`/`children`.
+2. **`strict-tree-reduce --apply`** (ADR-0036) — the sole link reducer. Demotes
+   every **non-spine** `[[wikilink]]` among visible topic pages (siblings,
+   transitive-redundant ancestor links, cross-tree mentions) to prose and prunes
+   non-spine association frontmatter, so the graph draws only the `parent:` spine.
+   When it demotes a cross-tree edge it records a nested `topic/<tree>` tag on the
+   source (**tag de-cycle**), so cross-tree relationships survive in the tag view
+   without an edge. Derives topics from the vault's own `wiki/` folders; never
+   touches `parent`/`sources`/`children`/`child_indexes`.
 3. **`heal-orphan-sources --write`** — re-anchors any uncited `_sources/*`
    summary to its modal topic hub so it hangs off an island rather than floating.
 
@@ -142,7 +145,7 @@ Print exactly:
 
 ```
 POLISH:
-  self-heal: <ghost=<n|unchanged>, disentangle=<n|unchanged>, orphan-sources=<n|unchanged> | skip:<reason>>
+  self-heal: <ghost=<n|unchanged>, strict-tree=<demoted/+tags|unchanged>, orphan-sources=<n|unchanged> | skip:<reason>>
   graph-colors: <added=N excludes=<ok|added=M> | skip:<reason>>
   index-refresh: <regenerated | unchanged>
   moc-consistency: <added=N children, M child_indexes | unchanged>

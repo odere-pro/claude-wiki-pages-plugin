@@ -20,7 +20,9 @@ export function replaceYamlListField(
   items: readonly string[],
 ): string {
   const lines = frontmatter.split("\n");
-  const start = lines.findIndex((l) => new RegExp(`^${field}:`).test(l));
+  // Literal prefix match (not `new RegExp(field)`) so a field name with
+  // regex-special characters can never be interpolated into a pattern.
+  const start = lines.findIndex((l) => l.startsWith(`${field}:`));
   if (start === -1) return frontmatter;
 
   // Determine the span of the existing field (inline = 1 line; block = key + list items).

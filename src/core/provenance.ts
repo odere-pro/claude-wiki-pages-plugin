@@ -46,6 +46,14 @@ const SOURCE_REQUIRING_TYPES = new Set(["entity", "concept", "topic", "project",
  */
 const SKIP_DIRS = ["_sources", "_synthesis"];
 
+/**
+ * Confidence ceiling above which a `derived: true` page is inconsistent.
+ * The single source of truth for this threshold — `frontmatter-validate.ts`
+ * Rule 7b imports it so the verify-WARN and gate-ERROR paths can never diverge.
+ * Keep the value `0.8` to preserve gate-05 parity with verify-ingest.sh CHECK 5b.
+ */
+export const DERIVED_CONFIDENCE_CEILING = 0.8;
+
 /** CHECK 5a + 5b: provenance-completeness and derived/confidence consistency. */
 export function checkProvenance(wiki: string): Finding[] {
   const findings: Finding[] = [];
@@ -88,12 +96,12 @@ export function checkProvenance(wiki: string): Finding[] {
         const parsed = Number(confidenceRaw);
         if (!Number.isNaN(parsed)) confidence = parsed;
       }
-      if (confidence !== null && confidence >= 0.8) {
+      if (confidence !== null && confidence >= DERIVED_CONFIDENCE_CEILING) {
         const title = titleOf(content, filepath);
         findings.push({
           severity: "warn",
           check: "provenance-consistency",
-          message: `derived-high-confidence: "${title}" (${basename(filepath)}) has derived: true but confidence ${confidence} >= 0.8 — lower confidence to reflect inferred status`,
+          message: `derived-high-confidence: "${title}" (${basename(filepath)}) has derived: true but confidence ${confidence} >= ${DERIVED_CONFIDENCE_CEILING} — lower confidence to reflect inferred status`,
           file: filepath,
         });
       }

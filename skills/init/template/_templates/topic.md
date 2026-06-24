@@ -7,10 +7,10 @@ path: ""
 summary: ""
 key_pages: [] # piped basename links, e.g. ["[[important-concept|Important Concept]]"]
 sources: [] # piped basename links, e.g. ["[[source-note|Source Note]]"]
-related: [] # piped basename links, e.g. ["[[adjacent-topic|Adjacent Topic]]"]
+related: [] # strict-tree: kept as tags not wikilinks; use topic/<name> tags for cross-tree associations
 source_quotes: []
 derived: false
-tags: []
+tags: [] # slash-nested taxonomy: ["family/oop", "topic/<related-tree>"]
 created:
 updated:
 update_count: 1

@@ -8,6 +8,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=resolve-vault.sh
 source "${SCRIPT_DIR}/resolve-vault.sh"
+# shellcheck source=lib-fm-field.sh
+source "${SCRIPT_DIR}/lib-fm-field.sh"
 VAULT=$(resolve_vault)
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -22,6 +24,10 @@ WIKI="$VAULT/wiki"
 INDEX="$WIKI/index.md"
 VAULT_CLAUDE_MD="$VAULT/CLAUDE.md"
 SUPPORTED_SCHEMA_VERSIONS=(1 2 3)
+# Confidence ceiling above which a `derived: true` page is inconsistent (CHECK 5b).
+# The bash twin of src/core/provenance.ts DERIVED_CONFIDENCE_CEILING; keep the
+# value 0.8 so the gate-05 parity counts and messages do not move.
+DERIVED_CONFIDENCE_CEILING=0.8
 
 ERRORS=0
 WARNINGS=0
@@ -390,17 +396,9 @@ header "Cited-source staleness (S4)"
 
 # Helper: extract the first occurrence of a scalar frontmatter field.
 # Usage: _fm_field <file> <field-name>
-# Returns the trimmed value or empty string.
-# `grep -m1` avoids piping into `head` (which would SIGPIPE grep under
-# `set -o pipefail`); the trailing `|| true` absorbs grep's exit-1 on no match
-# so a missing field yields "" instead of killing the script under `set -e`.
-_fm_field() {
-  local file="$1" field="$2"
-  local line
-  line=$(sed -n '/^---$/,/^---$/p' "$file" | grep -m1 -E "^${field}:[[:space:]]" || true)
-  [ -z "$line" ] && return 0
-  printf '%s' "$line" | sed "s/^${field}:[[:space:]]*//" | tr -d "\"'"
-}
+# Returns the trimmed value or empty string. The implementation lives in the
+# sourced scripts/lib-fm-field.sh (shared with eval-ingest-extract.sh, so the
+# two never drift); see the source line near the top of this file.
 
 # Helper: emit every source markdown file under <sources_dir>, sorted. This is
 # the single candidate set every resolution tier below walks — extracting it
@@ -670,11 +668,11 @@ while IFS= read -r filepath; do
       grep -m1 -E '^confidence:[[:space:]]' | sed 's/^confidence:[[:space:]]*//' | tr -d "\"'" || true)
     if [ -n "$CONF_VAL" ]; then
       # Use awk for floating-point comparison (bash arithmetic is integer-only).
-      IS_HIGH=$(awk -v c="$CONF_VAL" 'BEGIN { print (c + 0 >= 0.8) ? "1" : "0" }')
+      IS_HIGH=$(awk -v c="$CONF_VAL" -v t="$DERIVED_CONFIDENCE_CEILING" 'BEGIN { print (c + 0 >= t + 0) ? "1" : "0" }')
       if [ "$IS_HIGH" = "1" ]; then
         PAGE_TITLE=$(_fm_title "$filepath")
         [ -z "$PAGE_TITLE" ] && PAGE_TITLE="$BASENAME"
-        yellow "derived-high-confidence: \"${PAGE_TITLE}\" ($(basename "$filepath")) has derived: true but confidence ${CONF_VAL} >= 0.8 — lower confidence to reflect inferred status"
+        yellow "derived-high-confidence: \"${PAGE_TITLE}\" ($(basename "$filepath")) has derived: true but confidence ${CONF_VAL} >= ${DERIVED_CONFIDENCE_CEILING} — lower confidence to reflect inferred status"
         DERIVED_WARNS=$((DERIVED_WARNS + 1))
         WARNINGS=$((WARNINGS + 1))
       fi
