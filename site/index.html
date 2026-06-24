@@ -476,7 +476,7 @@ flowchart TD
     O --&gt;|raw/ pending| ING[ingest agent]
     O --&gt;|question| ANA[analyst agent]
     O --&gt;|drift| CUR[curator agent]
-    ING &amp; CUR --&gt;|call| ENG[["Bun engine (13 verbs): verify · fix · heal · search"]]
+    ING &amp; CUR --&gt;|call| ENG[["Bun engine: verify · fix · heal · search"]]
     ENG --&gt;|checkpoint then auto-heal| HEAL{{"verify → fix → re-verify"}}
     HEAL --&gt;|clean| VAULT[("Vault: raw/ → wiki/")]
     HEAL -.-&gt;|rollback| GIT[(git revert)]
