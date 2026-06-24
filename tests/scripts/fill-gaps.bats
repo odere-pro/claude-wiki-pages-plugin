@@ -63,14 +63,14 @@ EOF
   [[ "$output" != *'"target": "Wiki Engine"'* ]]
 }
 
-@test "graph-quality: assigns pages to the engine cluster and counts hub edges" {
+@test "graph-quality: assigns pages to the engine cluster (Cn) and reports tree conformance" {
   _seed_vault
   run bash "$REPO_ROOT/$GQ" --target "$VAULT" --json
-  [[ "$output" == *'"engine": 3'* ]]
-  [[ "$output" == *'"Cn": 1'* ]]
-  # all edges are within the cluster, and every edge touches the hub here
-  [[ "$output" == *'"Ce": 1'* ]]
-  [[ "$output" == *'"Ch": 1'* ]]
+  assert_output_contains '"engine": 3'
+  assert_output_contains '"Cn": 1'
+  # The Ce/Ch edge-concentration metrics are retired (ADR-0036): strict-tree
+  # conformance is the successor signal, so assert it is emitted instead.
+  assert_output_contains '"treeConformance"'
 }
 
 @test "graph-quality: clean vault reports zero dangling" {
