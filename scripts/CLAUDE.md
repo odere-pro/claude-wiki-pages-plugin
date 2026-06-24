@@ -163,6 +163,17 @@ run top to bottom and the first block short-circuits the write.
   `strict-tree-reduce.sh`. A thin bash wrapper over [`tree-lint.ts`](./tree-lint.ts),
   which reuses the one edge classifier [`../src/core/tree-metric.ts`](../src/core/tree-metric.ts)
   and the one spine derivation [`../src/core/spine.ts`](../src/core/spine.ts). Read-only.
+- [`strict-tree-reduce.sh`](./strict-tree-reduce.sh) — strict-tree remediation
+  (ADR-0036), the stricter successor to `disentangle-links.sh`: demotes every
+  NON-spine `[[wikilink]]` among visible topic pages (siblings, transitive-redundant
+  ancestor links, cross-tree mentions) to plain text and prunes non-spine
+  association frontmatter, so the graph draws only the `parent:` spine. A demoted
+  cross-tree edge records a nested `topic/<tree>` tag on the source (tag de-cycle).
+  Dry-run by default; `--apply` rewrites in place (git-checkpointed by the polish
+  agent). Never touches `parent`/`sources`/`children`/`child_indexes`, never
+  creates dangling links, idempotent on a tree-shaped vault. A thin bash wrapper
+  over [`strict-tree-reduce.ts`](./strict-tree-reduce.ts); shares the demote core
+  [`../src/core/link-demote.ts`](../src/core/link-demote.ts) with `disentangle-links.sh`.
 - [`check-duplicate-claims.sh`](./check-duplicate-claims.sh) — advisory
   duplicate-claim warning across `source_quotes`.
 
