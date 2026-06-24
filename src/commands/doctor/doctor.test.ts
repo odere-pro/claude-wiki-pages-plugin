@@ -144,7 +144,8 @@ describe("doctor", () => {
         "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
         "wiki/index.md": '---\ntitle: "Wiki Index"\ntype: index\nparent: ""\ntags: []\n---\n',
         "wiki/a/a.md": page("[[index|Wiki Index]]", "A"),
-        "wiki/a/p1.md": '---\ntitle: "P1"\nparent: "[[a|A]]"\ntags: []\n---\n# P1\nlinks [[p2|P2]] across\n',
+        "wiki/a/p1.md":
+          '---\ntitle: "P1"\nparent: "[[a|A]]"\ntags: []\n---\n# P1\nlinks [[p2|P2]] across\n',
         "wiki/b/b.md": page("[[index|Wiki Index]]", "B"),
         "wiki/b/p2.md": page("[[b|B]]", "P2"),
       });

@@ -8,12 +8,7 @@
  */
 
 import { test, expect, describe } from "bun:test";
-import {
-  splitFrontmatter,
-  linkDisplay,
-  demoteInBody,
-  pruneFields,
-} from "./link-demote.ts";
+import { splitFrontmatter, linkDisplay, demoteInBody, pruneFields } from "./link-demote.ts";
 
 /** Keep links whose target basename starts with "keep"; demote everything else. */
 const keepKeepers = (raw: string): boolean => raw.split("|")[0]!.trim().startsWith("keep");
@@ -66,7 +61,8 @@ describe("pruneFields", () => {
   const FIELDS = new Set(["related", "depends_on"]);
 
   test("prunes rejected entries only from listed fields", () => {
-    const fm = '\nrelated: ["[[keep-me|Keep Me]]", "[[drop-it|Drop It]]"]\nsources: ["[[drop-it|Drop It]]"]';
+    const fm =
+      '\nrelated: ["[[keep-me|Keep Me]]", "[[drop-it|Drop It]]"]\nsources: ["[[drop-it|Drop It]]"]';
     const [out, n] = pruneFields(fm, keepKeepers, FIELDS);
     expect(n).toBe(1);
     expect(out).toContain('related: ["[[keep-me|Keep Me]]"]');

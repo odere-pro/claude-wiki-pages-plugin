@@ -188,7 +188,10 @@ export function deriveSpine(wiki: string): Spine {
  * Iterative DFS with on-stack tracking; each weakly-connected component has at
  * most one cycle, so each distinct loop is reported once.
  */
-function detectCycles(rels: readonly string[], parentOf: ReadonlyMap<string, string | null>): string[][] {
+function detectCycles(
+  rels: readonly string[],
+  parentOf: ReadonlyMap<string, string | null>,
+): string[][] {
   const color = new Map<string, 0 | 1 | 2>(); // 0 unvisited, 1 on-stack, 2 done
   const found: string[][] = [];
   const seenKeys = new Set<string>();

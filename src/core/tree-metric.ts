@@ -119,8 +119,7 @@ export function computeTreeMetric(wiki: string): TreeMetric {
         spineEdgeCount += 1;
         continue;
       }
-      const crossTree =
-        fromNode.tree !== "" && toNode.tree !== "" && fromNode.tree !== toNode.tree;
+      const crossTree = fromNode.tree !== "" && toNode.tree !== "" && fromNode.tree !== toNode.tree;
       const transitiveRedundant =
         fromNode.pathToRoot.includes(to) || toNode.pathToRoot.includes(from);
       nonSpineEdgeCount += 1;
