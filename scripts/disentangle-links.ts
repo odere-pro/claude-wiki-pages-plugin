@@ -24,8 +24,8 @@ import { listMarkdownRecursive, readFileSafe } from "../src/core/fs.ts";
 import { parseFrontmatter, stringList } from "../src/core/frontmatter.ts";
 import { resolveLink, normaliseTarget, type LinkIndex } from "../src/core/link-resolver.ts";
 import { deriveTopics } from "../src/core/topics.ts";
+import { splitFrontmatter, demoteInBody, pruneFields } from "../src/core/link-demote.ts";
 
-const LINK_RE = /\[\[([^[\]]+?)\]\]/g;
 // Association frontmatter fields whose cross-topic entries fuse the graph. Spine
 // fields (parent/children/child_indexes) and provenance (sources) are NOT pruned.
 const PRUNE_FIELDS = new Set([
@@ -40,25 +40,6 @@ const PRUNE_FIELDS = new Set([
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name);
   return i !== -1 ? process.argv[i + 1] : undefined;
-}
-
-/** Text Obsidian shows: the piped alias, else the bare target minus anchor. */
-function linkDisplay(raw: string): string {
-  if (raw.includes("|")) return raw.split("|").slice(1).join("|").trim();
-  return raw.split("#")[0]!.split("^")[0]!.trim();
-}
-
-interface FrontmatterSplit {
-  fm: string | null;
-  body: string;
-  block: string;
-}
-
-function splitFrontmatter(text: string): FrontmatterSplit {
-  if (!text.startsWith("---")) return { fm: null, body: text, block: "" };
-  const end = text.indexOf("\n---", 3);
-  if (end === -1) return { fm: null, body: text, block: "" };
-  return { fm: text.slice(3, end), body: text.slice(end + 4), block: text.slice(0, end + 4) };
 }
 
 function topFolder(vrel: string): string {
@@ -182,79 +163,6 @@ function keepLink(srcVrel: string, raw: string): boolean {
   return false; // cross-topic between two visible topic pages → cut
 }
 
-// ── body demotion (fence- and inline-span-aware) ─────────────────────────────
-function* splitCodeSpans(text: string): Generator<[string, boolean]> {
-  for (const p of text.split(/(`+[^`]*`+)/)) {
-    if (!p) continue;
-    yield [p, /^`+/.test(p)];
-  }
-}
-
-function demoteInBody(body: string, srcVrel: string): [string, number] {
-  const out: string[] = [];
-  let inFence = false;
-  let marker = "";
-  let demoted = 0;
-  for (const line of body.split("\n")) {
-    const s = line.replace(/^\s+/, "");
-    if (!inFence && (s.startsWith("```") || s.startsWith("~~~"))) {
-      inFence = true;
-      marker = s.slice(0, 3);
-      out.push(line);
-      continue;
-    }
-    if (inFence) {
-      if (s.startsWith(marker)) {
-        inFence = false;
-        marker = "";
-      }
-      out.push(line);
-      continue;
-    }
-    const res: string[] = [];
-    for (const [seg, isCode] of splitCodeSpans(line)) {
-      if (isCode) {
-        res.push(seg);
-        continue;
-      }
-      res.push(
-        seg.replace(LINK_RE, (full: string, raw: string) => {
-          if (keepLink(srcVrel, raw)) return full;
-          demoted += 1;
-          return linkDisplay(raw);
-        }),
-      );
-    }
-    out.push(res.join(""));
-  }
-  return [out.join("\n"), demoted];
-}
-
-// ── frontmatter array pruning ────────────────────────────────────────────────
-function pruneFields(fmRaw: string, srcVrel: string): [string, number] {
-  let pruned = 0;
-  const lines = fmRaw.split("\n");
-  for (let idx = 0; idx < lines.length; idx++) {
-    const m = /^(\s*([a-z_]+):\s*)(\[.*\])\s*$/.exec(lines[idx]!);
-    if (!m) continue;
-    if (!PRUNE_FIELDS.has(m[2]!)) continue;
-    const prefix = m[1]!;
-    const arr = m[3]!;
-    const items = [...arr.matchAll(/"([^"]*)"/g)].map((x) => x[1]!);
-    const kept: string[] = [];
-    for (const it of items) {
-      const lm = new RegExp(LINK_RE.source).exec(it);
-      if (lm && !keepLink(srcVrel, lm[1]!)) {
-        pruned += 1;
-        continue;
-      }
-      kept.push(it);
-    }
-    lines[idx] = prefix + "[" + kept.map((k) => `"${k}"`).join(", ") + "]";
-  }
-  return [lines.join("\n"), pruned];
-}
-
 // ── rewrite pass ─────────────────────────────────────────────────────────────
 interface ReportRow {
   file: string;
@@ -267,15 +175,16 @@ let totalDemoted = 0;
 let totalPruned = 0;
 for (const p of pages) {
   if (isHidden(p.vrel)) continue; // hidden nodes keep every link — skip
+  const keep = (raw: string): boolean => keepLink(p.vrel, raw);
   const { fm, body, block } = splitFrontmatter(p.text);
   let newBlock = block;
   let pruned = 0;
   if (fm !== null) {
-    const [newInner, n] = pruneFields(fm, p.vrel);
+    const [newInner, n] = pruneFields(fm, keep, PRUNE_FIELDS);
     pruned = n;
     if (pruned) newBlock = "---" + newInner + "\n---";
   }
-  const [newBody, demoted] = demoteInBody(body, p.vrel);
+  const [newBody, demoted] = demoteInBody(body, keep);
   if (pruned || demoted) {
     const newText = fm !== null ? newBlock + newBody : newBody;
     report.push({ file: p.rel, cluster: p.cluster, demoted, relatedPruned: pruned });
