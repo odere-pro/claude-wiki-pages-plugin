@@ -45,9 +45,6 @@
  */
 export type Severity = "error" | "warn" | "info";
 
-/** Doctor-style status (used by `doctor` in M5; defined here as the single source). */
-export type Status = "pass" | "warn" | "fail" | "fixed" | "skip";
-
 export interface Finding {
   readonly severity: Severity;
   /** Which check produced it, e.g. "schema", "index-duplicates", "moc". */

@@ -4,7 +4,8 @@
   "description": "Deterministic engine for the claude-wiki-pages Claude Code plugin: indexes, links, verifies, and self-heals an Obsidian LLM-Wiki vault. Bash for the hooks, Bun for the brain.",
   "type": "module",
   "engines": {
-    "bun": ">=1.2"
+    "bun": ">=1.2",
+    "node": ">=22"
   },
   "bin": {
     "claude-wiki-pages": "dist/cli.js",
@@ -28,6 +29,7 @@
     "yaml": "2.6.1"
   },
   "devDependencies": {
+    "@eslint/js": "9.28.0",
     "@types/bun": "1.2.19",
     "@typescript-eslint/eslint-plugin": "8.18.2",
     "@typescript-eslint/parser": "8.18.2",
