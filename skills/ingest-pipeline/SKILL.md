@@ -230,6 +230,82 @@ field, or timeout), the ingest-agent:
 This matches the existing 25-cap-then-backlog semantics: forward progress
 is preserved and the snapshot range remains revertible.
 
+## Structured record sources — fan-out mode (ADR-0036 #57)
+
+When a raw source is a **JSON, YAML, or CSV array** (a glossary, catalogue, or
+dataset where every row is an independent page), skip the normal single-source
+extraction path and use `expand-records.ts` instead. This mode is a first-class
+fan-out: one page per record, hub folder-notes per category, and a `parent:`
+spine all born tree-shaped — no `strict-tree-reduce` pass needed afterwards.
+
+### When to trigger
+
+- Source file extension is `.json`, `.yaml`, `.yml`, or `.csv`.
+- Top-level value is an array (confirmed by reading the first 5 lines).
+- Records share a common id/name/category structure (a glossary, taxonomy, or
+  entity catalogue).
+
+### How to invoke
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/scripts/expand-records.sh" \
+  --target <vault> \
+  --source raw/<file.json> \
+  --topic <target-topic-folder> \
+  [--id-field id] \
+  [--title-field name] \
+  [--hub-field category] \
+  [--tag-fields "family,severity,principle"] \
+  [--type concept] \
+  --json
+```
+
+Dry-run first (omit `--apply`) to review the page plan. Then pass `--apply` and
+run inside a git checkpoint (`bash scripts/snapshot.sh pre --target <vault>`).
+
+### Output shape
+
+For a record `{id:"srp", name:"Single Responsibility Principle", category:"solid-principles", family:"oop", severity:"high"}` with `--topic principles`:
+
+```
+wiki/_sources/glossary.md                              ← source note (type: source, auto-created)
+wiki/principles/solid-principles/solid-principles.md   ← hub folder-note (type: index)
+wiki/principles/solid-principles/srp.md                ← record page
+  tags: ["family/oop", "severity/high"]
+  parent: "[[solid-principles|Solid Principles]]"
+  sources: ["[[glossary|Glossary]]"]
+```
+
+The hub folder-note has `parent: "[[principles|Principles]]"`, closing the
+spine to the topic root. The source summary note (`wiki/_sources/<file>.md`) is
+auto-created when absent so every record page's `sources:` link resolves —
+provenance is born intact, not just the tree shape. An existing source note
+(e.g. one a prior ingest already wrote with richer metadata) is never
+overwritten. All cross-record associations are expressed as `family/<x>`,
+`severity/<x>`, `principle/<x>` nested tags — no wikilinks — so the graph draws
+clean topic islands from day one.
+
+### Confirmation gate
+
+After the dry-run, report to the user:
+
+```
+expand-records plan for raw/<file>:
+- N records → N pages in wiki/<topic>/
+- N hub folder-notes: <list>
+- Tag fields: <fields>
+- Pages already existing (will skip): N
+
+Review the plan. Options:
+  (a) Approve — run with --apply
+  (b) Adjust (change --hub-field, --tag-fields, --topic) — re-plan
+  (c) Abort
+```
+
+Stop and wait for explicit approval before passing `--apply`.
+
+---
+
 ## Step 3 — Optimize (opt-in, destructive)
 
 **This step restructures folders with `git mv` and rewrites `parent:`/`path:` across many pages. It requires explicit user confirmation.**

@@ -366,6 +366,15 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 - **Bookkeeping tags** (`source`, `index`, `adr`, `session`) classify provenance, not theme; they are fine but do not count toward the 3–6 semantic tags.
 - **Format:** lowercase kebab-case in the frontmatter `tags:` array; never inline `#hashtags` in body text (they fragment the tag set).
 
+**Nested tag taxonomy (ADR-0036).** For structured knowledge domains (design patterns, principles, code smells, standards), use slash-nested tags to express hierarchy without graph edges:
+
+- `family/<x>` — the overarching knowledge family, e.g. `family/oop`, `family/distributed-systems`
+- `severity/<x>` — impact level, e.g. `severity/critical`, `severity/high`, `severity/medium`
+- `principle/<x>` — the design principle this page relates to, e.g. `principle/srp`, `principle/cohesion`
+- `topic/<x>` — cross-tree relationship to another topic tree (ADR-0036 §3). **Do not author these by hand**: `strict-tree-reduce --apply` adds them automatically when a `[[wikilink]]` to another tree is demoted. Writing them manually is fine for bootstrap, but the tool is authoritative.
+
+No `#` prefix in the `tags:` array (Obsidian handles the `#` display automatically for frontmatter tags). Nested tags appear in Obsidian's tag pane as collapsible hierarchies, so `family/oop` nests under `family/`. `expand-records.ts` sets `family/`, `severity/`, and `principle/` tags directly from structured source fields — pages produced this way are born tree-shaped with no wikilinks to demote.
+
 **`created` / `updated`** use `YYYY-MM-DD` format.
 
 ## Ontology profile (`ontology-profile-v1`)

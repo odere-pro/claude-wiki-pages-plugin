@@ -5,11 +5,11 @@ aliases: []
 parent: "[[parent-folder|Parent Index]]" # piped basename link to the folder note (replace with the real basename); never a bare title
 path: ""
 sources: [] # piped basename links, e.g. ["[[source-note|Source Note]]"]
-related: [] # piped basename links, e.g. ["[[other-concept|Other Concept]]"]
+related: [] # strict-tree: kept as tags not wikilinks; piped basename links only for true parent↔child edges
 contradicts: []
 supersedes: []
 depends_on: []
-tags: []
+tags: [] # slash-nested taxonomy: ["family/oop", "principle/srp", "topic/<related-tree>"]
 created:
 updated:
 update_count: 1
