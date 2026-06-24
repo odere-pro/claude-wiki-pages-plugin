@@ -19,7 +19,7 @@ contract.
 | `verify`   | Deterministic vault integrity check (CHECK 0–5).                     | `Report`         |
 | `fix`      | Idempotent repair of safe structural drift.                          | `FixReport`      |
 | `heal`     | Git-bounded `verify → fix → re-verify` self-heal loop.               | `HealReport`     |
-| `doctor`   | Environment + vault health check (D01–D10).                          | `DoctorReport`   |
+| `doctor`   | Environment + vault health check (D01–D12).                          | `DoctorReport`   |
 | `config`   | Show or validate the effective layered config.                       | `ConfigReport`   |
 | `migrate`  | Upgrade a vault's `schema_version` (additive, git-bounded).          | `MigrateReport`  |
 | `search`   | Deterministic full-text + frontmatter search over `wiki/`.           | `SearchReport`   |

@@ -74,6 +74,13 @@ const Cn = num(gq?.["Cn"]);
 const Ce = num(gq?.["Ce"]);
 // catalogCoverage is optional (1 = no catalog / fully covered).
 const catalogCoverage = gq?.["catalogCoverage"] === undefined ? 1 : num(gq?.["catalogCoverage"], 1);
+// ADR-0036 strict-tree conformance signals (added to the graph-quality JSON).
+// Absent on a pre-0036 graph-quality → treeConformance defaults to 1 (no drift).
+const treeConformance = gq?.["treeConformance"] === undefined ? 1 : num(gq?.["treeConformance"], 1);
+const nonSpineEdgeCount = num(gq?.["nonSpineEdgeCount"]);
+const crossTreeEdgeCount = num(gq?.["crossTreeEdgeCount"]);
+const cycleCount = num(gq?.["cycleCount"]);
+const multiParentCount = num(gq?.["multiParentCount"]);
 
 // engine verify report shape: { summary: { errors, warnings } } or flat.
 const vSummary = (verify?.["summary"] as Record<string, unknown> | undefined) ?? verify ?? {};
@@ -90,8 +97,9 @@ const sub = {
   linkIntegrity: { weight: 25, value: clamp01(1 - danglingCount * 0.03) },
   // Connectivity: penalize orphan fraction (0 orphans → full).
   connectivity: { weight: 20, value: clamp01(1 - orphanRatio * 2) },
-  // Cluster shape: average of Cn and Ce (ADR-0033 target 1.0).
-  clusterShape: { weight: 20, value: clamp01((Cn + Ce) / 2) },
+  // Cluster + tree shape: average of Cn, Ce (ADR-0033) and treeConformance
+  // (ADR-0036) — all target 1.0. Strict-tree drift gently lowers the score.
+  clusterShape: { weight: 20, value: clamp01((Cn + Ce + treeConformance) / 3) },
   // Structural integrity: any verify error is a hard hit; warnings cost less.
   structural: { weight: 20, value: clamp01(1 - verifyErrors * 0.25 - verifyWarnings * 0.02) },
   // Catalog coverage: families present / families in any structured catalog.
@@ -119,6 +127,11 @@ if (orphanCount > 0) issues.push(`${orphanCount} orphan node(s)`);
 if (verifyErrors > 0) issues.push(`${verifyErrors} structural verify error(s)`);
 if (nodes > 0 && Cn < 0.85) issues.push(`low cluster concentration (Cn=${Cn})`);
 if (catalogCoverage < 1) issues.push(`incomplete catalog coverage (${Math.round(catalogCoverage * 100)}%)`);
+// ADR-0036 strict-tree drift (drives the wiki self-heal route via strict-tree-reduce).
+if (crossTreeEdgeCount > 0) issues.push(`${crossTreeEdgeCount} cross-tree edge(s) — graph is not a strict tree`);
+if (cycleCount > 0) issues.push(`${cycleCount} parent-chain cycle(s)`);
+if (multiParentCount > 0) issues.push(`${multiParentCount} multi-parent page(s)`);
+if (treeConformance < 0.85) issues.push(`low tree conformance (treeConformance=${treeConformance}, ${nonSpineEdgeCount} non-spine edge(s))`);
 if (obsidianConfig === "drift") issues.push("Obsidian graph config is stale (raw/ sprawl, missing island filter)");
 if (ghostLinks === "drift") issues.push("ghost wikilinks need healing (alias/title-only citations)");
 
@@ -140,6 +153,11 @@ const result = {
     Cn,
     Ce,
     catalogCoverage,
+    treeConformance,
+    nonSpineEdgeCount,
+    crossTreeEdgeCount,
+    cycleCount,
+    multiParentCount,
     verifyErrors,
     verifyWarnings,
     obsidianConfig,

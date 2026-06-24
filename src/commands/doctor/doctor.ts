@@ -1,7 +1,7 @@
 /**
  * `doctor` — environment + vault health check, agentline-style.
  *
- * Eleven checks (D01–D11), each returning a status of pass | warn | fail |
+ * Twelve checks (D01–D12), each returning a status of pass | warn | fail |
  * fixed | skip. `--fix` repairs the auto-fixable subset (D04, D05, D08);
  * diagnose-only checks are never mutated. Exit 0 by default; with `--strict`,
  * exit 3 when any check finished warn or fail.
@@ -20,6 +20,7 @@ import { declaredSchemaVersion, SUPPORTED_SCHEMA_VERSIONS } from "../../core/sch
 import { isRepo, ensureRepo, repoRoot } from "../../core/git.ts";
 import { mapBounded, CONCURRENCY_MAX } from "../../core/checks-runner.ts";
 import { verify } from "../verify/verify.ts";
+import { computeTreeMetric } from "../../core/tree-metric.ts";
 
 export type DoctorStatus = "pass" | "warn" | "fail" | "fixed" | "skip";
 
@@ -388,7 +389,32 @@ function checkLinkParity({ vault, runner }: DoctorContext): CheckResult {
       };
 }
 
-/** The ordered check registry — D01…D11. Order here is the report order. */
+// D12 — strict-tree conformance (ADR-0036; advisory — diagnose-only, never a fail)
+function checkTreeConformance({ wiki }: DoctorContext): CheckResult {
+  const title = "Strict-tree conformance";
+  if (!existsSync(wiki)) return { id: "D12", title, status: "skip", message: "no wiki/ yet" };
+  const m = computeTreeMetric(wiki);
+  const islands = new Set(
+    [...m.spine.nodes.values()].filter((n) => !n.special && n.tree !== "").map((n) => n.tree),
+  ).size;
+  const conformance = Math.round(m.treeConformance * 100) / 100;
+  const message =
+    `conformance=${conformance}  islands=${islands}  non-spine=${m.nonSpineEdgeCount}  ` +
+    `cross-tree=${m.crossTreeEdgeCount}  transitive-redundant=${m.transitiveRedundantEdgeCount}  ` +
+    `cycles=${m.cycleCount}  multi-parent=${m.multiParentCount}  max-saturation=${m.maxSaturation}`;
+  const drift = m.nonSpineEdgeCount > 0 || m.cycleCount > 0 || m.multiParentCount > 0;
+  return drift
+    ? {
+        id: "D12",
+        title,
+        status: "warn",
+        message,
+        hint: "run /claude-wiki-pages:fix to demote non-spine edges to the parent spine",
+      }
+    : { id: "D12", title, status: "pass", message };
+}
+
+/** The ordered check registry — D01…D12. Order here is the report order. */
 const CHECKS: readonly CheckFn[] = [
   checkVaultPath,
   checkSchemaVersion,
@@ -401,6 +427,7 @@ const CHECKS: readonly CheckFn[] = [
   checkVerify,
   checkGlossaryGate,
   checkLinkParity,
+  checkTreeConformance,
 ];
 
 export async function doctor(opts: DoctorOptions = {}): Promise<DoctorReport> {

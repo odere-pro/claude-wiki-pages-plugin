@@ -50,6 +50,7 @@ Writes are confined to what the specific lint finding authorizes:
 | Missing per-folder MOC            | Create the folder note at its canonical name `<folder>/<folder>.md` (`type: index`). Never create a new `_index.md`. |
 | Legacy index filename (`legacy-index-filename` WARN) | Leave in place — this skill **never renames** an existing `_index.md`; the rename is `engine.sh migrate --write`'s job. Reconcile its fields like any folder note. |
 | Banned legacy value               | Rewrite: `type: moc` → `type: index`; `_MOC.md` → the folder-note name; `child_mocs:` → `child_indexes:`. |
+| Strict-tree drift (non-spine / cross-tree edge / cycle, `tree-lint` ADR-0036) | Run `bash scripts/strict-tree-reduce.sh --target <vault> --apply` (git-checkpointed) — it demotes every non-spine `[[wikilink]]` to prose and adds `topic/<tree>` de-cycle tags so the graph draws only the `parent:` spine. A deterministic graph-shape repair, not a per-page edit; **never hand-rewrite links to fake conformance**. Detect first with `bash scripts/tree-lint.sh --target <vault>`. |
 | Vault MOC drift                   | Escalate to `/claude-wiki-pages:index`; do not edit `wiki/index.md` directly.     |
 
 Always append one log entry:

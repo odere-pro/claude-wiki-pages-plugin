@@ -116,7 +116,8 @@ checkpoint SHA — **never fabricate links to pass a gate**; surface instead.
 ## Reading & writing contract
 
 - **Reads:** the bundled `template/` (always the plugin-cache path, never a
-  project copy), `scripts/graph-quality.sh`, the engine, and the resolved vault.
+  project copy), `scripts/graph-quality.sh`, `scripts/tree-lint.sh`, the engine,
+  and the resolved vault.
 - **Writes:** `<project>/.claude/workflows/fill-knowledge-gaps.mjs` (materialize
   step only) and — through the agents it dispatches — the resolved vault under
   git checkpoints. It never writes another vault and never edits `raw/` existing
@@ -127,4 +128,9 @@ checkpoint SHA — **never fabricate links to pass a gate**; surface instead.
 - `/claude-wiki-pages:ingest`, the ingest agent — Phases B/C/D/E.
 - `/claude-wiki-pages:fix` and the curator agent — Phase D/F.
 - `/claude-wiki-pages:lint` and `scripts/graph-quality.sh` — the gap detectors.
+- `scripts/tree-lint.sh` (detector) + `scripts/strict-tree-reduce.sh`
+  (remediation) — the strict-tree (ADR-0036) power-user direct path: report and
+  then demote every non-spine edge so the graph draws only the `parent:` spine.
+  Phase F's `polish` agent already runs the reducer; run these directly for a
+  targeted reshape outside a full fill-gaps pass.
 - `/claude-wiki-pages:wiki` — routes "complete the wiki" intent here.

@@ -18,7 +18,7 @@ describe("doctor", () => {
     expect(byId["D02"]).toBe("pass"); // schema_version 1
     expect(byId["D05"]).toBe("pass"); // git repo
     expect(byId["D09"]).toBe("pass"); // verify clean
-    expect(report.results).toHaveLength(11);
+    expect(report.results).toHaveLength(12);
     sb.cleanup();
   });
 
@@ -120,6 +120,47 @@ describe("doctor", () => {
       expect(calls[0]?.cmd).toBe("obsidian");
       expect(calls[0]?.args).toContain("--vault");
       expect(calls[0]?.args.some((a) => a.includes("unresolvedLinks"))).toBe(true);
+    });
+  });
+
+  describe("D12 — strict-tree conformance (ADR-0036)", () => {
+    const page = (parent: string, title: string): string =>
+      `---\ntitle: "${title}"\nparent: "${parent}"\ntags: []\n---\n# ${title}\n`;
+
+    test("a spine-only vault → pass", async () => {
+      const sb = makeVault({
+        "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
+        "wiki/index.md": '---\ntitle: "Wiki Index"\ntype: index\nparent: ""\ntags: []\n---\n',
+        "wiki/a/a.md": page("[[index|Wiki Index]]", "A"),
+        "wiki/a/p1.md": page("[[a|A]]", "P1"),
+      });
+      const report = await doctor({ target: sb.vault, pluginRoot: sb.vault, runner: noCli });
+      expect(report.results.find((c) => c.id === "D12")?.status).toBe("pass");
+      sb.cleanup();
+    });
+
+    test("a cross-tree edge → warn with a fix hint", async () => {
+      const sb = makeVault({
+        "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",
+        "wiki/index.md": '---\ntitle: "Wiki Index"\ntype: index\nparent: ""\ntags: []\n---\n',
+        "wiki/a/a.md": page("[[index|Wiki Index]]", "A"),
+        "wiki/a/p1.md": '---\ntitle: "P1"\nparent: "[[a|A]]"\ntags: []\n---\n# P1\nlinks [[p2|P2]] across\n',
+        "wiki/b/b.md": page("[[index|Wiki Index]]", "B"),
+        "wiki/b/p2.md": page("[[b|B]]", "P2"),
+      });
+      const report = await doctor({ target: sb.vault, pluginRoot: sb.vault, runner: noCli });
+      const d12 = report.results.find((c) => c.id === "D12");
+      expect(d12?.status).toBe("warn");
+      expect(d12?.message).toContain("cross-tree=1");
+      expect(d12?.hint).toContain("fix");
+      sb.cleanup();
+    });
+
+    test("no wiki/ → skip", async () => {
+      const sb = makeVault({ "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n" });
+      const report = await doctor({ target: sb.vault, pluginRoot: sb.vault, runner: noCli });
+      expect(report.results.find((c) => c.id === "D12")?.status).toBe("skip");
+      sb.cleanup();
     });
   });
 });
