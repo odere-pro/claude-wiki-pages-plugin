@@ -29,6 +29,7 @@ import { listMarkdownRecursive, readFileSafe } from "../src/core/fs.ts";
 import { deriveTopics } from "../src/core/topics.ts";
 import { parseFrontmatter, stringList } from "../src/core/frontmatter.ts";
 import { stripCode } from "../src/core/wikilink-check.ts";
+import { computeTreeMetric } from "../src/core/tree-metric.ts";
 import {
   buildLinkIndex,
   resolveLink,
@@ -290,6 +291,9 @@ const connectivity = {
   shadows: shadowsSorted,
 };
 
+// ── strict-tree metric (ADR-0036) — the one classifier in src/core ───────────
+const tree = computeTreeMetric(wiki);
+
 const round4 = (x: number): number => Math.round(x * 10000) / 10000;
 const result = {
   vault,
@@ -306,6 +310,15 @@ const result = {
   edgesWithinClusters: ceIn,
   Ce: round4(Ce),
   clusters: clusterCounts,
+  // ADR-0036 strict-tree conformance: spine-only edges among visible topic pages.
+  spineEdgeCount: tree.spineEdgeCount,
+  nonSpineEdgeCount: tree.nonSpineEdgeCount,
+  crossTreeEdgeCount: tree.crossTreeEdgeCount,
+  transitiveRedundantEdgeCount: tree.transitiveRedundantEdgeCount,
+  cycleCount: tree.cycleCount,
+  multiParentCount: tree.multiParentCount,
+  maxSaturation: tree.maxSaturation,
+  treeConformance: round4(tree.treeConformance),
   connectivity,
 };
 
@@ -326,6 +339,9 @@ if (asJson) {
   console.log(
     "cluster sizes: " +
       [...CLUSTERS, "other"].map((c) => `${c}=${clusterCounts[c] ?? 0}`).join(", "),
+  );
+  console.log(
+    `strict-tree: conformance=${result.treeConformance}  spine=${result.spineEdgeCount}  non-spine=${result.nonSpineEdgeCount}  cross-tree=${result.crossTreeEdgeCount}  transitive-redundant=${result.transitiveRedundantEdgeCount}  cycles=${result.cycleCount}  multi-parent=${result.multiParentCount}  max-saturation=${result.maxSaturation}`,
   );
   const cc = result.connectivity;
   console.log(

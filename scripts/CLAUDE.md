@@ -152,7 +152,17 @@ run top to bottom and the first block short-circuits the write.
   (git-checkpointed). A thin bash wrapper over
   [`disentangle-links.ts`](./disentangle-links.ts) (Bun); mirrors
   `graph-quality.sh`'s resolver. Never touches `parent`/`sources`/`children` or
-  creates dangling links.
+  creates dangling links. Shares the demote core
+  [`../src/core/link-demote.ts`](../src/core/link-demote.ts) with
+  `strict-tree-reduce.sh`.
+- [`tree-lint.sh`](./tree-lint.sh) — read-only strict-tree conformance report
+  (ADR-0036): against the `parent:` spine, lists orphans, multi-parent pages,
+  parent-chain cycles, oversaturated nodes, and every non-spine edge among visible
+  topic pages (each tagged cross-tree, transitive-redundant, or intra-tree). The
+  detector half of the strict-tree machinery; remediation twin is
+  `strict-tree-reduce.sh`. A thin bash wrapper over [`tree-lint.ts`](./tree-lint.ts),
+  which reuses the one edge classifier [`../src/core/tree-metric.ts`](../src/core/tree-metric.ts)
+  and the one spine derivation [`../src/core/spine.ts`](../src/core/spine.ts). Read-only.
 - [`check-duplicate-claims.sh`](./check-duplicate-claims.sh) — advisory
   duplicate-claim warning across `source_quotes`.
 
