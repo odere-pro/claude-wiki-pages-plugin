@@ -71,7 +71,6 @@ const nodes = num(conn["nodes"]);
 const orphanCount = num(conn["orphanCount"]);
 const components = num(conn["components"]);
 const Cn = num(gq?.["Cn"]);
-const Ce = num(gq?.["Ce"]);
 // catalogCoverage is optional (1 = no catalog / fully covered).
 const catalogCoverage = gq?.["catalogCoverage"] === undefined ? 1 : num(gq?.["catalogCoverage"], 1);
 // ADR-0036 strict-tree conformance signals (added to the graph-quality JSON).
@@ -97,9 +96,10 @@ const sub = {
   linkIntegrity: { weight: 25, value: clamp01(1 - danglingCount * 0.03) },
   // Connectivity: penalize orphan fraction (0 orphans → full).
   connectivity: { weight: 20, value: clamp01(1 - orphanRatio * 2) },
-  // Cluster + tree shape: average of Cn, Ce (ADR-0033) and treeConformance
-  // (ADR-0036) — all target 1.0. Strict-tree drift gently lowers the score.
-  clusterShape: { weight: 20, value: clamp01((Cn + Ce + treeConformance) / 3) },
+  // Cluster + tree shape: average of Cn (filing ratio) and treeConformance
+  // (ADR-0036 strict tree) — both target 1.0. The retired Ce edge-fraction
+  // (ADR-0033) is subsumed by treeConformance. Strict-tree drift lowers the score.
+  clusterShape: { weight: 20, value: clamp01((Cn + treeConformance) / 2) },
   // Structural integrity: any verify error is a hard hit; warnings cost less.
   structural: { weight: 20, value: clamp01(1 - verifyErrors * 0.25 - verifyWarnings * 0.02) },
   // Catalog coverage: families present / families in any structured catalog.
@@ -151,7 +151,6 @@ const result = {
     orphanCount,
     components,
     Cn,
-    Ce,
     catalogCoverage,
     treeConformance,
     nonSpineEdgeCount,

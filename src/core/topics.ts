@@ -7,7 +7,7 @@
  * dogfood folders (`plugin`, `wiki-pages`, `llm`, …) — is what lets the graph
  * machinery work on ANY project, not just this one.
  *
- * Shared by scripts/graph-quality.ts, scripts/disentangle-links.ts, and
+ * Shared by scripts/graph-quality.ts, scripts/strict-tree-reduce.ts, and
  * scripts/heal-orphan-sources.ts so there is a single source of truth for "what
  * are this vault's topics" (no second hardcoded list can drift).
  *

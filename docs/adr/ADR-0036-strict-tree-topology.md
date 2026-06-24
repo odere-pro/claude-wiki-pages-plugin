@@ -96,12 +96,13 @@ discoverable. This is **tag de-cycling**: trading a cycle-closing edge for a sha
   `multiParent`, and `cycles`. It reuses `buildLinkIndex`/`resolveLink` (ADR-0030/0031)
   and `deriveTopics` — no second spine derivation can drift, the same way `deriveTopics`
   is the one topic derivation.
-- `src/core/link-demote.ts` is the single demote-not-delete implementation (extracted
-  from `scripts/disentangle-links.ts`): the fence- and inline-span-aware text surgery
+- `src/core/link-demote.ts` is the single demote-not-delete implementation (originally
+  extracted from the topic-local pass): the fence- and inline-span-aware text surgery
   that turns a rejected `[[wikilink]]` into its display text and prunes rejected
   association-array entries, **never** deleting a target (so no dangling link is created).
-  Both `disentangle-links` (topic-local, ADR-0033) and `strict-tree-reduce` (strict-tree,
-  this ADR) import it, parameterised by their own keep predicate.
+  `strict-tree-reduce` (this ADR) is its sole consumer, parameterised by the strict-tree
+  keep predicate. (The topic-local reducer `disentangle-links` was retired once strict-tree
+  became the only topology — its keep predicate was a strict superset of this one.)
 
 ### 6. Detector, reducer, view, and self-heal
 

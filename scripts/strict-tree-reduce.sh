@@ -1,7 +1,7 @@
 #!/bin/bash
 # strict-tree-reduce.sh — strict-tree remediation (ADR-0036).
 #
-# The stricter successor to disentangle-links.sh: demotes every NON-SPINE
+# The SOLE link reducer: demotes every NON-SPINE
 # [[wikilink]] among visible topic pages (siblings, transitive-redundant ancestor
 # links, cross-tree mentions) to plain text and prunes non-spine association
 # frontmatter, so the graph draws only the `parent:` spine. When a cross-tree
@@ -11,8 +11,8 @@
 # polish agent git-checkpoints it). Never touches parent/sources/children or
 # creates dangling links; idempotent on a tree-shaped vault.
 #
-# A thin bash wrapper over scripts/strict-tree-reduce.ts (Bun); mirrors
-# disentangle-links.sh and shares the demote core (src/core/link-demote.ts).
+# A thin bash wrapper over scripts/strict-tree-reduce.ts (Bun); shares the
+# demote core (src/core/link-demote.ts) with the engine's resolver.
 # No network, no embeddings (NO-RAG).
 #
 # Usage:

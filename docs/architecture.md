@@ -39,7 +39,7 @@ The connective scaffolding — `wiki/_sources/`, `wiki/_synthesis/`, `wiki/index
 
 The graph's **root entry point** is `wiki/plugin/claude-wiki-pages-plugin.md`. That entity page links the seven topic folder notes so the graph reads as a central root with seven island lobes rather than an unconnected scatter.
 
-`scripts/graph-quality.sh` measures graph health. `scripts/disentangle-links.sh` is the remediation pass: it demotes cross-topic body wikilinks to plain text and prunes cross-topic entries from association frontmatter fields (`related`, `depends_on`, `key_pages`, etc.) without ever touching `parent`/`sources`/`children` or creating dangling links.
+`scripts/graph-quality.sh` (and the read-only `scripts/tree-lint.sh`) measure graph health. `scripts/strict-tree-reduce.sh` is the remediation pass (ADR-0036, the strict-tree successor to the retired topic-local pass): it demotes every non-spine body wikilink to plain text and prunes non-spine entries from association frontmatter fields (`related`, `depends_on`, `key_pages`, etc.) — recording a nested `topic/<tree>` tag for each demoted cross-tree edge — without ever touching `parent`/`sources`/`children` or creating dangling links.
 
 ## Deterministic engine verbs
 

@@ -105,6 +105,11 @@
           },
           {
             "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/subagent-tree-gate.sh",
+            "description": "Strict-tree conformance gate (ADR-0036): after the polish/maintenance agents return, warn (non-blocking) when cross-tree edges, parent-chain cycles, or multi-parent pages remain — i.e. the strict-tree-reduce self-heal did not converge. Read-only; degrades silently without Bun."
+          },
+          {
+            "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/subagent-commit-gate.sh",
             "description": "Commit backstop: after a write-path agent (ingest/curator/polish/maintenance) returns, commit any vault changes left uncommitted so no LLM write escapes git coverage. Pathspec-scoped to the vault; honors gitCheckpoint.mode=off; never blocks (always exit 0). Runs last so the verify/lint gates report first."
           }

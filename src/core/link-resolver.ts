@@ -28,7 +28,7 @@
  * report.) The collision check ([`collision-check.ts`](./collision-check.ts))
  * and the connectivity metric in
  * [`../../scripts/graph-quality.sh`](../../scripts/graph-quality.sh) consume the
- * full ladder. graph-quality.ts and disentangle-links.ts reuse THIS module; the
+ * full ladder. graph-quality.ts and strict-tree-reduce.ts reuse THIS module; the
  * verify-ingest.sh twin (scripts/verify-twins.ts) is a deliberately independent
  * re-implementation, pinned by gate-05.
  */

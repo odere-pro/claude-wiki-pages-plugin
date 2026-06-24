@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 /**
- * strict-tree-reduce.ts — strict-tree remediation (ADR-0036). The stricter
- * successor to disentangle-links.ts (ADR-0033): where disentangle demotes only
- * CROSS-topic links, this demotes every NON-SPINE link among visible topic pages
- * so the graph draws only the `parent:` spine.
+ * strict-tree-reduce.ts — strict-tree remediation (ADR-0036), the SOLE link
+ * reducer: it demotes every NON-SPINE link among visible topic pages (siblings,
+ * transitive-redundant ancestor links, cross-tree mentions) so the graph draws
+ * only the `parent:` spine. Supersedes the retired topic-local pass (ADR-0033).
  *
  * Policy (ADR-0036 §1): KEEP a [[wikilink]] iff (a) it is a parent↔child spine
  * edge, or (b) it touches a hidden/scaffolding node (index/log/_sources/
@@ -16,7 +16,7 @@
  * demoted, add the nested tag `topic/<Y>` to A's inline `tags:` array (deduped),
  * so the relationship stays discoverable in the tag view/colour without an edge.
  *
- * Same contract as disentangle-links: dry-run by default; `--apply` rewrites in
+ * Contract: dry-run by default; `--apply` rewrites in
  * place (run inside git — the polish agent git-checkpoints it). Never touches
  * `parent`/`sources`/`children`/`child_indexes`, never creates a dangling link
  * (it demotes to text, it does not delete targets), idempotent (zero diff on a

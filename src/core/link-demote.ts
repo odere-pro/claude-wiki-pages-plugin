@@ -1,13 +1,12 @@
 /**
- * link-demote.ts — the ONE demote-not-delete core (ADR-0033 / ADR-0036).
+ * link-demote.ts — the ONE demote-not-delete core (ADR-0036).
  *
  * The fence- and inline-span-aware text surgery that turns a `[[wikilink]]` the
  * policy rejects into its plain display text, and prunes rejected entries from
  * association frontmatter arrays — WITHOUT ever creating a dangling link (it
- * demotes to text, it does not delete the target page). Extracted verbatim from
- * scripts/disentangle-links.ts so the topic-local remediation (ADR-0033) and the
- * strict-tree reducer (ADR-0036) share one implementation of the demote contract
- * and can never drift.
+ * demotes to text, it does not delete the target page). Backs the strict-tree
+ * reducer (scripts/strict-tree-reduce.ts), parameterised by its keep predicate,
+ * so the demote contract lives in one place and cannot drift.
  *
  * The policy — which links to keep — is the caller's. Each function takes a
  * `KeepLink` predicate over the raw inner link text (`[[…]]`), already bound to

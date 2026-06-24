@@ -138,8 +138,7 @@ teardown() {
   printf '%s' "$output" | jq -e . >/dev/null
   assert_output_contains '"danglingCount"'
   assert_output_contains '"Cn"'
-  assert_output_contains '"Ce"'
-  assert_output_contains '"Ch"'
+  assert_output_contains '"treeConformance"'
 }
 
 @test "graph-quality: --json danglingCount=0 for resolved-only vault" {
