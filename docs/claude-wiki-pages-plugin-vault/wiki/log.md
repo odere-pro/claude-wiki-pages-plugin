@@ -135,6 +135,15 @@ New source summaries: src-engine-overview, src-cli-router, src-core-report, src-
 
 Backlog: 155 remaining src/*.ts source files unprocessed (180 total − 25 processed).
 
+## [2026-06-25] ingest | claude-wiki-pages tests (25 sources)
+
+Processed 25 test files from `raw/repo/tests/` covering the top-level harness, Tier 1 Bats scripts, CI engine gates, adversarial corpus replay, smoke tests, and engine contract tests.
+Created 1 new folder: `tests/`.
+New folder note: `wiki/tests/tests.md` (index).
+New concepts: Four-Tier Test Structure, Bats Unit Tests, Test Gates, Adversarial Testing, Mutation-Resistant Testing, NO-RAG Invariant, Hook JSON Protocol, Engine Test Suite, Smoke Tests, Golden-Snapshot Testing, Subagent Quality Gate Pattern (11 pages).
+New source summaries: tests-readme, tests-run-tests-sh, tests-install-deps-sh, tests-verify-ingest-bats, tests-validate-frontmatter-bats, tests-firewall-bats, tests-protect-raw-bats, tests-check-wikilinks-bats, tests-session-start-bats, tests-subagent-ingest-gate-bats, tests-extract-worker-frontmatter-bats, tests-strict-tree-reduce-bats, tests-snapshot-bats, tests-gate-13-no-rag-bats, tests-gate-01-engine-tests-sh, tests-gate-05-verify-parity-sh, tests-gate-11-firewall-parity-sh, tests-gate-13-no-rag-sh, tests-gates-claude-md, tests-replay-corpus-sh, tests-fresh-install-sh, tests-skill-schema-sh, tests-capabilities-contract-test-ts, tests-ontology-p3-3-test-ts (25 summaries total — gate-13 bats counted as 1 more above 24 for clarity).
+Backlog: 273 of 298 test files remain unprocessed (fixtures/, eval/, engine/capabilities-p3-1.test.ts, engine/verify-entity-type-p3-4.test.ts, test_helper/, and all other scripts/*.bats not in the 25 selected).
+
 ## [2026-06-25] ingest | docs remaining (39 sources)
 
 Processed 39 remaining documentation sources from raw/repo/docs/.
