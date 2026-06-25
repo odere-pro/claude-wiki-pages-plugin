@@ -28,7 +28,7 @@ function input(over: Partial<HookInput>): HookInput {
   });
 }
 
-describe("dmiHookGate", () => {
+describe("Feature: Hook gates › DMI gate", () => {
   test("non-SKILL.md path → pass (exit 0)", () => {
     const r = dmiHookGate({
       input: input({ filePath: "/p/vault/wiki/x.md", content: "scaffold and commit" }),

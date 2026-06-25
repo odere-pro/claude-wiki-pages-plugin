@@ -30,7 +30,7 @@ function findingsFor(req: RawWriteRequest) {
   return checkRawWrite(req);
 }
 
-describe("checkRawWrite — raw/ immutability", () => {
+describe("Feature: Verify › raw immutability — raw/ immutability", () => {
   test("blocks Edit to an existing file under raw/", () => {
     sandbox = makeVault({ "raw/paper.md": "---\nsource_type: paper\n---\nbody\n" });
     const findings = findingsFor({
@@ -78,7 +78,7 @@ describe("checkRawWrite — raw/ immutability", () => {
   });
 });
 
-describe("checkRawWrite — paths outside raw/", () => {
+describe("Feature: Verify › raw immutability — paths outside raw/", () => {
   test("allows a wiki/ write (not this gate's boundary)", () => {
     sandbox = makeVault({ "CLAUDE.md": "---\nschema_version: 1\n---\n" });
     const findings = findingsFor({
@@ -107,7 +107,7 @@ describe("checkRawWrite — paths outside raw/", () => {
   });
 });
 
-describe("checkRawWrite — sanctioned agent-session carve-out", () => {
+describe("Feature: Verify › raw immutability — sanctioned agent-session carve-out", () => {
   test("allows a NEW agent-session file with the frontmatter marker", () => {
     sandbox = makeVault({ "CLAUDE.md": "---\nschema_version: 1\n---\n" });
     const findings = findingsFor({
@@ -184,7 +184,7 @@ describe("checkRawWrite — sanctioned agent-session carve-out", () => {
   });
 });
 
-describe("checkRawWrite — security / fail-closed posture", () => {
+describe("Feature: Verify › raw immutability — security / fail-closed posture", () => {
   test("a traversal that resolves back into raw/ is still blocked", () => {
     sandbox = makeVault({ "raw/paper.md": "---\nsource_type: paper\n---\nbody\n" });
     const findings = findingsFor({

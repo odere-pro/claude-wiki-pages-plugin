@@ -69,7 +69,7 @@ function writeIndexWithChildren(wiki: string, children: readonly string[], body 
 
 // ── checkIndex ────────────────────────────────────────────────────────────────
 
-describe("checkIndex — missing index.md", () => {
+describe("Feature: Verify › index consistency — missing index.md", () => {
   afterEach(teardown);
 
   test("returns error finding when index.md does not exist", () => {
@@ -85,7 +85,7 @@ describe("checkIndex — missing index.md", () => {
   });
 });
 
-describe("checkIndex — duplicate entries", () => {
+describe("Feature: Verify › index consistency — duplicate entries", () => {
   afterEach(teardown);
 
   test("emits error for each duplicate wikilink in index.md", () => {
@@ -118,7 +118,7 @@ describe("checkIndex — duplicate entries", () => {
   });
 });
 
-describe("checkIndex — page missing from MOC", () => {
+describe("Feature: Verify › index consistency — page missing from MOC", () => {
   afterEach(teardown);
 
   test("emits warn when a non-bookkeeping page is not reachable from the MOC", () => {
@@ -200,7 +200,7 @@ describe("checkIndex — page missing from MOC", () => {
   });
 });
 
-describe("checkIndex — well-formed index", () => {
+describe("Feature: Verify › index consistency — well-formed index", () => {
   afterEach(teardown);
 
   test("returns no findings when all pages are reachable from the MOC children", () => {
@@ -253,7 +253,7 @@ describe("checkIndex — well-formed index", () => {
 
 // ── checkSourcesFormat ────────────────────────────────────────────────────────
 
-describe("checkSourcesFormat — plain string in sources", () => {
+describe("Feature: Verify › index consistency — sources format: plain string in sources", () => {
   afterEach(teardown);
 
   test("emits error for plain string (non-wikilink) in sources field", () => {
@@ -290,7 +290,7 @@ describe("checkSourcesFormat — plain string in sources", () => {
   });
 });
 
-describe("checkSourcesFormat — valid wikilinks", () => {
+describe("Feature: Verify › index consistency — sources format: valid wikilinks", () => {
   afterEach(teardown);
 
   test("no error when all sources are [[wikilinks]]", () => {
@@ -336,7 +336,7 @@ describe("checkSourcesFormat — valid wikilinks", () => {
   });
 });
 
-describe("checkSourcesFormat — bookkeeping files skipped", () => {
+describe("Feature: Verify › index consistency — sources format: bookkeeping files skipped", () => {
   afterEach(teardown);
 
   test("does not check bookkeeping files like index.md and log.md", () => {

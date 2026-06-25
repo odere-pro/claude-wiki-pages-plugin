@@ -41,7 +41,7 @@ function run(...args: string[]): RunResult {
 // Unit: lint() returns an empty Report
 // ---------------------------------------------------------------------------
 
-describe("lint() — unit", () => {
+describe("Feature: Lint › lint verb — unit", () => {
   test("returns a clean Report (no errors/warnings) for a clean vault", async () => {
     const sb = makeVault(CLEAN_VAULT);
     const report = await lint({ target: sb.vault });
@@ -82,7 +82,7 @@ describe("lint() — unit", () => {
 // CLI dispatch: lint command is routed correctly
 // ---------------------------------------------------------------------------
 
-describe("lint — CLI dispatch", () => {
+describe("Feature: Lint › lint verb — CLI dispatch", () => {
   test("lint --json returns a parseable Report with command === 'lint'", () => {
     const sb = makeVault(CLEAN_VAULT);
     const r = run("lint", "--target", sb.vault, "--json");
@@ -164,7 +164,7 @@ function makePluginRoot(): { root: string; vault: string; cleanup: () => void } 
   };
 }
 
-describe("lint --check manifests — unit", () => {
+describe("Feature: Lint › lint verb — check manifests, unit", () => {
   test("valid plugin.json → clean report (no findings)", async () => {
     const tmp = makePluginRoot();
     const report = await lint({ target: tmp.vault, check: "manifests" });
@@ -207,7 +207,7 @@ describe("lint --check manifests — unit", () => {
   });
 });
 
-describe("lint --check manifests — CLI", () => {
+describe("Feature: Lint › lint verb — check manifests, CLI", () => {
   test("lint --check manifests --json reports errors when plugin.json missing", () => {
     const sb = makeVault(CLEAN_VAULT);
     const r = run("lint", "--target", sb.vault, "--check", "manifests", "--json");
@@ -228,7 +228,7 @@ describe("lint --check manifests — CLI", () => {
   });
 });
 
-describe("lint --check vocabulary — dispatch", () => {
+describe("Feature: Lint › lint verb — check vocabulary dispatch", () => {
   test("runs the vocabulary check in isolation and returns a lint Report", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
@@ -268,7 +268,7 @@ describe("lint --check vocabulary — dispatch", () => {
   });
 });
 
-describe("lint --check dup-claims — dispatch", () => {
+describe("Feature: Lint › lint verb — check dup-claims dispatch", () => {
   test("is a no-op (clean) without --file", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
@@ -306,7 +306,7 @@ describe("lint --check dup-claims — dispatch", () => {
   });
 });
 
-describe("lint --check output — dispatch", () => {
+describe("Feature: Lint › lint verb — check output dispatch", () => {
   test("clean (no findings) when output/ is absent", async () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
@@ -337,7 +337,7 @@ describe("lint --check output — dispatch", () => {
   });
 });
 
-describe("lint --check ghost-links — dispatch", () => {
+describe("Feature: Lint › lint verb — check ghost-links dispatch", () => {
   test("clean (no findings) for a vault with no ghost links", async () => {
     const sb = makeVault(CLEAN_VAULT);
     try {
@@ -384,7 +384,7 @@ describe("lint --check ghost-links — dispatch", () => {
   });
 });
 
-describe("resolveLintCheck", () => {
+describe("Feature: Lint › lint verb — check resolution", () => {
   test("undefined → all", () => {
     expect(resolveLintCheck(undefined)).toBe("all");
   });

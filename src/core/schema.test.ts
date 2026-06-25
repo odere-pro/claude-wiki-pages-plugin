@@ -32,7 +32,7 @@ function teardown(): void {
   if (tmpDir) rmSync(tmpDir, { recursive: true, force: true });
 }
 
-describe("SUPPORTED_SCHEMA_VERSIONS and CURRENT_SCHEMA_VERSION", () => {
+describe("Feature: Schema › schema versions — supported and current constants", () => {
   test("CURRENT_SCHEMA_VERSION is in SUPPORTED_SCHEMA_VERSIONS", () => {
     expect(SUPPORTED_SCHEMA_VERSIONS).toContain(CURRENT_SCHEMA_VERSION);
   });
@@ -43,7 +43,7 @@ describe("SUPPORTED_SCHEMA_VERSIONS and CURRENT_SCHEMA_VERSION", () => {
   });
 });
 
-describe("declaredSchemaVersion", () => {
+describe("Feature: Schema › schema versions — declared version", () => {
   afterEach(teardown);
 
   test("returns null when file does not exist", () => {
@@ -86,7 +86,7 @@ describe("declaredSchemaVersion", () => {
   });
 });
 
-describe("checkSchema", () => {
+describe("Feature: Schema › schema versions — checkSchema", () => {
   afterEach(teardown);
 
   test("returns info finding when CLAUDE.md does not exist", () => {

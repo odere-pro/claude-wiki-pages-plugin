@@ -45,7 +45,7 @@ const DIRTY_VAULT_WIKILINKS: Record<string, string> = {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe("checkDanglingWikilinks", () => {
+describe("Feature: Verify › dangling-wikilink check — checkDanglingWikilinks", () => {
   test("clean vault with all resolved wikilinks yields zero findings", () => {
     const sb = makeVault(CLEAN_VAULT_WIKILINKS);
     const findings = checkDanglingWikilinks(join(sb.vault, "wiki"));

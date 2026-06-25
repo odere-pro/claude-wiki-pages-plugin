@@ -142,7 +142,7 @@ Body without wikilinks.
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe("checkOutput", () => {
+describe("Feature: Verify › output check — checkOutput", () => {
   // ── clean-state tests ────────────────────────────────────────────────────────
 
   test("absent output/ directory yields zero findings", () => {

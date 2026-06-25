@@ -30,7 +30,7 @@ import { exitCode } from "../../src/core/report.ts";
 
 // ── Shape invariants ───────────────────────────────────────────────────────────
 
-describe("CAPABILITIES table — shape invariants", () => {
+describe("Feature: Engine › capabilities shape — CAPABILITIES table: shape invariants", () => {
   test("every entry has a non-empty name string", () => {
     for (const entry of CAPABILITIES) {
       expect(typeof entry.name).toBe("string");
@@ -54,7 +54,7 @@ describe("CAPABILITIES table — shape invariants", () => {
 
 // ── capabilities verb — JSON shape ────────────────────────────────────────────
 
-describe("capabilitiesReport — JSON shape (ADR-0015 N3 named model)", () => {
+describe("Feature: Engine › capabilities shape — capabilitiesReport: JSON shape (ADR-0015 N3 named model)", () => {
   test("returns a Report with command='capabilities'", () => {
     const r = capabilitiesReport();
     expect(r.command).toBe("capabilities");
@@ -126,7 +126,7 @@ describe("capabilitiesReport — JSON shape (ADR-0015 N3 named model)", () => {
 
 // ── Determinism ───────────────────────────────────────────────────────────────
 
-describe("capabilitiesReport — determinism", () => {
+describe("Feature: Engine › capabilities shape — capabilitiesReport: determinism", () => {
   test("same verb list emitted on repeated calls (byte-identical manifest)", () => {
     const r1 = JSON.stringify(capabilitiesReport().manifest);
     const r2 = JSON.stringify(capabilitiesReport().manifest);
@@ -136,7 +136,7 @@ describe("capabilitiesReport — determinism", () => {
 
 // ── usage() has no hardcoded literal ─────────────────────────────────────────
 
-describe("usage() derives verb list from CAPABILITIES (no hardcoded literal)", () => {
+describe("Feature: Engine › capabilities shape — usage() derives verb list from CAPABILITIES (no hardcoded literal)", () => {
   test("IMPLEMENTED set derives from CAPABILITIES (no independent Set)", () => {
     // Verify the implemented set from CAPABILITIES matches all verbs with status='implemented'
     const fromTable = CAPABILITIES.filter((e) => e.status === "implemented").map((e) => e.name);

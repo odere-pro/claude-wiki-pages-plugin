@@ -23,7 +23,7 @@ import {
 const NOTE = "---\ntitle: Topics — Index\ntype: index\nchildren: []\n---\nbody\n";
 const PAGE = "---\ntitle: Topics\ntype: entity\n---\nbody\n";
 
-describe("isFolderNote", () => {
+describe("Feature: Infrastructure › filesystem helpers — folder note", () => {
   test("stem == parent dir name AND type: index → folder note", () => {
     const sb = makeVault({ "wiki/topics/topics.md": NOTE });
     expect(isFolderNote(join(sb.vault, "wiki/topics/topics.md"))).toBe(true);
@@ -53,7 +53,7 @@ describe("isFolderNote", () => {
   });
 });
 
-describe("isBookkeepingFile", () => {
+describe("Feature: Infrastructure › filesystem helpers — bookkeeping file", () => {
   test("legacy _index.md and folder notes classify identically", () => {
     const sb = makeVault({
       "wiki/topics/_index.md": NOTE,
@@ -74,7 +74,7 @@ describe("isBookkeepingFile", () => {
   });
 });
 
-describe("indexFileOf", () => {
+describe("Feature: Infrastructure › filesystem helpers — index file resolution", () => {
   test("prefers the folder note when present", () => {
     const sb = makeVault({
       "wiki/topics/topics.md": NOTE,
@@ -103,7 +103,7 @@ describe("indexFileOf", () => {
 
 // ── Group 1: FS primitives ─────────────────────────────────────────────────
 
-describe("readFileSafe", () => {
+describe("Feature: Infrastructure › filesystem helpers — safe read", () => {
   test("reads an existing UTF-8 file", () => {
     const sb = makeVault({ "wiki/page.md": "hello" });
     expect(readFileSafe(join(sb.vault, "wiki/page.md"))).toBe("hello");
@@ -122,7 +122,7 @@ describe("readFileSafe", () => {
   });
 });
 
-describe("listMarkdownRecursive", () => {
+describe("Feature: Infrastructure › filesystem helpers — recursive markdown listing", () => {
   test("returns sorted .md paths under a nested tree", () => {
     const sb = makeVault({
       "wiki/b/b.md": "",
@@ -160,7 +160,7 @@ describe("listMarkdownRecursive", () => {
   });
 });
 
-describe("listMarkdownShallow", () => {
+describe("Feature: Infrastructure › filesystem helpers — shallow markdown listing", () => {
   test("returns only direct .md children, sorted", () => {
     const sb = makeVault({
       "wiki/b.md": "",
@@ -185,7 +185,7 @@ describe("listMarkdownShallow", () => {
   });
 });
 
-describe("listSubdirs", () => {
+describe("Feature: Infrastructure › filesystem helpers — subdirectory listing", () => {
   test("returns immediate subdirectory paths, sorted", () => {
     const sb = makeVault({
       "wiki/b/b.md": "",
@@ -210,7 +210,7 @@ describe("listSubdirs", () => {
   });
 });
 
-describe("existsSync (re-export)", () => {
+describe("Feature: Infrastructure › filesystem helpers — existsSync re-export", () => {
   test("returns true for an existing file", () => {
     const sb = makeVault({ "wiki/page.md": "x" });
     expect(existsSync(join(sb.vault, "wiki/page.md"))).toBe(true);

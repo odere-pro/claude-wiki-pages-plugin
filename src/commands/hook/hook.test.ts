@@ -29,7 +29,7 @@ afterEach(() => {
   sb = undefined;
 });
 
-describe("resolveGateName", () => {
+describe("Feature: Hook gates › gate dispatch — gate-name resolution", () => {
   test("accepts the known frontmatter gate", () => {
     expect(resolveGateName("frontmatter")).toBe("frontmatter");
   });
@@ -39,7 +39,7 @@ describe("resolveGateName", () => {
   });
 });
 
-describe("runHookGate — frontmatter gate via --target", () => {
+describe("Feature: Hook gates › gate dispatch — frontmatter gate via --target", () => {
   test("a dirty wiki Write blocks with a reason", () => {
     sb = makeVault({ "CLAUDE.md": SCHEMA_CLAUDE_MD });
     const vaultName = sb.vault.split("/").pop() as string;

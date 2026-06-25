@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { decideRoute, route, decideParallelExtract } from "./route.ts";
 import { exitCode } from "../../core/report.ts";
 
-describe("decideRoute (pure matrix, ADR-0018 §4)", () => {
+describe("Feature: Engine › route verb — pure matrix (ADR-0018 §4)", () => {
   test("off → always Claude, even when unreachable", () => {
     expect(decideRoute("off", false, true, true).decision).toBe("claude");
     expect(decideRoute("off", true, false, false).decision).toBe("claude");
@@ -39,7 +39,7 @@ describe("decideRoute (pure matrix, ADR-0018 §4)", () => {
   });
 });
 
-describe("route (config-aware handler)", () => {
+describe("Feature: Engine › route verb — config-aware handler", () => {
   const withConfig = (
     localModel: Record<string, unknown>,
     opts: { ollama?: string; claude?: string } = {},
@@ -102,7 +102,7 @@ describe("route (config-aware handler)", () => {
 
 // ─── P1-A6: degrade ladder — parallelExtract observable decision ─────────────
 
-describe("decideParallelExtract (P1-A6 — pure function)", () => {
+describe("Feature: Engine › route verb — decideParallelExtract (P1-A6 — pure function)", () => {
   test("unset (undefined) → effective=1 reason=default-sequential", () => {
     const r = decideParallelExtract(undefined, "claude");
     expect(r.requested).toBe(1);
@@ -151,7 +151,7 @@ describe("decideParallelExtract (P1-A6 — pure function)", () => {
   });
 });
 
-describe("route — parallelExtract field on RouteReport (P1-A6)", () => {
+describe("Feature: Engine › route verb — parallelExtract field on RouteReport (P1-A6)", () => {
   const withMaintenanceConfig = (
     maxParallelExtract: number | undefined,
     localModel: Record<string, unknown>,

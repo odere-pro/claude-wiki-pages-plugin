@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { backlog } from "./backlog.ts";
 import { makeVault } from "../../test-helpers/sandbox/vault.ts";
 
-describe("backlog", () => {
+describe("Feature: Engine › backlog verb", () => {
   test("fallback: raw files without a _sources summary are pending", () => {
     const sb = makeVault({
       "wiki/log.md":
@@ -93,7 +93,7 @@ describe("backlog", () => {
   });
 });
 
-describe("backlog — wired sources", () => {
+describe("Feature: Engine › backlog verb — wired sources", () => {
   afterEach(() => {
     delete process.env["CLAUDE_WIKI_PAGES_SETTINGS_FILE"];
   });

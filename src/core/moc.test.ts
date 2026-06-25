@@ -75,7 +75,7 @@ function writePage(dir: string, filename: string, title: string, type = "entity"
 
 // ── checkIndexConsistency ────────────────────────────────────────────────────
 
-describe("checkIndexConsistency — warn: page in folder but not in children", () => {
+describe("Feature: Verify › MOC consistency — warn: page in folder but not in children", () => {
   afterEach(teardown);
 
   test("emits warn when a page exists in the folder but is not in the children list", () => {
@@ -110,7 +110,7 @@ describe("checkIndexConsistency — warn: page in folder but not in children", (
   });
 });
 
-describe("checkIndexConsistency — error: child listed but no page exists", () => {
+describe("Feature: Verify › MOC consistency — error: child listed but no page exists", () => {
   afterEach(teardown);
 
   test("emits error when index lists a child that has no matching page", () => {
@@ -143,7 +143,7 @@ describe("checkIndexConsistency — error: child listed but no page exists", () 
   });
 });
 
-describe("checkIndexConsistency — error: subfolder missing index", () => {
+describe("Feature: Verify › MOC consistency — error: subfolder missing index", () => {
   afterEach(teardown);
 
   test("emits error when a subfolder has no folder note or _index.md", () => {
@@ -165,7 +165,7 @@ describe("checkIndexConsistency — error: subfolder missing index", () => {
   });
 });
 
-describe("checkIndexConsistency — no findings for consistent index", () => {
+describe("Feature: Verify › MOC consistency — no findings for consistent index", () => {
   afterEach(teardown);
 
   test("returns no findings when index children match folder pages exactly", () => {
@@ -189,7 +189,7 @@ describe("checkIndexConsistency — no findings for consistent index", () => {
 
 // ── checkOrphanSources ────────────────────────────────────────────────────────
 
-describe("checkOrphanSources", () => {
+describe("Feature: Verify › MOC consistency — orphan sources", () => {
   afterEach(teardown);
 
   test("emits info when _sources/ directory does not exist", () => {
@@ -263,7 +263,7 @@ describe("checkOrphanSources", () => {
 
 // ── checkTopicFolders ─────────────────────────────────────────────────────────
 
-describe("checkTopicFolders", () => {
+describe("Feature: Verify › MOC consistency — topic folders", () => {
   afterEach(teardown);
 
   test("emits error for top-level topic folder without an index file", () => {
@@ -326,7 +326,7 @@ describe("checkTopicFolders", () => {
 
 // ── checkLegacyIndexFilename ──────────────────────────────────────────────────
 
-describe("checkLegacyIndexFilename", () => {
+describe("Feature: Verify › MOC consistency — legacy index filename", () => {
   afterEach(teardown);
 
   test("returns empty array when schema_version < 3 (back-compat)", () => {

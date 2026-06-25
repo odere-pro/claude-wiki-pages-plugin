@@ -15,7 +15,7 @@ const TANGLED = join(import.meta.dir, "../../tests/fixtures/tangled-vault/wiki")
 const page = (parent: string, title: string): string =>
   `---\ntitle: "${title}"\nparent: "${parent}"\ntags: []\n---\n# ${title}\n`;
 
-describe("computeTreeMetric — tangled fixture", () => {
+describe("Feature: Lint › tree metric — tangled fixture", () => {
   const m = computeTreeMetric(TANGLED);
 
   test("counts spine and non-spine edges among visible topic pages", () => {
@@ -50,7 +50,7 @@ describe("computeTreeMetric — tangled fixture", () => {
   });
 });
 
-describe("computeTreeMetric — clean tree", () => {
+describe("Feature: Lint › tree metric — clean tree", () => {
   test("a spine-only vault has treeConformance 1 and zero non-spine edges", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 3\n---\n# Vault\n",

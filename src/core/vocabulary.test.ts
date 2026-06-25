@@ -27,7 +27,7 @@ Curated synonym groups.
 
 // ── (7) synonymsOf pure ────────────────────────────────────────────────────────
 
-describe("synonymsOf — pure lookup", () => {
+describe("Feature: Search › synonym expansion — pure lookup", () => {
   test("returns sorted synonyms for a known term", () => {
     const sb = makeVocabVault(VOCAB_AUTOS);
     const lex = loadLexicon(sb.vault);
@@ -73,7 +73,7 @@ describe("synonymsOf — pure lookup", () => {
 
 // ── (2) Lexicon loads correctly ────────────────────────────────────────────────
 
-describe("loadLexicon — parsing", () => {
+describe("Feature: Search › synonym expansion — lexicon parsing", () => {
   test("loads and expands automobile group correctly", () => {
     const sb = makeVocabVault(VOCAB_AUTOS);
     const lex = loadLexicon(sb.vault);
@@ -221,7 +221,7 @@ groups:
 
 // ── (6) Zero network ──────────────────────────────────────────────────────────
 
-describe("loadLexicon — zero network", () => {
+describe("Feature: Search › synonym expansion — lexicon zero network", () => {
   test("no network call is made when loading lexicon", () => {
     const originalFetch = globalThis.fetch;
     let fetchCalled = false;

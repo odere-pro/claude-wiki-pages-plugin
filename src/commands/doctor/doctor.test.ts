@@ -6,7 +6,7 @@ import { makeVault, CLEAN_VAULT } from "../../test-helpers/sandbox/vault.ts";
 /** D11 stays deterministic in tests: never let it reach a real `obsidian`. */
 const noCli: DoctorRunner = () => ({ ok: false, stdout: "" });
 
-describe("doctor", () => {
+describe("Feature: Engine › doctor verb", () => {
   test("a healthy vault passes the vault-scoped checks", async () => {
     const sb = makeVault({ ...CLEAN_VAULT, "raw/.gitkeep": "" });
     execFileSync("git", ["init"], { cwd: sb.vault, stdio: "ignore" });

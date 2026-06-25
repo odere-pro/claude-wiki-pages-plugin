@@ -20,7 +20,7 @@ const MINIMAL_VAULT = {
 
 // ── Basic command tests ────────────────────────────────────────────────────────
 
-describe("context command", () => {
+describe("Feature: Engine › context verb", () => {
   test("command field is 'context'", () => {
     const sb = makeVault(MINIMAL_VAULT);
     const r = context({ target: sb.vault });
@@ -162,7 +162,7 @@ describe("context command", () => {
 
 // ── parseContextContract integration via context verb ─────────────────────────
 
-describe("context contract parsing integration", () => {
+describe("Feature: Engine › context verb — contract parsing integration", () => {
   // Vault with a realistic CLAUDE.md carrying a context contract in the body.
   // We inject the contract text via a fake skill resolved via the vault.
   // (The actual contract parsing is unit-tested in ontology-profile tests;

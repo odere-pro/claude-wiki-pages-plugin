@@ -24,7 +24,7 @@ function note(fields: Record<string, string>): string {
   return ["---", ...lines, "---", "", "body"].join("\n");
 }
 
-describe("checkAttachment — scope", () => {
+describe("Feature: Verify › attachment provenance — scope", () => {
   test("ignores files outside wiki/_sources/", () => {
     const { vault, cleanup } = makeVault({});
     const input: AttachmentInput = {
@@ -48,7 +48,7 @@ describe("checkAttachment — scope", () => {
   });
 });
 
-describe("checkAttachment — allowed cases", () => {
+describe("Feature: Verify › attachment provenance — allowed cases", () => {
   test("allows a text source_format note (no attachment required)", () => {
     const { vault, cleanup } = makeVault({});
     const input: AttachmentInput = {
@@ -122,7 +122,7 @@ describe("checkAttachment — allowed cases", () => {
   });
 });
 
-describe("checkAttachment — blocked cases", () => {
+describe("Feature: Verify › attachment provenance — blocked cases", () => {
   test("blocks a non-text note missing attachment_path", () => {
     const { vault, cleanup } = makeVault({});
     const input: AttachmentInput = {
@@ -169,7 +169,7 @@ describe("checkAttachment — blocked cases", () => {
   });
 });
 
-describe("checkAttachment — injected existence predicate", () => {
+describe("Feature: Verify › attachment provenance — injected existence predicate", () => {
   test("uses a custom exists() to decide (no disk touch)", () => {
     const { vault, cleanup } = makeVault({});
     const seen: string[] = [];

@@ -22,7 +22,7 @@ function page(title: string, body: string, extra = ""): string {
   return `---\ntitle: ${title}\n${extra}---\n${body}\n`;
 }
 
-describe("checkGhostLinks", () => {
+describe("Feature: Verify › ghost-link check — checkGhostLinks", () => {
   test("flags a link that resolves only via title", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 3\n---\n",

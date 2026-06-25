@@ -25,7 +25,7 @@ function tmp(): string {
   return r;
 }
 
-describe("makeMemoryRepoIO", () => {
+describe("Feature: Infrastructure › repo IO — memory repo IO", () => {
   test("lsFiles defaults to the file keys, sorted", () => {
     const io = makeMemoryRepoIO({
       root: "/x",
@@ -65,7 +65,7 @@ describe("makeMemoryRepoIO", () => {
   });
 });
 
-describe("makeGitRepoIO", () => {
+describe("Feature: Infrastructure › repo IO — git repo IO", () => {
   function initRepo(): string {
     const root = tmp();
     mkdirSync(join(root, "docs"), { recursive: true });

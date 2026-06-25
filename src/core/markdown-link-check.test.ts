@@ -53,7 +53,7 @@ function makeWikiVault(files: Record<string, string>): MdLinkVault {
 // Unit: checkMarkdownLinks
 // ---------------------------------------------------------------------------
 
-describe("checkMarkdownLinks — unit", () => {
+describe("Feature: Verify › markdown-link check — unit", () => {
   test("clean wiki page returns no findings", () => {
     const v = makeWikiVault({
       "index.md": "---\ntitle: index\n---\n# Index\n\nSee [[Other Page]].\n",
@@ -197,7 +197,7 @@ describe("checkMarkdownLinks — unit", () => {
 // Integration: lint --check md-links
 // ---------------------------------------------------------------------------
 
-describe("lint --check md-links — integration", () => {
+describe("Feature: Verify › markdown-link check — lint --check md-links integration", () => {
   test("clean vault → clean report (no md-link findings)", async () => {
     const sb = makeVault(CLEAN_VAULT);
     const report = await lint({ target: sb.vault, check: "md-links" });
@@ -264,7 +264,7 @@ function run(...args: string[]): RunResult {
   };
 }
 
-describe("lint --check md-links — CLI", () => {
+describe("Feature: Verify › markdown-link check — lint --check md-links CLI", () => {
   test("lint --check md-links --json on clean vault exits 0", () => {
     const sb = makeVault(CLEAN_VAULT);
     const r = run("lint", "--target", sb.vault, "--check", "md-links", "--json");

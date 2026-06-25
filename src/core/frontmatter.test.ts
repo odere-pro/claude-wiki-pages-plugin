@@ -7,7 +7,7 @@ import {
   stripWikilink,
 } from "./frontmatter.ts";
 
-describe("splitFrontmatter", () => {
+describe("Feature: Schema › frontmatter parsing — split", () => {
   test("isolates a leading YAML block", () => {
     const { frontmatter, body } = splitFrontmatter("---\ntitle: A\n---\nhello\n");
     expect(frontmatter).toBe("title: A");
@@ -25,7 +25,7 @@ describe("splitFrontmatter", () => {
   });
 });
 
-describe("parseFrontmatter", () => {
+describe("Feature: Schema › frontmatter parsing — parse", () => {
   test("parses inline and block arrays", () => {
     const inline = parseFrontmatter('---\nsources: ["[[A]]", "[[B]]"]\n---\n');
     expect(stringList(inline["sources"])).toEqual(["[[A]]", "[[B]]"]);
@@ -38,7 +38,7 @@ describe("parseFrontmatter", () => {
   });
 });
 
-describe("titleOf", () => {
+describe("Feature: Schema › frontmatter parsing — title extraction", () => {
   test("prefers the title field", () => {
     expect(titleOf("---\ntitle: Real Page\n---\n", "/x/real-page.md")).toBe("Real Page");
   });

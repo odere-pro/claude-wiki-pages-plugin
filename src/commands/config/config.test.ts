@@ -11,7 +11,7 @@ function projectWith(localModel: Record<string, unknown>): string {
   return root;
 }
 
-describe("config command — local-model allow-list (fail-closed)", () => {
+describe("Feature: Engine › config verb — local-model allow-list (fail-closed)", () => {
   test("enabled + approved model at the unlocked tier: no localModelErrors, exit 0", () => {
     const root = projectWith({ enabled: true, model: "qwen3-coder:30b", tier: "ingest-extract" });
     const report = config({ sub: "show", cwd: root });

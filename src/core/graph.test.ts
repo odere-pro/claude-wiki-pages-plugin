@@ -133,7 +133,7 @@ function makeTagsVault() {
 // ────────────────────────────────────────────────────────────────────────────
 // Test (1) — byte-identical ×5 runs
 // ────────────────────────────────────────────────────────────────────────────
-describe("graph walk — primitive", () => {
+describe("Feature: Search › graph traversal — graph walk primitive", () => {
   test("(1) walk is byte-identical across 5 runs (deterministic)", () => {
     const sb = makeLinearVault();
     const opts: GraphWalkOptions = {

@@ -27,7 +27,7 @@ const DIRTY_LINT_VAULT: Record<string, string> = {
   "wiki/topics/beta.md": "---\ntitle: Beta\ntype: concept\n---\n# Beta\n<div>raw html here</div>\n",
 };
 
-describe("lint — async and deterministic (Phase 2)", () => {
+describe("Feature: Lint › async determinism — async and deterministic (Phase 2)", () => {
   test("lint() returns a Promise (is async)", () => {
     const sb = makeVault(CLEAN_VAULT);
     const result = lint({ target: sb.vault });

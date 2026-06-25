@@ -98,7 +98,7 @@ function writePage(
 // Direct unit tests for the dateField helper, which is exported so each
 // branch can be asserted in isolation without a full vault round-trip.
 
-describe("dateField — direct unit tests", () => {
+describe("Feature: Verify › staleness check — dateField direct unit tests", () => {
   test("returns trimmed string when value is a plain string", () => {
     expect(dateField({ updated: "  2024-06-15  " }, "updated")).toBe("2024-06-15");
   });
@@ -142,7 +142,7 @@ describe("dateField — direct unit tests", () => {
 
 // ── dateField Date-instance branch (M21) ──────────────────────────────────────
 
-describe("dateField — Date instance from yaml parsing", () => {
+describe("Feature: Verify › staleness check — dateField: Date instance from yaml parsing", () => {
   afterEach(teardown);
 
   test("source with yaml-parsed Date in updated field is handled without crash", () => {
@@ -176,7 +176,7 @@ describe("dateField — Date instance from yaml parsing", () => {
 
 // ── happy path ────────────────────────────────────────────────────────────────
 
-describe("checkCitedSourceStaleness — happy path", () => {
+describe("Feature: Verify › staleness check — happy path", () => {
   afterEach(teardown);
 
   test("no findings when source date is older than page updated", () => {
@@ -230,7 +230,7 @@ describe("checkCitedSourceStaleness — happy path", () => {
 
 // ── stale finding ─────────────────────────────────────────────────────────────
 
-describe("checkCitedSourceStaleness — stale finding", () => {
+describe("Feature: Verify › staleness check — stale finding", () => {
   afterEach(teardown);
 
   test("emits warn finding when source updated is strictly newer than page", () => {
@@ -309,7 +309,7 @@ describe("checkCitedSourceStaleness — stale finding", () => {
 
 // ── dangling source ───────────────────────────────────────────────────────────
 
-describe("checkCitedSourceStaleness — dangling source", () => {
+describe("Feature: Verify › staleness check — dangling source", () => {
   afterEach(teardown);
 
   test("emits warn finding for unresolvable wikilink in sources", () => {
@@ -358,7 +358,7 @@ describe("checkCitedSourceStaleness — dangling source", () => {
 
 // ── dateField number branch ───────────────────────────────────────────────────
 
-describe("dateField — number value in date field", () => {
+describe("Feature: Verify › staleness check — dateField: number value in date field", () => {
   afterEach(teardown);
 
   test("source with a numeric updated field (e.g. bare year) is coerced to string", () => {
@@ -418,7 +418,7 @@ describe("dateField — number value in date field", () => {
 
 // ── piped wikilink format ─────────────────────────────────────────────────────
 
-describe("checkCitedSourceStaleness — piped wikilink [[target|display]]", () => {
+describe("Feature: Verify › staleness check — piped wikilink [[target|display]]", () => {
   afterEach(teardown);
 
   test("resolves [[target|display name]] by the target part, ignoring display text", () => {
@@ -472,7 +472,7 @@ describe("checkCitedSourceStaleness — piped wikilink [[target|display]]", () =
 
 // ── resolved-to-non-sources wiki page ────────────────────────────────────────
 
-describe("checkCitedSourceStaleness — wikilink resolves to non-_sources page", () => {
+describe("Feature: Verify › staleness check — wikilink resolves to non-_sources page", () => {
   afterEach(teardown);
 
   test("wikilink resolving to a regular wiki page (not in _sources/) is treated as dangling", () => {
@@ -509,7 +509,7 @@ describe("checkCitedSourceStaleness — wikilink resolves to non-_sources page",
 
 // ── skip conditions ───────────────────────────────────────────────────────────
 
-describe("checkCitedSourceStaleness — skip conditions", () => {
+describe("Feature: Verify › staleness check — skip conditions", () => {
   afterEach(teardown);
 
   test("skips page with no updated field", () => {

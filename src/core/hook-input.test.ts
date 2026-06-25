@@ -14,7 +14,7 @@
 import { describe, test, expect } from "bun:test";
 import { parseHookInput } from "./hook-input.ts";
 
-describe("parseHookInput — tolerant boundary parsing", () => {
+describe("Feature: Hook gates › input parsing — tolerant boundary parsing", () => {
   test("extracts file_path, tool_name, content from a Write payload", () => {
     const json = JSON.stringify({
       tool_name: "Write",

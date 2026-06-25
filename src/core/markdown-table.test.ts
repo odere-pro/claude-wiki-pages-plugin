@@ -21,7 +21,7 @@
 import { test, expect, describe } from "bun:test";
 import { parseTableRow } from "./markdown-table.ts";
 
-describe("parseTableRow()", () => {
+describe("Feature: Infrastructure › markdown table — parse table row", () => {
   test("1. non-table line (no leading pipe) → null", () => {
     expect(parseTableRow("plain text", 0)).toBeNull();
     expect(parseTableRow("  plain text", 0)).toBeNull();

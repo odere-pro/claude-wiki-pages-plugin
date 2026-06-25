@@ -73,7 +73,7 @@ function writeSchema(dir: string, name: string, content: string): string {
 
 // ── buildOntologyReport() ─────────────────────────────────────────────────────
 
-describe("buildOntologyReport", () => {
+describe("Feature: Ontology › ontology verb — buildOntologyReport", () => {
   test("returns clean report when manifest is provided and no errors", () => {
     const manifest = Object.freeze({
       enums: Object.freeze({
@@ -148,7 +148,7 @@ describe("buildOntologyReport", () => {
 
 // ── ontology() — success path ─────────────────────────────────────────────────
 
-describe("ontology — success path", () => {
+describe("Feature: Ontology › ontology verb — success path", () => {
   test("parses a valid schema and returns clean report with manifest", () => {
     const tmp = tmpDir();
     const schemaPath = writeSchema(tmp.dir, "CLAUDE.md", VALID_SCHEMA);
@@ -184,7 +184,7 @@ describe("ontology — success path", () => {
 
 // ── ontology() — error / fail-closed paths ────────────────────────────────────
 
-describe("ontology — fail-closed error paths", () => {
+describe("Feature: Ontology › ontology verb — fail-closed error paths", () => {
   test("missing schema file: non-clean report with error finding", () => {
     const report = ontology({ schemaPath: "/no/such/file/CLAUDE.md" });
 
@@ -236,7 +236,7 @@ describe("ontology — fail-closed error paths", () => {
 
 // ── ontology() — vaultClaudeMd extension composition ─────────────────────────
 
-describe("ontology — entity_type_extensions composition", () => {
+describe("Feature: Ontology › ontology verb — entity_type_extensions composition", () => {
   test("extensions in vault CLAUDE.md are merged into entity_type", () => {
     const tmp = tmpDir();
     const schemaPath = writeSchema(tmp.dir, "CLAUDE.md", VALID_SCHEMA);

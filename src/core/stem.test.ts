@@ -1,7 +1,7 @@
 import { test, expect, describe } from "bun:test";
 import { stem, stemTokens, tokenize } from "./stem.ts";
 
-describe("stem — pure Porter 1980", () => {
+describe("Feature: Search › Porter stemmer — pure Porter 1980", () => {
   // ── (4) Spec table from the task brief ──────────────────────────────────────
   test("running → run", () => expect(stem("running")).toBe("run"));
   test("ran → ran (no change)", () => expect(stem("ran")).toBe("ran"));

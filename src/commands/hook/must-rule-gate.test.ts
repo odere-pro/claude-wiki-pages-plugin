@@ -27,7 +27,7 @@ function input(over: Partial<HookInput>): HookInput {
   });
 }
 
-describe("mustRuleHookGate", () => {
+describe("Feature: Hook gates › must-rule gate", () => {
   test("non-CLAUDE.md path → no notice, exit 0", () => {
     const r = mustRuleHookGate({
       input: input({ filePath: "/p/proj/README.md", content: "You must always do this." }),

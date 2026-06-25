@@ -57,7 +57,7 @@ function getFrontmatterFieldValue(template: string, field: string): string | und
 // Suite: basic type contracts
 // ---------------------------------------------------------------------------
 
-describe("TOPIC_TEMPLATE — basic contract", () => {
+describe("Feature: Schema › page templates — TOPIC_TEMPLATE: basic contract", () => {
   test("is a non-empty string", () => {
     expect(typeof TOPIC_TEMPLATE).toBe("string");
     expect(TOPIC_TEMPLATE.length).toBeGreaterThan(0);
@@ -73,7 +73,7 @@ describe("TOPIC_TEMPLATE — basic contract", () => {
   });
 });
 
-describe("PROJECT_TEMPLATE — basic contract", () => {
+describe("Feature: Schema › page templates — PROJECT_TEMPLATE: basic contract", () => {
   test("is a non-empty string", () => {
     expect(typeof PROJECT_TEMPLATE).toBe("string");
     expect(PROJECT_TEMPLATE.length).toBeGreaterThan(0);
@@ -110,7 +110,7 @@ const SHARED_FIELDS = [
   "confidence",
 ];
 
-describe("TOPIC_TEMPLATE — frontmatter fields", () => {
+describe("Feature: Schema › page templates — TOPIC_TEMPLATE: frontmatter fields", () => {
   for (const field of SHARED_FIELDS) {
     test(`contains shared field "${field}"`, () => {
       expect(hasFrontmatterField(TOPIC_TEMPLATE, field)).toBe(true);
@@ -130,7 +130,7 @@ describe("TOPIC_TEMPLATE — frontmatter fields", () => {
   });
 });
 
-describe("PROJECT_TEMPLATE — frontmatter fields", () => {
+describe("Feature: Schema › page templates — PROJECT_TEMPLATE: frontmatter fields", () => {
   for (const field of SHARED_FIELDS) {
     test(`contains shared field "${field}"`, () => {
       expect(hasFrontmatterField(PROJECT_TEMPLATE, field)).toBe(true);
@@ -158,7 +158,7 @@ describe("PROJECT_TEMPLATE — frontmatter fields", () => {
 // Suite: Mustache placeholder presence
 // ---------------------------------------------------------------------------
 
-describe("TOPIC_TEMPLATE — placeholders", () => {
+describe("Feature: Schema › page templates — TOPIC_TEMPLATE: placeholders", () => {
   test("contains {{title}} placeholder", () => {
     expect(TOPIC_TEMPLATE).toContain("{{title}}");
   });
@@ -168,7 +168,7 @@ describe("TOPIC_TEMPLATE — placeholders", () => {
   });
 });
 
-describe("PROJECT_TEMPLATE — placeholders", () => {
+describe("Feature: Schema › page templates — PROJECT_TEMPLATE: placeholders", () => {
   test("contains {{title}} placeholder", () => {
     expect(PROJECT_TEMPLATE).toContain("{{title}}");
   });
@@ -193,7 +193,7 @@ const REQUIRED_KEYS_BY_TYPE: Record<string, readonly string[]> = {
   project: [...SHARED_FIELDS, "type", "objective", "project_status", "members"],
 };
 
-describe("template frontmatter — parses as valid YAML with all required keys", () => {
+describe("Feature: Schema › page templates — frontmatter parses as valid YAML with all required keys", () => {
   const cases: readonly [string, string, string][] = [
     ["TOPIC_TEMPLATE", TOPIC_TEMPLATE, "topic"],
     ["PROJECT_TEMPLATE", PROJECT_TEMPLATE, "project"],
@@ -221,7 +221,7 @@ describe("template frontmatter — parses as valid YAML with all required keys",
 // Suite: distinctness — the two templates must not be identical
 // ---------------------------------------------------------------------------
 
-describe("template distinctness", () => {
+describe("Feature: Schema › page templates — template distinctness", () => {
   test("TOPIC_TEMPLATE and PROJECT_TEMPLATE are different strings", () => {
     expect(TOPIC_TEMPLATE).not.toBe(PROJECT_TEMPLATE);
   });

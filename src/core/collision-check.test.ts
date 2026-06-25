@@ -16,7 +16,7 @@ function wikiOf(files: Record<string, string>): { wiki: string; cleanup: () => v
   return { wiki: join(sb.vault, "wiki"), cleanup: sb.cleanup };
 }
 
-describe("checkCollisions", () => {
+describe("Feature: Verify › slug-collision check — checkCollisions", () => {
   test("basename of one page == alias of another → one WARN (#18)", () => {
     const { wiki, cleanup } = wikiOf({
       "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",

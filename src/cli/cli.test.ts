@@ -25,7 +25,7 @@ function run(...args: string[]): RunResult {
 const sandboxes: Sandbox[] = [];
 afterAll(() => sandboxes.forEach((s) => s.cleanup()));
 
-describe("usage / help", () => {
+describe("Feature: Engine › CLI usage — help", () => {
   test("prints usage and exits 1 when no command is given", () => {
     const r = run();
     expect(r.code).toBe(1);
@@ -39,7 +39,7 @@ describe("usage / help", () => {
   });
 });
 
-describe("unknown command", () => {
+describe("Feature: Engine › CLI usage — unknown command", () => {
   test("writes to stderr and exits 2", () => {
     const r = run("bogus");
     expect(r.code).toBe(2);
@@ -47,7 +47,7 @@ describe("unknown command", () => {
   });
 });
 
-describe("planned (not-yet-implemented) commands", () => {
+describe("Feature: Engine › CLI usage — planned (not-yet-implemented) commands", () => {
   test("a planned verb exits 0 with a not-implemented notice", () => {
     const r = run("index");
     expect(r.code).toBe(0);
@@ -63,7 +63,7 @@ describe("planned (not-yet-implemented) commands", () => {
   });
 });
 
-describe("verify routing", () => {
+describe("Feature: Engine › CLI usage — verify routing", () => {
   test("verify --json on a clean vault returns a parseable report and exit 0", () => {
     const sb = makeVault(CLEAN_VAULT);
     sandboxes.push(sb);
@@ -89,7 +89,7 @@ const R1_CLI_VAULT = {
     '---\ntitle: "Cache"\ntype: entity\ntags: []\n---\n# Cache\n\nCache aids retrieval.\n',
 };
 
-describe("search routing — R1 candidate filters", () => {
+describe("Feature: Engine › CLI usage — search routing — R1 candidate filters", () => {
   test("search --type concept --json returns only concept hits", () => {
     const sb = makeVault(R1_CLI_VAULT);
     sandboxes.push(sb);
@@ -157,7 +157,7 @@ const GRAPH_CLI_VAULT = {
     '---\ntitle: "Linked Source"\ntype: source\naliases: ["Linked Source"]\n---\n# Linked Source\nSource body about provenance.\n',
 };
 
-describe("search routing — R2 --graph flag", () => {
+describe("Feature: Engine › CLI usage — search routing — R2 --graph flag", () => {
   test("--graph surfaces a graph-reached page that the same query without --graph does not", () => {
     const sb = makeVault(GRAPH_CLI_VAULT);
     sandboxes.push(sb);

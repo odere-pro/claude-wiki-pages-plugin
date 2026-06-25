@@ -24,7 +24,7 @@ function wikiOf(files: Record<string, string>): { wiki: string; cleanup: () => v
   return { wiki: join(sb.vault, "wiki"), cleanup: sb.cleanup };
 }
 
-describe("resolveLink — priority ladder", () => {
+describe("Feature: Search › link resolution — priority ladder", () => {
   test("a real file basename ALWAYS beats an alias (the #18 collision case)", () => {
     const { wiki, cleanup } = wikiOf({
       "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
@@ -136,7 +136,7 @@ describe("resolveLink — priority ladder", () => {
   });
 });
 
-describe("resolveLink — tie-break", () => {
+describe("Feature: Search › link resolution — tie-break", () => {
   const dupVault: Record<string, string> = {
     "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
     "wiki/index.md": "---\ntitle: index\n---\n",
@@ -180,7 +180,7 @@ describe("resolveLink — tie-break", () => {
   });
 });
 
-describe("resolvableNames", () => {
+describe("Feature: Search › link resolution — resolvable names set", () => {
   test("includes paths, basenames, aliases, and titles", () => {
     const { wiki, cleanup } = wikiOf({
       "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",
@@ -202,7 +202,7 @@ describe("resolvableNames", () => {
   });
 });
 
-describe("Value Object factories (N15 — primitive-obsession)", () => {
+describe("Feature: Search › link resolution — Value Object factories (N15 — primitive-obsession)", () => {
   test("wikiDirPath preserves the string value at runtime", () => {
     const raw = "/vault/wiki";
     expect(wikiDirPath(raw) as string).toBe(raw);

@@ -42,7 +42,7 @@ const withoutDmi = (body: string): string => `---\nname: deploy\n---\n${body}`;
 // Unit: check name constant
 // ---------------------------------------------------------------------------
 
-describe("dmi-check — unit: constant", () => {
+describe("Feature: Verify › DMI check — unit: constant", () => {
   test("DMI_CHECK is 'dmi'", () => {
     expect(DMI_CHECK).toBe("dmi");
   });
@@ -52,7 +52,7 @@ describe("dmi-check — unit: constant", () => {
 // Unit: path filter
 // ---------------------------------------------------------------------------
 
-describe("dmi-check — unit: path filter", () => {
+describe("Feature: Verify › DMI check — unit: path filter", () => {
   test("non-SKILL.md path → no finding", () => {
     const findings = checkDmi("wiki/concepts/deploy.md", withoutDmi("This deploy will push code."));
     expect(findings).toEqual([]);
@@ -81,7 +81,7 @@ describe("dmi-check — unit: path filter", () => {
 // Unit: DMI flag present → pass
 // ---------------------------------------------------------------------------
 
-describe("dmi-check — unit: disable-model-invocation present", () => {
+describe("Feature: Verify › DMI check — unit: disable-model-invocation present", () => {
   test("DMI flag present + side-effecting verb → no finding", () => {
     const findings = checkDmi(SKILL_PATH, withDmi("This skill will deploy and push code."));
     expect(findings).toEqual([]);
@@ -98,7 +98,7 @@ describe("dmi-check — unit: disable-model-invocation present", () => {
 // Unit: side-effecting verb without DMI flag → block finding
 // ---------------------------------------------------------------------------
 
-describe("dmi-check — unit: side-effecting verb without DMI", () => {
+describe("Feature: Verify › DMI check — unit: side-effecting verb without DMI", () => {
   test("side-effecting verb + no DMI flag → one DMI finding", () => {
     const findings = checkDmi(SKILL_PATH, withoutDmi("This skill will deploy the artifact."));
     expect(findings).toHaveLength(1);
@@ -146,7 +146,7 @@ describe("dmi-check — unit: side-effecting verb without DMI", () => {
 // Unit: clean / no-op cases
 // ---------------------------------------------------------------------------
 
-describe("dmi-check — unit: clean inputs", () => {
+describe("Feature: Verify › DMI check — unit: clean inputs", () => {
   test("no side-effecting verb + no DMI flag → no finding", () => {
     const findings = checkDmi(SKILL_PATH, withoutDmi("This skill reads and summarises notes."));
     expect(findings).toEqual([]);
@@ -176,7 +176,7 @@ describe("dmi-check — unit: clean inputs", () => {
 // Unit: body extraction
 // ---------------------------------------------------------------------------
 
-describe("dmi-check — unit: body extraction", () => {
+describe("Feature: Verify › DMI check — unit: body extraction", () => {
   test("verb only inside frontmatter is not counted as a body verb", () => {
     // bash awk extracts the body after the second `---`; a verb living only in
     // frontmatter metadata is not body prose.
@@ -196,7 +196,7 @@ describe("dmi-check — unit: body extraction", () => {
 // Unit: typed decision helper (exit-2 mapping)
 // ---------------------------------------------------------------------------
 
-describe("dmi-check — unit: dmiDecision (exit-2 contract)", () => {
+describe("Feature: Verify › DMI check — unit: dmiDecision (exit-2 contract)", () => {
   test("violation maps to exitCode 2 (HARD block)", () => {
     const findings = checkDmi(SKILL_PATH, withoutDmi("This will push to prod."));
     const decision = dmiDecision(findings, SKILL_PATH);

@@ -27,7 +27,7 @@ const V1: Record<string, string> = {
 
 const opts = { opId: "test-mig", isoTime: "2026-06-02T00:00:00.000Z", today: "2026-06-02" };
 
-describe("migrate", () => {
+describe("Feature: Engine › migrate verb", () => {
   test("dry-run reports a plan without writing", () => {
     const sb = makeVault(V1);
     const before = readFileSync(join(sb.vault, "CLAUDE.md"), "utf8");

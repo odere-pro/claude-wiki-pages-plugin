@@ -83,7 +83,7 @@ function makeTmpRoot(): TmpRoot {
 // clean plugin.json — zero findings
 // ---------------------------------------------------------------------------
 
-describe("checkManifests — clean plugin.json", () => {
+describe("Feature: Verify › manifest check — clean plugin.json", () => {
   test("valid plugin.json → no findings", () => {
     const tmp = makeTmpRoot();
     tmp.writePlugin(VALID_PLUGIN);
@@ -112,7 +112,7 @@ describe("checkManifests — clean plugin.json", () => {
 // missing / malformed plugin.json
 // ---------------------------------------------------------------------------
 
-describe("checkManifests — missing/malformed plugin.json", () => {
+describe("Feature: Verify › manifest check — missing/malformed plugin.json", () => {
   test("missing plugin.json → error finding", () => {
     const tmp = makeTmpRoot();
     tmp.deletePlugin();
@@ -136,7 +136,7 @@ describe("checkManifests — missing/malformed plugin.json", () => {
 // required fields
 // ---------------------------------------------------------------------------
 
-describe("checkManifests — required field violations", () => {
+describe("Feature: Verify › manifest check — required field violations", () => {
   test("missing name → error finding", () => {
     const tmp = makeTmpRoot();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -218,7 +218,7 @@ describe("checkManifests — required field violations", () => {
 // type violations
 // ---------------------------------------------------------------------------
 
-describe("checkManifests — type violations", () => {
+describe("Feature: Verify › manifest check — type violations", () => {
   test("name not a string → error finding", () => {
     const tmp = makeTmpRoot();
     tmp.writePlugin({ ...VALID_PLUGIN, name: 42 });
@@ -240,7 +240,7 @@ describe("checkManifests — type violations", () => {
 // pattern / minLength violations
 // ---------------------------------------------------------------------------
 
-describe("checkManifests — pattern and length violations", () => {
+describe("Feature: Verify › manifest check — pattern and length violations", () => {
   test("name not kebab-case → error finding", () => {
     const tmp = makeTmpRoot();
     tmp.writePlugin({ ...VALID_PLUGIN, name: "My_Plugin!" });
@@ -290,7 +290,7 @@ describe("checkManifests — pattern and length violations", () => {
 // optional fields: supported_schema_versions
 // ---------------------------------------------------------------------------
 
-describe("checkManifests — supported_schema_versions", () => {
+describe("Feature: Verify › manifest check — supported_schema_versions", () => {
   test("valid array of positive integers → no extra findings", () => {
     const tmp = makeTmpRoot();
     tmp.writePlugin({ ...VALID_PLUGIN, supported_schema_versions: [1, 2, 3] });
@@ -340,7 +340,7 @@ describe("checkManifests — supported_schema_versions", () => {
 // optional fields: keywords
 // ---------------------------------------------------------------------------
 
-describe("checkManifests — keywords", () => {
+describe("Feature: Verify › manifest check — keywords", () => {
   test("valid keywords array → no findings", () => {
     const tmp = makeTmpRoot();
     tmp.writePlugin({ ...VALID_PLUGIN, keywords: ["my-plugin", "test-kw"] });
@@ -385,7 +385,7 @@ describe("checkManifests — keywords", () => {
 // marketplace.json
 // ---------------------------------------------------------------------------
 
-describe("checkManifests — marketplace.json", () => {
+describe("Feature: Verify › manifest check — marketplace.json", () => {
   test("marketplace absent → silently skipped (no extra findings)", () => {
     const tmp = makeTmpRoot();
     tmp.writePlugin(VALID_PLUGIN);
@@ -473,7 +473,7 @@ describe("checkManifests — marketplace.json", () => {
 // no throws
 // ---------------------------------------------------------------------------
 
-describe("checkManifests — robustness", () => {
+describe("Feature: Verify › manifest check — robustness", () => {
   test("does not throw on any input (always returns Finding[])", () => {
     const tmp = makeTmpRoot();
     // Various invalid states — should never throw

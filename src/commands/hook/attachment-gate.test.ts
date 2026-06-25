@@ -32,7 +32,7 @@ function note(fields: string): string {
   return `---\ntype: source\n${fields}\n---\n# Img\n`;
 }
 
-describe("attachmentHookGate", () => {
+describe("Feature: Hook gates › attachment gate", () => {
   test("out-of-scope path → allow", () => {
     const d = attachmentHookGate({
       input: input({

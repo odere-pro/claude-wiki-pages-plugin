@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { makeVault } from "../test-helpers/sandbox/vault.ts";
 import { deriveTopics, SPECIAL_DIRS } from "./topics.ts";
 
-describe("deriveTopics", () => {
+describe("Feature: Search › topic derivation", () => {
   test("derives the vault's own top-level wiki folders, sorted", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n",

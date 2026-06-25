@@ -24,7 +24,7 @@ function editPayload(filePath: string, newString: string): unknown {
   return { tool_input: { file_path: filePath, new_string: newString } };
 }
 
-describe("checkMustRule — path filter", () => {
+describe("Feature: Verify › must-rule check — path filter", () => {
   test("ignores a non-CLAUDE.md file even with rule words", () => {
     const findings = checkMustRule(writePayload("wiki/page.md", "You must never do this."));
     expect(findings).toEqual([]);
@@ -53,7 +53,7 @@ describe("checkMustRule — path filter", () => {
   });
 });
 
-describe("checkMustRule — text source selection", () => {
+describe("Feature: Verify › must-rule check — text source selection", () => {
   test("reads content for a Write payload", () => {
     const findings = checkMustRule(writePayload("CLAUDE.md", "must"));
     expect(findings).toHaveLength(1);
@@ -86,7 +86,7 @@ describe("checkMustRule — text source selection", () => {
   });
 });
 
-describe("checkMustRule — rule-word heuristic (grep -ciE line semantics)", () => {
+describe("Feature: Verify › must-rule check — rule-word heuristic (grep -ciE line semantics)", () => {
   test("no finding when no imperative rule word is present", () => {
     const findings = checkMustRule(writePayload("CLAUDE.md", "This is a gentle suggestion."));
     expect(findings).toEqual([]);
@@ -126,7 +126,7 @@ describe("checkMustRule — rule-word heuristic (grep -ciE line semantics)", () 
   });
 });
 
-describe("checkMustRule — untrusted-input narrowing (never throws)", () => {
+describe("Feature: Verify › must-rule check — untrusted-input narrowing (never throws)", () => {
   test("returns [] on a non-object payload", () => {
     expect(checkMustRule(null)).toEqual([]);
     expect(checkMustRule(undefined)).toEqual([]);
@@ -154,7 +154,7 @@ describe("checkMustRule — untrusted-input narrowing (never throws)", () => {
   });
 });
 
-describe("checkMustRule — never blocks", () => {
+describe("Feature: Verify › must-rule check — never blocks", () => {
   test("every finding is warn severity (advisory, exit-0 contract)", () => {
     const findings = checkMustRule(writePayload("CLAUDE.md", "must\nnever\nalways"));
     expect(findings.every((f) => f.severity === "warn")).toBe(true);

@@ -74,7 +74,7 @@ confidence: 0.9
 body
 `;
 
-describe("validateFrontmatter (vault-level CLI parity)", () => {
+describe("Feature: Schema › frontmatter validation — validateFrontmatter (vault-level CLI parity)", () => {
   test("a clean conformant concept page yields no findings", () => {
     sb = vaultWith({ "wiki/topics/biology/photosynthesis.md": CLEAN_CONCEPT });
     const findings = validateFrontmatter(sb.vault);
@@ -100,7 +100,7 @@ describe("validateFrontmatter (vault-level CLI parity)", () => {
   });
 });
 
-describe("validateContent — bash validate_content parity rules", () => {
+describe("Feature: Schema › frontmatter validation — validateContent: bash validate_content parity rules", () => {
   const schemaPath = (s: Sandbox): string => join(s.vault, "CLAUDE.md");
 
   test("clean concept page → null", () => {
@@ -205,7 +205,7 @@ body
   });
 });
 
-describe("validateContent — fail-closed when schema table is absent", () => {
+describe("Feature: Schema › frontmatter validation — validateContent: fail-closed when schema table is absent", () => {
   test("schema CLAUDE.md without the required-fields table fails closed", () => {
     sb = makeVault({ "CLAUDE.md": "---\nschema_version: 1\n---\n# No tables here\n" });
     const content = "---\ntype: concept\ntitle: C\n---\nbody\n";
@@ -222,7 +222,7 @@ describe("validateContent — fail-closed when schema table is absent", () => {
   });
 });
 
-describe("validateContent — extension rules (beyond bash, additive)", () => {
+describe("Feature: Schema › frontmatter validation — validateContent: extension rules (beyond bash, additive)", () => {
   const schemaPath = (s: Sandbox): string => join(s.vault, "CLAUDE.md");
 
   test("derived: true with confidence >= 0.8 is flagged (provenance shape)", () => {
