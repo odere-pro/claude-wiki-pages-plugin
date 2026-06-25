@@ -76,3 +76,12 @@ New folders: skills
 New entities: Init Skill, Ingest Skill, Query Skill, Lint Skill, Fix Skill, Status Skill, Synthesize Skill, Search Skill, Review Skill, Draft Skill, Engine API Skill, Maintain Contract Skill, Onboarding Skill, Fill Gaps Skill, Ingest Pipeline Skill, Analyst Modes Skill, Curator Fixes Skill, Voice Skill, Obsidian Vault Skill, Obsidian CLI Skill, Markdown Skill, Index Skill, Sync Skill, Obsidian Graph Colors Skill, Obsidian Markdown Skill
 New concepts: Single-Responsibility Skill Pattern
 Backlog: 1 skill unprocessed (obsidian-bases)
+
+## [2026-06-25] ingest | claude-wiki-pages docs (25 sources)
+
+Processed 25 documentation files from raw/repo/docs/. Created 26 new wiki pages, 0 updated.
+New folders: docs, docs/adrs
+New entities: ADR-0001 (Four-Layer Orchestrator), ADR-0004 (Ontology Profile v1), ADR-0007 (Wiki-Native Recall), ADR-0018 (Offline Policy), ADR-0022 (Folder Notes v3), ADR-0026 (Parallel Extract), ADR-0033 (Topic-Local Linking), ADR-0034 (Bun Required), ADR-0035 (Deterministic Obsidian), ADR-0036 (Strict-Tree Topology)
+New concepts: Four-Layer Architecture, Canonical Glossary, Research Foundations, Operations Reference, Local Model Support, Getting Started Guide, Installation Guide, Features Overview, Vault Automation, Agent Teams, NO-RAG Stance, Ontology Profile, Strict Tree Topology, Scaffolding Ablation, User Guide Workflow
+New sources: docs-architecture, docs-glossary, docs-research-foundations, docs-operations, docs-local-models, docs-getting-started, docs-install, docs-features, docs-automation, docs-teams, docs-adr-0001, docs-adr-0004, docs-adr-0007, docs-adr-0018, docs-adr-0022, docs-adr-0026, docs-adr-0033, docs-adr-0034, docs-adr-0035, docs-adr-0036, docs-design-system-context, docs-design-component, docs-design-ontology, docs-llm-wiki-index, docs-llm-wiki-getting-started
+Backlog: 39 of 64 files remain unprocessed (ADR-0002/0003/0005/0006/0008–0017/0019–0021/0023–0025/0027–0032/0037+; design/03–06/08–09; llm-wiki/02–07)

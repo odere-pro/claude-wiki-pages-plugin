@@ -7,6 +7,7 @@ children: []
 child_indexes:
   - "[[agents|Agents]]"
   - "[[commands|Commands]]"
+  - "[[docs|Docs]]"
   - "[[hooks|Hooks]]"
   - "[[rules|Rules]]"
   - "[[schemas|Schemas]]"
@@ -28,6 +29,7 @@ Master catalog of every page in the wiki.
 
 - [[agents|Agents]] — 9 pages, last updated 2026-06-25
 - [[commands|Commands]] — 4 pages, last updated 2026-06-25
+- [[docs|Docs]] — 26 pages, last updated 2026-06-25
 - [[hooks|Hooks]] — 3 pages, last updated 2026-06-25
 - [[rules|Rules]] — 3 pages, last updated 2026-06-25
 - [[schemas|Schemas]] — 2 pages, last updated 2026-06-25
