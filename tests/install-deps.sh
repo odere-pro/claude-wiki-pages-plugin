@@ -41,6 +41,7 @@ esac
 TOOLS=(
   "jq|jq|jq"
   "bats|bats-core|bats"
+  "parallel|parallel|parallel"
   "shellcheck|shellcheck|shellcheck"
   "shfmt|shfmt|shfmt"
   "markdownlint-cli2|markdownlint-cli2|"
@@ -127,6 +128,12 @@ done
 for h in "${BATS_HELPERS[@]}"; do
   clone_bats_helper "$h" || STATUS=1
 done
+
+# Silence GNU parallel's one-time citation notice so `bats --jobs` (and the gates
+# runner) produce clean output instead of the interactive nag.
+if [ "$CHECK_ONLY" -eq 0 ] && [ "$DRY_RUN" -eq 0 ] && have parallel; then
+  mkdir -p "$HOME/.parallel" && touch "$HOME/.parallel/will-cite"
+fi
 
 if [ "$STATUS" -eq 0 ]; then
   echo "[install-deps] done."
