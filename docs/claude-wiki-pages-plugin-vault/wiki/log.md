@@ -49,3 +49,9 @@ New concepts: Path-Scoped Rules, Raw Immutability, Wiki Page Format
 Processed 2 schema files from raw/repo/schemas/. Created 2 new wiki pages, 0 updated.
 New folders: schemas
 New concepts: Plugin Config Schema, Config Sections
+
+## [2026-06-25] ingest | claude-wiki-pages templates (1 source)
+
+Processed 1 template file from raw/repo/templates/. Created 1 new wiki page, 0 updated.
+New folders: templates
+New concepts: Default Config
