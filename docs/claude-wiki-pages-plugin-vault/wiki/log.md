@@ -68,3 +68,11 @@ Processed 17 root files from raw/repo/root/. Created 6 new wiki pages, 0 updated
 New folders: root
 New entities: NPM Package
 New concepts: Plugin Overview, Security Model, Dev Tooling, Contributing and Governance, Release History
+
+## [2026-06-25] ingest | claude-wiki-pages skills (25 sources)
+
+Processed 25 skill definition files from raw/repo/skills/. Created 27 new wiki pages, 0 updated.
+New folders: skills
+New entities: Init Skill, Ingest Skill, Query Skill, Lint Skill, Fix Skill, Status Skill, Synthesize Skill, Search Skill, Review Skill, Draft Skill, Engine API Skill, Maintain Contract Skill, Onboarding Skill, Fill Gaps Skill, Ingest Pipeline Skill, Analyst Modes Skill, Curator Fixes Skill, Voice Skill, Obsidian Vault Skill, Obsidian CLI Skill, Markdown Skill, Index Skill, Sync Skill, Obsidian Graph Colors Skill, Obsidian Markdown Skill
+New concepts: Single-Responsibility Skill Pattern
+Backlog: 1 skill unprocessed (obsidian-bases)
