@@ -99,3 +99,39 @@ Backlog: 57 of 82 scripts remain unprocessed (heartbeat.sh, protect-raw.sh, chec
 - pre-state: bd0d729
 - rollback: git revert the snapshot commit below
 
+
+## [2026-06-25] ingest | src (25 sources)
+
+Processed 25 TypeScript source files from `src/` (copied to `raw/repo/src/`).
+Created 3 new folders: `src/`, `src/core/`, `src/commands/`.
+New pages: 19 wiki pages + 19 source summaries.
+
+New folder notes:
+- `wiki/src/src.md` (index)
+- `wiki/src/core/core.md` (index)
+- `wiki/src/commands/src-commands.md` (index)
+
+New entities: [[engine-cli|Engine CLI]]
+
+New concepts:
+- [[report-model|Report Model]]
+- [[vault-resolution|Vault Resolution]]
+- [[firewall-module|Firewall Module]]
+- [[graph-traversal|Graph Traversal]]
+- [[frontmatter-parser|Frontmatter Parser]]
+- [[wikilink-extraction|Wikilink Extraction]]
+- [[link-resolver|Link Resolver]]
+- [[spine-module|Spine Module]]
+- [[schema-check|Schema Check]]
+- [[link-demote|Link Demote]]
+- [[tree-metric|Tree Metric]]
+- [[config-loading|Config Loading]]
+- [[verify-command|Verify Command]]
+- [[search-command|Search Command]]
+- [[heal-command|Heal Command]]
+- [[snapshot-command|Snapshot Command]]
+- [[hook-gate|Hook Gate]]
+
+New source summaries: src-engine-overview, src-cli-router, src-core-report, src-core-vault, src-core-firewall, src-core-graph, src-core-link-resolver, src-core-spine, src-core-frontmatter, src-commands-search, src-commands-verify, src-commands-heal, src-commands-snapshot, src-commands-hook, src-data-config, src-core-link-demote, src-core-tree-metric, src-core-wikilinks, src-core-schema (19 total).
+
+Backlog: 155 remaining src/*.ts source files unprocessed (180 total − 25 processed).
