@@ -28,7 +28,7 @@ SKILL_FILE="$REPO_ROOT/skills/query/SKILL.md"
 # C1-01: descent ordered by engine score (descending)
 # ---------------------------------------------------------------------------
 
-@test "C1-01: SKILL.md documents descent ordered by engine score descending" {
+@test "Query descent: SKILL.md documents descent ordered by engine score descending" {  # spec C1-01
   run grep -i "score" "$SKILL_FILE"
   assert_success
   # Must mention ordering by score
@@ -40,7 +40,7 @@ SKILL_FILE="$REPO_ROOT/skills/query/SKILL.md"
 # C1-02: context-budget prefix cut-off
 # ---------------------------------------------------------------------------
 
-@test "C1-02: SKILL.md documents a context-budget prefix cut-off" {
+@test "Query descent: SKILL.md documents a context-budget prefix cut-off" {  # spec C1-02
   run grep -i "context.budget\|budget" "$SKILL_FILE"
   assert_success
   # Must mention including pages until budget is exhausted (prefix semantics)
@@ -52,13 +52,13 @@ SKILL_FILE="$REPO_ROOT/skills/query/SKILL.md"
 # C1-03: read-only / no-re-rank invariant
 # ---------------------------------------------------------------------------
 
-@test "C1-03: SKILL.md states the no-re-rank invariant explicitly" {
+@test "Query descent: SKILL.md states the no-re-rank invariant explicitly" {  # spec C1-03
   # Must explicitly say C1 does NOT re-rank (or never re-ranks)
   run grep -iE "no.re.rank|never re.rank|not re.rank|does not re.rank" "$SKILL_FILE"
   assert_success
 }
 
-@test "C1-03b: SKILL.md states the emitted order is a sub-sequence of search output" {
+@test "Query descent: SKILL.md states the emitted order is a sub-sequence of search output" {  # spec C1-03b
   run grep -iE "sub.?sequence" "$SKILL_FILE"
   assert_success
 }
@@ -67,17 +67,17 @@ SKILL_FILE="$REPO_ROOT/skills/query/SKILL.md"
 # C1-04: names the readable SearchHit fields
 # ---------------------------------------------------------------------------
 
-@test "C1-04a: SKILL.md names the score field as a readable SearchHit field" {
+@test "Query descent: SKILL.md names the score field as a readable SearchHit field" {  # spec C1-04a
   run grep -i "SearchHit\|search hit\|search_hit" "$SKILL_FILE"
   assert_success
 }
 
-@test "C1-04b: SKILL.md names matched\[\] as a readable field" {
+@test "Query descent: SKILL.md names matched\[\] as a readable field" {  # spec C1-04b
   run grep -iE "matched\b" "$SKILL_FILE"
   assert_success
 }
 
-@test "C1-04c: SKILL.md names wikilink as a readable field" {
+@test "Query descent: SKILL.md names wikilink as a readable field" {  # spec C1-04c
   run grep -i "wikilink" "$SKILL_FILE"
   assert_success
 }
@@ -86,7 +86,7 @@ SKILL_FILE="$REPO_ROOT/skills/query/SKILL.md"
 # C1-05: matched[].channel for tie-aware inclusion
 # ---------------------------------------------------------------------------
 
-@test "C1-05: SKILL.md documents matched[].channel for tie-aware inclusion" {
+@test "Query descent: SKILL.md documents matched[].channel for tie-aware inclusion" {  # spec C1-05
   run grep -iE "channel|tie.aware|title.phrase|title.term|body.only\|body-only\|body-term" "$SKILL_FILE"
   assert_success
 }
@@ -95,7 +95,7 @@ SKILL_FILE="$REPO_ROOT/skills/query/SKILL.md"
 # C1-06: search --json named as input source
 # ---------------------------------------------------------------------------
 
-@test "C1-06: SKILL.md names search --json as the candidate-set input" {
+@test "Query descent: SKILL.md names search --json as the candidate-set input" {  # spec C1-06
   run grep -E "search.*--json|--json" "$SKILL_FILE"
   assert_success
 }

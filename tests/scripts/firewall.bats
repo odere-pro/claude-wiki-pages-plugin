@@ -24,27 +24,27 @@ run_fw() { # $1 = file_path ; runs the hook in hook mode with vault env set
   run bash -c "export CLAUDE_WIKI_PAGES_VAULT='$VAULT_DIR'; printf '%s' '$json' | bash '$REPO_ROOT/scripts/firewall.sh'"
 }
 
-@test "firewall: allows a write inside the vault" {
+@test "Firewall: allows a write inside the resolved vault" {
   run_fw "$VAULT_DIR/wiki/topics/page.md"
   assert_success
   assert_output_empty
 }
 
-@test "firewall: blocks a write outside the vault" {
+@test "Firewall: blocks a write outside the vault" {
   run_fw "$BATS_TEST_TMPDIR/elsewhere/secret.md"
   assert_success
   assert_output_contains '"decision":"block"'
   assert_output_contains "outside"
 }
 
-@test "firewall: deny glob blocks a dotfile inside the vault" {
+@test "Firewall: a deny glob blocks a dotfile even inside the vault" {
   run_fw "$VAULT_DIR/.env"
   assert_success
   assert_output_contains '"decision":"block"'
   assert_output_contains "deny"
 }
 
-@test "firewall: mode off is a pass-through" {
+@test "Firewall: mode off is a pass-through that allows any write" {
   mkdir -p "$BATS_TEST_TMPDIR/proj/.claude"
   printf '{"firewall":{"mode":"off"}}\n' >"$BATS_TEST_TMPDIR/proj/.claude/claude-wiki-pages.json"
   local json
@@ -67,7 +67,7 @@ run_fw_with_other() {
   run bash -c "export CLAUDE_WIKI_PAGES_VAULT='$active_vault'; export CLAUDE_WIKI_PAGES_OTHER_VAULTS='$other_vaults'; printf '%s' '$json' | bash '$REPO_ROOT/scripts/firewall.sh'"
 }
 
-@test "cross-vault: write to active vault is allowed" {
+@test "Firewall: a write to the active vault is allowed (cross-vault)" {
   local SIBLING="$BATS_TEST_TMPDIR/sibling-vault"
   mkdir -p "$SIBLING"
   run_fw_with_other "$VAULT_DIR/wiki/page.md" "$VAULT_DIR" "$SIBLING"
@@ -75,7 +75,7 @@ run_fw_with_other() {
   assert_output_empty
 }
 
-@test "cross-vault: write to sibling registered vault is blocked under enforce" {
+@test "Firewall: a write to a sibling registered vault is blocked under enforce mode (cross-vault)" {
   local SIBLING="$BATS_TEST_TMPDIR/sibling-vault"
   mkdir -p "$SIBLING"
   run_fw_with_other "$SIBLING/wiki/page.md" "$VAULT_DIR" "$SIBLING"
@@ -84,7 +84,7 @@ run_fw_with_other() {
   assert_output_contains "cross-vault"
 }
 
-@test "cross-vault: deny glob inside sibling still returns deny (not cross-vault)" {
+@test "Firewall: a deny glob inside a sibling vault returns deny, not cross-vault (deny wins)" {
   local SIBLING="$BATS_TEST_TMPDIR/sibling-vault2"
   mkdir -p "$SIBLING"
   run_fw_with_other "$SIBLING/.env" "$VAULT_DIR" "$SIBLING"
@@ -94,7 +94,7 @@ run_fw_with_other() {
   assert_output_contains "deny"
 }
 
-@test "cross-vault: allowPaths cannot override cross-vault block" {
+@test "Firewall: allowPaths cannot override a cross-vault block" {
   local SIBLING="$BATS_TEST_TMPDIR/allow-sibling"
   mkdir -p "$SIBLING"
   # Configure allowPaths to include the sibling vault
@@ -108,7 +108,7 @@ run_fw_with_other() {
   assert_output_contains "cross-vault"
 }
 
-@test "cross-vault: path traversal active/../sibling canonicalizes and is blocked" {
+@test "Firewall: a path traversal active/../sibling canonicalizes and is blocked (cross-vault)" {
   # VAULT_DIR is $BATS_TEST_TMPDIR/proj/vault so its parent is $BATS_TEST_TMPDIR/proj.
   # Place sibling at same level: $BATS_TEST_TMPDIR/proj/sibling-vault.
   local SIBLING="$BATS_TEST_TMPDIR/proj/sibling-vault"
@@ -121,7 +121,7 @@ run_fw_with_other() {
   assert_output_contains "cross-vault"
 }
 
-@test "cross-vault: outside-all paths still produce outside-vault (not cross-vault)" {
+@test "Firewall: a path outside all known vaults reports outside-vault, not cross-vault" {
   local SIBLING="$BATS_TEST_TMPDIR/outside-sibling"
   mkdir -p "$SIBLING"
   run_fw_with_other "/etc/passwd" "$VAULT_DIR" "$SIBLING"
@@ -130,7 +130,7 @@ run_fw_with_other() {
   assert_output_contains "outside"
 }
 
-@test "cross-vault: warn mode advises but does not block sibling write" {
+@test "Firewall: warn mode advises but does not block a sibling write (cross-vault)" {
   local SIBLING="$BATS_TEST_TMPDIR/warn-sibling"
   mkdir -p "$SIBLING"
   mkdir -p "$BATS_TEST_TMPDIR/proj3/.claude"
@@ -147,7 +147,7 @@ run_fw_with_other() {
 # A symlink INSIDE the active vault that points at a sibling must not let a write
 # escape: the physical destination is what matters, not the lexical path.
 
-@test "symlink escape: dir symlink active->sibling resolves physically and is blocked (cross-vault)" {
+@test "Firewall: a dir symlink from active to sibling resolves physically and is blocked (symlink escape, cross-vault)" {
   local SIBLING="$BATS_TEST_TMPDIR/sym-sibling-dir"
   mkdir -p "$SIBLING/wiki"
   # A/wiki/link-to-B -> SIBLING ; write through it lands physically in SIBLING.
@@ -158,7 +158,7 @@ run_fw_with_other() {
   assert_output_contains "cross-vault"
 }
 
-@test "symlink escape: leaf symlink active->sibling file resolves physically and is blocked (cross-vault)" {
+@test "Firewall: a leaf symlink from active to a sibling file resolves physically and is blocked (symlink escape, cross-vault)" {
   local SIBLING="$BATS_TEST_TMPDIR/sym-sibling-leaf"
   mkdir -p "$SIBLING/wiki"
   # A/wiki/x.md -> SIBLING/wiki/x.md (target need not exist yet).
@@ -169,7 +169,7 @@ run_fw_with_other() {
   assert_output_contains "cross-vault"
 }
 
-@test "symlink escape: dir symlink to an outside (unregistered) location is outside-vault" {
+@test "Firewall: a dir symlink to an unregistered location reports outside-vault (symlink escape)" {
   local SIBLING="$BATS_TEST_TMPDIR/sym-sibling-reg"
   local OUTSIDE="$BATS_TEST_TMPDIR/sym-outside"
   mkdir -p "$SIBLING" "$OUTSIDE"
@@ -180,7 +180,7 @@ run_fw_with_other() {
   assert_output_contains "outside"
 }
 
-@test "symlink escape: deny glob still fires on the physical location through a symlink" {
+@test "Firewall: a deny glob still fires on the physical location through a symlink (symlink escape)" {
   local SIBLING="$BATS_TEST_TMPDIR/sym-sibling-deny"
   mkdir -p "$SIBLING"
   ln -s "$SIBLING" "$VAULT_DIR/wiki/link-to-B-deny"
@@ -190,7 +190,7 @@ run_fw_with_other() {
   assert_output_contains "deny"
 }
 
-@test "symlink escape: a real (non-symlinked) write inside the active vault is still allowed" {
+@test "Firewall: a real non-symlinked write inside the active vault is still allowed (symlink escape)" {
   local SIBLING="$BATS_TEST_TMPDIR/sym-sibling-ok"
   mkdir -p "$SIBLING"
   run_fw_with_other "$VAULT_DIR/wiki/real.md" "$VAULT_DIR" "$SIBLING"
@@ -202,7 +202,7 @@ run_fw_with_other() {
 # The shipped PreToolUse hook receives no CLAUDE_WIKI_PAGES_OTHER_VAULTS; the
 # cross-vault set must come from the registry (vaults[] minus current_vault_path).
 
-@test "registry-derived: firewall.sh blocks a sibling-vault write with NO env var set" {
+@test "Firewall: blocks a sibling-vault write with no env var, deriving the set from the registry (registry-derived)" {
   local ACTIVE="$BATS_TEST_TMPDIR/reg/active"
   local SIBLING="$BATS_TEST_TMPDIR/reg/sibling"
   mkdir -p "$ACTIVE/wiki" "$SIBLING/wiki"
@@ -226,7 +226,7 @@ run_fw_with_other() {
   assert_output_contains "cross-vault"
 }
 
-@test "registry-derived: firewall.sh allows the active vault write with NO env var set" {
+@test "Firewall: allows the active-vault write with no env var, deriving the set from the registry (registry-derived)" {
   local ACTIVE="$BATS_TEST_TMPDIR/reg2/active"
   local SIBLING="$BATS_TEST_TMPDIR/reg2/sibling"
   mkdir -p "$ACTIVE/wiki" "$SIBLING/wiki"
@@ -252,7 +252,7 @@ run_fw_with_other() {
 # gate and must BLOCK any write (non-empty file_path) with an install-Bun reason —
 # never fail-open. Simulate Bun-absence by shadowing PATH so `command -v bun` fails.
 
-@test "fail-closed: Bun absent blocks a vault write with an install-Bun reason" {
+@test "Firewall: Bun absent blocks a vault write with an install-Bun reason (fail-closed)" {
   local BINSTUB="$BATS_TEST_TMPDIR/nobun-bin"
   mkdir -p "$BINSTUB"
   # Provide the tools the wrapper needs (jq, cat, etc.) but NOT bun.
@@ -267,7 +267,7 @@ run_fw_with_other() {
   assert_output_contains "Bun is required"
 }
 
-@test "fail-closed: Bun absent with no file_path passes through (no block)" {
+@test "Firewall: Bun absent with no file_path passes through without a block (fail-closed)" {
   local BINSTUB="$BATS_TEST_TMPDIR/nobun-bin2"
   mkdir -p "$BINSTUB"
   for t in jq cat dirname basename sed tr printf bash grep; do
@@ -279,7 +279,7 @@ run_fw_with_other() {
   refute_output_contains '"decision":"block"'
 }
 
-@test "registry-derived: firewall.sh hook does NOT mutate settings.json (read-only)" {
+@test "Firewall: the hook does not mutate settings.json and stays read-only (registry-derived)" {
   local ACTIVE="$BATS_TEST_TMPDIR/reg3/active"
   local SIBLING="$BATS_TEST_TMPDIR/reg3/sibling"
   mkdir -p "$ACTIVE/wiki" "$SIBLING/wiki"

@@ -29,7 +29,7 @@ function gitLog(dir: string): string {
   return execFileSync("git", ["log", "--oneline"], { cwd: dir, encoding: "utf8" });
 }
 
-describe("heal", () => {
+describe("Feature: Engine › heal verb", () => {
   const opts = { opId: "test-op", isoTime: "2026-06-01T00:00:00.000Z", today: "2026-06-01" };
 
   // M17 / DIP: injectable _verify and _fix dependencies allow composing heal

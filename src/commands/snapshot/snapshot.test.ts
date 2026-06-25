@@ -25,7 +25,7 @@ afterEach(() => {
   delete process.env["CLAUDE_WIKI_PAGES_GITCHECKPOINT_MODE"];
 });
 
-describe("snapshot pre", () => {
+describe("Feature: Engine › snapshot verb — pre", () => {
   test("writes a checkpoint commit and reports its SHA", () => {
     const sb = makeVault(CLEAN_VAULT);
     initRepo(sb.vault);
@@ -98,7 +98,7 @@ describe("snapshot pre", () => {
   });
 });
 
-describe("snapshot post — degraded path (no prior pre)", () => {
+describe("Feature: Engine › snapshot verb — post — degraded path (no prior pre)", () => {
   test("post with vanished repo: ensureRepo re-inits and vault is clean → skip", () => {
     // Negative case: the repo was initialised (snapshot pre ran) and files were
     // written during the LLM phase, but then the .git directory was removed
@@ -146,7 +146,7 @@ describe("snapshot post — degraded path (no prior pre)", () => {
   });
 });
 
-describe("snapshot post", () => {
+describe("Feature: Engine › snapshot verb — post", () => {
   test("commits the write phase with the label and opId in the message", () => {
     const sb = makeVault(CLEAN_VAULT);
     initRepo(sb.vault);
@@ -235,7 +235,7 @@ describe("snapshot post", () => {
 // contract (SnapshotReport fields + git state) rather than spying on the
 // internal withVaultLockSync implementation detail.
 
-describe("snapshot post — serialization observable outcomes (H08)", () => {
+describe("Feature: Engine › snapshot verb — post — serialization observable outcomes (H08)", () => {
   test("snapshot post with dirty vault commits and returns a non-null sha", () => {
     // Observable: a dirty vault must produce a committed sha — the whole
     // isClean→appendLog→commit sequence completed atomically.

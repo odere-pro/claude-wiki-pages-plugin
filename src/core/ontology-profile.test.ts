@@ -89,7 +89,7 @@ function writeFile(dir: string, rel: string, content: string): string {
 
 // ── parseOntologyProfile — failure branches ──────────────────────────────────
 
-describe("parseOntologyProfile() — file-not-found / read failures", () => {
+describe("Feature: Ontology › profile parsing — parseOntologyProfile: file-not-found / read failures", () => {
   test("1. schema file does not exist → ParseFail with 'not found' message", () => {
     const s = makeSandbox();
     const result = parseOntologyProfile(join(s.dir, "nonexistent.md"), undefined);
@@ -103,7 +103,7 @@ describe("parseOntologyProfile() — file-not-found / read failures", () => {
   });
 });
 
-describe("parseOntologyProfile() — missing sections", () => {
+describe("Feature: Ontology › profile parsing — parseOntologyProfile: missing sections", () => {
   test("2. predicate table absent → ParseFail with predicate-table message", () => {
     const s = makeSandbox();
     const content = `---\nschema_version: 3\n---\n# Schema\n\nNo predicate table here.\n`;
@@ -175,7 +175,7 @@ describe("parseOntologyProfile() — missing sections", () => {
 
 // ── parseOntologyProfile — happy path ───────────────────────────────────────
 
-describe("parseOntologyProfile() — happy path", () => {
+describe("Feature: Ontology › profile parsing — parseOntologyProfile: happy path", () => {
   test("7. valid schema → ParseOk with correct enum lists and predicate entries", () => {
     const s = makeSandbox();
     const path = writeFile(s.dir, "CLAUDE.md", VALID_SCHEMA_CONTENT);
@@ -234,7 +234,7 @@ describe("parseOntologyProfile() — happy path", () => {
 
 // ── parseOntologyProfile — entity_type_extensions composition ────────────────
 
-describe("parseOntologyProfile() — entity_type_extensions composition", () => {
+describe("Feature: Ontology › profile parsing — parseOntologyProfile: entity_type_extensions composition", () => {
   test("10. vaultClaudeMd does not exist → core entity_type only (no panic)", () => {
     const s = makeSandbox();
     const schemaPath = writeFile(s.dir, "CLAUDE.md", VALID_SCHEMA_CONTENT);
@@ -349,7 +349,7 @@ describe("parseOntologyProfile() — entity_type_extensions composition", () => 
 //         row — no data rows at all → enumMap stays empty (size=0) → returns
 //         null → ParseFail (independent from the predicate-table failure path).
 
-describe("parseOntologyProfile() — invalid-membership negative branches (N06)", () => {
+describe("Feature: Ontology › profile parsing — parseOntologyProfile: invalid-membership negative branches (N06)", () => {
   test("N06-A: predicate rows present but all lack backtick predicate token → ParseFail", () => {
     // Row cells exist but the first cell contains no backtick-wrapped token,
     // so extractBacktickToken returns null and no entry is pushed → entries=[].
@@ -490,7 +490,7 @@ describe("parseOntologyProfile() — invalid-membership negative branches (N06)"
 
 // ── parseContextContract — failure / absent cases ────────────────────────────
 
-describe("parseContextContract() — absent or empty section", () => {
+describe("Feature: Ontology › profile parsing — parseContextContract: absent or empty section", () => {
   test("15. no '## Context contract' heading → returns null", () => {
     const md = `# My Skill\n\nSome content.\n\n## Another Section\n\nStuff.\n`;
     expect(parseContextContract(md)).toBeNull();
@@ -505,7 +505,7 @@ describe("parseContextContract() — absent or empty section", () => {
 
 // ── parseContextContract — happy path ────────────────────────────────────────
 
-describe("parseContextContract() — happy path", () => {
+describe("Feature: Ontology › profile parsing — parseContextContract: happy path", () => {
   test("17. inputs / reference / outputs rows → correct categorisation", () => {
     const md = `# Skill\n\n## Context contract\n\n| role | globs |\n| --- | --- |\n| inputs (L4) | wiki/**/*.md, raw/**/*.md |\n| reference (L3) | skills/**/*.md |\n| outputs | wiki/log.md |\n\n## Next\n`;
     const contract = parseContextContract(md);

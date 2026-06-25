@@ -43,7 +43,7 @@ const VAULT = {
 
 const opts = { opId: "test-prop", isoTime: "2026-06-02T00:00:00.000Z", today: "2026-06-02" };
 
-describe("propose", () => {
+describe("Feature: Engine › propose verb", () => {
   test("review lists pending drafts with readiness", () => {
     const sb = makeVault(VAULT);
     const r = propose({ target: sb.vault, sub: "review", ...opts });

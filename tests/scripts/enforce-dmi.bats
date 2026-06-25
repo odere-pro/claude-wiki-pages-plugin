@@ -35,14 +35,14 @@ teardown() {
 # Non-SKILL.md path — always pass
 # ---------------------------------------------------------------------------
 
-@test "enforce-dmi: ignores non-SKILL.md path (exit 0)" {
+@test "DMI enforcement: ignores a non-SKILL.md path (exit 0)" {
   local json
   json=$(_write_json "/tmp/test-project/vault/wiki/topics/page.md" "some content")
   run_hook_with_json_string "$SCRIPT" "$json"
   assert_success
 }
 
-@test "enforce-dmi: ignores README.md path (exit 0)" {
+@test "DMI enforcement: ignores a README.md path (exit 0)" {
   local json
   json=$(_write_json "/any/path/README.md" "scaffold and commit verbs here")
   run_hook_with_json_string "$SCRIPT" "$json"
@@ -53,7 +53,7 @@ teardown() {
 # SKILL.md with no side-effecting verbs — pass
 # ---------------------------------------------------------------------------
 
-@test "enforce-dmi: clean SKILL.md (no side effects) exits 0" {
+@test "DMI enforcement: a clean SKILL.md with no side-effecting verbs exits 0" {
   local skill_path="$TMPDIR_SKILL/SKILL.md"
   local content
   content=$(printf -- '---\ntitle: query\n---\n# Query\nReads the vault and returns results.')
@@ -67,7 +67,7 @@ teardown() {
 # SKILL.md with disable-model-invocation: true — pass even with side effects
 # ---------------------------------------------------------------------------
 
-@test "enforce-dmi: SKILL.md with dmi=true passes despite side-effecting verbs" {
+@test "DMI enforcement: a SKILL.md with disable-model-invocation: true passes despite side-effecting verbs" {
   local skill_path="$TMPDIR_SKILL/SKILL.md"
   local content
   content=$(printf -- '---\ntitle: query\ndisable-model-invocation: true\n---\n# Query\nScaffold and commit the vault.')
@@ -81,7 +81,7 @@ teardown() {
 # SKILL.md with side-effecting verbs but no dmi — BLOCK (exit 2)
 # ---------------------------------------------------------------------------
 
-@test "enforce-dmi: SKILL.md with 'scaffold' verb and no dmi is blocked (exit 2)" {
+@test "DMI enforcement: a SKILL.md with the 'scaffold' verb and no dmi flag is blocked (exit 2)" {
   local skill_path="$TMPDIR_SKILL/SKILL.md"
   # Single-line content keeps the JSON payload valid (no unescaped newlines).
   local content="title: query --- Scaffold the wiki structure."
@@ -92,7 +92,7 @@ teardown() {
   assert_status 2
 }
 
-@test "enforce-dmi: SKILL.md with 'commit' verb and no dmi is blocked (exit 2)" {
+@test "DMI enforcement: a SKILL.md with the 'commit' verb and no dmi flag is blocked (exit 2)" {
   local skill_path="$TMPDIR_SKILL/SKILL.md"
   # Single-line content keeps the JSON payload valid (no unescaped newlines).
   local content="title: ingest --- This will commit the result."
@@ -103,7 +103,7 @@ teardown() {
   assert_status 2
 }
 
-@test "enforce-dmi: block message names the offending file" {
+@test "DMI enforcement: the block message names the offending file" {
   local skill_path="$TMPDIR_SKILL/SKILL.md"
   # Single-line content keeps the JSON payload valid (no unescaped newlines).
   local content="title: ingest --- This will commit the result."
@@ -119,7 +119,7 @@ teardown() {
 # Edit payload — reads file from disk when content is empty
 # ---------------------------------------------------------------------------
 
-@test "enforce-dmi: Edit payload reads from disk and blocks when disk content has side effects" {
+@test "DMI enforcement: an Edit payload reads the file from disk and blocks when the disk content has side effects" {
   local skill_path="$TMPDIR_SKILL/SKILL.md"
   # Write a SKILL.md with side-effecting verbs to disk.
   printf -- '---\ntitle: ingest\n---\n# Ingest\nDeploy the results.\n' >"$skill_path"
@@ -132,7 +132,7 @@ teardown() {
   assert_output_contains "BLOCKED"
 }
 
-@test "enforce-dmi: Edit payload on clean disk file exits 0" {
+@test "DMI enforcement: an Edit payload on a clean disk file exits 0" {
   local skill_path="$TMPDIR_SKILL/SKILL.md"
   # Write a clean SKILL.md to disk (no side-effecting verbs).
   printf -- '---\ntitle: query\n---\n# Query\nReads the vault.\n' >"$skill_path"
@@ -159,7 +159,7 @@ _path_without_bun_dmi() {
   printf '%s' "$tooldir"
 }
 
-@test "enforce-dmi: FAIL-CLOSED — Bun absent HARD-blocks a SKILL.md write (exit 2)" {
+@test "DMI enforcement: Bun absent hard-blocks a SKILL.md write with exit 2 (fail-closed)" {
   local tooldir
   tooldir=$(_path_without_bun_dmi)
   run bash -c "PATH='$tooldir' command -v bun"
@@ -170,7 +170,7 @@ _path_without_bun_dmi() {
   assert_output_contains "Bun is required"
 }
 
-@test "enforce-dmi: FAIL-CLOSED — Bun absent passes through non-SKILL.md (exit 0)" {
+@test "DMI enforcement: Bun absent passes through a non-SKILL.md path with exit 0 (fail-closed is scoped)" {
   local tooldir
   tooldir=$(_path_without_bun_dmi)
   local json='{"tool_name":"Write","tool_input":{"file_path":"/p/vault/wiki/x.md","content":"scaffold and commit"}}'

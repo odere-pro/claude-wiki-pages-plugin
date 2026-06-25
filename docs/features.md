@@ -29,13 +29,37 @@ Full contract in [`operations.md`](./operations.md).
 
 ## Test harness
 
-Five tiers, per [`../tests/README.md`](../tests/README.md):
+The suite **doubles as the technical documentation** (tests-as-documentation): every test
+title is a feature-spec sentence and the suite is organized by the user-facing feature
+inventory, so reading `bats tests/scripts/` or `bun test` teaches what the plugin does. The
+`feature-coverage gate` keeps this living — it fails CI if an inventory feature has no
+documenting test or a title breaks the convention.
+
+Two stacks, per [`../tests/README.md`](../tests/README.md):
 
 - Tier 0 — static (shellcheck, shfmt, markdownlint, lychee, gitleaks, glossary gate)
-- Tier 1 — Bats unit (~108 tests)
+- Tier 1 — Bats unit (~864 cases across 72 files, one feature label per file; see the FEATURE INDEX in [`../tests/scripts/CLAUDE.md`](../tests/scripts/CLAUDE.md))
 - Tier 2 — smoke
 - Tier 3 — release readiness
-- Tier 4 — adversarial (weekly; corpus replay stubbed pending fixture)
+- Tier 4 — adversarial (weekly; corpus replay)
+- engine gates — Bun `bun test` (~1441 cases across 84 files) plus typecheck / eslint / parity ([`../tests/gates/`](../tests/gates/))
+
+### Engine tests by feature
+
+The Bun/TypeScript suite groups every top-level `describe` under a `Feature: <Group> › <feature>` heading. The groups and what they document:
+
+| Feature group | Documents | Representative files (`src/**`) |
+| --- | --- | --- |
+| Verify | structural integrity checks + `verify` verb | `core/*-check.ts`, `core/provenance`, `core/structural-check`, `commands/verify/*` |
+| Lint | advisory curation checks + `lint` verb | `commands/lint/*`, `core/ontology-lint`, `core/vocabulary-lint`, `core/spine`, `core/tree-metric`, `core/moc-build` |
+| Search | embedding-free retrieval | `commands/search`, `core/vocabulary`, `core/stem`, `core/wikilinks`, `core/link-resolver`, `core/topics`, `core/graph` |
+| Firewall | vault write-isolation | `core/firewall`, `commands/firewall` |
+| Hook gates | PreToolUse engine gates | `commands/hook/*`, `core/hook-input`, `core/hook-wikilink-check` |
+| Schema | typed frontmatter + templates | `core/frontmatter*`, `core/schema`, `data/templates` |
+| Ontology | predicate / enum profile | `commands/ontology`, `core/ontology-profile` |
+| Glossary gate | docs-as-spec enforcement | `core/docs-check`, `core/design-drift` |
+| Engine | per-verb CLI dispatch | `cli/cli`, `commands/{backlog,config,context,doctor,export,fix,heal,migrate,okf,propose,route,snapshot}` |
+| Infrastructure | shared result / IO model | `core/report`, `core/repo-io`, `core/fs`, `core/git`, `core/vault*`, `core/manifest`, `data/config` |
 
 Full layout in [`tests/README.md`](../tests/README.md).
 

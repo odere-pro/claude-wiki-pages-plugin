@@ -17,7 +17,7 @@ SCRIPT="$REPO_ROOT/tests/run-tests.sh"
 GATE12="$REPO_ROOT/tests/gates/gate-12-stale-dist.sh"
 GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
 
-@test "run-tests: --help prints usage and exits 0" {
+@test "Test runner: --help prints the usage text and exits 0" {
   run bash "$SCRIPT" --help
 
   assert_success
@@ -27,7 +27,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   assert_output_contains "tier2"
 }
 
-@test "run-tests: --list tier0 names Tier 0 checks" {
+@test "Test runner: --list tier0 names the Tier 0 static checks without executing them" {
   run bash "$SCRIPT" --list tier0
 
   assert_success
@@ -36,7 +36,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   assert_output_contains "validate-docs"
 }
 
-@test "run-tests: --list tier1 names Bats run" {
+@test "Test runner: --list tier1 names the Bats run over tests/scripts/" {
   run bash "$SCRIPT" --list tier1
 
   assert_success
@@ -44,7 +44,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   assert_output_contains "tests/scripts/"
 }
 
-@test "run-tests: --list tier2 names smoke scripts" {
+@test "Test runner: --list tier2 names the smoke scripts" {
   run bash "$SCRIPT" --list tier2
 
   assert_success
@@ -52,7 +52,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   assert_output_contains "skill-schema"
 }
 
-@test "run-tests: --list with no tier lists Tier 0 + Tier 1" {
+@test "Test runner: --list with no tier lists Tier 0 plus Tier 1 and excludes Tier 2 smoke" {
   run bash "$SCRIPT" --list
 
   assert_success
@@ -62,7 +62,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   refute_output_contains "fresh-install"
 }
 
-@test "run-tests: --list all lists all three tiers" {
+@test "Test runner: --list all lists all three tiers" {
   run bash "$SCRIPT" --list all
 
   assert_success
@@ -71,14 +71,14 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   assert_output_contains "fresh-install"
 }
 
-@test "run-tests: unknown tier exits 2" {
+@test "Test runner: an unknown tier exits 2 with an unknown-tier error" {
   run bash "$SCRIPT" --list tier99
 
   assert_status 2
   assert_output_contains "unknown tier"
 }
 
-@test "run-tests: tier3 self-skips with dropped message and exits 0" {
+@test "Test runner: tier3 self-skips with a dropped message and exits 0" {
   run bash "$SCRIPT" tier3
 
   assert_success
@@ -87,7 +87,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   assert_output_contains "dropped"
 }
 
-@test "run-tests: --list tier3 names the tier3 target" {
+@test "Test runner: --list tier3 names the tier3 target" {
   run bash "$SCRIPT" --list tier3
 
   assert_success
@@ -100,7 +100,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
 # Building/testing the apparatus must NOT require a live model.
 # ---------------------------------------------------------------------------
 
-@test "run-tests: eval selector self-skips with no model configured and exits 0" {
+@test "Test runner: the eval selector self-skips when no local model is configured and exits 0" {
   run env -u CLAUDE_WIKI_PAGES_EVAL_MODEL bash "$SCRIPT" eval
 
   assert_success
@@ -108,14 +108,14 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   assert_output_contains "eval"
 }
 
-@test "run-tests: --list eval names the eval target" {
+@test "Test runner: --list eval names the eval target" {
   run bash "$SCRIPT" --list eval
 
   assert_success
   assert_output_contains "eval"
 }
 
-@test "run-tests: eval is NOT part of the default run" {
+@test "Test runner: the opt-in eval tier is not part of the default merge-gating run" {
   run bash "$SCRIPT" --list
 
   assert_success
@@ -131,7 +131,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
 # gate-12: stale-dist check
 # ---------------------------------------------------------------------------
 
-@test "gate-12: SKIPs cleanly when dist/cli.js does not exist" {
+@test "Test runner: the stale-dist gate SKIPs cleanly when dist/cli.js does not exist # spec gate-12" {
   local tmpdir
   tmpdir="$(mktemp -d "${BATS_TEST_TMPDIR}/gate12-absent.XXXXXX")"
   # Create a minimal src/ with one .ts file; no dist/
@@ -146,7 +146,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   assert_output_contains "SKIP"
 }
 
-@test "gate-12: FAILs when dist/cli.js is older than a src .ts file" {
+@test "Test runner: the stale-dist gate FAILs when dist/cli.js is older than a src .ts file # spec gate-12" {
   local tmpdir
   tmpdir="$(mktemp -d "${BATS_TEST_TMPDIR}/gate12-stale.XXXXXX")"
   mkdir -p "$tmpdir/src" "$tmpdir/dist"
@@ -166,7 +166,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
   assert_output_contains "stale"
 }
 
-@test "gate-12: PASSes when dist/cli.js is newer than all src .ts files" {
+@test "Test runner: the stale-dist gate PASSes when dist/cli.js is newer than all src .ts files # spec gate-12" {
   local tmpdir
   tmpdir="$(mktemp -d "${BATS_TEST_TMPDIR}/gate12-fresh.XXXXXX")"
   mkdir -p "$tmpdir/src" "$tmpdir/dist"
@@ -188,7 +188,7 @@ GATE09="$REPO_ROOT/tests/gates/gate-09-npm-pack.sh"
 # gate-09: npm pack JSON parse — handles both compact and spaced JSON
 # ---------------------------------------------------------------------------
 
-@test "gate-09: parses spaced JSON (macOS npm) without SKIPping" {
+@test "Test runner: the npm-pack gate parses spaced JSON from macOS npm without SKIPping # spec gate-09" {
   # Simulate npm pack --dry-run --json with space-after-colon formatting (macOS).
   local tmpdir
   tmpdir="$(mktemp -d "${BATS_TEST_TMPDIR}/gate09-spaced.XXXXXX")"
@@ -209,7 +209,7 @@ NPM_EOF
   assert_output_contains "OK"
 }
 
-@test "gate-09: FAILs when src/ would be published (spaced JSON)" {
+@test "Test runner: the npm-pack gate FAILs when src/ would be published, parsing spaced JSON # spec gate-09" {
   local tmpdir
   tmpdir="$(mktemp -d "${BATS_TEST_TMPDIR}/gate09-fail.XXXXXX")"
   mkdir -p "$tmpdir/bin" "$tmpdir/tests/gates"

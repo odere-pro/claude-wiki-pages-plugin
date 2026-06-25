@@ -35,7 +35,7 @@ const VAULT: Record<string, string> = {
   "wiki/topic-b/cyc-y.md": page("[[cyc-x|Cyc X]]", "Cyc Y"),
 };
 
-describe("deriveSpine", () => {
+describe("Feature: Lint › tree spine", () => {
   test("ROOT has depth 0, empty path, and the folder notes as children", () => {
     const sb = makeVault(VAULT);
     const spine = deriveSpine(join(sb.vault, "wiki"));

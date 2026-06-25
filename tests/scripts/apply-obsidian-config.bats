@@ -26,18 +26,18 @@ teardown() {
   rm -rf "$VAULT"
 }
 
-@test "apply-obsidian-config: declares set -euo pipefail" {
+@test "Obsidian config: the writer declares set -euo pipefail" {
   grep -qF 'set -euo pipefail' "$SCRIPT"
 }
 
-@test "apply-obsidian-config: exits 0 and skips when wiki/ is absent" {
+@test "Obsidian config: exits 0 and skips when wiki/ is absent" {
   rm -rf "$VAULT/wiki"
   run bash "$SCRIPT" --target "$VAULT"
   assert_success
   assert_output_contains "no wiki/"
 }
 
-@test "apply-obsidian-config: converges Obsidian-default graph.json to island filter" {
+@test "Obsidian config: converges an Obsidian-default graph.json to the island filter" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   # Obsidian's harmful defaults + an unrelated force param that must survive.
   printf '{"search":"","showTags":true,"hideUnresolved":false,"scale":0.5,"colorGroups":[]}\n' \
@@ -53,7 +53,7 @@ teardown() {
   assert_output_contains '"scale": 0.5'
 }
 
-@test "apply-obsidian-config: asserts app.json exclusions + new-file keys" {
+@test "Obsidian config: asserts the app.json exclusions and new-file keys" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   printf '{"useMarkdownLinks":false}\n' >"$VAULT/.obsidian/app.json"
 
@@ -67,7 +67,7 @@ teardown() {
   assert_output_contains '"useMarkdownLinks": false'
 }
 
-@test "apply-obsidian-config: appends color groups for topic folders, merge-only" {
+@test "Obsidian config: appends color groups for topic folders in a merge-only way" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   # An existing group for product must be preserved; legal gets appended.
   printf '{"colorGroups":[{"query":"path:wiki/product","color":{"a":1,"rgb":111}}]}\n' \
@@ -81,7 +81,7 @@ teardown() {
   assert_output_contains 'path:wiki/legal'      # legal appended
 }
 
-@test "apply-obsidian-config: idempotent — second run reports unchanged" {
+@test "Obsidian config: is idempotent — a second run reports unchanged" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   bash "$SCRIPT" --target "$VAULT" >/dev/null
 
@@ -91,7 +91,7 @@ teardown() {
   assert_output_contains "app[unchanged]"
 }
 
-@test "apply-obsidian-config: --check exits 3 on drift, 0 in sync, never writes" {
+@test "Obsidian config: --check exits 3 on drift and 0 in sync, and never writes" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   printf '{"search":""}\n' >"$VAULT/.obsidian/graph.json"
   local before

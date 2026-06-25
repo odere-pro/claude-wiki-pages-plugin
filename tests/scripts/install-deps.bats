@@ -12,7 +12,7 @@ load '../test_helper/common'
 
 SCRIPT="$REPO_ROOT/tests/install-deps.sh"
 
-@test "install-deps: --help prints usage and exits 0" {
+@test "Dependency install: --help prints the usage text and exits 0" {
   run bash "$SCRIPT" --help
 
   assert_success
@@ -21,7 +21,7 @@ SCRIPT="$REPO_ROOT/tests/install-deps.sh"
   assert_output_contains "--check"
 }
 
-@test "install-deps: --dry-run prints [dry-run] commands and exits 0" {
+@test "Dependency install: --dry-run prints the intended [dry-run] install commands and exits 0 without installing" {
   # Isolate PATH to a near-empty dir so every tool is reported as missing,
   # guaranteeing at least one `[dry-run]` install line. Without isolation the
   # test would pass on any dev machine with jq already installed, even if the
@@ -44,7 +44,7 @@ EOF
   assert_output_contains "[dry-run]"
 }
 
-@test "install-deps: --check reports status without side effects" {
+@test "Dependency install: --check reports tool status without side effects, marking each tool OK or MISSING" {
   run bash "$SCRIPT" --check
 
   # Exit 0 if every tool present, 1 if anything missing. Both are valid.
@@ -56,14 +56,14 @@ EOF
   esac
 }
 
-@test "install-deps: unknown flag exits 2" {
+@test "Dependency install: an unknown flag exits 2 with an unknown-option error" {
   run bash "$SCRIPT" --nonsense
 
   assert_status 2
   assert_output_contains "unknown option"
 }
 
-@test "install-deps: unsupported OS exits 1" {
+@test "Dependency install: an unsupported OS exits 1 with a clear error" {
   # Prepend a fake uname that reports a bogus OS.
   local fake_bin="$BATS_TEST_TMPDIR/bin"
   mkdir -p "$fake_bin"

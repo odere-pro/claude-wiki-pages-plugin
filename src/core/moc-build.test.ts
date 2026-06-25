@@ -6,7 +6,7 @@ import {
   buildIndexStub,
 } from "./moc-build.ts";
 
-describe("replaceYamlListField", () => {
+describe("Feature: Lint › MOC build — YAML list-field replacement", () => {
   test("replaces a block list", () => {
     const fm = 'title: x\nchildren:\n  - "[[Old]]"\ntags: []';
     expect(replaceYamlListField(fm, "children", ["[[A]]", "[[B]]"])).toBe(
@@ -23,7 +23,7 @@ describe("replaceYamlListField", () => {
   });
 });
 
-describe("syncChildren", () => {
+describe("Feature: Lint › MOC build — children sync", () => {
   test("rewrites children to the given titles, preserving body", () => {
     const content = "---\ntitle: i\nchildren: []\n---\n# Body\nkeep me\n";
     const out = syncChildren(content, ["Alpha", "Beta"]);
@@ -37,7 +37,7 @@ describe("syncChildren", () => {
   });
 });
 
-describe("dedupeIndexLinks", () => {
+describe("Feature: Lint › MOC build — index link dedup", () => {
   test("removes repeated wikilink bullets, keeps first", () => {
     const out = dedupeIndexLinks("---\nt: i\n---\n- [[A]]\n- [[A]]\n- [[B]]\n");
     expect(out).toBe("---\nt: i\n---\n- [[A]]\n- [[B]]\n");
@@ -48,7 +48,7 @@ describe("dedupeIndexLinks", () => {
   });
 });
 
-describe("buildIndexStub", () => {
+describe("Feature: Lint › MOC build — index stub generation", () => {
   test("produces schema-shaped frontmatter and a Pages section", () => {
     const stub = buildIndexStub("my-topic", ["Page One"], "2026-06-01");
     expect(stub).toContain('title: "My Topic — Index"');

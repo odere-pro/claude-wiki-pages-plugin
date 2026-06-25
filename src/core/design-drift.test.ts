@@ -168,7 +168,7 @@ function trackedFor(files: Record<string, string>): string[] {
 
 // ── Gate ──────────────────────────────────────────────────────────────────────
 
-describe("checkDesignDrift — gate", () => {
+describe("Feature: Glossary gate › design-drift — gate", () => {
   test("returns no findings when hooks/hooks.json is not tracked", () => {
     const files = baseFiles();
     const root = materialise(files);
@@ -187,7 +187,7 @@ describe("checkDesignDrift — gate", () => {
 
 // ── 5a mermaid grounding ────────────────────────────────────────────────────────
 
-describe("checkDesignDrift — 5a mermaid grounding", () => {
+describe("Feature: Glossary gate › design-drift — 5a mermaid grounding", () => {
   test("unresolved mermaid file token is a 5a error", () => {
     const files = baseFiles();
     files["docs/design/01-system-context.md"] = [
@@ -225,7 +225,7 @@ describe("checkDesignDrift — 5a mermaid grounding", () => {
 
 // ── 5b link resolution ──────────────────────────────────────────────────────────
 
-describe("checkDesignDrift — 5b link resolution", () => {
+describe("Feature: Glossary gate › design-drift — 5b link resolution", () => {
   test("dead relative link is a 5b error", () => {
     const files = baseFiles();
     files["docs/design/01-system-context.md"] = [
@@ -261,7 +261,7 @@ describe("checkDesignDrift — 5b link resolution", () => {
 
 // ── 5c hook set-equality + ordering ─────────────────────────────────────────────
 
-describe("checkDesignDrift — 5c hook set-equality", () => {
+describe("Feature: Glossary gate › design-drift — 5c hook set-equality", () => {
   test("a hooked script not depicted in any design fence is a 5c error", () => {
     const files = baseFiles();
     // Wire a new script in hooks.json that no design doc depicts.
@@ -313,7 +313,7 @@ describe("checkDesignDrift — 5c hook set-equality", () => {
 
 // ── 5d feature-relation counts ──────────────────────────────────────────────────
 
-describe("checkDesignDrift — 5d counts", () => {
+describe("Feature: Glossary gate › design-drift — 5d counts", () => {
   test("a stated count mismatch is a 5d error", () => {
     const files = baseFiles();
     // Add a second agent so actual=2 but the table still says 1.
@@ -339,7 +339,7 @@ describe("checkDesignDrift — 5d counts", () => {
 
 // ── 5e authority presence ───────────────────────────────────────────────────────
 
-describe("checkDesignDrift — 5e authority", () => {
+describe("Feature: Glossary gate › design-drift — 5e authority", () => {
   test("a doc with no authority link is a 5e error", () => {
     const files = baseFiles();
     files["docs/design/01-system-context.md"] = "# Context\n\nNo authority links here.\n";
@@ -352,7 +352,7 @@ describe("checkDesignDrift — 5e authority", () => {
 
 // ── 5f router parity ────────────────────────────────────────────────────────────
 
-describe("checkDesignDrift — 5f router parity", () => {
+describe("Feature: Glossary gate › design-drift — 5f router parity", () => {
   function withRouter(rows: string): Record<string, string> {
     const files = baseFiles();
     files["SOFTWARE-3-0.md"] = [
@@ -400,7 +400,7 @@ describe("checkDesignDrift — 5f router parity", () => {
 
 // ── 5g predicate-node grounding ─────────────────────────────────────────────────
 
-describe("checkDesignDrift — 5g predicate-node grounding", () => {
+describe("Feature: Glossary gate › design-drift — 5g predicate-node grounding", () => {
   test("a diagram predicate absent from the schema table is a 5g error", () => {
     const files = baseFiles();
     files["docs/design/07-ontology.md"] = [

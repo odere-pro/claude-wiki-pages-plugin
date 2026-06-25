@@ -26,7 +26,7 @@ teardown() {
   teardown_fixture_vault
 }
 
-@test "verify-ingest: passes on minimal-vault fixture" {
+@test "Verify: passes on the minimal-vault fixture" {
   run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
   assert_success
@@ -39,7 +39,7 @@ teardown() {
   assert_output_contains "All checks passed"
 }
 
-@test "verify-ingest: accepts a legacy _index.md name (WARN at schema_version 3, exit 0)" {
+@test "Verify: accepts a legacy _index.md name, warning at schema_version 3 but exiting 0" {
   # Rename the folder note back to the legacy name — still a valid index file.
   mv "$FIXTURE_VAULT/wiki/topics/topics.md" "$FIXTURE_VAULT/wiki/topics/_index.md"
 
@@ -52,7 +52,7 @@ teardown() {
   assert_output_contains "migrate --write"
 }
 
-@test "verify-ingest: no legacy-index-filename WARN on a v2 vault (back-compat clean)" {
+@test "Verify: emits no legacy-index-filename WARN on a v2 vault, keeping back-compat clean" {
   mv "$FIXTURE_VAULT/wiki/topics/topics.md" "$FIXTURE_VAULT/wiki/topics/_index.md"
   sed -i.bak 's/`schema_version: 3`/`schema_version: 2`/' "$FIXTURE_VAULT/CLAUDE.md"
   rm -f "$FIXTURE_VAULT/CLAUDE.md.bak"
@@ -63,7 +63,7 @@ teardown() {
   refute_output_contains "legacy-index-filename"
 }
 
-@test "verify-ingest: fails on duplicate index entries" {
+@test "Verify: fails on duplicate index entries" {
   local index="$FIXTURE_VAULT/wiki/index.md"
   # Inject a duplicate [[Sample Entity]] link alongside the existing one.
   printf '\n\n- [[Sample Entity]] — duplicate entry that should trip the check.\n' >>"$index"
@@ -75,7 +75,7 @@ teardown() {
   assert_output_contains "Sample Entity"
 }
 
-@test "verify-ingest: fails on plain-string source" {
+@test "Verify: fails on a plain-string source" {
   local entity="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   # Replace the [[wikilink]] sources list with a plain-string list.
   # BSD sed and GNU sed both accept this syntax.
@@ -88,7 +88,7 @@ teardown() {
   assert_output_contains "Plain string in sources"
 }
 
-@test "verify-ingest: fails on missing index file in topic folder" {
+@test "Verify: fails on a missing index file in a topic folder" {
   rm -f "$FIXTURE_VAULT/wiki/topics/topics.md"
 
   run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
@@ -97,7 +97,7 @@ teardown() {
   assert_output_contains "no index file"
 }
 
-@test "verify-ingest: warns on orphan source summary" {
+@test "Verify: warns on an orphan source summary" {
   # Add a second source summary that no wiki page cites.
   cat >"$FIXTURE_VAULT/wiki/_sources/orphan.md" <<'MD'
 ---
@@ -132,7 +132,7 @@ MD
   assert_output_contains "Orphan Source"
 }
 
-@test "verify-ingest: fails when index.md missing" {
+@test "Verify: fails when index.md is missing" {
   rm -f "$FIXTURE_VAULT/wiki/index.md"
 
   run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
@@ -141,7 +141,7 @@ MD
   assert_output_contains "index.md not found"
 }
 
-@test "verify-ingest: fails when folder-note children refer to missing pages" {
+@test "Verify: fails when folder-note children refer to missing pages" {
   local index="$FIXTURE_VAULT/wiki/topics/topics.md"
   # Replace the "Sample Entity" child with a nonexistent title. Use awk since
   # the line contains quotes and brackets that sed -i handles unevenly
@@ -161,7 +161,7 @@ MD
   assert_output_contains "Missing Page"
 }
 
-@test "verify-ingest: exits 1 with helpful message when vault dir missing" {
+@test "Verify: exits 1 with a helpful message when the vault dir is missing" {
   run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "/nonexistent/vault/does-not-exist"
 
   assert_status 1
@@ -173,7 +173,7 @@ MD
 # S4-derivation: staleness from updated vs newest cited-source date (CHECK 4)
 # ──────────────────────────────────────────────────────────────────────────────
 
-@test "verify-ingest S4: warns when wiki page predates a cited source" {
+@test "Verify: warns when a wiki page predates a cited source" { # spec S4
   # Give the source a newer updated: date than the wiki page that cites it.
   # sample-entity.md has updated: 2026-04-18; set sample.md updated: 2026-05-01.
   local source_file="$FIXTURE_VAULT/wiki/_sources/sample.md"
@@ -188,7 +188,7 @@ MD
   assert_output_contains "Sample Entity"
 }
 
-@test "verify-ingest S4: clean when wiki page is newer than all cited sources" {
+@test "Verify: stays clean when a wiki page is newer than all cited sources" { # spec S4
   # sample-entity.md updated: 2026-04-18, sample.md updated: 2026-04-18 — same
   # date is not stale (not strictly newer). Set wiki page to be clearly newer.
   local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
@@ -201,7 +201,7 @@ MD
   refute_output_contains "stale-source"
 }
 
-@test "verify-ingest S4: dangling cited source is labelled, not treated as fresh" {
+@test "Verify: a dangling cited source is labelled rather than treated as fresh" { # spec S4
   # Replace the sources entry in sample-entity.md with a wikilink that does not
   # resolve to any file in _sources/.
   local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
@@ -224,7 +224,7 @@ MD
 # I3: provenance-completeness checks (CHECK 5)
 # ──────────────────────────────────────────────────────────────────────────────
 
-@test "verify-ingest I3: entity with no sources is an ERROR" {
+@test "Verify: an entity with no sources is an ERROR" { # spec I3
   local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   # Remove all sources entries — replace the sources list with an empty array.
   sed -i.bak 's|sources: \["\[\[Sample\]\]"\]|sources: []|' "$entity_file"
@@ -237,7 +237,7 @@ MD
   assert_output_contains "Sample Entity"
 }
 
-@test "verify-ingest I3: malformed source entry counts as present — no double-flag" {
+@test "Verify: a malformed source entry counts as present so it is not double-flagged" { # spec I3
   # A plain-string source entry is already caught by CHECK 2 (sources-format).
   # The presence check (I3) must NOT also fire, because there IS 1 entry present.
   local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
@@ -253,7 +253,7 @@ MD
   refute_output_contains "no-sources"
 }
 
-@test "verify-ingest I3: derived:true with confidence >= 0.8 is a WARN" {
+@test "Verify: a derived:true entity with confidence >= 0.8 is a WARN" { # spec I3
   local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   # Set derived: true and confidence: 0.85 on the page (keeping the source entry so
   # provenance-completeness does not fire — this test isolates the consistency check).
@@ -275,7 +275,7 @@ MD
   assert_output_contains "Sample Entity"
 }
 
-@test "verify-ingest I3: derived:true with confidence < 0.8 is clean" {
+@test "Verify: a derived:true entity with confidence < 0.8 is clean" { # spec I3
   local entity_file="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   # Set derived: true and confidence: 0.7 — below the threshold, so no warning.
   sed -i.bak 's/^confidence: 0\.9/confidence: 0.7/' "$entity_file"
@@ -296,7 +296,7 @@ MD
 # FU1 (ADR-0028): dangling-wikilink WARN check
 # ──────────────────────────────────────────────────────────────────────────────
 
-@test "verify-ingest FU1: clean when all wikilinks resolve" {
+@test "Verify: stays clean when all wikilinks resolve" { # spec FU1
   # The minimal-vault fixture has only resolvable [[wikilinks]] — no dangling.
   run bash "$SCRIPTS_DIR/verify-ingest.sh" --target "$FIXTURE_VAULT"
 
@@ -305,7 +305,7 @@ MD
   assert_output_contains "No dangling wikilinks found"
 }
 
-@test "verify-ingest FU1: warns on a dangling [[Ghost]] wikilink in a topic page" {
+@test "Verify: warns on a dangling [[Ghost]] wikilink in a topic page" { # spec FU1
   local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   # Append a dangling wikilink to the body.
   printf '\n[[Ghost Page]] is referenced here.\n' >>"$page"
@@ -318,7 +318,7 @@ MD
   assert_output_contains "Ghost Page"
 }
 
-@test "verify-ingest FU1: bookkeeping pages are not scanned as subjects" {
+@test "Verify: bookkeeping pages are not scanned as subjects" { # spec FU1
   # Add a dangling link to index.md — a bookkeeping page; must produce no finding.
   local idx="$FIXTURE_VAULT/wiki/index.md"
   printf '\n- [[Totally Missing Page]]\n' >>"$idx"
@@ -330,7 +330,7 @@ MD
   refute_output_contains "dangling-wikilink: [[Totally Missing Page]]"
 }
 
-@test "verify-ingest FU1: one finding per (page, distinct-normalized-target) — repeated link counts once" {
+@test "Verify: reports one finding per page and distinct-normalized-target so a repeated link counts once" { # spec FU1
   local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   # Append the same dangling target three times — must produce ONE warning.
   printf '\n[[Repeating Ghost]] and [[Repeating Ghost]] and [[Repeating Ghost]].\n' >>"$page"
@@ -344,7 +344,7 @@ MD
   assert_eq "$count" "1"
 }
 
-@test "verify-ingest FU1: alias resolves the link — no false dangling warning" {
+@test "Verify: an alias resolves the link so there is no false dangling warning" { # spec FU1
   local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   # "sample-entity" is an alias on sample-entity.md; linking it must not be flagged.
   printf '\nSee [[sample-entity]] for details.\n' >>"$page"
@@ -356,7 +356,7 @@ MD
   refute_output_contains "dangling-wikilink: [[sample-entity]]"
 }
 
-@test "verify-ingest I3: multi-line flow sources array is parsed — no false no-sources" {
+@test "Verify: a multi-line flow sources array is parsed so there is no false no-sources flag" { # spec I3
   local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   # Rewrite the inline sources to the multi-line flow array shape the ingest
   # pipeline actually emits. The old grep/awk parser could not read this and
@@ -374,7 +374,7 @@ fs.writeFileSync(p, t);
   refute_output_contains 'no-sources: "Sample Entity"'
 }
 
-@test "verify-ingest FU1: wikilink inside an inline code span is not flagged dangling" {
+@test "Verify: a wikilink inside an inline code span is not flagged dangling" { # spec FU1
   local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   # A `[[Target]]` written as a documentation example inside backticks is not a
   # real Obsidian link, so it must not be reported as dangling.
@@ -386,7 +386,7 @@ fs.writeFileSync(p, t);
   refute_output_contains "Ghost In Code"
 }
 
-@test "verify-ingest FU1: wikilink inside a fenced code block is not flagged dangling" {
+@test "Verify: a wikilink inside a fenced code block is not flagged dangling" { # spec FU1
   local page="$FIXTURE_VAULT/wiki/topics/sample-entity.md"
   printf '\n```\n[[Ghost In Fence]]\n```\n' >>"$page"
 

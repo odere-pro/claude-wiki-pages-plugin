@@ -27,7 +27,7 @@ import {
 // isWikiFilePath — path gating (mirrors `*/${VAULT_NAME}/wiki/*` case)
 // ---------------------------------------------------------------------------
 
-describe("isWikiFilePath", () => {
+describe("Feature: Hook gates › wikilink path filter — isWikiFilePath()", () => {
   test("path under <vault>/wiki/ is in scope", () => {
     expect(isWikiFilePath("/a/b/docs/vault/wiki/concepts/page.md", "vault")).toBe(true);
   });
@@ -57,7 +57,7 @@ describe("isWikiFilePath", () => {
 // checkChangedWikilinks — the pure rule over one changed file
 // ---------------------------------------------------------------------------
 
-describe("checkChangedWikilinks — markdown-link rule", () => {
+describe("Feature: Hook gates › wikilink path filter — checkChangedWikilinks markdown-link rule", () => {
   test("wiki content with [text](file.md) → one error finding", () => {
     const findings = checkChangedWikilinks({
       filePath: "/p/vault/wiki/page.md",

@@ -26,7 +26,7 @@ setup() {
   TARGET="$BATS_TEST_TMPDIR/target-vault"
 }
 
-@test "scaffold-vault: creates target when missing and copies full tree" {
+@test "Vault scaffold: creates the target when missing and copies the full tree" {
   run bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET" "$SRC"
 
   [ "$status" -eq 0 ]
@@ -40,7 +40,7 @@ setup() {
   [[ "$output" == *"READY: vault at"* ]]
 }
 
-@test "scaffold-vault: is idempotent (second run creates nothing, preserves all)" {
+@test "Vault scaffold: is idempotent — a second run creates nothing and preserves everything" {
   bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET" "$SRC" >/dev/null
 
   run bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET" "$SRC"
@@ -52,7 +52,7 @@ setup() {
   [[ "$output" == *"0 created"* ]]
 }
 
-@test "scaffold-vault: never overwrites existing user content" {
+@test "Vault scaffold: never overwrites existing user content" {
   mkdir -p "$TARGET/wiki"
   printf 'user wrote this\n' >"$TARGET/CLAUDE.md"
   printf '# my custom index\n' >"$TARGET/wiki/index.md"
@@ -68,7 +68,7 @@ setup() {
   [ -d "$TARGET/raw" ]
 }
 
-@test "scaffold-vault: fills only missing entries when partial vault exists" {
+@test "Vault scaffold: fills only the missing entries when a partial vault exists" {
   mkdir -p "$TARGET/wiki"
   printf 'custom\n' >"$TARGET/CLAUDE.md"
   # raw/, _templates/, wiki/_sources/ etc. are absent — script should supply them.
@@ -87,7 +87,7 @@ setup() {
   [[ "$output" == *"CREATED:"*"/_templates"* ]]
 }
 
-@test "scaffold-vault: skips .DS_Store and Thumbs.db noise from source" {
+@test "Vault scaffold: skips .DS_Store and Thumbs.db noise from the source" {
   printf 'junk\n' >"$SRC/.DS_Store"
   printf 'junk\n' >"$SRC/Thumbs.db"
 
@@ -98,21 +98,21 @@ setup() {
   [ ! -e "$TARGET/Thumbs.db" ]
 }
 
-@test "scaffold-vault: exits 1 with no argument" {
+@test "Vault scaffold: exits 1 when given no argument" {
   run bash "$REPO_ROOT/scripts/scaffold-vault.sh"
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"Usage:"* ]]
 }
 
-@test "scaffold-vault: exits 1 when source scaffold missing" {
+@test "Vault scaffold: exits 1 when the source scaffold is missing" {
   run bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET" "$BATS_TEST_TMPDIR/does-not-exist"
 
   [ "$status" -eq 1 ]
   [[ "$output" == *"source scaffold not found"* ]]
 }
 
-@test "scaffold-vault: defaults source to CLAUDE_PLUGIN_ROOT/skills/init/template" {
+@test "Vault scaffold: defaults the source to CLAUDE_PLUGIN_ROOT/skills/init/template" {
   # Redirect plugin root at a minimal synthetic scaffold.
   local plugin_root="$BATS_TEST_TMPDIR/plugin-root"
   mkdir -p "$plugin_root/skills/init/template/wiki"
@@ -128,7 +128,7 @@ setup() {
   grep -q 'schema_version: 1' "$TARGET/CLAUDE.md"
 }
 
-@test "scaffold-vault: real skills/init/template default scaffolds an empty vault" {
+@test "Vault scaffold: the real skills/init/template default scaffolds an empty vault" {
   # Use the actual shipped template — proves first-time users get a clean slate,
   # not the demo vault's pages, but DO get the bundled sample source in raw/.
   run bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET"
@@ -154,7 +154,7 @@ setup() {
 
 # ── U2 — bundled sample source (Phase U) ──────────────────────────────────────
 
-@test "scaffold-vault: fresh vault raw/ contains the bundled sample source" {
+@test "Vault scaffold: a fresh vault raw/ contains the bundled sample source" {
   # TDD: scaffolding an empty /tmp vault seeds raw/ with the bundled sample so a
   # brand-new user can run /claude-wiki-pages:wiki immediately and get a real
   # ingest result without supplying their own source first.
@@ -167,7 +167,7 @@ setup() {
   [ -s "$TARGET/raw/sample-source.md" ]
 }
 
-@test "scaffold-vault: no-clobber — existing raw/ user file is untouched when sample is present" {
+@test "Vault scaffold: an existing raw/ user file is left untouched when the sample is present (no-clobber)" {
   # TDD: if the user already has a file in raw/, scaffold must not overwrite it
   # (no-clobber). The existing scaffold-vault no-clobber covers the top-level
   # raw/ directory entry; this test verifies that a pre-seeded user file inside
@@ -187,7 +187,7 @@ setup() {
   [ -f "$TARGET/raw/sample-source.md" ]
 }
 
-@test "scaffold-vault: shipped template passes verify-ingest without further edits" {
+@test "Vault scaffold: the shipped template passes verify-ingest without further edits" {
   # End-to-end: scaffold from the real default, then run the verifier the
   # onboarding skill calls. This is the regression guard for "first run is
   # error-free" — a future change to the template that breaks the schema
@@ -200,7 +200,7 @@ setup() {
   [[ "$output" == *"All checks passed"* ]]
 }
 
-@test "scaffold-vault: emits READY line with accurate created/preserved counts" {
+@test "Vault scaffold: emits a READY line with accurate created and preserved counts" {
   # Pre-create two entries so they count as preserved.
   mkdir -p "$TARGET"
   printf 'existing\n' >"$TARGET/CLAUDE.md"
@@ -217,7 +217,7 @@ setup() {
 
 # ── git-required per-vault init (Phase 0, item 6) ─────────────────────────────
 
-@test "scaffold-vault: git-inits the vault when target is not already in a repo" {
+@test "Vault scaffold: git-inits the vault when the target is not already in a repo" {
   # TARGET is inside BATS_TEST_TMPDIR — which is NOT inside any git work tree —
   # so the nesting guard must not skip git init.
   run bash "$REPO_ROOT/scripts/scaffold-vault.sh" "$TARGET" "$SRC"
@@ -233,7 +233,7 @@ setup() {
   [[ "$output" == *"git=initialised"* ]]
 }
 
-@test "scaffold-vault: does NOT nest a new git repo when target is already inside a work tree" {
+@test "Vault scaffold: does not nest a new git repo when the target is already inside a work tree" {
   # Scaffold into a subdirectory of the plugin repo itself — which IS already
   # a git work tree.  The nesting guard must detect this and skip git init,
   # so the .git directory comes from the plugin repo, not from a fresh init.
@@ -261,7 +261,7 @@ setup() {
   [[ "$output" == *"git=skipped(already-in-repo)"* ]]
 }
 
-@test "scaffold-vault: bun-absent fallback git-inits the vault via the bash shim" {
+@test "Vault scaffold: the bun-absent fallback git-inits the vault via the bash shim" {
   # Prove the bun-absent shim (the bash `git init` fallback in scaffold-vault.sh)
   # still produces a git repo. We build a hermetic sandbox PATH that resolves
   # git/coreutils/find but deliberately omits bun, so `command -v bun` fails and

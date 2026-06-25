@@ -15,7 +15,7 @@ import { verify } from "./verify.ts";
 import { renderText } from "../../core/report.ts";
 import { makeVault, CLEAN_VAULT, DIRTY_VAULT } from "../../test-helpers/sandbox/vault.ts";
 
-describe("verify — async and deterministic (Phase 2)", () => {
+describe("Feature: Verify › async determinism — async and deterministic (Phase 2)", () => {
   test("verify() returns a Promise (is async)", () => {
     const sb = makeVault(CLEAN_VAULT);
     const result = verify({ target: sb.vault });

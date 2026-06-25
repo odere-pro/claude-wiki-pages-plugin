@@ -68,3 +68,15 @@ is checkable line-for-line.
 Commands depend on `core`; `core` depends only on Node built-ins (`node:fs`,
 `node:path`, `node:crypto`, `node:child_process`) plus the `yaml` library. Core
 never imports from `commands/` or `cli/`.
+
+## Tests-as-documentation gate
+
+[`feature-coverage.ts`](./feature-coverage.ts) is a dev-time gate, not a runtime
+primitive: it parses the FEATURE INDEX in
+[`../../tests/scripts/CLAUDE.md`](../../tests/scripts/CLAUDE.md), the `@test`
+titles, and the `Feature:` describe prefixes to assert the suite still reads as
+the technical documentation (titles conform, the INDEX is fresh, every feature is
+documented). It is invoked standalone by
+[`../../tests/gates/gate-14-feature-coverage.sh`](../../tests/gates/gate-14-feature-coverage.sh)
+and unit-tested by its colocated `feature-coverage.test.ts`. No command imports
+it, so it stays out of the `dist/cli.js` bundle.

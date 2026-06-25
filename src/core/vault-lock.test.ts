@@ -24,7 +24,7 @@
 import { test, expect, describe } from "bun:test";
 import { acquireVaultLockSync, withVaultLockSync, withVaultLock } from "./vault-lock.ts";
 
-describe("acquireVaultLockSync", () => {
+describe("Feature: Infrastructure › vault lock — acquire (sync)", () => {
   test("acquires and releases a lock for a vault path", () => {
     const vault = "/tmp/test-vault-lock-a";
     const release = acquireVaultLockSync(vault);
@@ -59,7 +59,7 @@ describe("acquireVaultLockSync", () => {
   });
 });
 
-describe("withVaultLockSync", () => {
+describe("Feature: Infrastructure › vault lock — with lock (sync)", () => {
   test("negative: empty-string vault key is rejected before fn() is called", () => {
     // Guard must fire before fn() runs — the callback must never be invoked on
     // an invalid vault key.
@@ -119,7 +119,7 @@ describe("withVaultLockSync", () => {
 // async callers are queued (not rejected), so they run one at a time in the
 // order they arrived.  The lock is always released — even when fn() rejects.
 
-describe("withVaultLock (async)", () => {
+describe("Feature: Infrastructure › vault lock — with lock (async)", () => {
   test("negative: empty-string vault key is rejected (Promise rejects before fn() is called)", async () => {
     // Same guard as the sync variant: an empty vault key must be rejected
     // immediately.  The returned Promise must reject with a message containing
@@ -237,7 +237,7 @@ describe("withVaultLock (async)", () => {
   });
 });
 
-describe("single-mode invariant (cross-mode guard)", () => {
+describe("Feature: Infrastructure › vault lock — single-mode invariant (cross-mode guard)", () => {
   // The sync flag and async chain are independent serializers; without a guard
   // a sync holder and an async holder on the same vault could run concurrently.
   // These pin the fail-fast guard that keeps a vault in one mode at a time.

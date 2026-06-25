@@ -53,7 +53,7 @@ const WORKED_VAULT = {
     '---\ntitle: "Graph RAG"\ntype: concept\naliases: []\ntags: []\n---\n# Graph RAG\n\ngraph in body once. graph second time. retrieval is here.\n',
 };
 
-describe("search", () => {
+describe("Feature: Search › search verb", () => {
   test("ranks title/alias matches above body-only matches", () => {
     const sb = makeVault(VAULT);
     const r = search({ target: sb.vault, query: "retrieval" });
@@ -355,7 +355,7 @@ function makeAutoVault() {
   });
 }
 
-describe("Tier-2 deterministic recall", () => {
+describe("Feature: Search › search verb — Tier-2 deterministic recall", () => {
   // ── (1) Byte-identical across 5 runs ─────────────────────────────────────────
   test("(1) synonym expansion byte-identical across 5 runs", () => {
     const sb = makeAutoVault();
@@ -593,7 +593,7 @@ const GRAPH_VAULT = {
     '---\ntitle: "Keyword Only"\ntype: concept\naliases: ["Keyword Only"]\n---\n# Keyword Only\nThis mentions root in the body.\n',
 };
 
-describe("R2 --graph integration", () => {
+describe("Feature: Search › search verb — R2 --graph integration", () => {
   // Test (10) — --graph off → byte-identical to pre-graph baseline
   test("(10) --graph absent → byte-identical to pre-graph baseline (no graph code observable)", () => {
     const sb = makeVault(GRAPH_VAULT);
@@ -823,7 +823,7 @@ const matchComponentComparatorFull = matchComponentComparator;
 //     page (whose only synonym-eligible word is deliberately absent from the
 //     lexicon) are NOT surfaced via the synonym channel.
 // ─────────────────────────────────────────────────────────────────────────────
-describe("synonym channel — reachability and precision (sandbox)", () => {
+describe("Feature: Search › search verb — synonym channel reachability and precision (sandbox)", () => {
   // Known-good group: single-token reachable, stemmer-distinct, same-sense, and
   // the two forms share no substring (so the synonym path is genuinely exercised).
   const VOCAB_AUTO = `---
@@ -931,7 +931,7 @@ groups:
 
 // The reference vault ships an empty lexicon; assert that contract directly so a
 // future accidental re-introduction of a group is a deliberate, reviewed change.
-describe("reference vault — synonym lexicon present and currently empty", () => {
+describe("Feature: Search › search verb — reference vault synonym lexicon present and currently empty", () => {
   const REFERENCE_VAULT = join(
     import.meta.dir,
     "..",

@@ -63,7 +63,7 @@ function writePage(
 
 // ── CHECK 5a: source-presence ─────────────────────────────────────────────────
 
-describe("checkProvenance CHECK 5a — source-presence", () => {
+describe("Feature: Verify › provenance check — CHECK 5a source-presence", () => {
   afterEach(teardown);
 
   const SOURCE_REQUIRING = ["entity", "concept", "topic", "project", "synthesis"];
@@ -145,7 +145,7 @@ describe("checkProvenance CHECK 5a — source-presence", () => {
 
 // ── CHECK 5b: derived/confidence consistency ───────────────────────────────────
 
-describe("checkProvenance CHECK 5b — derived/confidence consistency", () => {
+describe("Feature: Verify › provenance check — CHECK 5b derived/confidence consistency", () => {
   afterEach(teardown);
 
   test("warn when derived:true and confidence >= 0.8 (exact threshold)", () => {
@@ -259,7 +259,7 @@ describe("checkProvenance CHECK 5b — derived/confidence consistency", () => {
 
 // ── skip directories ──────────────────────────────────────────────────────────
 
-describe("checkProvenance — skip directories", () => {
+describe("Feature: Verify › provenance check — skip directories", () => {
   afterEach(teardown);
 
   test("skips pages under _sources/ directory", () => {
@@ -291,7 +291,7 @@ describe("checkProvenance — skip directories", () => {
 
 // ── bookkeeping file skip ─────────────────────────────────────────────────────
 
-describe("checkProvenance — bookkeeping file skip (isBookkeepingFile branch)", () => {
+describe("Feature: Verify › provenance check — bookkeeping file skip (isBookkeepingFile branch)", () => {
   afterEach(teardown);
 
   test("skips a file whose basename is in BOOKKEEPING (e.g. log.md)", () => {
@@ -326,7 +326,7 @@ describe("checkProvenance — bookkeeping file skip (isBookkeepingFile branch)",
 
 // ── CHECK 5b: non-numeric confidence string (NaN guard branch) ────────────────
 
-describe("checkProvenance CHECK 5b — non-numeric confidence string", () => {
+describe("Feature: Verify › provenance check — CHECK 5b non-numeric confidence string", () => {
   afterEach(teardown);
 
   test("no warn when derived:true but confidence is a non-numeric string (NaN guard)", () => {

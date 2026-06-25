@@ -15,7 +15,7 @@ setup() {
   _load_helpers
 }
 
-@test "protect-raw: blocks Edit to vault/raw/" {
+@test "Raw immutability: blocks an Edit to vault/raw/" {
   run_hook_with_json "scripts/protect-raw.sh" "$JSON_FIXTURES_DIR/write-to-raw.json"
 
   assert_success
@@ -23,14 +23,14 @@ setup() {
   assert_output_contains "immutable"
 }
 
-@test "protect-raw: allows Write under vault/wiki/" {
+@test "Raw immutability: allows a Write under vault/wiki/" {
   run_hook_with_json "scripts/protect-raw.sh" "$JSON_FIXTURES_DIR/write-good.json"
 
   assert_success
   assert_output_empty
 }
 
-@test "protect-raw: ignores non-vault paths" {
+@test "Raw immutability: ignores non-vault paths" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/unrelated/foo.md","content":"hi"}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/protect-raw.sh'"
 
@@ -38,7 +38,7 @@ setup() {
   assert_output_empty
 }
 
-@test "protect-raw: blocks Write to existing raw/ file" {
+@test "Raw immutability: blocks a Write to an existing raw/ file" {
   # Create a real file under a vault/raw/ path so the "file exists" check trips.
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw"
   mkdir -p "$vault_dir"
@@ -57,7 +57,7 @@ EOF
   assert_output_contains "Cannot overwrite"
 }
 
-@test "protect-raw: allows Write to NEW raw/ file (new source)" {
+@test "Raw immutability: allows a Write to a new raw/ file (a new source)" {
   # Parent dir exists, target file does NOT — so the `[ -f "$FILE_PATH" ]`
   # guard is meaningfully exercised (not tautologically skipped by a path
   # that can never exist).
@@ -81,7 +81,7 @@ EOF
 # The carve-out permits EXACTLY: Write to a NEW file inside raw/agent-sessions/
 # whose content frontmatter contains "source_type: agent-session".
 
-@test "protect-raw carve-out: PERMIT Write to NEW raw/agent-sessions/ file with source_type marker" {
+@test "Raw immutability: permits a Write to a new raw/agent-sessions/ file carrying the source_type marker (carve-out)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw/agent-sessions"
   mkdir -p "$vault_dir"
   local new_path="$vault_dir/sess-abc-20260101T000000.md"
@@ -112,7 +112,7 @@ HEREDOC
   assert_output_empty
 }
 
-@test "protect-raw carve-out: BLOCK Edit to existing raw/agent-sessions/ file" {
+@test "Raw immutability: blocks an Edit to an existing raw/agent-sessions/ file (carve-out)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw/agent-sessions"
   mkdir -p "$vault_dir"
   local existing_path="$vault_dir/sess-abc-20260101T000000.md"
@@ -132,7 +132,7 @@ HEREDOC
   assert_output_contains "immutable"
 }
 
-@test "protect-raw carve-out: BLOCK Write OVERWRITING existing raw/agent-sessions/ file" {
+@test "Raw immutability: blocks a Write overwriting an existing raw/agent-sessions/ file (carve-out)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw/agent-sessions"
   mkdir -p "$vault_dir"
   local existing_path="$vault_dir/sess-abc-20260101T000000.md"
@@ -161,7 +161,7 @@ HEREDOC
   assert_output_contains "Cannot overwrite"
 }
 
-@test "protect-raw carve-out: BLOCK Write NEW file directly under raw/ even WITH source_type marker" {
+@test "Raw immutability: a new file directly under raw/ falls to normal new-source logic even with the source_type marker (carve-out is fenced)" {
   # Marker confers no out-of-fence power — fence is raw/agent-sessions/ only.
   # A new file DIRECTLY under raw/ (no agent-sessions subpath) with the marker
   # is handled by the existing human-source allow rule (new raw/ file is OK).
@@ -194,7 +194,7 @@ HEREDOC
   assert_output_empty
 }
 
-@test "protect-raw carve-out: BLOCK Write NEW file inside raw/agent-sessions/ WITHOUT source_type marker" {
+@test "Raw immutability: blocks a new file inside raw/agent-sessions/ that lacks the source_type marker (carve-out)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw/agent-sessions"
   mkdir -p "$vault_dir"
   local new_path="$vault_dir/no-marker-20260101T000000.md"
@@ -220,7 +220,7 @@ HEREDOC
   assert_output_contains "source_type: agent-session"
 }
 
-@test "protect-raw carve-out: BLOCK traversal raw/agent-sessions/../sources/x.md" {
+@test "Raw immutability: a raw/agent-sessions/../sources/x.md traversal canonicalizes out of the fence and does not gain carve-out privilege (carve-out)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw"
   mkdir -p "$vault_dir/agent-sessions"
   mkdir -p "$vault_dir/sources"
@@ -250,7 +250,7 @@ HEREDOC
   assert_output_empty
 }
 
-@test "protect-raw carve-out: UNCHANGED existing raw/ new human source still allowed" {
+@test "Raw immutability: a new human source under raw/ is still allowed (carve-out leaves existing rules unchanged)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw"
   mkdir -p "$vault_dir"
   local new_path="$vault_dir/paper.md"
@@ -265,7 +265,7 @@ HEREDOC
   assert_output_empty
 }
 
-@test "protect-raw carve-out: UNCHANGED Edit existing raw/ human source still blocked" {
+@test "Raw immutability: an Edit to an existing raw/ human source is still blocked (carve-out leaves existing rules unchanged)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw"
   mkdir -p "$vault_dir"
   local existing_path="$vault_dir/paper.md"
@@ -287,7 +287,7 @@ HEREDOC
 # `source_type: agent-session` must not grant fence entry to a non-agent-session
 # source.
 
-@test "protect-raw carve-out: BLOCK smuggle — frontmatter source_type: paper + body marker line" {
+@test "Raw immutability: blocks a smuggle where frontmatter says source_type: paper but a body line carries the marker (carve-out)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw/agent-sessions"
   mkdir -p "$vault_dir"
   local new_path="$vault_dir/x.md"
@@ -315,7 +315,7 @@ HEREDOC
   assert_output_contains "source_type: agent-session"
 }
 
-@test "protect-raw carve-out: BLOCK smuggle — NO frontmatter, body marker line only" {
+@test "Raw immutability: blocks a smuggle with no frontmatter and only a body marker line (carve-out)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw/agent-sessions"
   mkdir -p "$vault_dir"
   local new_path="$vault_dir/no-fm.md"
@@ -339,7 +339,7 @@ HEREDOC
   assert_output_contains "source_type: agent-session"
 }
 
-@test "protect-raw carve-out: BLOCK smuggle — frontmatter without source_type + body marker line" {
+@test "Raw immutability: blocks a smuggle where frontmatter omits source_type and a body line carries the marker (carve-out)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw/agent-sessions"
   mkdir -p "$vault_dir"
   local new_path="$vault_dir/fm-no-st.md"
@@ -367,7 +367,7 @@ HEREDOC
   assert_output_contains "source_type: agent-session"
 }
 
-@test "protect-raw carve-out: PERMIT genuine — frontmatter source_type: agent-session even with extra body lines" {
+@test "Raw immutability: permits a genuine agent-session whose frontmatter source_type is the marker even with extra body lines (carve-out)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw/agent-sessions"
   mkdir -p "$vault_dir"
   local new_path="$vault_dir/genuine.md"
@@ -414,7 +414,7 @@ _path_without_bun_pr() {
   printf '%s' "$tooldir"
 }
 
-@test "protect-raw: FAIL-CLOSED — Bun absent blocks a raw/ write with install-Bun reason" {
+@test "Raw immutability: Bun absent blocks a raw/ write with an install-Bun reason (fail-closed)" {
   local vault_dir="$BATS_TEST_TMPDIR/proj/vault/raw"
   mkdir -p "$vault_dir"
   local tooldir
@@ -429,7 +429,7 @@ _path_without_bun_pr() {
   assert_output_contains "Bun is required"
 }
 
-@test "protect-raw: FAIL-CLOSED — Bun absent still passes through non-raw paths" {
+@test "Raw immutability: Bun absent still passes through non-raw paths (fail-closed is scoped)" {
   local tooldir
   tooldir=$(_path_without_bun_pr)
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/elsewhere/notes.md","content":"x"}}'

@@ -25,7 +25,7 @@ async function bashCounts(vault: string): Promise<{ errors: number; warnings: nu
   return { errors, warnings };
 }
 
-describe("bash parity", () => {
+describe("Feature: Verify › bash parity", () => {
   const hasBash = existsSync(BASH);
 
   test.if(hasBash)("clean vault: engine matches bash", async () => {

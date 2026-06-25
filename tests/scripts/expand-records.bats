@@ -55,12 +55,12 @@ teardown() {
   rm -rf "$VAULT"
 }
 
-@test "expand-records: script declares set -euo pipefail (strict mode)" {
+@test "Record expansion: script declares set -euo pipefail (strict mode)" {
   run grep -qE '^set -euo pipefail' "$SCRIPT"
   assert_success
 }
 
-@test "expand-records: skips gracefully when wiki/ is absent" {
+@test "Record expansion: skips gracefully when wiki/ is absent" {
   local empty="$BATS_TEST_TMPDIR/empty"
   mkdir -p "$empty"
   run bash "$SCRIPT" --target "$empty" --source raw/records.json --topic concepts
@@ -68,26 +68,26 @@ teardown() {
   assert_output_contains "no wiki/"
 }
 
-@test "expand-records: errors when --source is missing" {
+@test "Record expansion: errors when --source is missing" {
   run bash "$SCRIPT" --target "$VAULT" --topic concepts
   assert_success
   assert_output_contains "--source is required"
 }
 
-@test "expand-records: errors when --topic is missing" {
+@test "Record expansion: errors when --topic is missing" {
   run bash "$SCRIPT" --target "$VAULT" --source raw/records.json
   assert_success
   assert_output_contains "--topic is required"
 }
 
-@test "expand-records: dry-run writes nothing" {
+@test "Record expansion: dry-run writes nothing" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   run bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts
   assert_success
   refute [ -f "$VAULT/wiki/concepts/solid-principles/srp.md" ]
 }
 
-@test "expand-records: --apply fans out per-record pages + hub folder-notes" {
+@test "Record expansion: --apply fans out per-record pages + hub folder-notes" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   run bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply
   assert_success
@@ -99,7 +99,7 @@ teardown() {
   assert [ -f "$VAULT/wiki/concepts/code-smells/god-object.md" ]
 }
 
-@test "expand-records: --apply creates the cited source note (provenance resolves)" {
+@test "Record expansion: --apply creates the cited source note so provenance resolves" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   run bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply
   assert_success
@@ -112,7 +112,7 @@ teardown() {
   assert_success
 }
 
-@test "expand-records: per-record page carries the parent spine and nested tags" {
+@test "Record expansion: per-record page carries the parent spine and nested tags" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   run bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply
   assert_success
@@ -126,7 +126,7 @@ teardown() {
   assert_success
 }
 
-@test "expand-records: output is born tree-shaped (strict-tree-reduce changes 0 files)" {
+@test "Record expansion: output is born tree-shaped so strict-tree-reduce changes 0 files" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply >/dev/null
@@ -135,7 +135,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.filesChanged')" "0"
 }
 
-@test "expand-records: deterministic — date stamp derives from source mtime, --date overrides" {
+@test "Record expansion: deterministic — date stamp derives from source mtime, --date overrides" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   # Pin the source file's mtime; the stamp must derive from it, not the clock.
   touch -t 202601151200 "$VAULT/raw/records.json"
@@ -149,7 +149,7 @@ teardown() {
   assert_success
 }
 
-@test "expand-records: idempotent — a second --apply creates 0 new pages" {
+@test "Record expansion: idempotent — a second --apply creates 0 new pages" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply >/dev/null
@@ -158,7 +158,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.pagesNew')" "0"
 }
 
-@test "expand-records: output is born MOC-reachable (verify-ingest reports 0 warnings)" {
+@test "Record expansion: output is born MOC-reachable so verify-ingest reports 0 warnings" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply >/dev/null
   run bash "$REPO_ROOT/scripts/verify-ingest.sh" --target "$VAULT"
@@ -170,7 +170,7 @@ teardown() {
   refute_output_contains "empty children list"
 }
 
-@test "expand-records: hub note lists its records; topic note lists the hubs (MOC spine)" {
+@test "Record expansion: hub note lists its records and the topic note lists the hubs (MOC spine)" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply >/dev/null
   # Hub children: includes its records.
@@ -181,14 +181,14 @@ teardown() {
   assert_success
 }
 
-@test "expand-records: each record carries the topic-slug tag (schema 3-6 tag policy)" {
+@test "Record expansion: each record carries the topic-slug tag (schema 3-6 tag policy)" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   bash "$SCRIPT" --target "$VAULT" --source raw/records.json --topic concepts --apply >/dev/null
   run grep -E '^tags:.*"concepts"' "$VAULT/wiki/concepts/solid-principles/srp.md"
   assert_success
 }
 
-@test "expand-records: --relation-fields maps cross-record relations to nested tags" {
+@test "Record expansion: --relation-fields maps cross-record relations to nested tags" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   cat >"$VAULT/raw/smells.json" <<'EOF'
 [
@@ -202,7 +202,7 @@ EOF
   assert_success
 }
 
-@test "expand-records: a record title with a double-quote stays born verify-clean" {
+@test "Record expansion: a record title with a double-quote stays born verify-clean" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   cat >"$VAULT/raw/quoted.json" <<'EOF'
 [{"id":"say","name":"He said \"hello\" loudly","category":"quotes-cat","family":"oop"}]
@@ -218,7 +218,7 @@ EOF
   assert_success
 }
 
-@test "expand-records: unwraps a records array nested under an object key (auto-detect)" {
+@test "Record expansion: unwraps a records array nested under an object key (auto-detect)" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   # The real glossary.json is { vocabulary, entities: [...] } — not a top-level
   # array. expand-records must auto-detect the entities[] wrapper and fan it out.
@@ -231,7 +231,7 @@ EOF
   assert_output_contains "All checks passed"
 }
 
-@test "expand-records: --records-key names the array when wrapping is ambiguous" {
+@test "Record expansion: --records-key names the array when wrapping is ambiguous" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   cat >"$VAULT/raw/multi.json" <<'EOF'
@@ -242,7 +242,7 @@ EOF
   assert_eq "$(printf '%s' "$output" | jq -r '.recordsRead')" "1"
 }
 
-@test "expand-records: a source named after its topic is deconflicted (no basename collision)" {
+@test "Record expansion: a source named after its topic is deconflicted to avoid a basename collision" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   # source file basename == topic → _sources/concepts.md would collide with
   # concepts/concepts.md by basename and misroute the parent spine to the source.

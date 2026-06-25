@@ -35,18 +35,18 @@ teardown() {
   rm -rf "$VAULT"
 }
 
-@test "health-score: script declares set -euo pipefail (strict mode)" {
+@test "Health score: the script declares set -euo pipefail (strict mode)" {
   run grep -qE '^set -euo pipefail' "$SCRIPT"
   assert_success
 }
 
-@test "health-score: exits 0 and skips when wiki/ is absent" {
+@test "Health score: exits 0 and skips when the wiki/ directory is absent" {
   mkdir -p "$VAULT"
   run bash "$SCRIPT" --target "$VAULT"
   assert_success
 }
 
-@test "health-score: --json emits valid JSON with required keys" {
+@test "Health score: --json emits valid JSON with the required keys (score, grade, needsHeal, issues)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   _make_vault "$VAULT" \
     "CLAUDE.md:---\nschema_version: 1\n---\n# Vault" \
@@ -58,7 +58,7 @@ teardown() {
   echo "$output" | bun -e 'const d=JSON.parse(require("fs").readFileSync(0,"utf8"));["score","grade","needsHeal","issues"].forEach(k=>{if(!(k in d))process.exit(1)})'
 }
 
-@test "health-score: a dangling wikilink raises needsHeal=true" {
+@test "Health score: a dangling wikilink raises needsHeal=true and names the issue" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   _make_vault "$VAULT" \
     "CLAUDE.md:---\nschema_version: 1\n---\n# Vault" \

@@ -94,7 +94,7 @@ ${extra}
 // Unit: checkOntology()
 // ---------------------------------------------------------------------------
 
-describe("checkOntology() — no profile / no wiki", () => {
+describe("Feature: Lint › ontology lint — no profile / no wiki", () => {
   test("1. no CLAUDE.md → returns [] (graceful skip)", () => {
     const s = makeOntologyVault({
       "wiki/index.md": "---\ntitle: index\ntype: index\n---\n",
@@ -124,7 +124,7 @@ describe("checkOntology() — no profile / no wiki", () => {
   });
 });
 
-describe("checkOntology() — exemptions", () => {
+describe("Feature: Lint › ontology lint — exemptions", () => {
   test("4. bookkeeping files (index, log, dashboard, manifest) are skipped", () => {
     const s = makeOntologyVault({
       "CLAUDE.md": claudeMdWithProfile(),
@@ -153,7 +153,7 @@ describe("checkOntology() — exemptions", () => {
   });
 });
 
-describe("checkOntology() — valid cases", () => {
+describe("Feature: Lint › ontology lint — valid cases", () => {
   test("6. valid domain + valid range target → no findings", () => {
     // entity page using `sources` pointing at a source page → valid
     const s = makeOntologyVault({
@@ -205,7 +205,7 @@ describe("checkOntology() — valid cases", () => {
   });
 });
 
-describe("checkOntology() — violations", () => {
+describe("Feature: Lint › ontology lint — violations", () => {
   test("7. domain violation → warn finding with domain-violation prefix", () => {
     // `sources` domain is entity/concept/topic/project/synthesis — NOT source or index.
     // A `source` page using `sources` violates the domain.
@@ -270,7 +270,7 @@ describe("checkOntology() — violations", () => {
   });
 });
 
-describe("checkOntology() — target resolution", () => {
+describe("Feature: Lint › ontology lint — target resolution", () => {
   test("10. unresolvable target (no wiki page with matching title) → no finding", () => {
     // Missing target → type=unknown → skip range check.
     const s = makeOntologyVault({
@@ -333,7 +333,7 @@ describe("checkOntology() — target resolution", () => {
   });
 });
 
-describe("checkOntology() — multi-violation", () => {
+describe("Feature: Lint › ontology lint — multi-violation", () => {
   test("11. multiple predicates with multiple pages → findings for all violations", () => {
     const s = makeOntologyVault({
       "CLAUDE.md": claudeMdWithProfile(),
@@ -358,7 +358,7 @@ describe("checkOntology() — multi-violation", () => {
 // Integration: lint --check ontology
 // ---------------------------------------------------------------------------
 
-describe("lint --check ontology — integration", () => {
+describe("Feature: Lint › ontology lint — check ontology integration", () => {
   test("17. clean vault (no violations) → no findings, exitCode 0", async () => {
     const s = makeOntologyVault({
       "CLAUDE.md": claudeMdWithProfile(),

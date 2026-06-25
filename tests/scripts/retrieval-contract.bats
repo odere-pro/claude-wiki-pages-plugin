@@ -36,7 +36,7 @@ QUERY_SKILL="$REPO_ROOT/skills/query/SKILL.md"
 # R3-S-01: agent path named in search SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "R3-S-01: search SKILL.md names the agent path (search --json + matched[] + wikilink)" {
+@test "Retrieval contract: search SKILL.md names the agent path (search --json + matched[] + wikilink)" {  # spec R3-S-01
   # Must mention the agent path explicitly
   run grep -iE "agent path|agent.path" "$SEARCH_SKILL"
   assert_success
@@ -52,7 +52,7 @@ QUERY_SKILL="$REPO_ROOT/skills/query/SKILL.md"
 # R3-S-02: deterministic claim in search SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "R3-S-02: search SKILL.md states the agent path is deterministic (same query+vault+lexicon)" {
+@test "Retrieval contract: search SKILL.md states the agent path is deterministic (same query+vault+lexicon)" {  # spec R3-S-02
   # "deterministic" or "byte-identical" must appear in the R3 section context
   run grep -iE "determin|byte.identical" "$SEARCH_SKILL"
   assert_success
@@ -65,7 +65,7 @@ QUERY_SKILL="$REPO_ROOT/skills/query/SKILL.md"
 # R3-S-03: human path named in search SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "R3-S-03: search SKILL.md names the human path (clean ranked list without --json)" {
+@test "Retrieval contract: search SKILL.md names the human path (clean ranked list without --json)" {  # spec R3-S-03
   # Must mention the human path
   run grep -iE "human path|human.path" "$SEARCH_SKILL"
   assert_success
@@ -78,7 +78,7 @@ QUERY_SKILL="$REPO_ROOT/skills/query/SKILL.md"
 # R3-S-04: matched[] is JSON-only in search SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "R3-S-04: search SKILL.md states matched[] is JSON-only (never in human render)" {
+@test "Retrieval contract: search SKILL.md states matched[] is JSON-only (never in human render)" {  # spec R3-S-04
   # "JSON-only" must be present
   run grep -iE "json.only|JSON-only" "$SEARCH_SKILL"
   assert_success
@@ -91,7 +91,7 @@ QUERY_SKILL="$REPO_ROOT/skills/query/SKILL.md"
 # R3-S-05: one score object — neither path re-ranks in search SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "R3-S-05: search SKILL.md states the one-score-object invariant (same ranking, neither re-ranks)" {
+@test "Retrieval contract: search SKILL.md states the one-score-object invariant (same ranking, neither re-ranks)" {  # spec R3-S-05
   # Must mention one score object or single score
   run grep -iE "one score|single score|one.score.object|same.ranking|same ranking" "$SEARCH_SKILL"
   assert_success
@@ -104,7 +104,7 @@ QUERY_SKILL="$REPO_ROOT/skills/query/SKILL.md"
 # R3-Q-01: agent path named in query SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "R3-Q-01: query SKILL.md names the agent path (C1 reads search --json: score+matched[]+wikilink)" {
+@test "Retrieval contract: query SKILL.md names the agent path (C1 reads search --json: score+matched[]+wikilink)" {  # spec R3-Q-01
   # C1 must be tied to search --json
   run grep -E "search.*--json|--json" "$QUERY_SKILL"
   assert_success
@@ -120,7 +120,7 @@ QUERY_SKILL="$REPO_ROOT/skills/query/SKILL.md"
 # R3-Q-02: no-re-rank / one score object in query SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "R3-Q-02: query SKILL.md states the one-score-object no-re-rank invariant" {
+@test "Retrieval contract: query SKILL.md states the one-score-object no-re-rank invariant" {  # spec R3-Q-02
   # Already partially covered by C1-03 in query-descent.bats, but R3 contract
   # must explicitly connect it to "one score object" shared between paths.
   run grep -iE "one.score.object|one score object|same score|shared.*score|score.*shared" "$QUERY_SKILL"
@@ -134,7 +134,7 @@ QUERY_SKILL="$REPO_ROOT/skills/query/SKILL.md"
 # R3-Q-03: human path (no matched[]) in query SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "R3-Q-03: query SKILL.md states the human path renders ranked list without matched[]" {
+@test "Retrieval contract: query SKILL.md states the human path renders the ranked list without matched[]" {  # spec R3-Q-03
   # Human path mentioned
   run grep -iE "human path|human.path" "$QUERY_SKILL"
   assert_success
@@ -147,7 +147,7 @@ QUERY_SKILL="$REPO_ROOT/skills/query/SKILL.md"
 # R3-Q-04: both paths read the same score in query SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "R3-Q-04: query SKILL.md states both paths read the same score (one ranking, two forms)" {
+@test "Retrieval contract: query SKILL.md states both paths read the same score (one ranking, two forms)" {  # spec R3-Q-04
   # "both paths" or equivalent phrasing
   run grep -iE "both paths|both.path|one ranking|same ranking|same score" "$QUERY_SKILL"
   assert_success

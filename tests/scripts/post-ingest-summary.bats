@@ -13,7 +13,7 @@ setup() {
   _load_helpers
 }
 
-@test "post-ingest-summary: silent on non-sources paths" {
+@test "Ingest summary: stays silent on writes to paths outside _sources/" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/proj/vault/wiki/topics/page.md","content":"body"}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-ingest-summary.sh'"
 
@@ -21,7 +21,7 @@ setup() {
   assert_output_empty
 }
 
-@test "post-ingest-summary: emits summary for a source write" {
+@test "Ingest summary: emits a summary line with the title and source count for a source write" {
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/_sources"
   # Create a neighboring source so count > 0.
@@ -51,7 +51,7 @@ MD
   assert_output_contains "Total sources"
 }
 
-@test "post-ingest-summary: emits summary even when content has no title" {
+@test "Ingest summary: still emits a summary when the content has no title, falling back to \"unknown\"" {
   # A _sources/ write with empty content must still produce the summary line
   # (title falls back to "unknown"). Catches mutations that silence the echo
   # on missing frontmatter.
@@ -76,7 +76,7 @@ MD
 # falls back to "unknown" since there is no content blob to parse.
 # ---------------------------------------------------------------------------
 
-@test "post-ingest-summary: MultiEdit on _sources/ file emits summary" {
+@test "Ingest summary: a MultiEdit on a _sources/ file emits a summary" {  # spec S13
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/_sources"
   # Pre-existing source so count >= 1.
@@ -94,7 +94,7 @@ MD
   assert_output_contains "Total sources"
 }
 
-@test "post-ingest-summary: MultiEdit on non-sources path is silent" {
+@test "Ingest summary: a MultiEdit on a path outside _sources/ stays silent" {  # spec S13
   local json
   json='{"tool_name":"MultiEdit","tool_input":{"file_path":"/tmp/proj/vault/wiki/topics/page.md","edits":[]}}'
   run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-ingest-summary.sh'"

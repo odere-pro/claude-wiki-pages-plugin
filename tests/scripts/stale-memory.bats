@@ -29,27 +29,27 @@ setup() {
 LINT_SKILL="$REPO_ROOT/skills/lint/SKILL.md"
 CURATOR_SKILL="$REPO_ROOT/skills/curator-fixes/SKILL.md"
 
-@test "lint SKILL.md: documents stale-memory uses status: stale for agent-session pages" {
+@test "Stale-memory flagging: lint SKILL.md documents that agent-session pages are flagged via status: stale" {  # spec C3
   run grep -q "status: stale" "$LINT_SKILL"
   assert_success
 }
 
-@test "lint SKILL.md: documents stale-memory uses confidence for agent-session pages" {
+@test "Stale-memory flagging: lint SKILL.md documents that agent-session pages use the confidence field" {  # spec C3
   run grep -q "confidence" "$LINT_SKILL"
   assert_success
 }
 
-@test "lint SKILL.md: documents stale-memory uses S4 staleness machinery for agent-session pages" {
+@test "Stale-memory flagging: lint SKILL.md documents that agent-session pages reuse the S4 staleness machinery" {  # spec C3 S4
   run grep -q "S4" "$LINT_SKILL"
   assert_success
 }
 
-@test "lint SKILL.md: documents agent-session pages go through the existing staleness path" {
+@test "Stale-memory flagging: lint SKILL.md documents that agent-session pages go through the existing staleness path" {  # spec C3
   run grep -q "agent-session" "$LINT_SKILL"
   assert_success
 }
 
-@test "lint SKILL.md: documents no new field or parallel staleness system is used" {
+@test "Stale-memory flagging: lint SKILL.md documents that no new field or parallel staleness system is introduced" {  # spec C3
   run grep -q "no new field" "$LINT_SKILL"
   assert_success
 }
@@ -58,22 +58,22 @@ CURATOR_SKILL="$REPO_ROOT/skills/curator-fixes/SKILL.md"
 # skills/curator-fixes/SKILL.md — stale-memory curator handling
 # ---------------------------------------------------------------------------
 
-@test "curator-fixes SKILL.md: documents curator uses status: stale for agent-session memories" {
+@test "Stale-memory flagging: curator-fixes SKILL.md documents that the curator uses status: stale for agent-session memories" {  # spec C3
   run grep -q "status: stale" "$CURATOR_SKILL"
   assert_success
 }
 
-@test "curator-fixes SKILL.md: documents curator uses confidence for agent-session memories" {
+@test "Stale-memory flagging: curator-fixes SKILL.md documents that the curator uses the confidence field for agent-session memories" {  # spec C3
   run grep -q "confidence" "$CURATOR_SKILL"
   assert_success
 }
 
-@test "curator-fixes SKILL.md: documents agent-session memories treated like any stale page" {
+@test "Stale-memory flagging: curator-fixes SKILL.md documents that agent-session memories are treated like any stale page" {  # spec C3
   run grep -q "agent-session" "$CURATOR_SKILL"
   assert_success
 }
 
-@test "curator-fixes SKILL.md: documents no memory-specific auto-deletion" {
+@test "Stale-memory flagging: curator-fixes SKILL.md documents that there is no memory-specific auto-deletion" {  # spec C3
   run grep -q "no memory-specific" "$CURATOR_SKILL"
   assert_success
 }

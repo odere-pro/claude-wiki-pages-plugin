@@ -31,14 +31,14 @@ setup() {
 # ADR file presence + structure
 # -----------------------------------------------------------------------------
 
-@test "adr: ADR-0034 file exists" {
+@test "Bun-required engine: the ADR-0034 decision record file is present" { # spec ADR-0034
   [ -f "$ADR_FILE" ] || {
     echo "missing ADR file: $ADR_FILE" >&2
     return 1
   }
 }
 
-@test "adr: ADR-0034 carries the canonical header fields" {
+@test "Bun-required engine: ADR-0034 carries the canonical header fields (Status, Date, Decision, Alternatives, Consequences)" { # spec ADR-0034
   run cat "$ADR_FILE"
   assert_success
   assert_output_contains "**Status:**"
@@ -48,7 +48,7 @@ setup() {
   assert_output_contains "## Consequences"
 }
 
-@test "adr: ADR-0034 records both ratified decisions (Bun required + lint verb)" {
+@test "Bun-required engine: ADR-0034 records both ratified decisions — fail-closed Bun and the WARN-tier lint verb" { # spec ADR-0034
   run cat "$ADR_FILE"
   assert_success
   # Decision (a): fail-closed Bun for security gates.
@@ -63,7 +63,7 @@ setup() {
 # ADR index wiring (every ADR has an index row with a resolving link)
 # -----------------------------------------------------------------------------
 
-@test "adr: ADR-0034 is wired into the ADR index" {
+@test "Bun-required engine: ADR-0034 is wired into the ADR index with a resolving link" { # spec ADR-0034
   run grep -F "ADR-0034-bun-required-and-lint-verb.md" "$ADR_INDEX"
   assert_success
 }
@@ -72,17 +72,17 @@ setup() {
 # Glossary-first: the new coinages have rows before they enter prose/code
 # -----------------------------------------------------------------------------
 
-@test "glossary: engine lint verb has a row" {
+@test "Bun-required engine: the engine lint verb coinage has a glossary row" {
   run grep -F "lint (engine verb)" "$GLOSSARY"
   assert_success
 }
 
-@test "glossary: engine verify verb has a row" {
+@test "Bun-required engine: the engine verify verb (error-tier twin) has a glossary row" {
   run grep -F "verify (engine verb)" "$GLOSSARY"
   assert_success
 }
 
-@test "glossary: the fail-closed engine bridge has a row" {
+@test "Bun-required engine: the fail-closed engine bridge coinage has a glossary row" {
   run grep -F "fail-closed engine bridge" "$GLOSSARY"
   assert_success
 }
@@ -91,7 +91,7 @@ setup() {
 # Glossary-first gate stays green on the real repo
 # -----------------------------------------------------------------------------
 
-@test "glossary-first: validate-docs.sh stays clean on the real repo" {
+@test "Bun-required engine: validate-docs.sh stays green on the real repo, so glossary-first holds (no term entered prose without a row)" {
   run bash "$SCRIPTS_DIR/validate-docs.sh" "$REPO_ROOT"
   assert_success
 }

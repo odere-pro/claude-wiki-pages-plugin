@@ -16,7 +16,7 @@ setup() {
   PRODUCE="$REPO_ROOT/scripts/eval-produce-baseline.sh"
 }
 
-@test "eval-produce-baseline: ingest dry-run keeps the FILE transport" {
+@test "Eval baseline: ingest dry-run keeps the FILE transport delimiters" {
   run bash "$PRODUCE" --tier ingest-extract --model fake --case extract-basic --dry-run-prompt
   assert_success
   assert_output_contains "===FILE: wiki/"
@@ -24,7 +24,7 @@ setup() {
   assert_output_contains "Extract the knowledge"
 }
 
-@test "eval-produce-baseline: ingest dry-run drops the scaffolding contract" {
+@test "Eval baseline: ingest dry-run drops the scaffolding contract (schema, source_quotes, hard rules)" {
   run bash "$PRODUCE" --tier ingest-extract --model fake --case extract-basic --dry-run-prompt
   assert_success
   # The plugin-arm prompt embeds the schema table and the provenance contract;
@@ -35,7 +35,7 @@ setup() {
   refute_output_contains "frontmatter"
 }
 
-@test "eval-produce-baseline: query dry-run keeps the ANSWER transport" {
+@test "Eval baseline: query dry-run keeps the ANSWER transport delimiters" {
   run bash "$PRODUCE" --tier query --model fake --case query-basic --dry-run-prompt
   assert_success
   assert_output_contains "===ANSWER==="
@@ -45,7 +45,7 @@ setup() {
   assert_output_contains "Answer the question from these notes."
 }
 
-@test "eval-produce-baseline: query dry-run drops the grounding hard rules" {
+@test "Eval baseline: query dry-run drops the grounding hard rules (VERBATIM, ATTRIBUTION)" {
   run bash "$PRODUCE" --tier query --model fake --case query-basic --dry-run-prompt
   assert_success
   refute_output_contains "VERBATIM"
@@ -53,7 +53,7 @@ setup() {
   refute_output_contains "literally present"
 }
 
-@test "eval-produce-baseline: usage errors exit 2 (no tier, bad tier, no model, unknown case)" {
+@test "Eval baseline: usage errors exit 2 for missing tier, bad tier, missing model, or unknown case" {
   run bash "$PRODUCE" --model fake --dry-run-prompt
   assert_status 2
   run bash "$PRODUCE" --tier nope --model fake --dry-run-prompt

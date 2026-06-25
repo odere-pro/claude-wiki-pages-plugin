@@ -22,7 +22,7 @@ setup() {
 # Self-test mode: the gate proves its own enforcement is live.
 # ---------------------------------------------------------------------------
 
-@test "gate-13: --self-test passes (planted forbidden tokens are caught)" {
+@test "NO-RAG invariant: self-test mode passes, proving the scanner catches planted forbidden tokens" { # spec gate-13 --self-test
   run bash "$GATE" --self-test
   assert_success
   assert_output_contains "planted fetch( is caught"
@@ -35,7 +35,7 @@ setup() {
 # Real retrieval path is clean.
 # ---------------------------------------------------------------------------
 
-@test "gate-13: passes on the real (clean) retrieval path" {
+@test "NO-RAG invariant: the gate passes on the real, clean retrieval path" { # spec gate-13
   run bash "$GATE"
   assert_success
   assert_output_contains "no RAG/embedding/vector/network tokens"
@@ -45,7 +45,7 @@ setup() {
 # Direct fail-open reproduction: a planted fetch( in a scanned file must FAIL.
 # ---------------------------------------------------------------------------
 
-@test "gate-13: a planted fetch( in a retrieval file makes the gate FAIL" {
+@test "NO-RAG invariant: a planted fetch( in a retrieval file makes the gate fail, not fail-open" { # spec gate-13
   local target="$REPO_ROOT/src/core/stem.ts"
   local backup
   backup="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/stem-backup.XXXXXX")"
@@ -74,7 +74,7 @@ setup() {
 # A planted plain-token (vector) in a scanned file must FAIL.
 # ---------------------------------------------------------------------------
 
-@test "gate-13: a planted 'vector' token in a retrieval file makes the gate FAIL" {
+@test "NO-RAG invariant: a planted 'vector' token in a retrieval file makes the gate fail" { # spec gate-13
   local target="$REPO_ROOT/src/core/stem.ts"
   local backup
   backup="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/stem-backup.XXXXXX")"

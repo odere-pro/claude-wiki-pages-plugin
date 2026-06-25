@@ -38,7 +38,7 @@ const SCHEMA_PATH = join(REPO_ROOT, "skills/init/template/CLAUDE.md");
 
 // ── 1. enums.type — page-type enum in document order ─────────────────────────
 
-describe("ontology -- enums.type (page type, closed)", () => {
+describe("Feature: Ontology › ontology manifest — enums.type (page type, closed)", () => {
   test("returns exactly 9 values in document order", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     // Assert first: a regression here should be a loud failure, not a silent skip.
@@ -68,7 +68,7 @@ describe("ontology -- enums.type (page type, closed)", () => {
 
 // ── 2. enums.entity_type — core values, absent extensions ────────────────────
 
-describe("ontology -- enums.entity_type (core, no extensions)", () => {
+describe("Feature: Ontology › ontology manifest — enums.entity_type (core, no extensions)", () => {
   test("returns exactly the 7 core values when no vault extensions present", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
@@ -95,7 +95,7 @@ describe("ontology -- enums.entity_type (core, no extensions)", () => {
 
 // ── 3. entity_type_extensions — composition at read time ─────────────────────
 
-describe("ontology -- enums.entity_type with vault extensions", () => {
+describe("Feature: Ontology › ontology manifest — enums.entity_type with vault extensions", () => {
   let tmpVaultDir: string;
   let tmpClaudeMd: string;
 
@@ -164,7 +164,7 @@ describe("ontology -- enums.entity_type with vault extensions", () => {
 
 // ── 4 & 5. predicates — row count and extensible:false ───────────────────────
 
-describe("ontology -- predicates", () => {
+describe("Feature: Ontology › ontology manifest — predicates", () => {
   test("predicates length equals the predicate-table row count (11)", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
@@ -224,7 +224,7 @@ describe("ontology -- predicates", () => {
 
 // ── 6. Malformed/missing table → fail closed ─────────────────────────────────
 
-describe("ontology -- fail closed on malformed/missing table", () => {
+describe("Feature: Ontology › ontology manifest — fail closed on malformed/missing table", () => {
   test("missing schema file → non-zero exitCode + error finding", () => {
     const result = parseOntologyProfile("/nonexistent/path/CLAUDE.md", undefined);
     expect(result.ok).toBe(false);
@@ -273,7 +273,7 @@ describe("ontology -- fail closed on malformed/missing table", () => {
 
 // ── 7. OntologyManifest JSON field names (ADR-0015 field name contract) ───────
 
-describe("ontology -- manifest JSON field names match ADR-0015", () => {
+describe("Feature: Ontology › ontology manifest — manifest JSON field names match ADR-0015", () => {
   test("manifest has .enums.type field", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);
@@ -298,7 +298,7 @@ describe("ontology -- manifest JSON field names match ADR-0015", () => {
 
 // ── buildOntologyReport — envelope shape ─────────────────────────────────────
 
-describe("buildOntologyReport — Report envelope (ADR-0015 N3)", () => {
+describe("Feature: Ontology › ontology manifest — buildOntologyReport: Report envelope (ADR-0015 N3)", () => {
   test("clean manifest → report.command = 'ontology'", () => {
     const result = parseOntologyProfile(SCHEMA_PATH, undefined);
     expect(result.ok).toBe(true);

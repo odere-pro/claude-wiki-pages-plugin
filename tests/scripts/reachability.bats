@@ -17,23 +17,23 @@ setup() {
   PROBE="$REPO_ROOT/scripts/reachability.sh"
 }
 
-@test "reachability: script exists and is executable" {
+@test "Reachability: script exists and is executable" {
   [ -f "$PROBE" ]
   [ -x "$PROBE" ]
 }
 
-@test "reachability: --help exits 0 and prints usage" {
+@test "Reachability: --help exits 0 and prints usage" {
   run bash "$PROBE" --help
   assert_success
   assert_output_contains "--policy"
 }
 
-@test "reachability: unknown flag fails closed (rc 2)" {
+@test "Reachability: unknown flag fails closed (rc 2)" {
   run bash "$PROBE" --no-such-flag
   assert_status 2
 }
 
-@test "reachability: policy off makes NO network call and reports unprobed" {
+@test "Reachability: policy off makes NO network call and reports unprobed" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-off"
   local marker="$BATS_TEST_TMPDIR/curl-was-called"
   mkdir -p "$fake_bin"
@@ -52,7 +52,7 @@ EOF
   [ ! -e "$marker" ] # the probe never shelled out to curl
 }
 
-@test "reachability: prefer-local with both reachable reports up + reachable" {
+@test "Reachability: prefer-local with both reachable reports up + reachable" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-both-up"
   mkdir -p "$fake_bin"
   cat >"$fake_bin/curl" <<'EOF'
@@ -73,7 +73,7 @@ EOF
   assert_output_contains '"claudeApi": "reachable"'
 }
 
-@test "reachability: prefer-local with Ollama down reports down" {
+@test "Reachability: prefer-local with Ollama down reports down" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-ollama-down"
   mkdir -p "$fake_bin"
   cat >"$fake_bin/curl" <<'EOF'
@@ -94,7 +94,7 @@ EOF
   assert_output_contains '"claudeApi": "reachable"'
 }
 
-@test "reachability: prefer-local fails closed when curl errors everywhere" {
+@test "Reachability: prefer-local fails closed when curl errors everywhere" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-all-down"
   mkdir -p "$fake_bin"
   cat >"$fake_bin/curl" <<'EOF'
@@ -113,7 +113,7 @@ EOF
 # Circuit Breaker tests (CB_ env vars to control threshold/cooldown/state file)
 # ---------------------------------------------------------------------------
 
-@test "reachability: circuit breaker starts closed, output includes circuitBreaker field" {
+@test "Reachability: circuit breaker starts closed and output includes the circuitBreaker field" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-cb-initial"
   local cb_file="$BATS_TEST_TMPDIR/cb-state.json"
   mkdir -p "$fake_bin"
@@ -131,7 +131,7 @@ EOF
   assert_output_contains '"ollama": "up"'
 }
 
-@test "reachability: circuit breaker opens after consecutive failures and then fails fast" {
+@test "Reachability: circuit breaker opens after consecutive failures and then fails fast" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-cb-open"
   local cb_file="$BATS_TEST_TMPDIR/cb-state-open.json"
   local call_count_file="$BATS_TEST_TMPDIR/curl-calls"
@@ -179,7 +179,7 @@ EOF
   [ "$calls" -eq 3 ]
 }
 
-@test "reachability: circuit breaker half-opens after cooldown and probes once" {
+@test "Reachability: circuit breaker half-opens after cooldown and probes once" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-cb-halfopen"
   local cb_file="$BATS_TEST_TMPDIR/cb-state-halfopen.json"
   local call_count_file="$BATS_TEST_TMPDIR/curl-calls-halfopen"
@@ -218,7 +218,7 @@ EOF
   [ "$calls" -eq 1 ]
 }
 
-@test "reachability: circuit breaker re-opens when half-open trial fails" {
+@test "Reachability: circuit breaker re-opens when the half-open trial fails" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-cb-reopen"
   local cb_file="$BATS_TEST_TMPDIR/cb-state-reopen.json"
   mkdir -p "$fake_bin"

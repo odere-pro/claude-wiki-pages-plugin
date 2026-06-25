@@ -54,7 +54,7 @@ function stalenessVault(pageUpdated: string, sourceUpdated: string): Record<stri
   };
 }
 
-describe("verify", () => {
+describe("Feature: Verify › verify verb", () => {
   test("clean vault has no findings and exit 0", async () => {
     const sb = makeVault(CLEAN_VAULT);
     const report = await verify({ target: sb.vault });

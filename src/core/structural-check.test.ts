@@ -82,13 +82,13 @@ type: concept
 // Unit: checkStructural
 // ---------------------------------------------------------------------------
 
-describe("checkStructural — unit: check name constant", () => {
+describe("Feature: Verify › structural check — unit: check name constant", () => {
   test("STRUCTURAL_CHECK is 'structural'", () => {
     expect(STRUCTURAL_CHECK).toBe("structural");
   });
 });
 
-describe("checkStructural — unit: clean vault", () => {
+describe("Feature: Verify › structural check — unit: clean vault", () => {
   test("no wiki/ dir returns empty array", () => {
     const sb = makeVault(CLEAN_VAULT);
     // CLEAN_VAULT has a wiki/ with only bookkeeping files — should be clean
@@ -155,7 +155,7 @@ type: concept
   });
 });
 
-describe("checkStructural — unit: missing-section", () => {
+describe("Feature: Verify › structural check — unit: missing-section", () => {
   test("page missing a required H2 heading → warn finding", () => {
     const v = makeStructuralVault(
       {
@@ -257,7 +257,7 @@ Present.
   });
 });
 
-describe("checkStructural — unit: raw-html", () => {
+describe("Feature: Verify › structural check — unit: raw-html", () => {
   test("page with raw HTML block element → warn finding (raw-html)", () => {
     const v = makeStructuralVault({
       "concepts/html-page.md": `---
@@ -381,7 +381,7 @@ type: concept
   });
 });
 
-describe("checkStructural — unit: exemptions", () => {
+describe("Feature: Verify › structural check — unit: exemptions", () => {
   test("bookkeeping file 'index.md' is skipped", () => {
     const v = makeStructuralVault(
       {
@@ -536,7 +536,7 @@ title: No Type
   });
 });
 
-describe("checkStructural — unit: template placeholder exclusion", () => {
+describe("Feature: Verify › structural check — unit: template placeholder exclusion", () => {
   test("H2 headings like '## {{something}}' in templates are NOT required", () => {
     const templateWithPlaceholder = `---
 type: concept
@@ -578,7 +578,7 @@ Some principles.
   });
 });
 
-describe("checkStructural — unit: multiple violations", () => {
+describe("Feature: Verify › structural check — unit: multiple violations", () => {
   test("page with both missing sections AND raw html produces multiple findings", () => {
     const v = makeStructuralVault(
       {
@@ -634,7 +634,7 @@ type: entity
   });
 });
 
-describe("checkStructural — unit: file field", () => {
+describe("Feature: Verify › structural check — unit: file field", () => {
   test("finding includes the file field (vault-relative path)", () => {
     const v = makeStructuralVault({
       "concepts/page.md": `---
@@ -680,7 +680,7 @@ type: concept
   });
 });
 
-describe("checkStructural — unit: missing templates dir", () => {
+describe("Feature: Verify › structural check — unit: missing templates dir", () => {
   test("no _templates/ dir → skeleton check skipped, raw-HTML still runs", () => {
     const v = makeStructuralVault({
       "concepts/page.md": `---
@@ -705,7 +705,7 @@ type: concept
   });
 });
 
-describe("checkStructural — unit: missing wiki/ dir", () => {
+describe("Feature: Verify › structural check — unit: missing wiki/ dir", () => {
   test("missing wiki/ dir returns [] without throwing", () => {
     const sb = makeVault({ "CLAUDE.md": "---\nschema_version: 1\n---\n# Vault\n" });
     // No wiki/ created
@@ -719,7 +719,7 @@ describe("checkStructural — unit: missing wiki/ dir", () => {
 // Integration: lint --check structural
 // ---------------------------------------------------------------------------
 
-describe("lint --check structural — integration", () => {
+describe("Feature: Verify › structural check — lint --check structural integration", () => {
   test("clean vault (no wiki pages) → clean report", async () => {
     const sb = makeVault(CLEAN_VAULT);
     const report = await lint({ target: sb.vault, check: "structural" });

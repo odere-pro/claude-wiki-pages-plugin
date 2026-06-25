@@ -2,6 +2,8 @@
 
 This is the test layer for the `claude-wiki-pages` plugin. The plugin has no compiled runtime to exercise — every layer of the four-layer stack (Data · Skills · Agents · Orchestration) is shell, YAML, and markdown — so the tests are shell too: [Bats](https://bats-core.readthedocs.io/) for unit tests and plain `bash` for static gates and smoke flows. These are dev-time docs; nothing under `tests/` ships to end-users or is loaded as session context. [`README.md`](./README.md) is the long-form authority for everything here; this file is the orientation map.
 
+The suite doubles as the technical documentation (tests-as-documentation): every test title is a feature-spec sentence, the Bats suite is organized by the user-facing feature inventory via the FEATURE INDEX in [`scripts/CLAUDE.md`](./scripts/CLAUDE.md), and the `feature-coverage` gate ([`gates/gate-14-feature-coverage.sh`](./gates/gate-14-feature-coverage.sh)) keeps it living — it fails CI if a feature has no documenting test or a title breaks the convention.
+
 ## Tier model
 
 Tests are organized into tiers by cost and dependency footprint. The default local run is Tier 0 + Tier 1; the heavier tiers are explicit opt-ins.
@@ -12,7 +14,7 @@ Tests are organized into tiers by cost and dependency footprint. The default loc
 | Tier 1 | Bats unit tests — one `.bats` per `scripts/*.sh` hook or utility | [`scripts/`](./scripts/) | `tier1` |
 | Tier 2 | Smoke — end-to-end flows that self-skip without the `claude` CLI | [`smoke/`](./smoke/) | `tier2` |
 | Tier 3 | Local-embedding re-ranker — permanently dropped; an empty self-skipping stub | n/a | `tier3` |
-| gates | Engine gates — every `gate-NN-*.sh` (bun test, typecheck, eslint, parity, no-absolute-paths, stale-dist) | [`gates/`](./gates/) | `gates` |
+| gates | Engine gates — every `gate-NN-*.sh` (bun test, typecheck, eslint, parity, no-absolute-paths, stale-dist, feature-coverage) | [`gates/`](./gates/) | `gates` |
 | eval | Local-model ingest-extract quality gate — model-neutral, opt-in | [`eval/`](./eval/) | `eval` |
 
 The CI "gates" job (Tier 1-adjacent, run after Bats) lives in [`gates/`](./gates/) and is driven by [`gates/run-all.sh`](./gates/run-all.sh); it covers the Bun engine surface (`bun test`, typecheck, eslint, parity) that the shell tiers cannot. Run it locally with `bash tests/run-tests.sh gates`, or as part of `bash tests/run-tests.sh all`.
@@ -40,7 +42,7 @@ Run a single Bats file or one test:
 
 ```bash
 bats tests/scripts/verify-ingest.bats
-bats --filter "blocks legacy type: moc" tests/scripts/validate-frontmatter.bats
+bats --filter "legacy type: moc" tests/scripts/validate-frontmatter.bats
 ```
 
 ## Shared helpers

@@ -11,7 +11,7 @@ import {
   type Config,
 } from "./config.ts";
 
-describe("loadConfig", () => {
+describe("Feature: Infrastructure › config loading — load config", () => {
   test("returns defaults when nothing is configured", () => {
     const empty = mkdtempSync(join(tmpdir(), "cwp-cfg-"));
     const { config } = loadConfig({ cwd: empty, env: { HOME: empty } });
@@ -49,7 +49,7 @@ describe("loadConfig", () => {
   });
 });
 
-describe("validateConfig", () => {
+describe("Feature: Infrastructure › config loading — validate config", () => {
   const schema = {
     properties: {
       autoHeal: {
@@ -71,7 +71,7 @@ describe("validateConfig", () => {
   });
 });
 
-describe("localModel.tier + offlinePolicy wiring (ADR-0018)", () => {
+describe("Feature: Infrastructure › config loading — localModel.tier + offlinePolicy wiring (ADR-0018)", () => {
   test("defaults are the safest values", () => {
     expect(DEFAULT_CONFIG.localModel.tier).toBe("draft");
     expect(DEFAULT_CONFIG.localModel.offlinePolicy).toBe("off");
@@ -128,7 +128,7 @@ describe("localModel.tier + offlinePolicy wiring (ADR-0018)", () => {
   });
 });
 
-describe("checkLocalModelApproval (ADR-0011 / ADR-0017 / ADR-0018 per-tier allow-list)", () => {
+describe("Feature: Infrastructure › config loading — checkLocalModelApproval (ADR-0011 / ADR-0017 / ADR-0018 per-tier allow-list)", () => {
   // The approval helper tests the ingest-extract tier (the one qwen3-coder:30b
   // is gate-approved for); tier defaults to "draft" which is BLOCKED.
   const enabled = (
@@ -185,7 +185,7 @@ describe("checkLocalModelApproval (ADR-0011 / ADR-0017 / ADR-0018 per-tier allow
   });
 });
 
-describe("maintenance.maxParallelExtract (P1-A5, D6/D7)", () => {
+describe("Feature: Infrastructure › config loading — maintenance.maxParallelExtract (P1-A5, D6/D7)", () => {
   test("default resolves to 1 from DEFAULT_CONFIG", () => {
     expect(DEFAULT_CONFIG.maintenance.maxParallelExtract).toBe(1);
   });
@@ -259,7 +259,7 @@ describe("maintenance.maxParallelExtract (P1-A5, D6/D7)", () => {
   });
 });
 
-describe("maintenance.unattended (P1-B1, D13)", () => {
+describe("Feature: Infrastructure › config loading — maintenance.unattended (P1-B1, D13)", () => {
   test("default is false in DEFAULT_CONFIG", () => {
     expect(DEFAULT_CONFIG.maintenance.unattended).toBe(false);
   });
@@ -288,7 +288,7 @@ describe("maintenance.unattended (P1-B1, D13)", () => {
   });
 });
 
-describe("maintenance.syncWiredOnRun (P1-B3, D15)", () => {
+describe("Feature: Infrastructure › config loading — maintenance.syncWiredOnRun (P1-B3, D15)", () => {
   test("default is false in DEFAULT_CONFIG", () => {
     expect(DEFAULT_CONFIG.maintenance.syncWiredOnRun).toBe(false);
   });

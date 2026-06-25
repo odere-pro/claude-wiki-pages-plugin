@@ -49,7 +49,7 @@ function proposedPage(title: string, quotes: string[]): string {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe("checkDuplicateClaims — no proposed file", () => {
+describe("Feature: Lint › duplicate-claim check — no proposed file", () => {
   test("returns empty findings when proposedFile is undefined", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 2\n---\n# Vault\n",
@@ -91,7 +91,7 @@ describe("checkDuplicateClaims — no proposed file", () => {
   });
 });
 
-describe("checkDuplicateClaims — no duplication (clean vault)", () => {
+describe("Feature: Lint › duplicate-claim check — no duplication (clean vault)", () => {
   afterEach(() => {});
 
   test("returns no findings when proposed quotes are unique", () => {
@@ -142,7 +142,7 @@ describe("checkDuplicateClaims — no duplication (clean vault)", () => {
   });
 });
 
-describe("checkDuplicateClaims — detects exact duplicates", () => {
+describe("Feature: Lint › duplicate-claim check — detects exact duplicates", () => {
   test("emits one warn finding per duplicate match", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 2\n---\n# Vault\n",
@@ -215,7 +215,7 @@ describe("checkDuplicateClaims — detects exact duplicates", () => {
   });
 });
 
-describe("checkDuplicateClaims — canonical normalization", () => {
+describe("Feature: Lint › duplicate-claim check — canonical normalization", () => {
   test("matches despite case differences (step 2: lowercase)", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 2\n---\n# Vault\n",
@@ -316,7 +316,7 @@ describe("checkDuplicateClaims — canonical normalization", () => {
   });
 });
 
-describe("checkDuplicateClaims — wiki scan excludes the proposed file itself", () => {
+describe("Feature: Lint › duplicate-claim check — wiki scan excludes the proposed file itself", () => {
   test("does not report a self-match when proposed file is also in wiki/", () => {
     // Edge case: proposed file happens to be inside wiki/ (e.g. after promotion).
     // The wiki index build and the proposed-file lookup should not cross-match
@@ -337,7 +337,7 @@ describe("checkDuplicateClaims — wiki scan excludes the proposed file itself",
   });
 });
 
-describe("checkDuplicateClaims — severity contract", () => {
+describe("Feature: Lint › duplicate-claim check — severity contract", () => {
   test("all findings are warn severity (never error)", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 2\n---\n# Vault\n",
@@ -369,7 +369,7 @@ describe("checkDuplicateClaims — severity contract", () => {
   });
 });
 
-describe("checkDuplicateClaims — multiple wiki pages with same quote", () => {
+describe("Feature: Lint › duplicate-claim check — multiple wiki pages with same quote", () => {
   test("emits one finding per matching wiki page when two pages share the same quote", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 2\n---\n# Vault\n",

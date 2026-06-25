@@ -11,24 +11,24 @@ setup() {
   RUNNER="$REPO_ROOT/scripts/eval-compare-ollama.sh"
 }
 
-@test "eval-compare-ollama: script exists and is executable" {
+@test "Ollama comparison: the runner script is present on disk and executable" {
   [ -f "$RUNNER" ]
   [ -x "$RUNNER" ]
 }
 
-@test "eval-compare-ollama: --help exits 0 and prints usage" {
+@test "Ollama comparison: --help prints usage mentioning --models and exits 0" {
   run bash "$RUNNER" --help
   assert_success
   assert_output_contains "--models"
 }
 
-@test "eval-compare-ollama: missing --models fails closed (rc 2)" {
+@test "Ollama comparison: omitting the required --models flag fails closed with rc 2" {
   run bash "$RUNNER"
   assert_status 2
   assert_output_contains "--models"
 }
 
-@test "eval-compare-ollama: unknown flag fails closed (rc 2)" {
+@test "Ollama comparison: an unrecognized flag fails closed with rc 2" {
   run bash "$RUNNER" --models m --bogus
   assert_status 2
 }

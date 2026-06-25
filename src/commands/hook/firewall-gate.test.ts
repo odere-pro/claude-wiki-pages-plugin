@@ -32,7 +32,7 @@ afterEach(() => {
   sb = undefined;
 });
 
-describe("firewallHookGate", () => {
+describe("Feature: Hook gates › firewall gate", () => {
   test("empty file path → allow", () => {
     sb = makeVault({ "CLAUDE.md": "---\nschema_version: 1\n---\n" });
     const d = firewallHookGate({ vault: sb.vault, input: emptyInput() });

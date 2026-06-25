@@ -35,7 +35,7 @@ setup() {
 # Existence + arg validation (fail-closed, rc 2)
 # ---------------------------------------------------------------------------
 
-@test "eval-produce-ollama: driver script exists and is executable" {
+@test "Eval Ollama produce: driver script exists and is executable" {
   [ -f "$DRIVER" ]
   [ -x "$DRIVER" ]
 }
@@ -44,7 +44,7 @@ setup() {
 # M10: shared ollama-chat.sh helper is sourced and the defensive guard fires
 # ---------------------------------------------------------------------------
 
-@test "eval-produce-ollama: sourcing exposes ollama_chat_call (DRY helper wired)" {
+@test "Eval Ollama produce: sourcing the driver exposes ollama_chat_call from the shared DRY helper" { # spec M10
   # Verify the M10 DRY extraction: sourcing the driver must expose ollama_chat_call
   # because eval-produce-ollama.sh sources ollama-chat.sh at load time.
   run bash -c "
@@ -56,7 +56,7 @@ setup() {
   assert_output_contains "function present"
 }
 
-@test "eval-produce-ollama: defensive guard exits 2 when ollama-chat.sh is structurally broken" {
+@test "Eval Ollama produce: defensive guard exits 2 when ollama-chat.sh is structurally broken" { # spec M10
   # The guard fires when ollama-chat.sh sources successfully but does NOT define
   # ollama_chat_call (models a stub or broken helper). ROOT is derived from
   # BASH_SOURCE[0] inside the driver, so we copy the driver into a fake scripts/
@@ -76,25 +76,25 @@ setup() {
   assert_output_contains "ollama_chat_call not defined"
 }
 
-@test "eval-produce-ollama: --help exits 0 and prints usage" {
+@test "Eval Ollama produce: --help exits 0 and prints usage" {
   run bash "$DRIVER" --help
   assert_success
   assert_output_contains "--model"
   assert_output_contains "--dry-run-prompt"
 }
 
-@test "eval-produce-ollama: missing --model fails closed (rc 2)" {
+@test "Eval Ollama produce: missing --model fails closed with rc 2" {
   run bash "$DRIVER"
   assert_status 2
   assert_output_contains "--model"
 }
 
-@test "eval-produce-ollama: unknown flag fails closed (rc 2)" {
+@test "Eval Ollama produce: unknown flag fails closed with rc 2" {
   run bash "$DRIVER" --model m --no-such-flag
   assert_status 2
 }
 
-@test "eval-produce-ollama: unknown case fails closed (rc 2)" {
+@test "Eval Ollama produce: unknown case fails closed with rc 2" {
   run bash "$DRIVER" --model m --case no-such-case --dry-run-prompt
   assert_status 2
   assert_output_contains "no-such-case"
@@ -104,7 +104,7 @@ setup() {
 # Prompt assembly (--dry-run-prompt; no network)
 # ---------------------------------------------------------------------------
 
-@test "eval-produce-ollama: dry-run prompt single-sources the schema table" {
+@test "Eval Ollama produce: dry-run prompt single-sources the required-fields schema table" {
   run bash "$DRIVER" --model m --case extract-basic --dry-run-prompt
   assert_success
   # The required-fields table is extracted from docs/vault-example/CLAUDE.md at
@@ -113,20 +113,20 @@ setup() {
   assert_output_contains "entity_type"
 }
 
-@test "eval-produce-ollama: dry-run prompt carries the FILE block protocol" {
+@test "Eval Ollama produce: dry-run prompt carries the FILE block output protocol" {
   run bash "$DRIVER" --model m --case extract-basic --dry-run-prompt
   assert_success
   assert_output_contains "===FILE:"
   assert_output_contains "===END FILE==="
 }
 
-@test "eval-produce-ollama: dry-run prompt includes the case input verbatim" {
+@test "Eval Ollama produce: dry-run prompt includes the case input verbatim" {
   run bash "$DRIVER" --model m --case extract-basic --dry-run-prompt
   assert_success
   assert_output_contains "Pandoc is a free and open-source document converter"
 }
 
-@test "eval-produce-ollama: dry-run prompt never leaks gold expected/ content" {
+@test "Eval Ollama produce: dry-run prompt never leaks gold expected/ content" {
   run bash "$DRIVER" --model m --case extract-basic --dry-run-prompt
   assert_success
   # This phrase exists ONLY in the gold vault body, never in input.md.
@@ -147,7 +147,7 @@ parse_into() { # $1 = out dir, stdin = response text
   )
 }
 
-@test "eval-produce-ollama: parser writes files from a valid response" {
+@test "Eval Ollama produce: parser writes files from a valid FILE-block response" {
   local out="$BATS_TEST_TMPDIR/cand-ok"
   mkdir -p "$out"
   run parse_into "$out" <<'EOF'
@@ -171,7 +171,7 @@ EOF
   grep -q '^title: "Pandoc"$' "$out/wiki/tools/pandoc.md"
 }
 
-@test "eval-produce-ollama: parser rejects path traversal" {
+@test "Eval Ollama produce: parser rejects a path-traversal FILE path" {
   local out="$BATS_TEST_TMPDIR/cand-trav"
   mkdir -p "$out"
   run parse_into "$out" <<'EOF'
@@ -183,7 +183,7 @@ EOF
   [ ! -e "$BATS_TEST_TMPDIR/etc/evil.md" ]
 }
 
-@test "eval-produce-ollama: parser rejects absolute paths" {
+@test "Eval Ollama produce: parser rejects an absolute FILE path" {
   local out="$BATS_TEST_TMPDIR/cand-abs"
   mkdir -p "$out"
   run parse_into "$out" <<'EOF'
@@ -194,7 +194,7 @@ EOF
   assert_status 2
 }
 
-@test "eval-produce-ollama: parser rejects paths outside wiki/" {
+@test "Eval Ollama produce: parser rejects a path outside wiki/" {
   local out="$BATS_TEST_TMPDIR/cand-outside"
   mkdir -p "$out"
   run parse_into "$out" <<'EOF'
@@ -205,7 +205,7 @@ EOF
   assert_status 2
 }
 
-@test "eval-produce-ollama: parser rejects duplicate paths" {
+@test "Eval Ollama produce: parser rejects duplicate FILE paths" {
   local out="$BATS_TEST_TMPDIR/cand-dup"
   mkdir -p "$out"
   run parse_into "$out" <<'EOF'
@@ -219,7 +219,7 @@ EOF
   assert_status 2
 }
 
-@test "eval-produce-ollama: parser rejects an unterminated block" {
+@test "Eval Ollama produce: parser rejects an unterminated FILE block" {
   local out="$BATS_TEST_TMPDIR/cand-unterm"
   mkdir -p "$out"
   run parse_into "$out" <<'EOF'
@@ -229,7 +229,7 @@ EOF
   assert_status 2
 }
 
-@test "eval-produce-ollama: parser rejects a zero-file response" {
+@test "Eval Ollama produce: parser rejects a zero-file response" {
   local out="$BATS_TEST_TMPDIR/cand-empty"
   mkdir -p "$out"
   run parse_into "$out" <<'EOF'
@@ -242,7 +242,7 @@ EOF
 # End-to-end with a fake curl (no live model, no network)
 # ---------------------------------------------------------------------------
 
-@test "eval-produce-ollama: e2e with fake curl writes a scorer-acceptable candidate" {
+@test "Eval Ollama produce: end-to-end with a fake curl writes a scorer-acceptable candidate" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-bin"
   local out="$BATS_TEST_TMPDIR/candidates"
   mkdir -p "$fake_bin" "$out"
@@ -285,7 +285,7 @@ EOF
   [ "$status" -ne 2 ]
 }
 
-@test "eval-produce-ollama: e2e fails closed when the model emits no FILE blocks" {
+@test "Eval Ollama produce: end-to-end fails closed when the model emits no FILE blocks" {
   # Regression: parse_response dies inside the printf|parse pipeline SUBSHELL;
   # without an explicit status check the driver continued and announced
   # "candidate ready" for an empty candidate (observed live with gemma4:26b).
@@ -310,7 +310,7 @@ EOF
   refute_output_contains "candidate ready"
 }
 
-@test "eval-produce-ollama: --retries retries the chat call with exponential timeout backoff" {
+@test "Eval Ollama produce: --retries retries the chat call with exponential timeout backoff" {
   # Fake curl: /api/tags always succeeds; the FIRST /api/chat call fails like a
   # curl timeout (rc 28), the second succeeds. With --retries 1 the driver must
   # recover, and the attempt log must show the doubled timeout.
@@ -350,7 +350,7 @@ EOF
   assert_output_contains "200"
 }
 
-@test "eval-produce-ollama: --retries exhausted still fails closed (rc 2)" {
+@test "Eval Ollama produce: --retries exhausted still fails closed with rc 2" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-bin-always-timeout"
   mkdir -p "$fake_bin"
   cat >"$fake_bin/curl" <<'EOF'
@@ -370,7 +370,7 @@ EOF
   assert_status 2
 }
 
-@test "eval-produce-ollama: preflight fails closed when the model is not pulled" {
+@test "Eval Ollama produce: preflight fails closed when the model is not pulled" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-bin-nomodel"
   mkdir -p "$fake_bin"
   cat >"$fake_bin/curl" <<'EOF'

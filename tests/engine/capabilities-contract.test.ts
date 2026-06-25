@@ -96,7 +96,7 @@ function run(...args: string[]): RunResult {
 // The assertion is exit != 2: exit 2 means "Unknown command" fallthrough,
 // meaning the dispatch branch is missing.
 
-describe("(a) IMPLEMENTED verbs — every verb exits != 2 (live dispatch branch)", () => {
+describe("Feature: Engine › capabilities contract — (a) IMPLEMENTED verbs: every verb exits != 2 (live dispatch branch)", () => {
   // firewall requires --file; call it without to trigger its own early exit (not exit-2).
   // All other implemented verbs accept --json --target /nonexistent.
   const SPECIAL_CASES: Record<string, string[]> = {
@@ -142,7 +142,7 @@ describe("(a) IMPLEMENTED verbs — every verb exits != 2 (live dispatch branch)
 //   - exit 0
 //   - emit JSON with `.status === 'not-implemented'`
 
-describe("(b) PLANNED verbs — exit 0 + .status === 'not-implemented'", () => {
+describe("Feature: Engine › capabilities contract — (b) PLANNED verbs: exit 0 + .status === 'not-implemented'", () => {
   for (const verb of GOLDEN_PLANNED) {
     test(`${verb} exits 0 and emits .status='not-implemented' (--json)`, () => {
       const r = run(verb, "--json");
@@ -158,7 +158,7 @@ describe("(b) PLANNED verbs — exit 0 + .status === 'not-implemented'", () => {
 // The manifest.verbs[].name set must be exactly GOLDEN_ALL — no drift between
 // the CAPABILITIES table and what the verb advertises.
 
-describe("(c) capabilities --json verb set set-equals the golden list", () => {
+describe("Feature: Engine › capabilities contract — (c) capabilities --json verb set set-equals the golden list", () => {
   test("manifest.verbs[].name set-equals GOLDEN_ALL", () => {
     const r = run("capabilities", "--json");
     expect(r.code).toBe(0);
@@ -206,7 +206,7 @@ describe("(c) capabilities --json verb set set-equals the golden list", () => {
 // "non-empty", "no duplicates", and "GOLDEN_ALL == implemented + planned" are
 // the invariants that cannot drift silently.
 
-describe("golden list completeness — membership and shape guards", () => {
+describe("Feature: Engine › capabilities contract — golden list completeness: membership and shape guards", () => {
   test("GOLDEN_IMPLEMENTED is non-empty", () => {
     expect(GOLDEN_IMPLEMENTED.length).toBeGreaterThan(0);
   });

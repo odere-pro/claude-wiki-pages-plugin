@@ -167,7 +167,7 @@ YAML
 # (a) NORMALIZED-IDENTICAL QUOTE → WARN naming both pages + suggest wikilink
 # ===========================================================================
 
-@test "check-duplicate-claims (a): identical quote warns and names both pages" {
+@test "Duplicate-claim detection: a normalized-identical quote warns and names both pages" {  # spec a
   local quote="The system uses a layered architecture."
   write_wiki_page_with_quote "topics/existing-concept.md" "$quote"
   write_proposed_page_with_quote "topics/new-concept.md" "$quote"
@@ -182,7 +182,7 @@ YAML
   assert_output_contains "new-concept"
 }
 
-@test "check-duplicate-claims (a): inline list-item quote shape (- quote:) is also detected" {
+@test "Duplicate-claim detection: an inline list-item quote shape (- quote:) is also detected" {  # spec a
   # Block-mapping shape in the wiki page; inline list-item shape in the proposal.
   # Both are valid YAML for source_quotes — the extractor must catch both.
   local quote="The system uses a layered architecture."
@@ -223,7 +223,7 @@ YAML
   assert_output_contains "inline-concept"
 }
 
-@test "check-duplicate-claims (a): identical quote suggests a wikilink" {
+@test "Duplicate-claim detection: a normalized-identical quote suggests a wikilink to the existing page" {  # spec a
   local quote="The system uses a layered architecture."
   write_wiki_page_with_quote "topics/existing-concept.md" "$quote"
   write_proposed_page_with_quote "topics/new-concept.md" "$quote"
@@ -237,7 +237,7 @@ YAML
   assert_output_contains "existing-concept"
 }
 
-@test "check-duplicate-claims (a): normalization — case difference triggers warn" {
+@test "Duplicate-claim detection: a case-only difference normalizes to the same form and triggers a warn" {  # spec a
   # "The System Uses A Layered Architecture." and
   # "the system uses a layered architecture." normalize to the same form.
   write_wiki_page_with_quote "topics/existing-concept.md" \
@@ -254,7 +254,7 @@ YAML
   assert_output_contains "existing-concept"
 }
 
-@test "check-duplicate-claims (a): normalization — punctuation difference triggers warn" {
+@test "Duplicate-claim detection: a punctuation-only difference normalizes to the same form and triggers a warn" {  # spec a
   # "Layered, architecture; systems." and "Layered architecture systems"
   # normalize identically after stripping punctuation.
   write_wiki_page_with_quote "topics/existing-concept.md" \
@@ -270,7 +270,7 @@ YAML
   assert_output_contains "WARN"
 }
 
-@test "check-duplicate-claims (a): normalization — extra whitespace triggers warn" {
+@test "Duplicate-claim detection: extra whitespace collapses to a single space and triggers a warn" {  # spec a
   # Whitespace runs collapse to a single space.
   write_wiki_page_with_quote "topics/existing-concept.md" \
     "The    system   uses   layers."
@@ -289,7 +289,7 @@ YAML
 # (b) GENUINELY DISTINCT QUOTE → NO WARN
 # ===========================================================================
 
-@test "check-duplicate-claims (b): distinct quote produces no warning" {
+@test "Duplicate-claim detection: a genuinely distinct quote produces no warning" {  # spec b
   write_wiki_page_with_quote "topics/existing-concept.md" \
     "The system uses a layered architecture."
   write_proposed_page_with_quote "topics/new-concept.md" \
@@ -303,7 +303,7 @@ YAML
   refute_output_contains "WARN"
 }
 
-@test "check-duplicate-claims (b): no wiki pages at all produces no warning" {
+@test "Duplicate-claim detection: a vault with no quoted wiki pages produces no warning" {  # spec b
   # The fixture vault has wiki pages but none with source_quotes.
   write_proposed_page_with_quote "topics/new-concept.md" \
     "Some brand new claim."
@@ -322,7 +322,7 @@ YAML
 #     A reworded equivalent must NOT trigger a warning.
 # ===========================================================================
 
-@test "check-duplicate-claims (c): paraphrase does NOT warn (NO-RAG boundary)" {
+@test "Duplicate-claim detection: a reworded paraphrase does NOT warn, holding the NO-RAG boundary" {  # spec c
   # Existing: "The system employs a multi-tier design."
   # Proposed: "It uses a layered architecture approach."
   # Same meaning, completely different words → must NOT match.
@@ -339,7 +339,7 @@ YAML
   refute_output_contains "WARN"
 }
 
-@test "check-duplicate-claims (c): near-synonym paraphrase does NOT warn" {
+@test "Duplicate-claim detection: a near-synonym paraphrase does NOT warn" {  # spec c
   # "Components communicate via message passing" vs
   # "Modules exchange data through messages" — semantically similar, not identical.
   write_wiki_page_with_quote "topics/existing-concept.md" \
@@ -359,7 +359,7 @@ YAML
 # (d) ABSENT / EMPTY source_quotes → clean no-op
 # ===========================================================================
 
-@test "check-duplicate-claims (d): absent source_quotes field is a no-op" {
+@test "Duplicate-claim detection: an absent source_quotes field is a clean no-op" {  # spec d
   write_wiki_page_with_quote "topics/existing-concept.md" \
     "The system uses a layered architecture."
   write_proposed_page_no_quotes "topics/new-concept.md"
@@ -373,7 +373,7 @@ YAML
   refute_output_contains "error"
 }
 
-@test "check-duplicate-claims (d): empty source_quotes list is a no-op" {
+@test "Duplicate-claim detection: an empty source_quotes list is a clean no-op" {  # spec d
   write_wiki_page_with_quote "topics/existing-concept.md" \
     "The system uses a layered architecture."
   write_proposed_page_empty_quotes "topics/new-concept.md"
@@ -391,7 +391,7 @@ YAML
 # (e) EXIT CODE — always 0 (warn-only, does not block)
 # ===========================================================================
 
-@test "check-duplicate-claims (e): exit code is 0 even with duplicate quotes" {
+@test "Duplicate-claim detection: the exit code is 0 even when duplicate quotes are found (advisory only)" {  # spec e
   local quote="The system uses a layered architecture."
   write_wiki_page_with_quote "topics/existing-concept.md" "$quote"
   write_proposed_page_with_quote "topics/new-concept.md" "$quote"
@@ -403,7 +403,7 @@ YAML
   assert_success
 }
 
-@test "check-duplicate-claims (e): exit code is 0 with no proposed file (no error)" {
+@test "Duplicate-claim detection: the exit code is 0 when no proposed file is given (no error)" {  # spec e
   # When --proposed is omitted or the path does not exist, exits 0 gracefully.
   run bash "$REPO_ROOT/scripts/check-duplicate-claims.sh" \
     --target "$FIXTURE_VAULT"

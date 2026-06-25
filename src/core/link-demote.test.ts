@@ -13,7 +13,7 @@ import { splitFrontmatter, linkDisplay, demoteInBody, pruneFields } from "./link
 /** Keep links whose target basename starts with "keep"; demote everything else. */
 const keepKeepers = (raw: string): boolean => raw.split("|")[0]!.trim().startsWith("keep");
 
-describe("linkDisplay", () => {
+describe("Feature: Lint › link demotion — display-text derivation", () => {
   test("uses the piped alias when present", () => {
     expect(linkDisplay("entity-name|Entity Name")).toBe("Entity Name");
   });
@@ -23,7 +23,7 @@ describe("linkDisplay", () => {
   });
 });
 
-describe("splitFrontmatter", () => {
+describe("Feature: Lint › link demotion — frontmatter split", () => {
   test("preserves the exact block so a rewrite can reassemble byte-for-byte", () => {
     const text = "---\ntitle: X\ntags: []\n---\n# Body\nhello\n";
     const { fm, body, block } = splitFrontmatter(text);
@@ -36,7 +36,7 @@ describe("splitFrontmatter", () => {
   });
 });
 
-describe("demoteInBody", () => {
+describe("Feature: Lint › link demotion — body rewrite", () => {
   test("demotes rejected links and keeps accepted ones, counting demotions", () => {
     const [out, n] = demoteInBody("See [[keep-me|Keep Me]] and [[drop-it|Drop It]].", keepKeepers);
     expect(out).toBe("See [[keep-me|Keep Me]] and Drop It.");
@@ -57,7 +57,7 @@ describe("demoteInBody", () => {
   });
 });
 
-describe("pruneFields", () => {
+describe("Feature: Lint › link demotion — field pruning", () => {
   const FIELDS = new Set(["related", "depends_on"]);
 
   test("prunes rejected entries only from listed fields", () => {

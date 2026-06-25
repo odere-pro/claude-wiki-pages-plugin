@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { resolveVault, resolveVaultPath, DEFAULT_VAULT } from "./vault.ts";
 
-describe("resolveVault four-tier order", () => {
+describe("Feature: Infrastructure › vault resolution — four-tier order", () => {
   test("1. env var wins", () => {
     expect(resolveVault({ env: { CLAUDE_WIKI_PAGES_VAULT: "/explicit" } })).toBe("/explicit");
   });
@@ -38,7 +38,7 @@ describe("resolveVault four-tier order", () => {
   });
 });
 
-describe("resolveVaultPath — canonical resolve+normalise helper (H15)", () => {
+describe("Feature: Infrastructure › vault resolution — canonical resolve+normalise helper (H15)", () => {
   test("explicit target bypasses resolution and strips trailing slashes", () => {
     // target provided: resolution skipped entirely
     expect(resolveVaultPath({ target: "my/vault//" })).toBe("my/vault");

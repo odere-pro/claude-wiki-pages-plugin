@@ -35,7 +35,7 @@ setup() {
 # The driver exists and is executable (the RED → GREEN boundary).
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: driver script exists" {
+@test "Eval driver: the driver script exists on disk (the RED-to-GREEN boundary)" {
   [ -f "$DRIVER" ]
 }
 
@@ -44,7 +44,7 @@ setup() {
 # Mirrors gate-13 --self-test.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: --self-test passes (planted-bad candidates are all caught)" {
+@test "Eval driver: --self-test passes by catching every planted-bad candidate (fail-closed)" {
   run bash "$DRIVER" --self-test
   assert_success
   assert_output_contains "fabricated sourced claim is caught"
@@ -59,7 +59,7 @@ setup() {
 # --self-test must run with no local model configured.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: --self-test needs no configured local model" {
+@test "Eval driver: --self-test runs with no local model configured (model-neutral apparatus)" {
   run env -u CLAUDE_WIKI_PAGES_EVAL_MODEL bash "$DRIVER" --self-test
   assert_success
   assert_output_contains "self-test passed"
@@ -69,13 +69,13 @@ setup() {
 # Fixtures exist: at least one good case and one provenance-trap case.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: golden-set good case fixture exists with gold scorecard" {
+@test "Eval driver: the golden-set good-case fixture exists with its gold scorecard" {
   [ -f "$CASES/extract-basic/input.md" ]
   [ -d "$CASES/extract-basic/expected/wiki" ]
   [ -f "$CASES/extract-basic/expected.scores.json" ]
 }
 
-@test "eval-ingest-extract: provenance-trap case fixture exists with gold scorecard" {
+@test "Eval driver: the provenance-trap case fixture exists with its gold scorecard" {
   [ -f "$CASES/provenance-trap/input.md" ]
   [ -d "$CASES/provenance-trap/expected/wiki" ]
   [ -f "$CASES/provenance-trap/expected.scores.json" ]
@@ -86,13 +86,13 @@ setup() {
 # (The gold reference IS, by construction, a perfect extraction.)
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: --score of the gold reference against itself PASSES the bar" {
+@test "Eval driver: scoring the gold reference against itself passes the bar" {
   run bash "$DRIVER" --score "$CASES/extract-basic/expected" --gold "$CASES/extract-basic/expected"
   assert_success
   assert_output_contains "PASS"
 }
 
-@test "eval-ingest-extract: --score emits a JSON scorecard with the four rates" {
+@test "Eval driver: --score emits a parseable JSON scorecard carrying the four calibrated rates" {
   run bash "$DRIVER" --score "$CASES/extract-basic/expected" --gold "$CASES/extract-basic/expected" --json
   assert_success
   # The four calibrated rates must all be present as JSON keys.
@@ -111,7 +111,7 @@ setup() {
 # tier even though every other rate is perfect. This is the provenance-trap.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: a candidate fabricating a sourced claim FAILS on the zero-fabrication floor" {
+@test "Eval driver: a candidate inventing a sourced claim fails on the zero-fabrication floor" {
   run bash "$DRIVER" --score "$CASES/provenance-trap/candidate-fabricates" --gold "$CASES/provenance-trap/expected" --json
   # Non-zero verdict exit (1) — failed the tier.
   assert_status 1
@@ -124,7 +124,7 @@ setup() {
 # Dropped claims below the 0.97 fidelity bar FAIL the tier.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: a candidate dropping claims below 0.97 fidelity FAILS" {
+@test "Eval driver: a candidate dropping claims below the 0.97 fidelity bar fails the tier" {
   run bash "$DRIVER" --score "$CASES/provenance-trap/candidate-drops" --gold "$CASES/provenance-trap/expected" --json
   assert_status 1
   echo "$output" | jq -e '.verdict == "fail"'
@@ -140,18 +140,18 @@ setup() {
 # ANY locale.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: order-divergent fixture exists (the Finding-1 regression case)" {
+@test "Eval driver: the order-divergent regression fixture exists # spec Finding-1" {
   [ -f "$CASES/provenance-trap/candidate-order-divergent/wiki/tools/obsidian.md" ]
 }
 
-@test "eval-ingest-extract: order-divergent fabrication is caught under C locale (floor holds)" {
+@test "Eval driver: order-divergent fabrication is caught under the C locale (the floor holds)" {
   run env LC_ALL=C bash "$DRIVER" --score "$CASES/provenance-trap/candidate-order-divergent" --gold "$CASES/provenance-trap/expected" --json
   assert_status 1
   echo "$output" | jq -e '.verdict == "fail"'
   echo "$output" | jq -e '.fabricated_sourced_claims >= 1'
 }
 
-@test "eval-ingest-extract: order-divergent fabrication is caught under en_US.UTF-8 (CI-divergent collation) — the pre-fix repro now fails closed" {
+@test "Eval driver: order-divergent fabrication is caught under en_US.UTF-8 CI-divergent collation, so the pre-fix repro now fails closed" {
   run env LC_ALL=en_US.UTF-8 bash "$DRIVER" --score "$CASES/provenance-trap/candidate-order-divergent" --gold "$CASES/provenance-trap/expected" --json
   assert_status 1
   echo "$output" | jq -e '.verdict == "fail"'
@@ -193,7 +193,7 @@ _teardown_degenerate_vaults() {
   unset EMPTY_GOLD EMPTY_CAND
 }
 
-@test "eval-ingest-extract: count_set_diff counts ALL of file_a when file_b (gold) is empty (the empty-first-file bug)" {
+@test "Eval driver: count_set_diff counts all of file_a when the gold file_b is empty # spec empty-first-file bug" {
   # Unit test of the helper: empty file_b, file_a has 2 distinct lines.
   # only_a (the fabricated count) MUST be 2, never 0.
   local a b
@@ -209,7 +209,7 @@ _teardown_degenerate_vaults() {
   assert_output "0"
 }
 
-@test "eval-ingest-extract: count_set_diff collapses duplicate lines (distinct-set semantics)" {
+@test "Eval driver: count_set_diff collapses duplicate lines under distinct-set semantics" {
   local a b
   a="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/csd-a.XXXXXX")"
   b="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/csd-b.XXXXXX")"
@@ -219,7 +219,7 @@ _teardown_degenerate_vaults() {
   assert_output "1"
 }
 
-@test "eval-ingest-extract: DECISIVE REPRO — a fabricating candidate vs an empty-claim gold FAILS CLOSED (die rc 2) under C locale" {
+@test "Eval driver: a fabricating candidate against an empty-claim gold fails closed by dying rc 2 under the C locale # spec decisive-repro" {
   _make_degenerate_vaults
   run env LC_ALL=C bash "$DRIVER" --score "$CASES/provenance-trap/candidate-fabricates" --gold "$EMPTY_GOLD"
   _teardown_degenerate_vaults
@@ -229,7 +229,7 @@ _teardown_degenerate_vaults() {
   assert_output_contains "no sourced claims"
 }
 
-@test "eval-ingest-extract: DECISIVE REPRO — fabricating candidate vs empty-claim gold FAILS CLOSED under en_US.UTF-8 too" {
+@test "Eval driver: a fabricating candidate against an empty-claim gold also fails closed under en_US.UTF-8 # spec decisive-repro" {
   _make_degenerate_vaults
   run env LC_ALL=en_US.UTF-8 bash "$DRIVER" --score "$CASES/provenance-trap/candidate-fabricates" --gold "$EMPTY_GOLD"
   _teardown_degenerate_vaults
@@ -237,7 +237,7 @@ _teardown_degenerate_vaults() {
   refute_output_contains "PASS"
 }
 
-@test "eval-ingest-extract: an empty-claim candidate vs a real gold FAILS (all gold dropped, not a silent pass)" {
+@test "Eval driver: an empty-claim candidate against a real gold fails because all gold claims are dropped, never a silent pass" {
   _make_degenerate_vaults
   run bash "$DRIVER" --score "$EMPTY_CAND" --gold "$CASES/provenance-trap/expected" --json
   _teardown_degenerate_vaults
@@ -247,7 +247,7 @@ _teardown_degenerate_vaults() {
   echo "$output" | jq -e '.dropped_claims == .gold_claims'
 }
 
-@test "eval-ingest-extract: empty candidate AND empty gold both → die rc 2 (no silent pass on degenerate-both)" {
+@test "Eval driver: an empty candidate and an empty gold together die rc 2, with no silent pass on the degenerate-both case" {
   _make_degenerate_vaults
   run bash "$DRIVER" --score "$EMPTY_CAND" --gold "$EMPTY_GOLD"
   _teardown_degenerate_vaults
@@ -260,7 +260,7 @@ _teardown_degenerate_vaults() {
 # The eval path must NOT auto-repair before scoring.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: a candidate with schema-invalid frontmatter FAILS schema-validity (no auto-repair)" {
+@test "Eval driver: a candidate with schema-invalid frontmatter fails schema-validity as emitted, with no auto-repair" {
   run bash "$DRIVER" --score "$CASES/provenance-trap/candidate-bad-schema" --gold "$CASES/provenance-trap/expected" --json
   assert_status 1
   echo "$output" | jq -e '.verdict == "fail"'
@@ -273,7 +273,7 @@ _teardown_degenerate_vaults() {
 # fail-open pass.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: a missing candidate path is a fatal usage error, never a fail-open pass" {
+@test "Eval driver: a missing candidate path is a fatal usage error (rc 2), never a fail-open pass" {
   run bash "$DRIVER" --score "$REPO_ROOT/tests/eval/ingest-extract/does-not-exist" --gold "$CASES/extract-basic/expected"
   assert_status 2
   refute_output_contains "PASS"
@@ -284,7 +284,7 @@ _teardown_degenerate_vaults() {
 # tokens on the scoring path (§5 NO-RAG). Exact structural comparison only.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: scoring path has no embedding/vector/fetch/similarity tokens" {
+@test "Eval driver: the scoring path carries no embedding, vector, fetch, or similarity tokens (NO-RAG)" {
   # Code lines only (strip comments) so prose like 'never vector similarity' in
   # a docstring does not trip this; real code must be clean.
   run grep -nE 'fetch\(|embedding|[^a-z]vector|cosine|similarity|\.embed\(' "$DRIVER"
@@ -301,7 +301,7 @@ _teardown_degenerate_vaults() {
 # Usage / help.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: --help prints usage and exits 0" {
+@test "Eval driver: --help prints usage covering the self-test, score, stamp, and verify-artifact modes and exits 0" {
   run bash "$DRIVER" --help
   assert_success
   assert_output_contains "ingest-extract"
@@ -319,17 +319,17 @@ _teardown_degenerate_vaults() {
 # rounds it to "0.9700"; exact 0.97 must PASS.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: meets_ratio rejects a strictly-below value that would round onto the bar (Finding 3)" {
+@test "Eval driver: meets_ratio rejects a strictly-below value that printf would round onto the bar # spec Finding-3" {
   run bash -c "source '$DRIVER'; meets_ratio 96999 100000 0.97"
   assert_status 1
 }
 
-@test "eval-ingest-extract: meets_ratio accepts an exactly-on-bar value" {
+@test "Eval driver: meets_ratio accepts a value that sits exactly on the bar" {
   run bash -c "source '$DRIVER'; meets_ratio 97 100 0.97"
   assert_success
 }
 
-@test "eval-ingest-extract: the old printf rounding would have displayed 0.96999 as 0.9700 (the bug being prevented)" {
+@test "Eval driver: the ratio display rounds 0.96999 up to 0.9700, which is why the verdict must use raw counts" {
   # Proves the display rounds up — which is WHY the verdict must use raw counts.
   run bash -c "source '$DRIVER'; ratio 96999 100000"
   assert_output_contains "0.9700"
@@ -340,7 +340,7 @@ _teardown_degenerate_vaults() {
 # It must not reference ollama/curl/wget/http on any executable line.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: driver wires up no local model and no network (model-neutral)" {
+@test "Eval driver: the driver references no ollama, curl, wget, or http on any executable line (model-neutral)" {
   run grep -niE 'ollama|curl |wget |http://|https://|nc -|/api/' "$DRIVER"
   local hits
   hits="$(printf '%s\n' "$output" | grep -vE '^[0-9]+:[[:space:]]*#' || true)"
@@ -358,7 +358,7 @@ _teardown_degenerate_vaults() {
 # silently from eval-query.sh and restore the duplicate-code smell H13 fixed.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: H13 — normalize_ws is NOT defined inline (DRY; sourced from eval-normalize-ws.sh)" {
+@test "Eval driver: normalize_ws is not defined inline but sourced from eval-normalize-ws.sh (DRY) # spec H13" {
   # An inline definition looks like `normalize_ws()` or `function normalize_ws`
   # on an executable (non-comment) line of the driver itself.
   run grep -nE '^[^#]*(function[[:space:]]+normalize_ws|normalize_ws[[:space:]]*\(\))' "$DRIVER"
@@ -370,7 +370,7 @@ _teardown_degenerate_vaults() {
   fi
 }
 
-@test "eval-ingest-extract: H13 — source directive for eval-normalize-ws.sh is present" {
+@test "Eval driver: the source directive for eval-normalize-ws.sh is present # spec H13" {
   # The driver must source the shared helper; losing the source directive
   # silently breaks normalize_ws calls at runtime (unbound variable under -u).
   run grep -c 'source.*eval-normalize-ws\.sh' "$DRIVER"
@@ -382,7 +382,7 @@ _teardown_degenerate_vaults() {
   }
 }
 
-@test "eval-ingest-extract: H13 — eval-normalize-ws.sh exists and defines normalize_ws" {
+@test "Eval driver: eval-normalize-ws.sh exists and defines a working normalize_ws helper # spec H13" {
   local helper="$REPO_ROOT/scripts/eval-normalize-ws.sh"
   [ -f "$helper" ] || {
     printf 'H13 regression: eval-normalize-ws.sh is missing: %s\n' "$helper" >&2
@@ -485,7 +485,7 @@ _teardown_eval_artifact_repo() {
   return 0
 }
 
-@test "eval-ingest-extract: --stamp emits a complete measured-run artifact (model_id + golden_set_sha + recorded_at)" {
+@test "Eval driver: --stamp emits a complete measured-run artifact with model_id, golden_set_sha, and recorded_at # spec Finding-2" {
   _setup_eval_artifact_repo
   local good="tests/eval/ingest-extract/cases/extract-basic/expected"
   run bash -c "cd '$EVAL_REPO' && bash scripts/eval-ingest-extract.sh --stamp --score '$good' --gold '$good' --model-id 'ollama:test-llama'"
@@ -500,7 +500,7 @@ _teardown_eval_artifact_repo() {
   echo "$output" | jq -e 'has("schema_validity") and has("thresholds")'
 }
 
-@test "eval-ingest-extract: --stamp picks up the model id from CLAUDE_WIKI_PAGES_EVAL_MODEL" {
+@test "Eval driver: --stamp picks up the model id from the CLAUDE_WIKI_PAGES_EVAL_MODEL env var" {
   _setup_eval_artifact_repo
   local good="tests/eval/ingest-extract/cases/extract-basic/expected"
   run bash -c "cd '$EVAL_REPO' && CLAUDE_WIKI_PAGES_EVAL_MODEL='env:model-x' bash scripts/eval-ingest-extract.sh --stamp --score '$good' --gold '$good'"
@@ -510,7 +510,7 @@ _teardown_eval_artifact_repo() {
   echo "$output" | jq -e '.model_id == "env:model-x"'
 }
 
-@test "eval-ingest-extract: --stamp without a model id fails closed (rc 2)" {
+@test "Eval driver: --stamp with no model id available fails closed with rc 2" {
   _setup_eval_artifact_repo
   local good="tests/eval/ingest-extract/cases/extract-basic/expected"
   run bash -c "cd '$EVAL_REPO' && env -u CLAUDE_WIKI_PAGES_EVAL_MODEL bash scripts/eval-ingest-extract.sh --stamp --score '$good' --gold '$good'"
@@ -520,7 +520,7 @@ _teardown_eval_artifact_repo() {
   assert_output_contains "model-id"
 }
 
-@test "eval-ingest-extract: --stamp fails closed when the golden set is uncommitted (no fail-open artifact)" {
+@test "Eval driver: --stamp fails closed and emits no partial JSON when the golden set is uncommitted" {
   # The golden set must be present in the working tree (so scoring can run) but
   # NOT in HEAD (so golden_set_sha cannot be derived) — then --stamp must die
   # (rc 2) and emit NO partial JSON. Build a sandbox and remove the golden set
@@ -541,7 +541,7 @@ _teardown_eval_artifact_repo() {
   refute_output_contains "{"
 }
 
-@test "eval-ingest-extract: --verify-artifact reproduces a freshly stamped artifact (exit 0)" {
+@test "Eval driver: --verify-artifact reproduces a freshly stamped artifact and exits 0" {
   _setup_eval_artifact_repo
   local good="tests/eval/ingest-extract/cases/extract-basic/expected"
   run bash -c "
@@ -557,7 +557,7 @@ _teardown_eval_artifact_repo() {
   assert_output_contains "model_id and recorded_at are operator-asserted"
 }
 
-@test "eval-ingest-extract: --verify-artifact does NOT cross-check model_id (operator-asserted; bound by committing) — documented limitation" {
+@test "Eval driver: --verify-artifact does not cross-check the operator-asserted model_id, a documented limitation bound by committing" {
   # Editing model_id still verifies OK because a model-neutral driver cannot
   # reconstruct it by re-scoring. This is the honest limitation; the note in the
   # output and the README state it, and committing the artifact binds it.
@@ -577,7 +577,7 @@ _teardown_eval_artifact_repo() {
   assert_output_contains "operator-asserted"
 }
 
-@test "eval-ingest-extract: --verify-artifact fails closed on a tampered verdict" {
+@test "Eval driver: --verify-artifact fails closed on a tampered verdict" {
   _setup_eval_artifact_repo
   local good="tests/eval/ingest-extract/cases/extract-basic/expected"
   run bash -c "
@@ -592,7 +592,7 @@ _teardown_eval_artifact_repo() {
   assert_output_contains "does not reproduce"
 }
 
-@test "eval-ingest-extract: --verify-artifact fails closed on golden_set_sha drift" {
+@test "Eval driver: --verify-artifact fails closed on golden_set_sha drift" {
   _setup_eval_artifact_repo
   local good="tests/eval/ingest-extract/cases/extract-basic/expected"
   run bash -c "
@@ -607,7 +607,7 @@ _teardown_eval_artifact_repo() {
   assert_output_contains "drift"
 }
 
-@test "eval-ingest-extract: --verify-artifact fails closed on a missing required field" {
+@test "Eval driver: --verify-artifact fails closed on a missing required field" {
   _setup_eval_artifact_repo
   local good="tests/eval/ingest-extract/cases/extract-basic/expected"
   run bash -c "
@@ -641,7 +641,7 @@ _make_overciting_candidate() { # $1 = dest dir
   rm -f "$1/wiki/tools/pandoc.md.bak"
 }
 
-@test "eval-ingest-extract: --input reclassifies a verbatim extra quote as over-citation (PASS)" {
+@test "Eval driver: --input reclassifies a verbatim extra quote as over-citation rather than fabrication, so it passes # spec ADR-0017" {
   local cand="$BATS_TEST_TMPDIR/overcite"
   _make_overciting_candidate "$cand"
 
@@ -653,7 +653,7 @@ _make_overciting_candidate() { # $1 = dest dir
   assert_output_contains "pass|0|1"
 }
 
-@test "eval-ingest-extract: --input still floors a truly invented quote (FAIL)" {
+@test "Eval driver: --input still floors a truly invented quote, so it fails # spec ADR-0017" {
   local cand="$BATS_TEST_TMPDIR/invented"
   cp -R "$CASES/extract-basic/expected" "$cand"
   sed -i.bak 's|^source_quotes:$|source_quotes:\
@@ -670,7 +670,7 @@ _make_overciting_candidate() { # $1 = dest dir
   assert_output_contains "fail|1"
 }
 
-@test "eval-ingest-extract: without --input the strict legacy definition is unchanged" {
+@test "Eval driver: without --input the strict legacy fabrication definition is unchanged # spec ADR-0017" {
   local cand="$BATS_TEST_TMPDIR/overcite-legacy"
   _make_overciting_candidate "$cand"
 
@@ -681,7 +681,7 @@ _make_overciting_candidate() { # $1 = dest dir
   assert_output_contains "fail|1"
 }
 
-@test "eval-ingest-extract: --input handles hard-wrapped input lines (whitespace-normalized match)" {
+@test "Eval driver: --input matches hard-wrapped input lines via whitespace normalization # spec ADR-0017" {
   # "written in Haskell by\nJohn MacFarlane" is wrapped across lines in
   # input.md; a single-line quote must still count as verbatim.
   local cand="$BATS_TEST_TMPDIR/wrapped"
@@ -700,7 +700,7 @@ _make_overciting_candidate() { # $1 = dest dir
   assert_output_contains "1"
 }
 
-@test "eval-ingest-extract: --input with an unreadable file fails closed (rc 2)" {
+@test "Eval driver: --input pointed at an unreadable file fails closed with rc 2 # spec ADR-0017" {
   run bash "$DRIVER" --score "$CASES/extract-basic/expected" \
     --gold "$CASES/extract-basic/expected" \
     --input "$BATS_TEST_TMPDIR/no-such-input.md" --json
@@ -714,7 +714,7 @@ _make_overciting_candidate() { # $1 = dest dir
 # cannot put a number on what the scaffolding buys.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: a frontmatter-less baseline-shaped candidate scores rc 1, never rc 2" {
+@test "Eval driver: a frontmatter-less baseline-shaped candidate is a measured fail (rc 1) and never unscorable (rc 2) # spec ADR-0020" {
   run bash "$DRIVER" --score "$CASES/extract-basic/candidate-baseline-shape" \
     --gold "$CASES/extract-basic/expected" \
     --input "$CASES/extract-basic/input.md" --json
@@ -737,14 +737,14 @@ _make_overciting_candidate() { # $1 = dest dir
 #      sequence fails, proving -e is live rather than overridden.
 # ---------------------------------------------------------------------------
 
-@test "eval-ingest-extract: strict-mode line includes -e (N18 — not just -uo pipefail)" {
+@test "Eval driver: the strict-mode line is set -euo pipefail, not just -uo pipefail # spec N18" {
   # The set line must be exactly `set -euo pipefail` — not `set -uo pipefail`.
   run grep -m1 '^set -' "$DRIVER"
   assert_success
   assert_output_contains "set -euo pipefail"
 }
 
-@test "eval-ingest-extract: -e is live after sourcing — a failing command in a sequence exits non-zero (N18)" {
+@test "Eval driver: set -e is live after sourcing, so a failing command in a sequence exits non-zero # spec N18" {
   # Source the driver pure-helper path (BASH_SOURCE[0] != $0 guard keeps main
   # from firing) then immediately run a sub-sequence where the first command
   # fails. With set -e the whole subshell must exit non-zero; without it the

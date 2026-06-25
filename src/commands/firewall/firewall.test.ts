@@ -32,7 +32,7 @@ afterEach(() => {
   if (tmpDir) rmSync(tmpDir, { recursive: true, force: true });
 });
 
-describe("firewallCheck — command-layer wiring", () => {
+describe("Feature: Firewall › command wiring — firewallCheck command-layer wiring", () => {
   test("returns a FirewallReport with command='firewall'", () => {
     const vault = makeVault();
     const file = join(vault, "wiki", "test.md");

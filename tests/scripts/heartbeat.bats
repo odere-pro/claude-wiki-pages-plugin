@@ -26,13 +26,13 @@ enable_maintenance() {
   printf '{"maintenance":{"enabled":true}}\n' >"$PROJ/.claude/claude-wiki-pages.json"
 }
 
-@test "heartbeat: silent no-op when maintenance is disabled (default)" {
+@test "Heartbeat catch-up: stays a silent no-op when maintenance is disabled by default" {
   run_hb
   assert_success
   assert_output_empty
 }
 
-@test "heartbeat: emits CATCHUP when enabled and backlog exists" {
+@test "Heartbeat catch-up: emits a CATCHUP recommendation when enabled and a backlog exists" {
   enable_maintenance
   run_hb
   assert_success
@@ -40,7 +40,7 @@ enable_maintenance() {
   assert_output_contains "pending source"
 }
 
-@test "heartbeat: cooldown suppresses a second run within the window" {
+@test "Heartbeat catch-up: cooldown suppresses a second run within the window" {
   enable_maintenance
   run_hb
   assert_output_contains "CATCHUP:"
@@ -50,7 +50,7 @@ enable_maintenance() {
   assert_output_empty
 }
 
-@test "heartbeat: emits MAINTENANCE advisory when backlog exists and unattended is false" {
+@test "Heartbeat catch-up: emits a MAINTENANCE advisory when a backlog exists and unattended is false" {
   enable_maintenance
   # No maintenance.unattended in the config → defaults to false.
   run_hb
@@ -60,7 +60,7 @@ enable_maintenance() {
   assert_output_contains "maintenance-run.sh"
 }
 
-@test "heartbeat: MAINTENANCE advisory absent when unattended is true" {
+@test "Heartbeat catch-up: the MAINTENANCE advisory is absent when unattended is true" {
   printf '{"maintenance":{"enabled":true,"unattended":true}}\n' >"$PROJ/.claude/claude-wiki-pages.json"
   run_hb
   assert_success
@@ -68,7 +68,7 @@ enable_maintenance() {
   refute_output_contains "MAINTENANCE:"
 }
 
-@test "heartbeat: MAINTENANCE advisory absent when no backlog" {
+@test "Heartbeat catch-up: the MAINTENANCE advisory is absent when there is no backlog" {
   enable_maintenance
   # Remove the pending source so backlog is empty.
   rm -f "$VAULT/raw/new.md"
@@ -77,7 +77,7 @@ enable_maintenance() {
   assert_output_empty
 }
 
-@test "heartbeat: completes within deadline when engine hangs (timeout path)" {
+@test "Heartbeat catch-up: completes within the deadline and falls back to degraded mode when the engine hangs" {  # spec M27
   # This test pins M27: _engine_with_timeout must enforce the deadline so a
   # hung Bun process cannot block SessionStart indefinitely. We replace
   # engine.sh with a stub that sleeps longer than the configured timeout, then
@@ -129,7 +129,7 @@ enable_maintenance() {
   assert_output_contains "CATCHUP:"
 }
 
-@test "heartbeat: emits SYNC notice when a wired source has changed docs" {
+@test "Heartbeat catch-up: emits a SYNC notice when a wired source has changed docs" {
   command -v bun >/dev/null 2>&1 || skip "SYNC notice is engine-only (needs bun)"
   enable_maintenance
 

@@ -50,7 +50,7 @@ function fileExists(vault: string, rel: string): boolean {
 
 // ── Single-file mode ────────────────────────────────────────────────────────
 
-describe("export — single-file mode (default)", () => {
+describe("Feature: Engine › export verb — single-file mode (default)", () => {
   let sb: Sandbox;
 
   beforeEach(() => {
@@ -159,7 +159,7 @@ describe("export — single-file mode (default)", () => {
 
 // ── --links mode ────────────────────────────────────────────────────────────
 
-describe("export — --links mode (wikilink → markdown link)", () => {
+describe("Feature: Engine › export verb — --links mode (wikilink → markdown link)", () => {
   let sb: Sandbox;
 
   beforeEach(() => {
@@ -198,7 +198,7 @@ describe("export — --links mode (wikilink → markdown link)", () => {
 
 // ── Tree mode ───────────────────────────────────────────────────────────────
 
-describe("export — tree mode (--tree)", () => {
+describe("Feature: Engine › export verb — tree mode (--tree)", () => {
   let sb: Sandbox;
 
   beforeEach(() => {
@@ -275,7 +275,7 @@ describe("export — tree mode (--tree)", () => {
 
 // ── Section ordering (single-file mode) ────────────────────────────────────
 
-describe("export — page ordering in single-file mode", () => {
+describe("Feature: Engine › export verb — page ordering in single-file mode", () => {
   let sb: Sandbox;
 
   afterEach(() => {
@@ -318,7 +318,7 @@ describe("export — page ordering in single-file mode", () => {
 
 // ── Slug generation ─────────────────────────────────────────────────────────
 
-describe("export — wikilink slug generation", () => {
+describe("Feature: Engine › export verb — wikilink slug generation", () => {
   let sb: Sandbox;
 
   afterEach(() => {
@@ -359,7 +359,7 @@ describe("export — wikilink slug generation", () => {
 
 // ── Output is in schema-free scratch space ──────────────────────────────────
 
-describe("export — output location", () => {
+describe("Feature: Engine › export verb — output location", () => {
   let sb: Sandbox;
 
   beforeEach(() => {
@@ -385,7 +385,7 @@ describe("export — output location", () => {
 
 // ── Determinism ─────────────────────────────────────────────────────────────
 
-describe("export — determinism", () => {
+describe("Feature: Engine › export verb — determinism", () => {
   let sb: Sandbox;
 
   beforeEach(() => {

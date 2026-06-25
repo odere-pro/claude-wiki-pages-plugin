@@ -33,7 +33,7 @@ function makeFind(
 // resolveConcurrency
 // ---------------------------------------------------------------------------
 
-describe("resolveConcurrency", () => {
+describe("Feature: Verify › checks runner — resolveConcurrency", () => {
   test("returns CONCURRENCY_MAX for undefined", () => {
     expect(resolveConcurrency(undefined)).toBe(CONCURRENCY_MAX);
   });
@@ -72,7 +72,7 @@ describe("resolveConcurrency", () => {
 // sortFindings
 // ---------------------------------------------------------------------------
 
-describe("sortFindings", () => {
+describe("Feature: Verify › checks runner — sortFindings", () => {
   test("returns a new array — does not mutate input", () => {
     const findings: Finding[] = [
       makeFind("b.md", "check-z", "warn", "msg"),
@@ -125,7 +125,7 @@ describe("sortFindings", () => {
 // runChecks — serial path
 // ---------------------------------------------------------------------------
 
-describe("runChecks (serial, concurrency=1)", () => {
+describe("Feature: Verify › checks runner — runChecks (serial, concurrency=1)", () => {
   test("collects all findings in order", async () => {
     const f1 = makeFind("a.md", "c", "error", "first");
     const f2 = makeFind("b.md", "c", "warn", "second");
@@ -148,7 +148,7 @@ describe("runChecks (serial, concurrency=1)", () => {
 // runChecks — bounded parallel path (S20 thread-starvation fix)
 // ---------------------------------------------------------------------------
 
-describe("runChecks (bounded parallel, concurrency>1)", () => {
+describe("Feature: Verify › checks runner — runChecks (bounded parallel, concurrency>1)", () => {
   test("collects findings from all checks", async () => {
     const checks = Array.from({ length: 10 }, (_, i) => () => [
       makeFind(`file-${i}.md`, "check", "info", "msg"),
@@ -215,7 +215,7 @@ describe("runChecks (bounded parallel, concurrency>1)", () => {
   });
 });
 
-describe("mapBounded", () => {
+describe("Feature: Verify › checks runner — mapBounded", () => {
   test("preserves input order even when later items resolve first", async () => {
     const items = [30, 10, 20, 0];
     const out = await mapBounded(items, 2, async (ms, i) => {

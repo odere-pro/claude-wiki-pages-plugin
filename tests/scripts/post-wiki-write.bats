@@ -15,7 +15,7 @@ setup() {
   _load_helpers
 }
 
-@test "post-wiki-write: reminds when folder has no index file (but title IS in index.md)" {
+@test "Wiki-write reminder: reminds when the folder has no index file even though the title is already in index.md" {
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/topics"
   # index.md DOES contain the new title, so only the index-file-missing
@@ -46,7 +46,7 @@ MD
   refute_output_contains "Add [[Pinned Page]]"
 }
 
-@test "post-wiki-write: a folder note silences the index-file reminder" {
+@test "Wiki-write reminder: a folder note in the folder silences the index-file reminder" {
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/topics"
   printf '%s\n' '- [[Pinned Page]]' >"$proj/vault/wiki/index.md"
@@ -80,7 +80,7 @@ MD
   refute_output_contains "has no index file"
 }
 
-@test "post-wiki-write: silent on a folder-note write itself (bookkeeping)" {
+@test "Wiki-write reminder: stays silent on a folder-note write itself because it is bookkeeping" {
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/topics"
   local content
@@ -103,7 +103,7 @@ MD
   assert_output_empty
 }
 
-@test "post-wiki-write: reminds when title missing from index.md (but folder has legacy _index.md)" {
+@test "Wiki-write reminder: reminds when the title is missing from index.md even though the folder has a legacy _index.md" {
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/topics"
   # Folder has a legacy _index.md (still accepted), index.md does NOT list the
@@ -134,7 +134,7 @@ MD
   refute_output_contains "has no index file"
 }
 
-@test "post-wiki-write: silent on non-wiki paths" {
+@test "Wiki-write reminder: stays silent on writes to paths outside the wiki" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/elsewhere/note.md","content":"body"}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-wiki-write.sh'"
 
@@ -148,7 +148,7 @@ MD
 # content field; the script reads the title from the file on disk instead.
 # ---------------------------------------------------------------------------
 
-@test "post-wiki-write: MultiEdit on wiki file reminds when folder has no index file" {
+@test "Wiki-write reminder: a MultiEdit on a wiki file reminds when the folder has no index file" {  # spec S13
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/topics"
   # Write the file to disk so the script can read the title from it.
@@ -173,7 +173,7 @@ MD
   assert_output_contains "has no index file"
 }
 
-@test "post-wiki-write: MultiEdit on a folder note is silent (bookkeeping)" {
+@test "Wiki-write reminder: a MultiEdit on a folder note stays silent because it is bookkeeping" {  # spec S13
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/wiki/topics"
   cat >"$proj/vault/wiki/topics/topics.md" <<'MD'
@@ -194,7 +194,7 @@ MD
   assert_output_empty
 }
 
-@test "post-wiki-write: MultiEdit on non-wiki path is silent" {
+@test "Wiki-write reminder: a MultiEdit on a path outside the wiki stays silent" {  # spec S13
   local json
   json='{"tool_name":"MultiEdit","tool_input":{"file_path":"/tmp/elsewhere/note.md","edits":[]}}'
   run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/post-wiki-write.sh'"
@@ -203,7 +203,7 @@ MD
   assert_output_empty
 }
 
-@test "post-wiki-write: silent on index.md / log.md / dashboard.md / _index.md bookkeeping files" {
+@test "Wiki-write reminder: stays silent on every bookkeeping file in the skip list — index.md, log.md, dashboard.md, _index.md" {
   # Exercise every name in the skip list so a mutation that drops any single
   # name from the `case` is caught.
   local name

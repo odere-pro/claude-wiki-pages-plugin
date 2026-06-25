@@ -33,7 +33,7 @@ function wikiPage(title: string, tags: string[] = [], body = "body text"): strin
 
 // ─── absent _vocabulary.md ────────────────────────────────────────────────────
 
-describe("lintVocabulary — absent _vocabulary.md", () => {
+describe("Feature: Lint › vocabulary lint — absent _vocabulary.md", () => {
   test("returns one info finding when _vocabulary.md is absent", () => {
     const sb = makeVault({
       "CLAUDE.md": "---\nschema_version: 1\n---\n",
@@ -54,7 +54,7 @@ describe("lintVocabulary — absent _vocabulary.md", () => {
 
 // ─── empty groups ─────────────────────────────────────────────────────────────
 
-describe("lintVocabulary — empty groups", () => {
+describe("Feature: Lint › vocabulary lint — empty groups", () => {
   test("returns zero findings when groups list is empty", () => {
     const sb = makeVault({
       "_vocabulary.md": "---\ngroups: []\n---\n",
@@ -71,7 +71,7 @@ describe("lintVocabulary — empty groups", () => {
 
 // ─── Signal 2 — unreferenced group ────────────────────────────────────────────
 
-describe("lintVocabulary — signal 2: unreferenced-group", () => {
+describe("Feature: Lint › vocabulary lint — signal 2: unreferenced-group", () => {
   test("emits one warn when canonical and all variants absent from wiki", () => {
     const sb = makeVault({
       "_vocabulary.md": vocabContent("automobile", ["car", "vehicle"]),
@@ -186,7 +186,7 @@ describe("lintVocabulary — signal 2: unreferenced-group", () => {
 
 // ─── Signal 1 — orphaned form ─────────────────────────────────────────────────
 
-describe("lintVocabulary — signal 1: orphaned-form", () => {
+describe("Feature: Lint › vocabulary lint — signal 1: orphaned-form", () => {
   test("emits orphaned-form for each variant absent when canonical present", () => {
     const sb = makeVault({
       "_vocabulary.md": vocabContent("automobile", ["car", "vehicle"]),
@@ -256,7 +256,7 @@ describe("lintVocabulary — signal 1: orphaned-form", () => {
 
 // ─── Signal 3 — tag-floor ─────────────────────────────────────────────────────
 
-describe("lintVocabulary — signal 3: tag-floor", () => {
+describe("Feature: Lint › vocabulary lint — signal 3: tag-floor", () => {
   test("emits tag-floor warn when a form is a tag on only 1 page (floor=2)", () => {
     const sb = makeVault({
       "_vocabulary.md": vocabContent("transport"),
@@ -333,7 +333,7 @@ describe("lintVocabulary — signal 3: tag-floor", () => {
 
 // ─── findings are warn-severity only ──────────────────────────────────────────
 
-describe("lintVocabulary — severity contract", () => {
+describe("Feature: Lint › vocabulary lint — severity contract", () => {
   test("all findings are warn-severity (never error)", () => {
     const sb = makeVault({
       "_vocabulary.md": vocabContent("ghost-term", ["phantom"]),
@@ -351,7 +351,7 @@ describe("lintVocabulary — severity contract", () => {
 
 // ─── determinism ──────────────────────────────────────────────────────────────
 
-describe("lintVocabulary — determinism", () => {
+describe("Feature: Lint › vocabulary lint — determinism", () => {
   test("same vault → same findings on two calls", () => {
     const sb = makeVault({
       "_vocabulary.md":
@@ -386,7 +386,7 @@ describe("lintVocabulary — determinism", () => {
 
 // ─── bookkeeping-file exemption ───────────────────────────────────────────────
 
-describe("lintVocabulary — bookkeeping exemption", () => {
+describe("Feature: Lint › vocabulary lint — bookkeeping exemption", () => {
   test("index.md and log.md are excluded from wiki page corpus", () => {
     const sb = makeVault({
       "_vocabulary.md": vocabContent("someconcept"),

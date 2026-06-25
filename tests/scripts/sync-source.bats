@@ -37,13 +37,13 @@ run_script() {
   run bash -c "cd '$PROJ'; export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS' CLAUDE_WIKI_PAGES_VAULT='docs/vault'; bash '$REPO_ROOT/scripts/$script' $*"
 }
 
-@test "sync-source: status reports zero right after wiring" {
+@test "Source sync: status reports zero pending changes right after wiring" {
   run_script sync-source.sh status
   assert_success
   assert_output_contains "WIRED-CHANGES: proj 0"
 }
 
-@test "sync-source: status counts a changed doc, ignores changed source code" {
+@test "Source sync: status counts a changed doc but ignores changed source code" {
   printf '\nmore docs\n' >>"$PROJ/README.md"
   printf 'more code\n' >>"$PROJ/src/app.ts"
   proj_commit "upstream change"
@@ -54,7 +54,7 @@ run_script() {
   refute_output_contains "app.ts"
 }
 
-@test "sync-source: pull writes a versioned sibling, never overwrites" {
+@test "Source sync: pull writes a versioned sibling and never overwrites the original" {
   original_sum=$(shasum -a 256 "$VAULT/raw/wired/proj/README.md")
   printf '\nmore docs\n' >>"$PROJ/README.md"
   proj_commit "upstream change"
@@ -68,7 +68,7 @@ run_script() {
   assert_output_contains "1"
 }
 
-@test "sync-source: re-pull is idempotent (content dedup, no new snapshots)" {
+@test "Source sync: re-pull is idempotent, deduplicating content and adding no new snapshots" {
   printf '\nmore docs\n' >>"$PROJ/README.md"
   proj_commit "upstream change"
   run_script sync-source.sh pull --name proj
@@ -77,7 +77,7 @@ run_script() {
   assert_output_contains "PULLED: proj 0 new snapshot(s)"
 }
 
-@test "sync-source: pull advances lastSyncedCommit to HEAD" {
+@test "Source sync: pull advances lastSyncedCommit to HEAD" {
   printf '\nmore docs\n' >>"$PROJ/README.md"
   proj_commit "upstream change"
   run_script sync-source.sh pull --name proj
@@ -87,13 +87,13 @@ run_script() {
   assert_output_contains "$head_sha"
 }
 
-@test "sync-source: unknown --name exits 1 with a clear error" {
+@test "Source sync: an unknown --name exits 1 with a clear error" {
   run_script sync-source.sh pull --name nope
   assert_status 1
   assert_output_contains "not registered"
 }
 
-@test "sync-source: M31 — pull confines writes to DEST_ROOT (a symlinked dest dir cannot redirect a copy outside the vault)" {
+@test "Source sync: pull confines writes to DEST_ROOT so a symlinked dest dir cannot redirect a copy outside the vault" { # spec M31
   # The REACHABLE traversal vector is a symlink, not a '..' rel path: git itself
   # refuses to track an index entry whose path contains '..' (git update-index
   # --cacheinfo / checkout reject it), so a git-derived rel can never carry '..'.
@@ -131,7 +131,7 @@ run_script() {
   assert_output_empty
 }
 
-@test "sync-source: N18 — pull exits non-zero (not silently) when the vault directory is missing" {
+@test "Source sync: pull exits non-zero rather than silently when the vault directory is missing" { # spec N18
   # Guard: set -euo pipefail (with -e) must propagate the hard failure when
   # the registered vault path no longer exists. Without -e the script would
   # swallow the mkdir-p failure and report success while doing nothing useful.
@@ -149,7 +149,7 @@ fs.writeFileSync('$SETTINGS', JSON.stringify(d));
   assert_output_contains "ERROR"
 }
 
-@test "sync-source: M15 — a '|' in a wired field fails closed (no corrupt record split)" {
+@test "Source sync: a '|' in a wired field fails closed and never corrupts the record split" { # spec M15
   # Tamper the stored record so a field carries the reserved '|' delimiter.
   # wired_read must refuse it rather than emit an ambiguous positional record.
   bun -e "

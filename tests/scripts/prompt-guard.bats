@@ -13,7 +13,7 @@ setup() {
   _load_helpers
 }
 
-@test "prompt-guard: benign prompt exits 0 silent" {
+@test "Prompt guard: a benign prompt exits 0 silently" {
   local json='{"prompt":"Summarize the Karpathy LLM Wiki pattern."}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/prompt-guard.sh'"
 
@@ -21,7 +21,7 @@ setup() {
   assert_output_empty
 }
 
-@test "prompt-guard: silent on raw/ keyword without an edit verb" {
+@test "Prompt guard: stays silent on a raw/ keyword that lacks an edit verb" {
   # The grep pattern requires BOTH an edit verb AND a raw-path keyword.
   # This prompt has the keyword but no verb — must stay silent.
   # Pins the conjunction against a mutation that drops the verb clause.
@@ -32,7 +32,7 @@ setup() {
   assert_output_empty
 }
 
-@test "prompt-guard: warns on raw edit intent" {
+@test "Prompt guard: warns on a prompt with raw-edit intent" {
   local json='{"prompt":"Please edit vault/raw/sample.md and fix the typo."}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/prompt-guard.sh'"
 
@@ -41,7 +41,7 @@ setup() {
   assert_output_contains "immutable"
 }
 
-@test "prompt-guard: warns on wiki deletion intent" {
+@test "Prompt guard: warns on a prompt with wiki-deletion intent" {
   local json='{"prompt":"Delete the old wiki page about deprecated-tool."}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/prompt-guard.sh'"
 
@@ -50,7 +50,7 @@ setup() {
   assert_output_contains "superseded"
 }
 
-@test "prompt-guard: handles empty or whitespace-only prompt gracefully" {
+@test "Prompt guard: handles an empty or whitespace-only prompt gracefully" {
   # Covers both the "" early-exit and a whitespace-only prompt (which bypasses
   # the `[ -z ]` guard but must still produce no warning).
   for payload in '{"prompt":""}' '{"prompt":"   \t  "}'; do
@@ -60,7 +60,7 @@ setup() {
   done
 }
 
-@test "prompt-guard: vault name with regex metacharacters does not cause grep error (regex injection)" {
+@test "Prompt guard: a vault name with regex metacharacters is escaped and does not cause a grep error (regex injection)" {  # spec H04
   # Pins fix for H04 / injection: VAULT_NAME was interpolated raw into a grep -E
   # pattern. A vault named e.g. "my(vault)" would cause an ERE syntax error or
   # allow the parentheses to form an unintended capture group. With the fix the

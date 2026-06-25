@@ -120,7 +120,7 @@ done
 
 ```bash
 bats tests/scripts/verify-ingest.bats
-bats --filter "blocks legacy type: moc" tests/scripts/validate-frontmatter.bats
+bats --filter "legacy type: moc" tests/scripts/validate-frontmatter.bats
 ```
 
 ### Tier 2 smoke — when you have the Claude Code CLI
@@ -239,7 +239,13 @@ helpers are for the common substring / empty / status checks.
    `tests/scripts/<script-name>.bats`.
 2. Add `load '../test_helper/common'` at the top.
 3. Call `_load_helpers` inside `setup`.
-4. Name tests descriptively: `@test "<script>: <behavior>"`.
+4. Name tests by feature: `@test "<Feature>: <behavior sentence>"` — the
+   user-facing feature label leads, not the script name, and the behavior reads
+   as a spec sentence. Each file's feature label is fixed by the FEATURE INDEX in
+   [`scripts/CLAUDE.md`](./scripts/CLAUDE.md); move any check-ID to a trailing
+   `# spec <id>` comment. A new `.bats` file also needs a FEATURE INDEX row —
+   the `feature-coverage` gate (gate-14) fails CI on a missing row or a
+   non-conforming title.
 5. Use `run_hook_with_json` or construct stdin inline.
 6. Assert with the helpers above — avoid raw `[[ == ]]` in the middle
    of a test body.
@@ -248,7 +254,7 @@ helpers are for the common substring / empty / status checks.
 ### Example
 
 ```bash
-@test "my-hook: blocks writes outside vault/wiki/" {
+@test "My hook: a write outside vault/wiki/ is blocked" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/elsewhere.md"}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/my-hook.sh'"
 

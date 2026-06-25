@@ -35,7 +35,7 @@ run_gate() {
   run bash -c "cd '$PROJ'; export CLAUDE_WIKI_PAGES_VAULT='$VAULT' CLAUDE_PROJECT_DIR='$PROJ'; printf '%s' '{\"agent_name\":\"$agent\"}' | bash '$REPO_ROOT/scripts/subagent-commit-gate.sh'"
 }
 
-@test "commit-gate: silent no-op for a non-write-path agent" {
+@test "Commit backstop: stays a silent no-op for a non-write-path agent" {
   init_vault_repo
   printf 'dirty\n' >"$VAULT/wiki/dirty.md"
   run_gate "claude-wiki-pages-analyst-agent"
@@ -45,7 +45,7 @@ run_gate() {
   [ -n "$(git_vault status --porcelain)" ]
 }
 
-@test "commit-gate: dirty vault after ingest-agent → exactly one backstop commit" {
+@test "Commit backstop: a dirty vault after the ingest agent yields exactly one scoped backstop commit" {
   init_vault_repo
   printf '%s\n' '---' 'title: log' '---' >"$VAULT/wiki/log.md"
   git_vault -c user.name=t -c user.email=t@t -c commit.gpgsign=false add -A
@@ -67,7 +67,7 @@ run_gate() {
   assert_output_contains "pre-state:"
 }
 
-@test "commit-gate: clean vault → no commit, no output" {
+@test "Commit backstop: a clean vault produces no commit and no output" {
   init_vault_repo
   before=$(git_vault rev-parse HEAD)
   run_gate "claude-wiki-pages-curator-agent"
@@ -76,7 +76,7 @@ run_gate() {
   [ "$(git_vault rev-parse HEAD)" = "$before" ]
 }
 
-@test "commit-gate: mode=off is a complete no-op even with a dirty vault" {
+@test "Commit backstop: gitCheckpoint mode=off is a complete no-op even with a dirty vault" {
   init_vault_repo
   printf 'dirty\n' >"$VAULT/wiki/dirty.md"
   before=$(git_vault rev-parse HEAD)
@@ -86,7 +86,7 @@ run_gate() {
   [ "$(git_vault rev-parse HEAD)" = "$before" ]
 }
 
-@test "commit-gate: vault not in any work tree → repo created and writes committed" {
+@test "Commit backstop: a vault not in any work tree gets a repo created and its writes committed" {
   # No init: the backstop must create coverage rather than skip.
   printf 'orphan write\n' >"$VAULT/wiki/orphan.md"
   run_gate "claude-wiki-pages-maintenance-agent"
@@ -96,7 +96,7 @@ run_gate() {
   [ -z "$(git_vault status --porcelain)" ]
 }
 
-@test "commit-gate: inherited parent repo — user files outside the vault survive" {
+@test "Commit backstop: in an inherited parent repo, user files outside the vault are not swallowed" {
   # Parent project repo with the vault nested inside; no vault-own repo.
   git -C "$PROJ" init -q
   git -C "$PROJ" -c user.name=t -c user.email=t@t -c commit.gpgsign=false add -A
@@ -115,7 +115,7 @@ run_gate() {
   assert_output_contains "?? user-wip.ts"
 }
 
-@test "commit-gate: vault path unresolvable → exits 0 (strict-mode guard)" {
+@test "Commit backstop: an unresolvable vault path still exits 0 via the strict-mode guard" {
   # Validates that set -euo pipefail + explicit || exit 0 guards on source and
   # resolve_vault mean a mid-sequence resolution failure still exits 0, never
   # propagates as a non-zero hook exit that would be a harness error.

@@ -74,7 +74,7 @@ afterEach(() => {
   sandbox = undefined;
 });
 
-describe("frontmatterCli", () => {
+describe("Feature: Hook gates › frontmatter CLI", () => {
   test("missing wiki/ directory reports missingWiki = true with no findings", () => {
     sandbox = makeVault({ "CLAUDE.md": SCHEMA_WITH_TABLE });
     const result = frontmatterCli({ vault: sandbox.vault });

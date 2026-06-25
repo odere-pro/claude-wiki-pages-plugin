@@ -27,7 +27,7 @@ function input(over: Partial<HookInput>): HookInput {
   });
 }
 
-describe("wikilinkHookGate", () => {
+describe("Feature: Hook gates › wikilink gate", () => {
   test("out-of-scope path (not under wiki/) → allow", () => {
     const d = wikilinkHookGate({
       vaultName: VAULT_NAME,

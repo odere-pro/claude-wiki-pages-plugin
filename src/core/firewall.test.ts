@@ -13,7 +13,7 @@ const base: FirewallPolicy = {
   otherVaults: [],
 };
 
-describe("firewall decide", () => {
+describe("Feature: Firewall › write isolation — decide()", () => {
   test("allows writes inside the vault", () => {
     const d = decide("/srv/project/vault/wiki/x.md", base);
     expect(d.allowed).toBe(true);
@@ -64,7 +64,7 @@ describe("firewall decide", () => {
   });
 });
 
-describe("firewall decide — symlink escape (F1)", () => {
+describe("Feature: Firewall › write isolation — symlink escape (F1)", () => {
   let root: string;
   let activeVault: string;
   let sibling: string;
@@ -139,7 +139,7 @@ describe("firewall decide — symlink escape (F1)", () => {
   });
 });
 
-describe("firewall decide — cross-vault confinement (S3)", () => {
+describe("Feature: Firewall › write isolation — cross-vault confinement (S3)", () => {
   const sibling = "/srv/project/sibling-vault";
   const withSibling: FirewallPolicy = {
     ...base,

@@ -23,7 +23,7 @@ teardown() {
   unset CLAUDE_WIKI_PAGES_VAULT
 }
 
-@test "session-start: prints SETUP when vault dir does not exist" {
+@test "SessionStart hook: prints the SETUP prompt when the vault directory does not exist" {
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     export CLAUDE_WIKI_PAGES_VAULT='/nonexistent/vault/does-not-exist'
@@ -35,7 +35,7 @@ teardown() {
   assert_output_contains "/nonexistent/vault/does-not-exist"
 }
 
-@test "session-start: prints REMINDER when vault dir exists" {
+@test "SessionStart hook: prints the REMINDER when the vault directory exists" {
   local vault_dir="$BATS_TEST_TMPDIR/my-vault"
   mkdir -p "$vault_dir"
 
@@ -50,7 +50,7 @@ teardown() {
   assert_output_contains "$vault_dir"
 }
 
-@test "session-start: creates settings.json on first run" {
+@test "SessionStart hook: creates settings.json on first run" {
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     export CLAUDE_WIKI_PAGES_VAULT='/nonexistent/vault/does-not-exist'
@@ -62,7 +62,7 @@ teardown() {
   grep -q '"default_vault_path"' "$SETTINGS_TMP"
 }
 
-@test "session-start: prints INDEX pointer when wiki/index.md exists" {
+@test "SessionStart hook: prints the INDEX pointer when wiki/index.md exists" {
   local vault_dir="$BATS_TEST_TMPDIR/moc-vault"
   mkdir -p "$vault_dir/wiki"
   printf '%s\n' '---' 'title: Index' '---' >"$vault_dir/wiki/index.md"
@@ -78,7 +78,7 @@ teardown() {
   assert_output_contains "wiki/index.md"
 }
 
-@test "session-start: omits INDEX pointer when wiki/index.md does not exist" {
+@test "SessionStart hook: omits the INDEX pointer when wiki/index.md does not exist" {
   local vault_dir="$BATS_TEST_TMPDIR/no-moc-vault"
   mkdir -p "$vault_dir/wiki"
   # wiki/ exists but index.md is absent
@@ -93,7 +93,7 @@ teardown() {
   refute_output_contains "INDEX:"
 }
 
-@test "session-start: always prints NEXT line when vault exists and is populated" {
+@test "SessionStart hook: always prints the NEXT line when the vault exists and is populated" {
   local vault_dir="$BATS_TEST_TMPDIR/next-vault-pop"
   mkdir -p "$vault_dir/raw" "$vault_dir/wiki"
   printf 'source content\n' >"$vault_dir/raw/doc.md"
@@ -108,7 +108,7 @@ teardown() {
   assert_output_contains "NEXT:"
 }
 
-@test "session-start: always prints NEXT line when vault exists but raw is empty" {
+@test "SessionStart hook: always prints the NEXT line when the vault exists but raw is empty" {
   local vault_dir="$BATS_TEST_TMPDIR/next-vault-empty"
   mkdir -p "$vault_dir/wiki"
 
@@ -122,7 +122,7 @@ teardown() {
   assert_output_contains "NEXT:"
 }
 
-@test "session-start: NEXT line references /claude-wiki-pages:wiki" {
+@test "SessionStart hook: the NEXT line references /claude-wiki-pages:wiki" {
   local vault_dir="$BATS_TEST_TMPDIR/next-verb-vault"
   mkdir -p "$vault_dir/wiki"
 
@@ -136,7 +136,7 @@ teardown() {
   assert_output_contains "/claude-wiki-pages:wiki"
 }
 
-@test "session-start: NEXT reports no pending when all raw sources predate the last sync" {
+@test "SessionStart hook: NEXT reports no pending when all raw sources predate the last sync" {
   local vault_dir="$BATS_TEST_TMPDIR/next-synced"
   mkdir -p "$vault_dir/raw" "$vault_dir/wiki"
   printf 'already ingested\n' >"$vault_dir/raw/old.md"
@@ -156,7 +156,7 @@ teardown() {
   refute_output_contains "pending source"
 }
 
-@test "session-start: NEXT reports pending when a raw source is newer than the last sync" {
+@test "SessionStart hook: NEXT reports a pending source when a raw source is newer than the last sync" {
   local vault_dir="$BATS_TEST_TMPDIR/next-newraw"
   mkdir -p "$vault_dir/raw" "$vault_dir/wiki"
   printf '%s\n' '---' 'title: log' '---' >"$vault_dir/wiki/log.md"
@@ -175,7 +175,7 @@ teardown() {
   assert_output_contains "pending source"
 }
 
-@test "session-start: NEXT line does not depend on settings.json being present" {
+@test "SessionStart hook: the NEXT line does not depend on settings.json being present" {
   local vault_dir="$BATS_TEST_TMPDIR/next-nosettings-vault"
   local absent_settings="$BATS_TEST_TMPDIR/no-such-dir/settings.json"
   mkdir -p "$vault_dir/wiki"
@@ -194,7 +194,7 @@ teardown() {
 
 # P1.1: REMINDER line must contain the ABSOLUTE resolved vault path (begins with /).
 # Protects against relative paths such as "docs/vault" leaking into the pointer.
-@test "session-start: REMINDER path is absolute (begins with /)" {
+@test "SessionStart hook: the REMINDER path is absolute and begins with /" {  # spec P1.1
   local vault_dir="$BATS_TEST_TMPDIR/abs-path-vault"
   mkdir -p "$vault_dir"
 
@@ -219,7 +219,7 @@ teardown() {
 }
 
 # P1.1: REMINDER must point to vault/CLAUDE.md explicitly (not just vault/).
-@test "session-start: REMINDER points to vault CLAUDE.md" {
+@test "SessionStart hook: the REMINDER points to the vault CLAUDE.md explicitly" {  # spec P1.1
   local vault_dir="$BATS_TEST_TMPDIR/claudemd-pointer-vault"
   mkdir -p "$vault_dir"
   printf '%s\n' '---' 'schema_version: 1' '---' >"$vault_dir/CLAUDE.md"
@@ -238,7 +238,7 @@ teardown() {
 
 # P1.1: When vault resolves to a RELATIVE path (e.g. tests/fixtures/reference-vault),
 # the emitted REMINDER must still use the absolute canonical path.
-@test "session-start: REMINDER is absolute even when VAULT env var is relative" {
+@test "SessionStart hook: the REMINDER is absolute even when the VAULT env var is relative" {  # spec P1.1
   # Use a relative path inside the repo to simulate the tests/fixtures/reference-vault case.
   local rel_vault="tests/fixtures/reference-vault"
   local abs_vault
@@ -272,7 +272,7 @@ teardown() {
 }
 
 # P1.1: No-vault path must NOT emit a REMINDER or INDEX line (no broken pointer).
-@test "session-start: no REMINDER or INDEX when vault does not exist" {
+@test "SessionStart hook: emits no REMINDER or INDEX when the vault does not exist" {  # spec P1.1
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     export CLAUDE_WIKI_PAGES_VAULT='/nonexistent/vault/does-not-exist'
@@ -287,7 +287,7 @@ teardown() {
 # jq pre-flight: when jq is absent the JSON-parsing hooks (firewall,
 # frontmatter, raw-protect) silently pass writes through unchecked, so the
 # session must surface a NOTICE — same teaching pattern as the Bun notice.
-@test "session-start: prints jq NOTICE when jq is absent" {
+@test "SessionStart hook: prints a jq NOTICE when jq is absent" {
   local vault_dir="$BATS_TEST_TMPDIR/jq-absent-vault"
   mkdir -p "$vault_dir"
 
@@ -320,7 +320,7 @@ teardown() {
   assert_output_contains "brew install jq"
 }
 
-@test "session-start: no jq NOTICE when jq is present" {
+@test "SessionStart hook: no jq NOTICE when jq is present" {
   local vault_dir="$BATS_TEST_TMPDIR/jq-present-vault"
   mkdir -p "$vault_dir"
   command -v jq >/dev/null 2>&1 || skip "jq not installed on this machine"
@@ -339,7 +339,7 @@ teardown() {
 # the ONE invocation point for heartbeat.sh — the SessionStart hook is the
 # scheduled trigger of the autonomous-maintenance loop. This test pins that
 # wiring: if the heartbeat call is dropped from session-start.sh, it goes red.
-@test "session-start: surfaces heartbeat CATCHUP when maintenance enabled and backlog exists" {
+@test "SessionStart hook: surfaces a heartbeat CATCHUP when maintenance is enabled and a backlog exists" {
   local proj="$BATS_TEST_TMPDIR/hb-proj"
   local vault_dir="$proj/vault"
   mkdir -p "$vault_dir/raw" "$vault_dir/wiki/_sources" "$proj/.claude/claude-wiki-pages"
@@ -359,7 +359,7 @@ teardown() {
   assert_output_contains "/claude-wiki-pages:wiki"
 }
 
-@test "session-start: no CATCHUP when maintenance is disabled (default)" {
+@test "SessionStart hook: no CATCHUP when maintenance is disabled (the default)" {
   local proj="$BATS_TEST_TMPDIR/hb-proj-off"
   local vault_dir="$proj/vault"
   mkdir -p "$vault_dir/raw" "$vault_dir/wiki/_sources" "$proj/.claude/claude-wiki-pages"
@@ -380,7 +380,7 @@ teardown() {
 # Degraded-mode advisory (ADR-0018): opt-in only — silent unless localModel is
 # enabled with offlinePolicy != "off". The default config must emit no DEGRADED
 # line and make no network call.
-@test "session-start: no DEGRADED line and no network call by default" {
+@test "SessionStart hook: no DEGRADED line and no network call by default" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
   local proj="$BATS_TEST_TMPDIR/deg-off"
   local vault_dir="$proj/vault"
@@ -408,7 +408,7 @@ EOF
   [ ! -e "$marker" ] # never probed the network in the default policy
 }
 
-@test "session-start: DEGRADED offline-available when Claude is unreachable and Ollama is up" {
+@test "SessionStart hook: DEGRADED reports offline-available when Claude is unreachable and Ollama is up" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
   local proj="$BATS_TEST_TMPDIR/deg-avail"
   local vault_dir="$proj/vault"
@@ -443,7 +443,7 @@ EOF
   assert_output_contains "drafting is available offline"
 }
 
-@test "session-start: DEGRADED BLOCKED when the configured tier is not gate-approved" {
+@test "SessionStart hook: DEGRADED reports BLOCKED when the configured tier is not gate-approved" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
   local proj="$BATS_TEST_TMPDIR/deg-blocked"
   local vault_dir="$proj/vault"
@@ -472,7 +472,7 @@ EOF
 }
 
 # P1.1: Output is plain stdout — no JSON envelope or hook-block object.
-@test "session-start: output is plain text, no JSON envelope" {
+@test "SessionStart hook: output is plain text with no JSON envelope or hook-block object" {  # spec P1.1
   local vault_dir="$BATS_TEST_TMPDIR/plain-text-vault"
   mkdir -p "$vault_dir"
 
@@ -494,7 +494,7 @@ EOF
 # so a bare box is never blocked silently.
 # ---------------------------------------------------------------------------
 
-@test "session-start: prints ERROR for Bun when bun is absent" {
+@test "SessionStart hook: prints a prominent ERROR for Bun when bun is absent" {
   local vault_dir="$BATS_TEST_TMPDIR/bun-absent-vault"
   mkdir -p "$vault_dir"
 
@@ -527,7 +527,7 @@ EOF
   assert_output_contains "bun"
 }
 
-@test "session-start: Bun ERROR message includes bun.sh install URL" {
+@test "SessionStart hook: the Bun ERROR message includes the bun.sh install URL" {
   local vault_dir="$BATS_TEST_TMPDIR/bun-url-vault"
   mkdir -p "$vault_dir"
 
@@ -554,7 +554,7 @@ EOF
   assert_output_contains "bun.sh/install"
 }
 
-@test "session-start: Bun ERROR message includes curl install command" {
+@test "SessionStart hook: the Bun ERROR message includes the curl install command" {
   local vault_dir="$BATS_TEST_TMPDIR/bun-curl-vault"
   mkdir -p "$vault_dir"
 
@@ -581,7 +581,7 @@ EOF
   assert_output_contains "curl -fsSL https://bun.sh/install | bash"
 }
 
-@test "session-start: Bun ERROR message says Bun is required" {
+@test "SessionStart hook: the Bun ERROR message says Bun is required" {
   local vault_dir="$BATS_TEST_TMPDIR/bun-req-vault"
   mkdir -p "$vault_dir"
 
@@ -608,7 +608,7 @@ EOF
   assert_output_contains "required"
 }
 
-@test "session-start: no Bun ERROR when bun is present" {
+@test "SessionStart hook: no Bun ERROR when bun is present" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
   local vault_dir="$BATS_TEST_TMPDIR/bun-present-vault"
   mkdir -p "$vault_dir"
@@ -636,7 +636,7 @@ EOF
 # environments, not against the feature being absent).
 # ---------------------------------------------------------------------------
 
-@test "session-start: engine config call completes within bounded time even when engine hangs" {
+@test "SessionStart hook: the engine config call completes within bounded time even when the engine hangs" {  # spec M26
   command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
   local vault_dir="$BATS_TEST_TMPDIR/m26-config-vault"
   local fake_bin="$BATS_TEST_TMPDIR/m26-fake-bin"
@@ -687,7 +687,7 @@ EOF
   fi
 }
 
-@test "session-start: heartbeat call completes within bounded time even when heartbeat hangs" {
+@test "SessionStart hook: the heartbeat call completes within bounded time even when heartbeat hangs" {  # spec M26
   local vault_dir="$BATS_TEST_TMPDIR/m26-hb-vault"
   local fake_scripts="$BATS_TEST_TMPDIR/m26-hb-scripts"
   mkdir -p "$vault_dir/wiki" "$fake_scripts"

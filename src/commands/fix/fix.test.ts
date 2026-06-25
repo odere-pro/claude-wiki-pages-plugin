@@ -22,7 +22,7 @@ const FIXABLE: Record<string, string> = {
   "wiki/topics/real-page.md": "---\ntitle: Real Page\n---\nbody\n", // folder has no index file
 };
 
-describe("fix", () => {
+describe("Feature: Engine › fix verb", () => {
   test("repairs index duplicates, missing folder index, and children drift → errors clear", async () => {
     const sb = makeVault(FIXABLE);
     expect((await verify({ target: sb.vault })).errors).toBeGreaterThan(0);
@@ -105,7 +105,7 @@ describe("fix", () => {
 //   - vault path does not exist → empty report, no throw
 //   - unreadable file → graceful skip (readFileSafe returns null)
 //   - read-only index.md → throws (Node EACCES); callers own the guard
-describe("fix — negative / error paths", () => {
+describe("Feature: Engine › fix verb — negative / error paths", () => {
   test("returns empty report when the vault has no wiki/ directory", () => {
     // A target with a CLAUDE.md but no wiki/ dir — fix should be a no-op.
     const sb = makeVault({ "CLAUDE.md": "---\nschema_version: 1\n---\n" });

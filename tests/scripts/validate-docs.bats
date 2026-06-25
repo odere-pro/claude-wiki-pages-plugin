@@ -42,7 +42,7 @@ setup() {
 # Happy path against the real repo
 # -----------------------------------------------------------------------------
 
-@test "validate-docs: passes on clean tree" {
+@test "Glossary gate: the gate passes on a clean tree (the real repo stays green)" {
   # Run against the real repo root. If this fails, the repo itself has a
   # glossary violation and the tests should surface that before CI does.
   run bash "$SCRIPTS_DIR/validate-docs.sh" "$REPO_ROOT"
@@ -55,7 +55,7 @@ setup() {
 # Banned strings (retired glossary)
 # -----------------------------------------------------------------------------
 
-@test "validate-docs: flags retired 'second-brain' outside exempt set" {
+@test "Glossary gate: a retired 'second-brain' identifier outside the exempt set is flagged as a banned string" {
   setup_isolated_repo
   rm -f "$ISOLATED_REPO/docs/architecture.md"
   commit_file_in_isolated_repo "docs/architecture.md" \
@@ -72,7 +72,7 @@ setup() {
   assert_contains "$out" "architecture.md"
 }
 
-@test "validate-docs: flags retired 'vault-synthesize' outside exempt set" {
+@test "Glossary gate: a retired 'vault-synthesize' identifier outside the exempt set is flagged as a banned string" {
   setup_isolated_repo
   rm -f "$ISOLATED_REPO/docs/architecture.md"
   commit_file_in_isolated_repo "docs/architecture.md" \
@@ -88,7 +88,7 @@ setup() {
   assert_contains "$out" "banned string"
 }
 
-@test "validate-docs: allows retired glossary in CHANGELOG.md" {
+@test "Glossary gate: retired glossary terms are allowed inside CHANGELOG.md (a BAN_EXEMPT historical record)" {
   setup_isolated_repo
   # CHANGELOG.md IS in BAN_EXEMPT — historical record is preserved.
   rm -f "$ISOLATED_REPO/CHANGELOG.md"
@@ -109,7 +109,7 @@ setup() {
 # SEO-register leaks
 # -----------------------------------------------------------------------------
 
-@test "validate-docs: flags SEO leak outside allowlist" {
+@test "Glossary gate: an SEO-register term outside the allowlist is flagged as a leak" {
   setup_isolated_repo
   # docs/architecture.md is NOT in SEO_EXEMPT, so "knowledge management" leaks.
   rm -f "$ISOLATED_REPO/docs/architecture.md"
@@ -127,7 +127,7 @@ setup() {
   assert_contains "$out" "architecture.md"
 }
 
-@test "validate-docs: allows SEO term in README (in allowlist)" {
+@test "Glossary gate: an SEO-register term is allowed in README (an allowlisted file)" {
   setup_isolated_repo
   # README.md IS in SEO_EXEMPT.
   rm -f "$ISOLATED_REPO/README.md"
@@ -148,7 +148,7 @@ setup() {
 # Slash-command resolution
 # -----------------------------------------------------------------------------
 
-@test "validate-docs: flags unresolved slash command" {
+@test "Glossary gate: a /claude-wiki-pages slash command that resolves to no skill or agent is flagged" {
   setup_isolated_repo
   commit_file_in_isolated_repo "docs/broken-ref.md" \
     "# Broken\n\nSee /claude-wiki-pages:nonexistent-skill for details.\n"
@@ -164,7 +164,7 @@ setup() {
   assert_contains "$out" "does not resolve"
 }
 
-@test "validate-docs: allows existing slash command reference" {
+@test "Glossary gate: a slash command reference that resolves to a real skill is allowed" {
   setup_isolated_repo
   # /claude-wiki-pages:init resolves to skills/llm-wiki/ (after rename).
   commit_file_in_isolated_repo "docs/valid-ref.md" \
@@ -184,7 +184,7 @@ setup() {
 # Check 5a — mermaid node grounding (renamed/stale script)
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5a: stale script name in mermaid fence fails" {
+@test "Glossary gate: a stale script name in a mermaid fence fails as an unresolved token" { # spec check5a
   # A design doc names old-firewall.sh inside a mermaid fence.
   # old-firewall.sh does not exist in scripts/ or anywhere in the repo.
   # The gate must flag it.
@@ -209,7 +209,7 @@ setup() {
 # Check 5b — dead relative link in design doc
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5b: dead relative link in design doc fails" {
+@test "Glossary gate: a dead relative link in a design doc fails" { # spec check5b
   # A design doc has a relative link to a file that does not exist.
   setup_isolated_repo
   commit_file_in_isolated_repo "docs/design/broken-links.md" \
@@ -232,7 +232,7 @@ setup() {
 # Check 5d — wrong count in 06-feature-relations.md
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5d: wrong agent count in feature-relations fails" {
+@test "Glossary gate: a wrong agent count in feature-relations fails as a count mismatch" { # spec check5d
   # A 06-feature-relations.md states Agents (99) but the repo has 7 agents.
   setup_isolated_repo
   commit_file_in_isolated_repo "docs/design/06-feature-relations.md" \
@@ -254,7 +254,7 @@ setup() {
 # Check 5f — single-ramped router row in SOFTWARE-3-0.md
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5f: single-ramped router row fails" {
+@test "Glossary gate: a single-ramped router row (human on-ramp but empty agent on-ramp) fails" { # spec check5f
   # SOFTWARE-3-0.md has a table row with a human on-ramp but empty agent on-ramp.
   setup_isolated_repo
   commit_file_in_isolated_repo "SOFTWARE-3-0.md" \
@@ -277,7 +277,7 @@ setup() {
 # Check 5a — [speculative] doc exemption passes
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5a: speculative doc with unresolved token passes" {
+@test "Glossary gate: a [speculative]-marked doc with an unresolved mermaid token passes (exempt from grounding)" { # spec check5a
   # A design doc has [speculative] marker and a nonexistent script token in a
   # mermaid fence. The gate must pass because the doc is marked speculative.
   # Use a minimal isolated repo: remove real design docs (which reference files
@@ -310,7 +310,7 @@ setup() {
 # Check 5c — PreToolUse ordering delta → WARN only (exit 0)
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5c: PreToolUse reorder in design doc warns but exits 0" {
+@test "Glossary gate: a PreToolUse reorder in a design doc warns but exits 0 (WARN does not increment VIOLATIONS)" { # spec check5c
   # A design doc shows PreToolUse scripts in a different order than hooks.json.
   # This must emit a WARN line but must NOT increment VIOLATIONS (exit 0).
   # Use a minimal isolated repo: remove real design docs (which reference files
@@ -348,7 +348,7 @@ setup() {
 # CRITICAL-1 — token resolution must be path-boundary-anchored (no suffix match)
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5a-suffix: suffix-only script name in fence fails" {
+@test "Glossary gate: a suffix-only script name in a fence fails (token resolution is path-boundary-anchored, no substring match)" { # spec check5a-suffix
   # 'docs.sh' is a suffix of 'validate-docs.sh' which exists in scripts/.
   # Unanchored grep -qF would resolve it via substring match (false negative).
   # After the anchor fix it must NOT resolve and the gate must FAIL.
@@ -376,7 +376,7 @@ setup() {
 # HIGH-1 — dead links with #anchors must be caught by 5b/5e/5f
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5b-anchor: dead link with hash-anchor in design doc fails" {
+@test "Glossary gate: a dead link with a #hash-anchor in a design doc fails (the regex no longer stops at '#')" { # spec check5b-anchor
   # [x](./missing.md#section) — the regex was stopping at '#' so the link
   # never reached _resolve_link. After the fix it must FAIL.
   # session-start.sh is shown in the fence so 5c parity passes; the only
@@ -405,7 +405,7 @@ setup() {
 # HIGH-2 — commands count in the emoji/checkmark cell form must be verified
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5d-emoji: wrong commands count in emoji cell form fails" {
+@test "Glossary gate: a wrong commands count in the emoji-checkmark cell form fails as a count mismatch" { # spec check5d-emoji
   # Real 06-feature-relations.md uses '| **Commands** | ✅ 3 |' format.
   # The old regex skipped the number because of the emoji, returning empty
   # STATED_CMDS and silently skipping the check. After the fix a wrong count
@@ -434,7 +434,7 @@ setup() {
 # MEDIUM-2 — router emptiness check must reject markup-only placeholder cells
 # -----------------------------------------------------------------------------
 
-@test "validate-docs check5f-placeholder: router row with nbsp placeholder fails by surface name" {
+@test "Glossary gate: a router row with an &nbsp; placeholder agent cell still counts as empty and fails by surface name" { # spec check5f-placeholder
   # A router row whose agent cell contains only '&nbsp;' (or em-dash) must
   # still count as empty and FAIL with the surface name in the error.
   # Uses minimal isolated repo (real design docs removed) to avoid spurious

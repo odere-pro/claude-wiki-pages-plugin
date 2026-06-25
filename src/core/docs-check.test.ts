@@ -68,7 +68,7 @@ function makeRepoWithSkills(
 
 // ── Check 0: banned strings ───────────────────────────────────────────────────
 
-describe("checkDocs — Check 0: banned strings", () => {
+describe("Feature: Glossary gate › docs check — Check 0: banned strings", () => {
   test("clean repo with no banned strings yields zero findings", () => {
     const sb = makeDocCorpus({
       "docs/intro.md": "# Introduction\n\nThis is a clean document.\n",
@@ -195,7 +195,7 @@ describe("checkDocs — Check 0: banned strings", () => {
 
 // ── Check 0b: retired skill name llm-wiki ────────────────────────────────────
 
-describe("checkDocs — Check 0b: retired skill name llm-wiki", () => {
+describe("Feature: Glossary gate › docs check — Check 0b: retired skill name llm-wiki", () => {
   test("clean file with no retired skill references yields zero findings", () => {
     const sb = makeDocCorpus({
       "docs/page.md": "# Page\n\nUse the `init` skill.\n",
@@ -261,7 +261,7 @@ describe("checkDocs — Check 0b: retired skill name llm-wiki", () => {
 
 // ── Check 1: SEO-register leaks ───────────────────────────────────────────────
 
-describe("checkDocs — Check 1: SEO-register leaks", () => {
+describe("Feature: Glossary gate › docs check — Check 1: SEO-register leaks", () => {
   test("clean technical doc with no SEO terms yields zero findings", () => {
     const sb = makeDocCorpus({
       "docs/tech.md": "# Architecture\n\nThe four-layer stack is described here.\n",
@@ -368,7 +368,7 @@ describe("checkDocs — Check 1: SEO-register leaks", () => {
 
 // ── Check 2: layer capitalization ─────────────────────────────────────────────
 
-describe("checkDocs — Check 2: layer capitalization", () => {
+describe("Feature: Glossary gate › docs check — Check 2: layer capitalization", () => {
   test("correct capitalization 'Layer 1' yields no finding", () => {
     const sb = makeDocCorpus({
       "docs/arch.md": "# Architecture\n\nLayer 1 is the Data layer.\n",
@@ -457,7 +457,7 @@ describe("checkDocs — Check 2: layer capitalization", () => {
 
 // ── Check 3: bare slash commands ─────────────────────────────────────────────
 
-describe("checkDocs — Check 3: bare slash commands (missing namespace)", () => {
+describe("Feature: Glossary gate › docs check — Check 3: bare slash commands (missing namespace)", () => {
   test("properly-namespaced command yields no finding", () => {
     const sb = makeDocCorpus({
       "docs/usage.md": "# Usage\n\nRun `/claude-wiki-pages:wiki` to start.\n",
@@ -533,7 +533,7 @@ describe("checkDocs — Check 3: bare slash commands (missing namespace)", () =>
 
 // ── Check 4: slash-command resolution ────────────────────────────────────────
 
-describe("checkDocs — Check 4: slash-command references resolve", () => {
+describe("Feature: Glossary gate › docs check — Check 4: slash-command references resolve", () => {
   test("reference to existing skill resolves cleanly", () => {
     const sb = makeRepoWithSkills(
       { "docs/page.md": "# Page\n\nUse `/claude-wiki-pages:search` here.\n" },
@@ -616,7 +616,7 @@ describe("checkDocs — Check 4: slash-command references resolve", () => {
 
 // ── Determinism and output contract ──────────────────────────────────────────
 
-describe("checkDocs — determinism and output contract", () => {
+describe("Feature: Glossary gate › docs check — determinism and output contract", () => {
   test("identical calls produce identical output", () => {
     const sb = makeDocCorpus({
       "docs/bad.md": "The second-brain approach with layer 1 concepts.\n",
@@ -712,7 +712,7 @@ describe("checkDocs — determinism and output contract", () => {
 
 // ── Multi-violation files ─────────────────────────────────────────────────────
 
-describe("checkDocs — multi-violation files", () => {
+describe("Feature: Glossary gate › docs check — multi-violation files", () => {
   test("file with banned string + SEO term yields findings for both", () => {
     const sb = makeDocCorpus({
       "docs/multi.md": "The second-brain is a knowledge management concept.\n",
@@ -740,7 +740,7 @@ describe("checkDocs — multi-violation files", () => {
 
 // ── Checked-in fixture corpus integration tests ───────────────────────────────
 
-describe("checkDocs — fixture corpus (tests/fixtures/docs-check-corpus)", () => {
+describe("Feature: Glossary gate › docs check — fixture corpus (tests/fixtures/docs-check-corpus)", () => {
   // Path relative to worktree root; join with import.meta.dir to get absolute path.
   const CORPUS_ROOT = join(dirname(dirname(import.meta.dir)), "tests/fixtures/docs-check-corpus");
 
@@ -824,7 +824,7 @@ describe("checkDocs — fixture corpus (tests/fixtures/docs-check-corpus)", () =
 
 // ── RepoIO seam: git-tracked scope + Check 5 dispatch ─────────────────────────
 
-describe("checkDocs — RepoIO seam (git-tracked scope)", () => {
+describe("Feature: Glossary gate › docs check — RepoIO seam (git-tracked scope)", () => {
   test("with a RepoIO, checks 0–4 scan ONLY tracked files (untracked files skipped)", () => {
     // banned.md exists on disk but is NOT in the tracked set → must NOT be flagged.
     const files = {

@@ -32,7 +32,7 @@ setup() {
   export PATH="$MASK_BIN:$PATH"
 }
 
-@test "doctor: exit 1 when vault path does not exist" {
+@test "Doctor: exits 1 when the vault path does not exist" {
   export CLAUDE_WIKI_PAGES_VAULT="$BATS_TEST_TMPDIR/nope"
 
   run bash "$REPO_ROOT/$DOCTOR"
@@ -42,7 +42,7 @@ setup() {
   [[ "$output" == *"vault path"* ]]
 }
 
-@test "doctor: exit 2 when schema_version missing" {
+@test "Doctor: exits 2 when schema_version is missing" {
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '# Schema\n\n(no version line)\n' >"$VAULT/CLAUDE.md"
   export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
@@ -54,7 +54,7 @@ setup() {
   [[ "$output" == *"schema_version"* ]]
 }
 
-@test "doctor: exit 3 when raw/ is absent" {
+@test "Doctor: exits 3 when raw/ is absent" {
   mkdir -p "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
   export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
@@ -66,7 +66,7 @@ setup() {
   [[ "$output" == *"raw/"* ]]
 }
 
-@test "doctor: exit 3 when wiki/ is absent" {
+@test "Doctor: exits 3 when wiki/ is absent" {
   mkdir -p "$VAULT/raw"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
   export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
@@ -78,7 +78,7 @@ setup() {
   [[ "$output" == *"wiki/"* ]]
 }
 
-@test "doctor: exit 0 against a healthy minimal vault" {
+@test "Doctor: exits 0 against a healthy minimal vault" {
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
   export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
@@ -90,7 +90,7 @@ setup() {
   [[ "$output" == *"schema=1"* ]]
 }
 
-@test "doctor: exit 0 against the bundled example vault" {
+@test "Doctor: exits 0 against the bundled example vault" {
   export CLAUDE_WIKI_PAGES_VAULT="$REPO_ROOT/tests/fixtures/reference-vault"
 
   run bash "$REPO_ROOT/$DOCTOR"
@@ -101,7 +101,7 @@ setup() {
 
 # ── git-required per-vault init (Phase 0, item 6) — bash doctor git check ────
 
-@test "doctor: reports OK for git when vault is a git repo" {
+@test "Doctor: reports OK for git when the vault is a git repo" {
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
   # Initialise a git repo in the vault so the check passes.
@@ -126,7 +126,7 @@ setup() {
 # guards (firewall, frontmatter, raw-protect) silently pass writes through
 # unchecked. Doctor must flag it like the git hard dependency (exit 1).
 
-@test "doctor: exit 1 when jq binary is absent" {
+@test "Doctor: exits 1 when the jq binary is absent" {
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
 
@@ -156,7 +156,7 @@ setup() {
   [[ "$output" == *"jq"* ]]
 }
 
-@test "doctor: reports OK for jq when jq is present" {
+@test "Doctor: reports OK for jq when jq is present" {
   command -v jq >/dev/null 2>&1 || skip "jq not installed on this machine"
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
@@ -186,7 +186,7 @@ install_obsidian_stub() {
   export PATH="$STUB_BIN:$PATH"
 }
 
-@test "doctor: NOTE with the unresolved-link count when obsidian reports them" {
+@test "Doctor: emits a NOTE with the unresolved-link count when obsidian reports them" {
   command -v jq >/dev/null 2>&1 || skip "jq not installed on this machine"
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
@@ -200,7 +200,7 @@ install_obsidian_stub() {
   assert_output_contains "/claude-wiki-pages:lint"
 }
 
-@test "doctor: silent when obsidian reports zero unresolved links" {
+@test "Doctor: stays silent when obsidian reports zero unresolved links" {
   command -v jq >/dev/null 2>&1 || skip "jq not installed on this machine"
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
@@ -213,7 +213,7 @@ install_obsidian_stub() {
   refute_output_contains "unresolved link"
 }
 
-@test "doctor: silent when the obsidian CLI fails (vault not open)" {
+@test "Doctor: stays silent when the obsidian CLI fails because the vault is not open" {
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
   export CLAUDE_WIKI_PAGES_VAULT="$VAULT"
@@ -226,7 +226,7 @@ install_obsidian_stub() {
   refute_output_contains "unresolved link"
 }
 
-@test "doctor: warns (not fatal) when vault is not a git repo" {
+@test "Doctor: warns without failing when the vault is not a git repo" {
   mkdir -p "$VAULT/raw" "$VAULT/wiki"
   printf '`schema_version: 1`\n' >"$VAULT/CLAUDE.md"
   # Deliberately do NOT git-init the vault.

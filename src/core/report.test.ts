@@ -5,7 +5,7 @@ const err: Finding = { severity: "error", check: "schema", message: "no schema_v
 const warn: Finding = { severity: "warn", check: "moc", message: "orphan source", file: "a.md" };
 const info: Finding = { severity: "info", check: "sources", message: "no _sources/ dir" };
 
-describe("buildReport", () => {
+describe("Feature: Infrastructure › report model — build report", () => {
   test("counts errors and warnings, ignoring info", () => {
     const r = buildReport("verify", "/v", [err, warn, info]);
     expect(r.errors).toBe(1);
@@ -36,7 +36,7 @@ describe("buildReport", () => {
   });
 });
 
-describe("exitCode", () => {
+describe("Feature: Infrastructure › report model — exit code", () => {
   test("is 1 when any error is present", () => {
     expect(exitCode(buildReport("verify", "/v", [err]))).toBe(1);
   });
@@ -46,7 +46,7 @@ describe("exitCode", () => {
   });
 });
 
-describe("renderText", () => {
+describe("Feature: Infrastructure › report model — render text", () => {
   test("tags each finding by severity and shows the check name", () => {
     const out = renderText(buildReport("verify", "/v", [err, warn, info]));
     expect(out).toContain("ERROR [schema] no schema_version");
@@ -74,7 +74,7 @@ describe("renderText", () => {
 
 // ── U5: optional next? on Report ─────────────────────────────────────────────
 
-describe("Report.next (U5)", () => {
+describe("Feature: Infrastructure › report model — Report.next (U5)", () => {
   test("next is absent from buildReport output (buildReport does not set it)", () => {
     const r = buildReport("verify", "/v", [warn]);
     expect(r.next).toBeUndefined();

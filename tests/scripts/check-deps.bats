@@ -25,7 +25,7 @@ setup() {
 # Bun present — must report OK and exit 0 (when all other deps also present)
 # ---------------------------------------------------------------------------
 
-@test "check-deps: reports OK for Bun when bun is on PATH" {
+@test "Dependency check: it reports OK for Bun when bun is on PATH and exits 0" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
   command -v jq  >/dev/null 2>&1 || skip "jq not installed on this machine"
 
@@ -49,7 +49,7 @@ setup() {
 # Bun absent — must emit ERROR: with install instructions and exit 1
 # ---------------------------------------------------------------------------
 
-@test "check-deps: reports ERROR for Bun when bun is absent" {
+@test "Dependency check: it emits a prominent ERROR label and exits 1 when bun is absent" {
   # Build a hermetic sandbox PATH that includes everything check-deps.sh
   # needs (bash, jq, find, etc.) but NOT bun.
   local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nobun"
@@ -83,7 +83,7 @@ setup() {
   assert_output_contains "bun"
 }
 
-@test "check-deps: Bun ERROR message includes bun.sh install URL" {
+@test "Dependency check: the Bun ERROR message includes the bun.sh/install URL" {
   local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nobun-url"
   mkdir -p "$SANDBOX_BIN"
   local tool real
@@ -111,7 +111,7 @@ setup() {
   assert_output_contains "bun.sh/install"
 }
 
-@test "check-deps: Bun ERROR message includes curl install command" {
+@test "Dependency check: the Bun ERROR message includes an actionable curl install command" {
   local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nobun-curl"
   mkdir -p "$SANDBOX_BIN"
   local tool real
@@ -139,7 +139,7 @@ setup() {
   assert_output_contains "curl -fsSL https://bun.sh/install | bash"
 }
 
-@test "check-deps: Bun ERROR message explains why Bun is required" {
+@test "Dependency check: the Bun ERROR message states Bun is required, not merely missing" {
   local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nobun-why"
   mkdir -p "$SANDBOX_BIN"
   local tool real
@@ -172,7 +172,7 @@ setup() {
 # Existing behavior retained: jq still checked, bash version still checked
 # ---------------------------------------------------------------------------
 
-@test "check-deps: exits 1 when jq is absent" {
+@test "Dependency check: it exits 1 and names jq when jq is absent" {
   local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nojq"
   mkdir -p "$SANDBOX_BIN"
   local tool real
@@ -203,7 +203,7 @@ setup() {
   assert_output_contains "jq"
 }
 
-@test "check-deps: reports bash version OK" {
+@test "Dependency check: it reports the bash version as OK when bash meets the minimum" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed on this machine"
   command -v jq  >/dev/null 2>&1 || skip "jq not installed on this machine"
 
@@ -224,7 +224,7 @@ setup() {
 # Summary line present
 # ---------------------------------------------------------------------------
 
-@test "check-deps: prints a summary count when deps are missing" {
+@test "Dependency check: it prints a summary issue count when dependencies are missing" {
   local SANDBOX_BIN="$BATS_TEST_TMPDIR/sandbox-bin-nobun-sum"
   mkdir -p "$SANDBOX_BIN"
   local tool real

@@ -49,7 +49,7 @@ const WIKI_VAULT = {
 
 // ── Unit 3: okf export ────────────────────────────────────────────────────────
 
-describe("okf export", () => {
+describe("Feature: Engine › OKF interop — export", () => {
   test("command field is 'okf' and sub is 'export'", () => {
     const sb = makeVault(WIKI_VAULT);
     const r = okf({ sub: "export", target: sb.vault });
@@ -153,7 +153,7 @@ describe("okf export", () => {
 
 // ── Unit 4: okf import ────────────────────────────────────────────────────────
 
-describe("okf import", () => {
+describe("Feature: Engine › OKF interop — import", () => {
   function makeExportedBundle() {
     const sb = makeVault(WIKI_VAULT);
     okf({ sub: "export", target: sb.vault });
@@ -286,7 +286,7 @@ describe("okf import", () => {
 
 // ── Missing subcommand ────────────────────────────────────────────────────────
 
-describe("okf dispatch", () => {
+describe("Feature: Engine › OKF interop — dispatch", () => {
   test("missing subcommand returns ok:false with helpful message", () => {
     const sb = makeVault({ "CLAUDE.md": "---\nschema_version: 2\n---\n" });
     const r = okf({ sub: undefined, target: sb.vault });
@@ -298,7 +298,7 @@ describe("okf dispatch", () => {
 
 // ── Clock injection ───────────────────────────────────────────────────────────
 
-describe("okf clock injection", () => {
+describe("Feature: Engine › OKF interop — clock injection", () => {
   const FIXED_DATE = "2000-01-15";
   const fixedClock = () => new Date(`${FIXED_DATE}T12:00:00.000Z`);
 

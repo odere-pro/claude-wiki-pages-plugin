@@ -132,7 +132,7 @@ afterEach(() => {
 
 // ── 1. Typo entity_type is REJECTED ─────────────────────────────────────────
 
-describe("checkEntityType — invalid entity_type value", () => {
+describe("Feature: Verify › entity_type check — checkEntityType: invalid entity_type value", () => {
   test("entity_type: persom (typo) produces an error finding", () => {
     writeFileSync(tmpVaultClaudeMd, vaultClaudeMd([]));
     writeFileSync(tmpEntityFile, entityNote("persom"));
@@ -172,7 +172,7 @@ describe("checkEntityType — invalid entity_type value", () => {
 
 // ── 2. Valid core entity_type passes ─────────────────────────────────────────
 
-describe("checkEntityType — valid core entity_type values", () => {
+describe("Feature: Verify › entity_type check — checkEntityType: valid core entity_type values", () => {
   const coreValues = ["person", "organization", "product", "tool", "service", "standard", "place"];
 
   for (const val of coreValues) {
@@ -195,7 +195,7 @@ describe("checkEntityType — valid core entity_type values", () => {
 
 // ── 3. entity_type_extensions extends the allowed set ────────────────────────
 
-describe("checkEntityType — entity_type_extensions composition", () => {
+describe("Feature: Verify › entity_type check — checkEntityType: entity_type_extensions composition", () => {
   test("entity_type_extensions:[dataset] makes entity_type: dataset pass", () => {
     writeFileSync(tmpVaultClaudeMd, vaultClaudeMd(["dataset"]));
     writeFileSync(tmpEntityFile, entityNote("dataset"));
@@ -229,7 +229,7 @@ describe("checkEntityType — entity_type_extensions composition", () => {
 
 // ── 4. Only entity_type composes (D15) — forbidden *_extensions keys ─────────
 
-describe("checkEntityType — D15: only entity_type_extensions is allowed", () => {
+describe("Feature: Verify › entity_type check — checkEntityType: D15: only entity_type_extensions is allowed", () => {
   test("synthesis_type_extensions: in vault CLAUDE.md does NOT extend entity_type", () => {
     // A vault with synthesis_type_extensions:[novel] should NOT make
     // entity_type: novel valid.
@@ -290,7 +290,7 @@ describe("checkEntityType — D15: only entity_type_extensions is allowed", () =
 
 // ── 5. Non-entity pages are never rejected for entity_type ───────────────────
 
-describe("checkEntityType — non-entity pages are exempt", () => {
+describe("Feature: Verify › entity_type check — checkEntityType: non-entity pages are exempt", () => {
   const nonEntityTypes = ["concept", "topic", "project", "source", "index", "synthesis"];
 
   for (const type of nonEntityTypes) {
@@ -313,7 +313,7 @@ describe("checkEntityType — non-entity pages are exempt", () => {
 
 // ── 6. entity_type present but missing — not rejected by THIS check ───────────
 
-describe("checkEntityType — absent entity_type field is not this check's job", () => {
+describe("Feature: Verify › entity_type check — checkEntityType: absent entity_type field is not this check's job", () => {
   test("entity note with no entity_type field produces no entity-type-membership finding", () => {
     writeFileSync(tmpVaultClaudeMd, vaultClaudeMd([]));
     // Write an entity note without entity_type
@@ -351,7 +351,7 @@ describe("checkEntityType — absent entity_type field is not this check's job",
 
 // ── 7. Reference vault — zero findings (gate-05 parity baseline) ─────────────
 
-describe("checkEntityType — reference vault produces zero findings", () => {
+describe("Feature: Verify › entity_type check — checkEntityType: reference vault produces zero findings", () => {
   test("all entity_type values in the reference vault are in the core set", () => {
     const refVaultWiki = join(REPO_ROOT, "tests/fixtures/reference-vault/wiki");
     const refVaultClaudeMd = join(REPO_ROOT, "skills/init/template/CLAUDE.md");

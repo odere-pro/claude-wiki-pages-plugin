@@ -12,7 +12,7 @@ setup() {
   _load_helpers
 }
 
-@test "check-wikilinks: allows [[wikilinks]] in wiki body" {
+@test "Wikilink format guard: allows [[wikilinks]] in a wiki body" {
   # Use content that contains BOTH a real [[wikilink]] and a bare HTTP link.
   # A regex that over-matches (e.g., dropping the .md suffix) would false-
   # positive on the HTTP link, so this fixture pins the discrimination.
@@ -49,7 +49,7 @@ MD
   assert_output_empty
 }
 
-@test "check-wikilinks: blocks [text](file.md) in wiki body" {
+@test "Wikilink format guard: blocks [text](file.md) markdown links in a wiki body" {
   run_hook_with_json "scripts/check-wikilinks.sh" \
     "$JSON_FIXTURES_DIR/write-invalid-markdown-link.json"
 
@@ -58,7 +58,7 @@ MD
   assert_output_contains "wikilinks"
 }
 
-@test "check-wikilinks: allows http links in wiki body" {
+@test "Wikilink format guard: allows bare http links in a wiki body" {
   local json_file="$BATS_TEST_TMPDIR/input.json"
   local content
   content=$(cat <<'MD'
@@ -92,7 +92,7 @@ MD
   assert_output_empty
 }
 
-@test "check-wikilinks: ignores non-wiki paths" {
+@test "Wikilink format guard: ignores non-wiki paths" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/elsewhere/readme.md","content":"See [docs](docs.md) please."}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/check-wikilinks.sh'"
 
@@ -102,7 +102,7 @@ MD
 
 # --- U4 errors-that-teach ----------------------------------------------------
 
-@test "check-wikilinks: error includes the offending fragment (U4)" {
+@test "Wikilink format guard: the error includes the offending fragment so the author can locate it" {  # spec U4
   # Before U4: generic "Wiki file uses [text](file.md) links" with no context.
   # After U4: the specific offending fragment appears so the author can locate it.
   local json_file="$BATS_TEST_TMPDIR/input.json"
@@ -156,7 +156,7 @@ _path_without_bun_cw() {
   printf '%s' "$tooldir"
 }
 
-@test "check-wikilinks: FAIL-OPEN — Bun absent lets a markdown-link wiki write through" {
+@test "Wikilink format guard: Bun absent lets a markdown-link wiki write through (fail-open advisory)" {
   local tooldir
   tooldir=$(_path_without_bun_cw)
   run bash -c "PATH='$tooldir' command -v bun"

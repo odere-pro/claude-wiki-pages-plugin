@@ -93,7 +93,7 @@ EOF
 # The "orphaned" group has a canonical form that matches no page at all.
 # ---------------------------------------------------------------------------
 
-@test "lint-vocabulary: WARN when vocabulary form appears in no wiki page (orphaned entry)" {
+@test "Vocabulary lint: a vocabulary form that appears in no wiki page is flagged as an orphaned entry" {  # spec S3-vocabulary
   # Vocabulary: one group totally absent, one group present in the wiki.
   _write_vocab_file \
     "totally-absent-term" "also-absent,never-used" \
@@ -117,7 +117,7 @@ EOF
 # at --min-tag-usage 1.
 # ---------------------------------------------------------------------------
 
-@test "lint-vocabulary: WARN for singleton tag at default floor (N=2), cleared at --min-tag-usage 1" {
+@test "Vocabulary lint: a singleton tag is flagged at the default usage floor (N=2) and cleared at --min-tag-usage 1" {  # spec S3-vocabulary
   # Vocabulary: two groups, each with a single canonical form that also appears
   # as a tag on wiki pages. No variants are used — keeping forms = tags avoids
   # false orphan-form WARNs.
@@ -150,7 +150,7 @@ EOF
 # The group is reported ONCE by its canonical form, not once per variant.
 # ---------------------------------------------------------------------------
 
-@test "lint-vocabulary: fully-unreferenced group reported once by canonical, not once per variant" {
+@test "Vocabulary lint: a fully-unreferenced group is reported once by its canonical form, not once per variant" {  # spec S3-vocabulary
   # Vocabulary: a group with several variants (none in wiki) + a referenced group.
   _write_vocab_file \
     "ghost-concept" "ghost-variant-one,ghost-variant-two,ghost-variant-three" \
@@ -187,7 +187,7 @@ EOF
 # referenced in the wiki (ensured by the curated vocabulary file there).
 # ---------------------------------------------------------------------------
 
-@test "lint-vocabulary: reference vault tests/fixtures/reference-vault passes with no WARNs" {
+@test "Vocabulary lint: the reference vault at tests/fixtures/reference-vault passes with no WARNs" {  # spec S3-vocabulary
   run bash "$SCRIPTS_DIR/lint-vocabulary.sh" --target "$REPO_ROOT/tests/fixtures/reference-vault"
 
   assert_success
@@ -198,7 +198,7 @@ EOF
 # Case 4b: Absent _vocabulary.md -> exit 0 + info line (EMPTY_LEXICON no-throw path).
 # ---------------------------------------------------------------------------
 
-@test "lint-vocabulary: absent _vocabulary.md exits 0 with info line" {
+@test "Vocabulary lint: an absent _vocabulary.md exits 0 with an info line (EMPTY_LEXICON no-throw path)" {  # spec S3-vocabulary
   # No vocabulary file in the fixture (setup does not create one).
   rm -f "$FIXTURE_VAULT/_vocabulary.md"
 
@@ -213,7 +213,7 @@ EOF
 # Case 5: Determinism — same injected vault run twice -> byte-identical output.
 # ---------------------------------------------------------------------------
 
-@test "lint-vocabulary: deterministic output across two runs" {
+@test "Vocabulary lint: produces byte-identical output across two runs of the same vault" {  # spec S3-vocabulary
   # Vocabulary with one orphaned group to produce non-trivial output.
   _write_vocab_file \
     "absent-term" "absent-variant" \
@@ -242,7 +242,7 @@ EOF
 # argv-passing boundary.
 # ---------------------------------------------------------------------------
 
-@test "lint-vocabulary: vault path with shell-special chars does not break or inject" {
+@test "Vocabulary lint: a vault path with shell-special characters does not break the script or inject code" {  # spec S3-vocabulary
   # Create a subdirectory with shell-special chars in its name.
   # (The path is passed via argv, so no quoting in the JS string is needed.)
   local special_vault

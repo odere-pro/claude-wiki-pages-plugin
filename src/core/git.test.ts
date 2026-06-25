@@ -44,7 +44,7 @@ function writeFile(name: string, body = "x"): void {
   writeFileSync(join(dir, name), body);
 }
 
-describe("isRepo", () => {
+describe("Feature: Infrastructure › git helpers — repo detection", () => {
   test("is false for a plain directory and true after init", () => {
     expect(isRepo(dir)).toBe(false);
     ensureRepo(dir);
@@ -52,7 +52,7 @@ describe("isRepo", () => {
   });
 });
 
-describe("ensureRepo", () => {
+describe("Feature: Infrastructure › git helpers — ensure repo", () => {
   test("creates a repo with an initial commit", () => {
     ensureRepo(dir);
     expect(isRepo(dir)).toBe(true);
@@ -79,7 +79,7 @@ describe("ensureRepo", () => {
   });
 });
 
-describe("isClean", () => {
+describe("Feature: Infrastructure › git helpers — clean check", () => {
   test("is true on a freshly committed tree and false with an untracked file", () => {
     ensureRepo(dir);
     expect(isClean(dir)).toBe(true);
@@ -88,7 +88,7 @@ describe("isClean", () => {
   });
 });
 
-describe("head", () => {
+describe("Feature: Infrastructure › git helpers — head", () => {
   test("returns null outside a repo and a short SHA inside one", () => {
     expect(head(dir)).toBeNull();
     ensureRepo(dir);
@@ -97,7 +97,7 @@ describe("head", () => {
   });
 });
 
-describe("checkpoint", () => {
+describe("Feature: Infrastructure › git helpers — checkpoint", () => {
   test("writes an empty-ok checkpoint commit and returns its SHA", () => {
     ensureRepo(dir);
     const before = head(dir);
@@ -117,7 +117,7 @@ describe("checkpoint", () => {
   });
 });
 
-describe("repoRoot", () => {
+describe("Feature: Infrastructure › git helpers — repo root", () => {
   test("returns null outside a repo and the work-tree root inside one", () => {
     expect(repoRoot(dir)).toBeNull();
     ensureRepo(dir);
@@ -129,7 +129,7 @@ describe("repoRoot", () => {
   });
 });
 
-describe("applyCheckpointMode", () => {
+describe("Feature: Infrastructure › git helpers — apply checkpoint mode", () => {
   test("off performs no git operation and returns null", () => {
     ensureRepo(dir);
     const before = head(dir);
@@ -160,7 +160,7 @@ describe("applyCheckpointMode", () => {
   });
 });
 
-describe("inherited parent repo (vault inside the user's project repo)", () => {
+describe("Feature: Infrastructure › git helpers — inherited parent repo (vault inside the user's project repo)", () => {
   // The vault is a subdirectory of a repo the user owns. Every plugin commit
   // must be pathspec-scoped to the vault: the user's unrelated dirty files at
   // the repo root must never be staged or swallowed.
@@ -211,7 +211,7 @@ describe("inherited parent repo (vault inside the user's project repo)", () => {
   });
 });
 
-describe("commitHeal", () => {
+describe("Feature: Infrastructure › git helpers — commit heal", () => {
   test("commits the healed state and returns its SHA", () => {
     ensureRepo(dir);
     writeFile("healed.md", "fixed");
@@ -255,7 +255,7 @@ describe("commitHeal", () => {
   });
 });
 
-describe("push (best-effort, opt-in)", () => {
+describe("Feature: Infrastructure › git helpers — push (best-effort, opt-in)", () => {
   test("returns ok:false when there is no upstream/remote — never throws", () => {
     ensureRepo(dir);
     // No remote configured → `git push` exits non-zero; push() must degrade to
@@ -296,7 +296,7 @@ describe("push (best-effort, opt-in)", () => {
 //   c) An invalid env value (NaN, negative, zero) is ignored, falling back to
 //      the 30 000 ms default.
 
-describe("GIT_TIMEOUT_MS env override (H08 / M29)", () => {
+describe("Feature: Infrastructure › git helpers — GIT_TIMEOUT_MS env override (H08 / M29)", () => {
   test("CLAUDE_WIKI_PAGES_GIT_TIMEOUT_MS: a positive integer is parsed as the timeout", () => {
     // Exercise the REAL exported parser (parseGitTimeoutMs) — not a re-derived
     // copy — so a regression in git.ts's parsing rule turns this test red.
@@ -340,7 +340,7 @@ describe("GIT_TIMEOUT_MS env override (H08 / M29)", () => {
 
 // ── GitProvider gateway (C03) ─────────────────────────────────────────────────
 
-describe("defaultGitProvider", () => {
+describe("Feature: Infrastructure › git helpers — default provider", () => {
   test("satisfies the GitProvider interface — all methods delegate correctly", () => {
     // The gateway must expose every method required by the interface.
     expect(typeof defaultGitProvider.isRepo).toBe("function");

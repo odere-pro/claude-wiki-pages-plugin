@@ -95,7 +95,7 @@ function vaultClaudeMd(sb: Sandbox): string {
 // 1. Schema absent → fail-open (returns [])
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — schema absent", () => {
+describe("Feature: Verify › entity_type check — schema absent", () => {
   test("1. no CLAUDE.md → returns [] (fail-open, no false positives)", () => {
     const sb = makeSandbox({
       "wiki/topics/my-entity.md": "---\ntitle: My Entity\ntype: entity\nentity_type: person\n---\n",
@@ -111,7 +111,7 @@ describe("checkEntityType — schema absent", () => {
 // 2. Valid entity_type (member of core set) → no findings
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — valid entity_type", () => {
+describe("Feature: Verify › entity_type check — valid entity_type", () => {
   test("2. entity_type in core set → no findings", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -148,7 +148,7 @@ describe("checkEntityType — valid entity_type", () => {
 // 3. Invalid entity_type → error finding
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — invalid entity_type", () => {
+describe("Feature: Verify › entity_type check — invalid entity_type", () => {
   test("3. entity_type NOT in allowed set → error finding with check: entity-type-membership", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -181,7 +181,7 @@ describe("checkEntityType — invalid entity_type", () => {
 // 4. Non-entity pages are skipped
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — non-entity page types skipped", () => {
+describe("Feature: Verify › entity_type check — non-entity page types skipped", () => {
   test("4. type: concept with invalid entity_type → skipped (not an entity page)", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -210,7 +210,7 @@ describe("checkEntityType — non-entity page types skipped", () => {
 // 5. entity_type absent on an entity page → skipped (no double-flag)
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — absent entity_type is skipped", () => {
+describe("Feature: Verify › entity_type check — absent entity_type is skipped", () => {
   test("5. entity page with no entity_type field → returns [] (required-fields' responsibility)", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -226,7 +226,7 @@ describe("checkEntityType — absent entity_type is skipped", () => {
 // 6. Empty entity_type string → skipped (degenerate)
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — empty entity_type is skipped", () => {
+describe("Feature: Verify › entity_type check — empty entity_type is skipped", () => {
   test("6. entity_type: '' (empty string) → returns [] (degenerate case)", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -242,7 +242,7 @@ describe("checkEntityType — empty entity_type is skipped", () => {
 // 7. entity_type_extensions compose with core
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — vault entity_type_extensions", () => {
+describe("Feature: Verify › entity_type check — vault entity_type_extensions", () => {
   test("7. entity_type_extensions value is accepted when present in CLAUDE.md frontmatter", () => {
     // entity_type_extensions must live in the YAML frontmatter (readEntityTypeExtensions
     // reads the --- block first; body text is only the fallback path).
@@ -315,7 +315,7 @@ entity_type_extensions: [dataset]
 // 8. Error message contains the page title and the invalid value
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — error message content", () => {
+describe("Feature: Verify › entity_type check — error message content", () => {
   test("8. error message contains the title and the bad entity_type value", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -335,7 +335,7 @@ describe("checkEntityType — error message content", () => {
 // 9. Bookkeeping files are skipped (isBookkeepingFile gate — line 101)
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — bookkeeping files skipped", () => {
+describe("Feature: Verify › entity_type check — bookkeeping files skipped", () => {
   test("9a. index.md with invalid entity_type → skipped (bookkeeping)", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -376,7 +376,7 @@ describe("checkEntityType — bookkeeping files skipped", () => {
 // 10. entity_type: null is skipped (explicitly handled at line 113)
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — null entity_type is skipped", () => {
+describe("Feature: Verify › entity_type check — null entity_type is skipped", () => {
   test("10. entity_type explicitly null in frontmatter → skipped (no double-flag)", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -394,7 +394,7 @@ describe("checkEntityType — null entity_type is skipped", () => {
 //     (line 115-116: `typeof rawEntityType === "string" ? ... : String(rawEntityType).trim()`)
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — non-string entity_type coercion", () => {
+describe("Feature: Verify › entity_type check — non-string entity_type coercion", () => {
   test("11a. entity_type: 123 (numeric) → coerced to '123', not in core set → error finding", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -427,7 +427,7 @@ describe("checkEntityType — non-string entity_type coercion", () => {
 //     listMarkdownRecursive returns [] when wiki/ is empty → no findings
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — empty wiki directory", () => {
+describe("Feature: Verify › entity_type check — empty wiki directory", () => {
   test("12a. wiki/ exists but is empty → returns [] (no files to check)", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -455,7 +455,7 @@ describe("checkEntityType — empty wiki directory", () => {
 //     Tests the parseOntologyProfile ok: false path for bad schema content.
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — malformed schema falls back to fail-open", () => {
+describe("Feature: Verify › entity_type check — malformed schema falls back to fail-open", () => {
   test("13a. CLAUDE.md present but missing predicate table → returns [] (fail-open)", () => {
     const noPredicateTable = `---
 schema_version: 3
@@ -519,7 +519,7 @@ schema_version: 3
 //     (line 116: rawEntityType.trim()) — boundary / limit value
 // ---------------------------------------------------------------------------
 
-describe("checkEntityType — entity_type whitespace trimming", () => {
+describe("Feature: Verify › entity_type check — entity_type whitespace trimming", () => {
   test("14a. entity_type with surrounding spaces: ' person ' → trimmed to 'person' → valid, no finding", () => {
     const sb = makeSandbox({
       "CLAUDE.md": MINIMAL_PROFILE,
@@ -557,7 +557,7 @@ describe("checkEntityType — entity_type whitespace trimming", () => {
 // resolveSchemaPath — returns vault CLAUDE.md path
 // ---------------------------------------------------------------------------
 
-describe("resolveSchemaPath", () => {
+describe("Feature: Verify › entity_type check — resolveSchemaPath", () => {
   test("returns <vault>/CLAUDE.md path (used by verify.ts to wire checkEntityType)", () => {
     const result = resolveSchemaPath("/some/vault");
     expect(result).toBe("/some/vault/CLAUDE.md");

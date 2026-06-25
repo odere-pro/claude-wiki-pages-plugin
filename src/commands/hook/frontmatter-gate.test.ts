@@ -78,7 +78,7 @@ function gate(args: {
   });
 }
 
-describe("frontmatterGate — path filter (bash pass-through parity)", () => {
+describe("Feature: Hook gates › frontmatter gate — path filter (bash pass-through parity)", () => {
   test("a non-wiki path is allowed (not gated)", () => {
     sb = makeVault({ "CLAUDE.md": SCHEMA_CLAUDE_MD });
     const d = gate({
@@ -104,7 +104,7 @@ describe("frontmatterGate — path filter (bash pass-through parity)", () => {
   });
 });
 
-describe("frontmatterGate — Write tool (validateContent parity)", () => {
+describe("Feature: Hook gates › frontmatter gate — Write tool (validateContent parity)", () => {
   test("a clean concept page is allowed", () => {
     sb = makeVault({ "CLAUDE.md": SCHEMA_CLAUDE_MD });
     const d = gate({
@@ -143,7 +143,7 @@ describe("frontmatterGate — Write tool (validateContent parity)", () => {
   });
 });
 
-describe("frontmatterGate — Edit tool (field-removal parity)", () => {
+describe("Feature: Hook gates › frontmatter gate — Edit tool (field-removal parity)", () => {
   test("an Edit that drops a required field is blocked", () => {
     sb = makeVault({ "CLAUDE.md": SCHEMA_CLAUDE_MD });
     const d = gate({
@@ -172,7 +172,7 @@ describe("frontmatterGate — Edit tool (field-removal parity)", () => {
   });
 });
 
-describe("frontmatterGate — bundled-template fallback", () => {
+describe("Feature: Hook gates › frontmatter gate — bundled-template fallback", () => {
   test("a vault CLAUDE.md without the table falls back to the bundled template", () => {
     // No "### Required fields by type" heading → bundled template enforces it.
     sb = makeVault({ "CLAUDE.md": "# Schema with no table\n" });
@@ -193,7 +193,7 @@ describe("frontmatterGate — bundled-template fallback", () => {
   });
 });
 
-describe("frontmatterGate — fail-closed on malformed vault table", () => {
+describe("Feature: Hook gates › frontmatter gate — fail-closed on malformed vault table", () => {
   test("a heading present but zero data rows fails closed (block)", () => {
     sb = makeVault({
       "CLAUDE.md":
@@ -211,7 +211,7 @@ describe("frontmatterGate — fail-closed on malformed vault table", () => {
   });
 });
 
-describe("frontmatterGate — wiki-relative path for the path: check", () => {
+describe("Feature: Hook gates › frontmatter gate — wiki-relative path for the path: check", () => {
   test("the path filter strips through <vaultName>/wiki/ to compute wiki-relative", () => {
     sb = makeVault({ "CLAUDE.md": SCHEMA_CLAUDE_MD });
     const wrongPath = CLEAN_CONCEPT.replace("path: topics/biology", "path: wrong/place");

@@ -58,7 +58,7 @@ function writeSourcePage(sourcesDir: string, filename: string, title: string): v
 
 // ── MANIFEST_RELATIVE constant ────────────────────────────────────────────────
 
-describe("MANIFEST_RELATIVE", () => {
+describe("Feature: Infrastructure › manifest model — relative path constant", () => {
   test("is the expected vault-relative path", () => {
     expect(MANIFEST_RELATIVE).toBe("wiki/_sources/manifest.md");
   });
@@ -66,7 +66,7 @@ describe("MANIFEST_RELATIVE", () => {
 
 // ── listRawFiles ──────────────────────────────────────────────────────────────
 
-describe("listRawFiles", () => {
+describe("Feature: Infrastructure › manifest model — list raw files", () => {
   afterEach(teardown);
 
   test("returns empty array when raw/ does not exist", () => {
@@ -140,7 +140,7 @@ describe("listRawFiles", () => {
 
 // ── manifestRows ──────────────────────────────────────────────────────────────
 
-describe("manifestRows", () => {
+describe("Feature: Infrastructure › manifest model — manifest rows", () => {
   afterEach(teardown);
 
   test("returns empty array when raw/ is empty", () => {
@@ -247,7 +247,7 @@ describe("manifestRows", () => {
 
 // ── C14: negative / error-path tests ─────────────────────────────────────────
 
-describe("C14 — negative / invalid-path tests", () => {
+describe("Feature: Infrastructure › manifest model — C14: negative / invalid-path tests", () => {
   afterEach(teardown);
 
   test("listRawFiles: non-existent path returns [] without throwing", () => {
@@ -324,7 +324,7 @@ describe("C14 — negative / invalid-path tests", () => {
 
 // ── buildManifest ─────────────────────────────────────────────────────────────
 
-describe("buildManifest", () => {
+describe("Feature: Infrastructure › manifest model — build manifest", () => {
   afterEach(teardown);
 
   test("renders valid frontmatter block", () => {

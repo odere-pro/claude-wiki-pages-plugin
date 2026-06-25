@@ -43,7 +43,7 @@ afterEach(() => {
 
 const AGENT_SESSION_FM = "---\ntype: source\nsource_type: agent-session\n---\nbody\n";
 
-describe("protectRawHookGate", () => {
+describe("Feature: Hook gates › raw-immutability gate", () => {
   test("empty file_path → allow", () => {
     sb = makeVault({ "CLAUDE.md": "---\nschema_version: 1\n---\n" });
     const d = protectRawHookGate({

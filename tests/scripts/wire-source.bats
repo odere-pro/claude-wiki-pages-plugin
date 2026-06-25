@@ -30,7 +30,7 @@ run_wire() {
   run bash -c "cd '$PROJ'; export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS' CLAUDE_WIKI_PAGES_VAULT='docs/vault'; bash '$REPO_ROOT/scripts/wire-source.sh' $*"
 }
 
-@test "wire-source: add registers the record and pulls docs-only snapshots" {
+@test "Source wiring: add registers the source record and pulls docs-only snapshots" {
   run_wire add --name proj --path . --vault docs/vault
   assert_success
   assert_output_contains "WIRED: proj"
@@ -43,14 +43,14 @@ run_wire() {
   assert_output_contains "0"
 }
 
-@test "wire-source: record carries docs-only globs and the vault exclude" {
+@test "Source wiring: the registered record carries docs-only globs and the vault exclude" {
   run_wire add --name proj --path . --vault docs/vault
   assert_success
   run bun -e "const w=JSON.parse(require('fs').readFileSync('$SETTINGS','utf8')).wired_sources[0]; const b=(x)=>x?'True':'False'; console.log([w.name, b(w.exclude.includes('docs/vault/**')), b(w.include.includes('README*')), b(Boolean(w.lastSyncedCommit))].join(' '))"
   assert_output_contains "proj True True True"
 }
 
-@test "wire-source: re-add is idempotent and preserves lastSyncedCommit" {
+@test "Source wiring: re-add is idempotent and preserves lastSyncedCommit" {
   run_wire add --name proj --path . --vault docs/vault
   assert_success
   before=$(bun -e "console.log(JSON.parse(require('fs').readFileSync('$SETTINGS','utf8')).wired_sources[0].lastSyncedCommit)")
@@ -60,7 +60,7 @@ run_wire() {
   assert_output_contains "1 $before"
 }
 
-@test "wire-source: refuses a path that is not a git work tree" {
+@test "Source wiring: add refuses a path that is not a git work tree" {
   local bare="$BATS_TEST_TMPDIR/not-a-repo"
   mkdir -p "$bare"
   run bash -c "cd '$PROJ'; export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS'; bash '$REPO_ROOT/scripts/wire-source.sh' add --name x --path '$bare' --vault docs/vault"
@@ -68,7 +68,7 @@ run_wire() {
   assert_output_contains "not a git work tree"
 }
 
-@test "wire-source: exits non-zero when wired_add fails (set -e active)" {
+@test "Source wiring: add exits non-zero when wired_add fails under set -e" {
   # Inject a broken wired_add by overriding CLAUDE_WIKI_PAGES_SETTINGS_FILE to a
   # read-only path so settings-tool.ts cannot write, causing wired_add to return
   # non-zero.  With set -euo pipefail the script must exit 1 rather than

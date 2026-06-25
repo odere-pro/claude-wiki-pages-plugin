@@ -44,27 +44,27 @@ write_config() {
 # 1. Refuses when unattended=false (default — key absent)
 # ---------------------------------------------------------------------------
 
-@test "maintenance-run: refuses when maintenance.unattended is absent (default off)" {
+@test "Scheduled maintenance: refuses to run when maintenance.unattended is absent (default off)" {
   # No config file at all → unattended defaults to false.
   run_mr
   assert_success
   assert_output_contains "maintenance.unattended"
 }
 
-@test "maintenance-run: refuses when maintenance.unattended is explicitly false" {
+@test "Scheduled maintenance: refuses to run when maintenance.unattended is explicitly false" {
   write_config '{"maintenance":{"enabled":true,"unattended":false}}'
   run_mr
   assert_success
   assert_output_contains "maintenance.unattended"
 }
 
-@test "maintenance-run: refusal message mentions maintenance-run.sh" {
+@test "Scheduled maintenance: the refusal message mentions maintenance-run.sh" {
   run_mr
   assert_success
   assert_output_contains "maintenance-run.sh"
 }
 
-@test "maintenance-run: refusal message explains how to enable" {
+@test "Scheduled maintenance: the refusal message explains how to enable unattended runs" {
   run_mr
   assert_success
   # Must point the operator at the config key, not just name the script.
@@ -75,7 +75,7 @@ write_config() {
 # 2. No-op when backlog is empty (unattended=true, empty raw/)
 # ---------------------------------------------------------------------------
 
-@test "maintenance-run: exits 0 silently when unattended=true but raw/ is empty and engine absent" {
+@test "Scheduled maintenance: exits 0 silently when unattended=true but raw/ is empty and the engine is absent" {
   # When Bun is absent, the script must degrade gracefully: no backlog detectable
   # → nothing to do → exit 0. This also acts as the idempotent-cron safety test.
   write_config '{"maintenance":{"enabled":true,"unattended":true,"maxPerRun":10}}'
@@ -93,7 +93,7 @@ write_config() {
 # 3. Never targets tests/fixtures/reference-vault
 # ---------------------------------------------------------------------------
 
-@test "maintenance-run: refuses to run against tests/fixtures/reference-vault" {
+@test "Scheduled maintenance: refuses to run against tests/fixtures/reference-vault" {
   # Even if CLAUDE_WIKI_PAGES_VAULT is set to tests/fixtures/reference-vault the script
   # must detect the protected path and abort with a clear message, exiting 0.
   local EXAMPLE_VAULT="$REPO_ROOT/tests/fixtures/reference-vault"
@@ -107,7 +107,7 @@ write_config() {
   assert_output_contains "tests/fixtures/reference-vault"
 }
 
-@test "maintenance-run: safe path check is path-prefix based (not substring)" {
+@test "Scheduled maintenance: the safe-path check is path-prefix based rather than substring based" {
   # A vault named 'tests/fixtures/reference-vault-extended' must NOT be blocked.
   local ALT_VAULT="$BATS_TEST_TMPDIR/tests/fixtures/reference-vault-extended"
   mkdir -p "$ALT_VAULT/raw" "$ALT_VAULT/wiki"
@@ -128,7 +128,7 @@ write_config() {
 # 4. N18-maintenance: strict mode must include -e (set -euo pipefail)
 # ---------------------------------------------------------------------------
 
-@test "maintenance-run: N18 — script source declares set -euo pipefail (strict mode with -e)" {
+@test "Scheduled maintenance: the script source declares set -euo pipefail for strict mode with -e" { # spec N18
   # Static structural check: grep for the full strict-mode line.
   # This test will FAIL until the -e flag is added (TDD red phase).
   run grep -q 'set -euo pipefail' "$REPO_ROOT/scripts/maintenance-run.sh"
@@ -139,7 +139,7 @@ write_config() {
 # 5. H06: advisory vault lock is acquired before the log append
 # ---------------------------------------------------------------------------
 
-@test "maintenance-run: H06 — vault_lock_acquire is called before wiki/log.md append" {
+@test "Scheduled maintenance: vault_lock_acquire is called before the wiki/log.md append" { # spec H06
   # Static structural check: the log-append section must wrap the >> in the
   # vault lock.  We verify both that vault_lock_acquire is referenced and that
   # vault-lock.sh is sourced so the function is available.
@@ -147,12 +147,12 @@ write_config() {
   assert_success
 }
 
-@test "maintenance-run: H06 — vault-lock.sh is sourced (lock functions available)" {
+@test "Scheduled maintenance: vault-lock.sh is sourced so the lock functions are available" { # spec H06
   run grep -q 'source.*vault-lock\.sh' "$REPO_ROOT/scripts/maintenance-run.sh"
   assert_success
 }
 
-@test "maintenance-run: H06 — cfg_scalar returns 0 when jq is absent (no abort under set -e)" {
+@test "Scheduled maintenance: cfg_scalar returns 0 when jq is absent so there is no abort under set -e" { # spec H06
   # Verify that cfg_scalar is guarded with || return 0 (or equivalent) so
   # the function never exits non-zero when jq is not found.  Under set -euo
   # pipefail a non-zero function return propagates to the caller and aborts

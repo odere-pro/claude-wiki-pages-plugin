@@ -61,20 +61,20 @@ teardown() {
 # Default mode: single consolidated output/wiki.md
 # ---------------------------------------------------------------------------
 
-@test "distribute-wiki: default mode creates output/wiki.md" {
+@test "Wiki distribution: default mode creates a single output/wiki.md file" {
   run bash "$SCRIPT" --target "$VAULT"
   assert_success
   [ -f "$VAULT/output/wiki.md" ]
 }
 
-@test "distribute-wiki: output reports page count" {
+@test "Wiki distribution: the output reports the consolidated page count" {
   run bash "$SCRIPT" --target "$VAULT"
   assert_success
   assert_output_contains "READY:"
   assert_output_contains "pages consolidated"
 }
 
-@test "distribute-wiki: frontmatter is stripped from output" {
+@test "Wiki distribution: frontmatter is stripped from exported pages" {
   run bash "$SCRIPT" --target "$VAULT"
   assert_success
   # The YAML block (---) should not appear in the exported body.
@@ -83,7 +83,7 @@ teardown() {
   ! grep -q '^type: concept' "$VAULT/output/wiki.md" 2>/dev/null
 }
 
-@test "distribute-wiki: wikilinks flattened to plain text by default" {
+@test "Wiki distribution: [[wikilinks]] are flattened to plain text by default" {
   run bash "$SCRIPT" --target "$VAULT"
   assert_success
   # [[Beta]] should become just "Beta" (no brackets).
@@ -100,14 +100,14 @@ teardown() {
 # --links mode
 # ---------------------------------------------------------------------------
 
-@test "distribute-wiki: --links converts wikilinks to markdown links" {
+@test "Wiki distribution: --links converts [[wikilinks]] to [Title](title-slug.md) markdown links" {
   run bash "$SCRIPT" --target "$VAULT" --links
   assert_success
   # [[Beta]] should become [Beta](beta.md).
   grep -qE '\[Beta\]\(beta\.md\)' "$VAULT/output/wiki.md"
 }
 
-@test "distribute-wiki: --links does not leave raw [[...]] syntax" {
+@test "Wiki distribution: --links leaves no raw [[...]] syntax in the output" {
   run bash "$SCRIPT" --target "$VAULT" --links
   assert_success
   body=$(grep -v '^<!--' "$VAULT/output/wiki.md" || true)
@@ -121,13 +121,13 @@ teardown() {
 # --tree mode
 # ---------------------------------------------------------------------------
 
-@test "distribute-wiki: --tree creates output/wiki/ directory" {
+@test "Wiki distribution: --tree creates the output/wiki/ directory" {
   run bash "$SCRIPT" --target "$VAULT" --tree
   assert_success
   [ -d "$VAULT/output/wiki" ]
 }
 
-@test "distribute-wiki: --tree writes one file per page" {
+@test "Wiki distribution: --tree writes one file per wiki page" {
   run bash "$SCRIPT" --target "$VAULT" --tree
   assert_success
   # index.md and log.md and two topic pages → at least 4 files.
@@ -135,7 +135,7 @@ teardown() {
   [ "$count" -ge 4 ]
 }
 
-@test "distribute-wiki: --tree output reports 'tree mode'" {
+@test "Wiki distribution: --tree output reports 'tree mode'" {
   run bash "$SCRIPT" --target "$VAULT" --tree
   assert_success
   assert_output_contains "tree mode"
@@ -145,7 +145,7 @@ teardown() {
 # --clean flag
 # ---------------------------------------------------------------------------
 
-@test "distribute-wiki: --clean removes stale output before writing" {
+@test "Wiki distribution: --clean removes existing output before writing" {
   # Write an initial export.
   run bash "$SCRIPT" --target "$VAULT"
   assert_success
@@ -157,7 +157,7 @@ teardown() {
   [ -f "$VAULT/output/wiki.md" ]
 }
 
-@test "distribute-wiki: --tree --clean removes old mirror tree" {
+@test "Wiki distribution: --tree --clean removes the old mirror tree before writing" {
   run bash "$SCRIPT" --target "$VAULT" --tree
   assert_success
   old_file="$VAULT/output/wiki/stale-extra.md"
@@ -171,19 +171,19 @@ teardown() {
 # Error cases
 # ---------------------------------------------------------------------------
 
-@test "distribute-wiki: exits 1 when wiki/ directory is absent" {
+@test "Wiki distribution: exits 1 with a clear error when the wiki/ directory is absent" {
   rm -rf "$VAULT/wiki"
   run bash "$SCRIPT" --target "$VAULT"
   assert_status 1
   assert_output_contains "ERROR"
 }
 
-@test "distribute-wiki: unknown flag exits 1" {
+@test "Wiki distribution: an unknown flag exits 1" {
   run bash "$SCRIPT" --target "$VAULT" --no-such-flag
   assert_status 1
 }
 
-@test "distribute-wiki: --help exits 0" {
+@test "Wiki distribution: --help exits 0" {
   run bash "$SCRIPT" --help
   assert_success
 }

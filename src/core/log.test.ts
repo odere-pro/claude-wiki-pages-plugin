@@ -10,7 +10,7 @@ const VAULT = {
     '---\ntitle: "Operations Log"\ntype: log\ncreated: 2026-06-01\nupdated: 2026-06-01\n---\n\n# Operations Log\n',
 };
 
-describe("appendLog", () => {
+describe("Feature: Infrastructure › log append — appendLog", () => {
   test("appends a dated entry with details", () => {
     const sb = makeVault(VAULT);
     const wrote = appendLog(sb.vault, {
