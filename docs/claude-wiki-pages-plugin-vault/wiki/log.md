@@ -110,26 +110,26 @@ New folder notes:
 - `wiki/src/core/core.md` (index)
 - `wiki/src/commands/src-commands.md` (index)
 
-New entities: [[engine-cli|Engine CLI]]
+New entities: `Engine CLI`
 
 New concepts:
-- [[report-model|Report Model]]
-- [[vault-resolution|Vault Resolution]]
-- [[firewall-module|Firewall Module]]
-- [[graph-traversal|Graph Traversal]]
-- [[frontmatter-parser|Frontmatter Parser]]
-- [[wikilink-extraction|Wikilink Extraction]]
-- [[link-resolver|Link Resolver]]
-- [[spine-module|Spine Module]]
-- [[schema-check|Schema Check]]
-- [[link-demote|Link Demote]]
-- [[tree-metric|Tree Metric]]
-- [[config-loading|Config Loading]]
-- [[verify-command|Verify Command]]
-- [[search-command|Search Command]]
-- [[heal-command|Heal Command]]
-- [[snapshot-command|Snapshot Command]]
-- [[hook-gate|Hook Gate]]
+- `Report Model`
+- `Vault Resolution`
+- `Firewall Module`
+- `Graph Traversal`
+- `Frontmatter Parser`
+- `Wikilink Extraction`
+- `Link Resolver`
+- `Spine Module`
+- `Schema Check`
+- `Link Demote`
+- `Tree Metric`
+- `Config Loading`
+- `Verify Command`
+- `Search Command`
+- `Heal Command`
+- `Snapshot Command`
+- `Hook Gate`
 
 New source summaries: src-engine-overview, src-cli-router, src-core-report, src-core-vault, src-core-firewall, src-core-graph, src-core-link-resolver, src-core-spine, src-core-frontmatter, src-commands-search, src-commands-verify, src-commands-heal, src-commands-snapshot, src-commands-hook, src-data-config, src-core-link-demote, src-core-tree-metric, src-core-wikilinks, src-core-schema (19 total).
 
@@ -160,5 +160,9 @@ Updated: adrs.md (new ADR pages added), docs.md (design and llm-wiki child_index
 ## [2026-06-25] snapshot | scrub leaked src/tests contamination — docs-only (snap-20260625150328)
 
 - pre-state: bf0d6de
+- rollback: git revert the snapshot commit below
+## [2026-06-25] snapshot | docs-only finalize: clean index, zero dangling, strict-tree conformant (snap-20260625181422)
+
+- pre-state: fb0f633
 - rollback: git revert the snapshot commit below
 

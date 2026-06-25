@@ -28,7 +28,7 @@ confidence: 1.0
 
 ## Summary
 
-ADR-0028 adds a dangling-wikilink WARN check to `verify-ingest.sh`. A link `[[T]]` is considered resolvable if its normalized target is a member of `{ filename stem } ∪ { title: } ∪ { aliases: }` over all wiki pages, case-insensitively. A link with no match is a dangling link (WARN). The bash twin (in `scripts/`) is kept in parity with the TypeScript engine check.
+ADR-0028 adds a dangling-wikilink WARN check to `verify-ingest.sh`. A link `T` is considered resolvable if its normalized target is a member of `{ filename stem } ∪ { title: } ∪ { aliases: }` over all wiki pages, case-insensitively. A link with no match is a dangling link (WARN). The bash twin (in `scripts/`) is kept in parity with the TypeScript engine check.
 
 ## Key Claims
 

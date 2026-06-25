@@ -32,6 +32,6 @@ Guide 05 covers exporting wiki content to deliverables. The `vault/output/` dire
 
 ## Key Claims
 
-Export paths: (1) `vault/output/` — plain markdown scratch space, git-ignored, no schema. Write deliverables here (reports, compiled docs, ADR drafts). (2) OKF round-trip (`engine.sh okf export|import`) — the Open Knowledge Format round-trip for interoperability. (3) The polish agent can also produce a markdown export of the wiki for static publishing. Output files may reference wiki pages with `[[wikilinks]]` for Obsidian resolution; Claude does not lint or repair output/ files.
+Export paths: (1) `vault/output/` — plain markdown scratch space, git-ignored, no schema. Write deliverables here (reports, compiled docs, ADR drafts). (2) OKF round-trip (`engine.sh okf export|import`) — the Open Knowledge Format round-trip for interoperability. (3) The polish agent can also produce a markdown export of the wiki for static publishing. Output files may reference wiki pages with `wikilinks` for Obsidian resolution; Claude does not lint or repair output/ files.
 
 Covers: Vault Output Directory, OKF Round-Trip, Markdown Export, Polish Agent Export

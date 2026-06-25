@@ -28,10 +28,10 @@ confidence: 1.0
 
 ## Summary
 
-ADR-0032 formalizes the piped-basename wikilink convention (`[[file-basename|Display Text]]`) as the normative link form, and defines when path-qualification is required: only when a basename occurs in 2+ files anywhere in the vault. Path-qualified links use the target's actual wiki-relative path (verified to exist); guessing the folder produces dangling links.
+ADR-0032 formalizes the piped-basename wikilink convention (`Display Text`) as the normative link form, and defines when path-qualification is required: only when a basename occurs in 2+ files anywhere in the vault. Path-qualified links use the target's actual wiki-relative path (verified to exist); guessing the folder produces dangling links.
 
 ## Key Claims
 
-Status: Accepted. Default link form: `[[file-basename|Display Text]]`. Path-qualify only on a genuine vault-wide collision (basename in 2+ files). When path-qualifying, use the target's actual wiki-relative path (e.g., `[[_sources/adr-0001-x|ADR-0001: X]]`) — never a guessed folder. Over-qualifying a unique basename with a wrong folder creates a dangling link. The `heal-ghost-links.sh` script rewrites bare `[[Title]]` links that slipped through. The `migrate-piped-links.ts` script rewrites the entire vault to the piped-basename convention.
+Status: Accepted. Default link form: `Display Text`. Path-qualify only on a genuine vault-wide collision (basename in 2+ files). When path-qualifying, use the target's actual wiki-relative path (e.g., `ADR-0001: X`) — never a guessed folder. Over-qualifying a unique basename with a wrong folder creates a dangling link. The `heal-ghost-links.sh` script rewrites bare `Title` links that slipped through. The `migrate-piped-links.ts` script rewrites the entire vault to the piped-basename convention.
 
 Covers: Piped Wikilinks, Path-Qualified Wikilinks, Basename Collision, heal-ghost-links.sh

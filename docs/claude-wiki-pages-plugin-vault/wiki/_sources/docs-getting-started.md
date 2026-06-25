@@ -29,6 +29,6 @@ A flat list of CLI commands to go from nothing to querying a populated wiki: run
 
 ## Key Claims
 
-Eight-step quickstart: (1) cd project && claude; (2) /plugin marketplace add + /plugin install; (3) /claude-wiki-pages:init [path]; (4) !cp files to vault/raw/; (5) /claude-wiki-pages:wiki — probes state and picks the right specialist automatically; (6) /claude-wiki-pages:status; (7) /claude-wiki-pages:query what does the wiki say about X?; (8) /claude-wiki-pages:markdown — exports portable markdown to vault/output/ without [[wikilinks]] or Dataview. Power users can bypass the orchestrator and call ingest-agent and curator-agent directly.
+Eight-step quickstart: (1) cd project && claude; (2) /plugin marketplace add + /plugin install; (3) /claude-wiki-pages:init [path]; (4) !cp files to vault/raw/; (5) /claude-wiki-pages:wiki — probes state and picks the right specialist automatically; (6) /claude-wiki-pages:status; (7) /claude-wiki-pages:query what does the wiki say about X?; (8) /claude-wiki-pages:markdown — exports portable markdown to vault/output/ without wikilinks or Dataview. Power users can bypass the orchestrator and call ingest-agent and curator-agent directly.
 
 Covers: Plugin Installation, Vault Creation, Ingest, Query, Markdown Export
