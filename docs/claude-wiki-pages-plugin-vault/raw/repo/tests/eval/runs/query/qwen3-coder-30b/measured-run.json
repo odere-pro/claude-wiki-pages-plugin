@@ -1,0 +1,8 @@
+{
+  "tier": "query",
+  "model_id": "ollama:qwen3-coder:30b",
+  "golden_set_listing_sha": "3e4f8203b0611992d9f35f4596f83d5dbf4d6610",
+  "recorded_at": "2026-06-11T16:42:39Z",
+  "verdict": "pass",
+  "cases": ["query-basic", "query-trap"]
+}

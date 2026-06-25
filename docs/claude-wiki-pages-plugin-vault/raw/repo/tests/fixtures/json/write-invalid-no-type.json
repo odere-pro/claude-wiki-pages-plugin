@@ -1,0 +1,7 @@
+{
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/tmp/test-project/vault/wiki/topics/no-type.md",
+    "content": "---\ntitle: \"No Type\"\naliases: [\"No Type\"]\nparent: \"[[Topics — Index]]\"\npath: \"topics\"\nsources: [\"[[Sample]]\"]\ncreated: 2026-04-18\nupdated: 2026-04-18\nstatus: active\nconfidence: 0.9\n---\n\n# No Type\n\nBody missing the `type:` frontmatter field.\n"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/tmp/test-project/vault/wiki/topics/new-entity.md",
+    "content": "---\ntitle: \"New Entity\"\ntype: entity\nentity_type: tool\naliases: [\"New Entity\"]\nparent: \"[[Topics — Index]]\"\npath: \"topics\"\nsources: [\"[[Sample]]\"]\nrelated: []\ntags: []\ncreated: 2026-04-18\nupdated: 2026-04-18\nupdate_count: 1\nstatus: active\nconfidence: 0.9\n---\n\n# New Entity\n\nBody text. Cites [[Sample]].\n"
+  }
+}

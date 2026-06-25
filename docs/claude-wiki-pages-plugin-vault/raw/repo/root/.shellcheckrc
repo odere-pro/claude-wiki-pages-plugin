@@ -1,0 +1,18 @@
+# shellcheck configuration
+# See https://www.shellcheck.net/wiki/Ignore
+
+# Enable all optional checks we care about.
+enable=add-default-case
+enable=avoid-nullary-conditions
+enable=check-extra-masked-returns
+enable=check-set-e-suppressed
+enable=deprecate-which
+enable=quote-safe-variables
+enable=require-variable-braces
+
+# Target bash explicitly (BSD and GNU compatibility).
+shell=bash
+
+# Allow `cat x | grep y` patterns in hook scripts — they read JSON via stdin.
+# SC2002 is about "useless cat", which is fine in our context.
+disable=SC2002

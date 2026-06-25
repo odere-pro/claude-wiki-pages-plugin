@@ -1,0 +1,14 @@
+{
+  "$schema": "https://github.com/odere-pro/claude-wiki-pages-plugin/schemas/config.schema.json",
+  "version": 1,
+  "vault": {},
+  "autoHeal": {
+    "enabled": true,
+    "aggressiveness": "structural",
+    "maxIterations": 5
+  },
+  "gitCheckpoint": {
+    "mode": "commit"
+  },
+  "modelHints": {}
+}

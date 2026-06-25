@@ -1,0 +1,44 @@
+[
+  {
+    "id": "srp",
+    "name": "Single Responsibility Principle",
+    "category": "solid-principles",
+    "family": "oop",
+    "severity": "high",
+    "principle": "cohesion",
+    "summary": "A class should have only one reason to change."
+  },
+  {
+    "id": "ocp",
+    "name": "Open-Closed Principle",
+    "category": "solid-principles",
+    "family": "oop",
+    "severity": "high",
+    "summary": "Software entities should be open for extension but closed for modification."
+  },
+  {
+    "id": "lsp",
+    "name": "Liskov Substitution Principle",
+    "category": "solid-principles",
+    "family": "oop",
+    "severity": "high",
+    "summary": "Subtypes must be substitutable for their base types."
+  },
+  {
+    "id": "god-object",
+    "name": "God Object",
+    "category": "code-smells",
+    "family": "oop",
+    "severity": "critical",
+    "principle": "srp",
+    "summary": "A class that knows too much or does too much."
+  },
+  {
+    "id": "feature-envy",
+    "name": "Feature Envy",
+    "category": "code-smells",
+    "family": "oop",
+    "severity": "medium",
+    "summary": "A method that seems more interested in a class other than the one it belongs to."
+  }
+]

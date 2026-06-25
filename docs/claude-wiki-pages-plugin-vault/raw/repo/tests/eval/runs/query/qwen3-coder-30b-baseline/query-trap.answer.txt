@@ -1,0 +1,7 @@
+===ANSWER===
+The provided notes do not contain information about the number of GitHub stars that Pandoc has.
+===COVERAGE: none===
+===CITATIONS===
+[[Pandoc — Universal Document Converter]] | "A fixture source summary for the raw note `input.md` describing Pandoc."
+[[Pandoc]] | "Pandoc is a free and open-source document converter. It exists in this golden reference so the `extract-basic` eval case has an entity whose claims trace back to [[Pandoc — Universal Document Converter]]."
+===END===
