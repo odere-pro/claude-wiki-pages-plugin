@@ -11,6 +11,7 @@ child_indexes:
   - "[[hooks|Hooks]]"
   - "[[rules|Rules]]"
   - "[[schemas|Schemas]]"
+  - "[[scripts|Scripts]]"
   - "[[skills|Skills]]"
   - "[[templates|Templates]]"
   - "[[site|Site]]"
@@ -37,6 +38,7 @@ Master catalog of every page in the wiki.
 - [[templates|Templates]] — 1 page, last updated 2026-06-25
 - [[site|Site]] — 1 page, last updated 2026-06-25
 - [[root|Root]] — 6 pages, last updated 2026-06-25
+- [[scripts|Scripts]] — 14 pages, last updated 2026-06-25
 
 ## Synthesis
 
