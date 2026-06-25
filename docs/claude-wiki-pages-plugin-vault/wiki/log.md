@@ -61,3 +61,10 @@ New concepts: Default Config
 Processed 4 site files from raw/repo/site/. Created 1 new wiki page, 0 updated.
 New folders: site
 New entities: GitHub Pages Site
+
+## [2026-06-25] ingest | claude-wiki-pages root (17 sources)
+
+Processed 17 root files from raw/repo/root/. Created 6 new wiki pages, 0 updated.
+New folders: root
+New entities: NPM Package
+New concepts: Plugin Overview, Security Model, Dev Tooling, Contributing and Governance, Release History
