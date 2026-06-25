@@ -30,3 +30,10 @@ New concepts: Specialist Dispatch Pattern
 Processed 4 command definition files from raw/repo/commands/. Created 4 new wiki pages, 0 updated.
 New folders: commands
 New entities: Wiki Command, Doctor Command, Onboarding Command, Fill-Gaps Command
+
+## [2026-06-25] ingest | claude-wiki-pages hooks (1 source)
+
+Processed hooks.json from raw/repo/hooks/. Created 3 new wiki pages, 0 updated.
+New folders: hooks
+New entities: Hooks Configuration
+New concepts: Write-Path Firewall, Commit Backstop
