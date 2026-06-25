@@ -99,7 +99,6 @@ Backlog: 57 of 82 scripts remain unprocessed (heartbeat.sh, protect-raw.sh, chec
 - pre-state: bd0d729
 - rollback: git revert the snapshot commit below
 
-
 ## [2026-06-25] ingest | src (25 sources)
 
 Processed 25 TypeScript source files from `src/` (copied to `raw/repo/src/`).
@@ -135,3 +134,18 @@ New concepts:
 New source summaries: src-engine-overview, src-cli-router, src-core-report, src-core-vault, src-core-firewall, src-core-graph, src-core-link-resolver, src-core-spine, src-core-frontmatter, src-commands-search, src-commands-verify, src-commands-heal, src-commands-snapshot, src-commands-hook, src-data-config, src-core-link-demote, src-core-tree-metric, src-core-wikilinks, src-core-schema (19 total).
 
 Backlog: 155 remaining src/*.ts source files unprocessed (180 total − 25 processed).
+
+## [2026-06-25] ingest | docs remaining (39 sources)
+
+Processed 39 remaining documentation sources from raw/repo/docs/.
+New source summaries: 39 (docs-adr-0002 through docs-adr-0032, docs-adr-readme, docs-adr-0027-followups, docs-design-sequences, docs-design-teams-agents, docs-design-config-security, docs-design-feature-relations, docs-design-template, docs-design-readme, docs-llm-wiki-02 through docs-llm-wiki-07, docs-llm-wiki-obsidian-experience).
+New folders: docs/adrs (extended), docs/design (new), docs/llm-wiki (new).
+New entities: ADR-0002 through ADR-0032 (24 new ADR entity pages).
+New concepts: ADR Conventions, ADR-0027 Acceptance Followups, Design Sequences, Design Teams and Agents, Design Config and Security, Design Feature Relations, Design Diagram Template, LLM Wiki Create Vault, LLM Wiki Update Existing, LLM Wiki Review Validate, LLM Wiki Export Outputs, LLM Wiki Check Dashboard, LLM Wiki Query the Wiki, LLM Wiki Obsidian Experience.
+New folder notes: design.md, llm-wiki.md.
+Updated: adrs.md (new ADR pages added), docs.md (design and llm-wiki child_indexes added), index.md (docs page count updated).
+## [2026-06-25] snapshot | ingest docs remaining 39 sources (snap-20260625145733)
+
+- pre-state: 426e9bd
+- rollback: git revert the snapshot commit below
+

@@ -22,6 +22,8 @@ children:
   - "[[user-guide-workflow|User Guide Workflow]]"
 child_indexes:
   - "[[adrs|ADRs]]"
+  - "[[design|Design]]"
+  - "[[llm-wiki|LLM Wiki Guides]]"
 tags: ["docs", "documentation"]
 created: 2026-06-25
 updated: 2026-06-25
@@ -64,3 +66,5 @@ Official documentation for the claude-wiki-pages plugin: architecture, glossary,
 ## Subtopics
 
 - [[adrs|ADRs]] — architecture decision records (ADR-0001 through ADR-0036)
+- [[design|Design]] — C4-style mermaid diagrams: sequences, teams/agents, config/security, feature relations, diagram conventions
+- [[llm-wiki|LLM Wiki Guides]] — seven-guide path for operating a vault: scaffold, ingest, validate, query, dashboard, export, Obsidian
