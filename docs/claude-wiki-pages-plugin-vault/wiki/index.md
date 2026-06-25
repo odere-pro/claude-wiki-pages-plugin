@@ -5,19 +5,7 @@ parent: ""
 path: ""
 children: []
 child_indexes:
-  - "[[agents|Agents]]"
-  - "[[commands|Commands]]"
   - "[[docs|Docs]]"
-  - "[[hooks|Hooks]]"
-  - "[[rules|Rules]]"
-  - "[[schemas|Schemas]]"
-  - "[[scripts|Scripts]]"
-  - "[[skills|Skills]]"
-  - "[[src|Src]]"
-  - "[[templates|Templates]]"
-  - "[[site|Site]]"
-  - "[[root|Root]]"
-  - "[[tests|Tests]]"
 aliases: ["Wiki Index", "ROOT"]
 tags: []
 created: 2026-04-24
@@ -31,19 +19,7 @@ Master catalog of every page in the wiki.
 
 ## Topics
 
-- [[agents|Agents]] — 9 pages, last updated 2026-06-25
-- [[commands|Commands]] — 4 pages, last updated 2026-06-25
-- [[docs|Docs]] — 83 pages, last updated 2026-06-25
-- [[hooks|Hooks]] — 3 pages, last updated 2026-06-25
-- [[rules|Rules]] — 3 pages, last updated 2026-06-25
-- [[schemas|Schemas]] — 2 pages, last updated 2026-06-25
-- [[scripts|Scripts]] — 14 pages, last updated 2026-06-25
-- [[skills|Skills]] — 27 pages, last updated 2026-06-25
-- [[src|Src]] — 19 pages, last updated 2026-06-25
-- [[templates|Templates]] — 1 page, last updated 2026-06-25
-- [[site|Site]] — 1 page, last updated 2026-06-25
-- [[root|Root]] — 6 pages, last updated 2026-06-25
-- [[tests|Tests]] — 11 pages, last updated 2026-06-25
+- [[docs|Docs]] — 67 pages, last updated 2026-06-25
 
 ## Synthesis
 
