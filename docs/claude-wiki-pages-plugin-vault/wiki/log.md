@@ -24,3 +24,9 @@ Processed 8 agent definition files from raw/repo/agents/. Created 9 new wiki pag
 New folders: agents
 New entities: Orchestrator Agent, Ingest Agent, Curator Agent, Analyst Agent, Extract Worker Agent, Maintenance Agent, Onboarding Agent, Polish Agent
 New concepts: Specialist Dispatch Pattern
+
+## [2026-06-25] ingest | claude-wiki-pages commands (4 sources)
+
+Processed 4 command definition files from raw/repo/commands/. Created 4 new wiki pages, 0 updated.
+New folders: commands
+New entities: Wiki Command, Doctor Command, Onboarding Command, Fill-Gaps Command
