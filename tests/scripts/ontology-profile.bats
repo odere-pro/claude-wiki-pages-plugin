@@ -21,13 +21,13 @@ setup() {
 # tests/fixtures/reference-vault/CLAUDE.md — section presence
 # ---------------------------------------------------------------------------
 
-@test "ontology-profile: vault schema contains ontology-profile-v1 heading" {
+@test "Ontology profile: the vault schema contains the ontology-profile-v1 heading" {
   run grep -F "ontology-profile-v1" "$VAULT_SCHEMA"
   assert_success
   assert_output_contains "ontology-profile-v1"
 }
 
-@test "ontology-profile: vault schema contains predicate table header" {
+@test "Ontology profile: the vault schema contains the predicate table header" {
   run grep -F "Predicate" "$VAULT_SCHEMA"
   assert_success
   # Must appear more than once (once in "Field definitions" prose, once in table)
@@ -40,7 +40,7 @@ setup() {
   fi
 }
 
-@test "ontology-profile: vault schema contains depends_on predicate row" {
+@test "Ontology profile: the vault schema contains the depends_on predicate row" {
   run grep -F "depends_on" "$VAULT_SCHEMA"
   assert_success
   # The row should appear in the new ontology table; verify the pattern
@@ -48,7 +48,7 @@ setup() {
   assert_output_contains "concept"
 }
 
-@test "ontology-profile: vault schema contains entity_type core values" {
+@test "Ontology profile: the vault schema contains the entity_type core values" {
   run grep -F "person" "$VAULT_SCHEMA"
   assert_success
   # Verify the ontology-profile table row is present (backtick-quoted values)
@@ -60,22 +60,22 @@ setup() {
   fi
 }
 
-@test "ontology-profile: vault schema contains entity_type_extensions calibration key" {
+@test "Ontology profile: the vault schema contains the entity_type_extensions calibration key" {
   run grep -F "entity_type_extensions" "$VAULT_SCHEMA"
   assert_success
 }
 
-@test "ontology-profile: vault schema contains page type closed-core note" {
+@test "Ontology profile: the vault schema contains the page-type closed-core note" {
   run grep -F "not vault-extensible" "$VAULT_SCHEMA"
   assert_success
 }
 
-@test "ontology-profile: vault schema contains enum table header" {
+@test "Ontology profile: the vault schema contains the enum table header" {
   run grep -F "| Enum" "$VAULT_SCHEMA"
   assert_success
 }
 
-@test "ontology-profile: vault schema has graph-traversal note (R2 edge set)" {
+@test "Ontology profile: the vault schema has the graph-traversal note describing the R2 edge set" {
   # The note uses backtick-fenced predicates: `sources`+`related`+`depends_on`
   run grep "sources.*related.*depends_on" "$VAULT_SCHEMA"
   assert_success
@@ -86,19 +86,19 @@ setup() {
 # skills/init/template/CLAUDE.md — parity with vault schema
 # ---------------------------------------------------------------------------
 
-@test "ontology-profile: install template contains ontology-profile-v1 heading" {
+@test "Ontology profile: the install template contains the ontology-profile-v1 heading" {
   run grep -F "ontology-profile-v1" "$TEMPLATE_SCHEMA"
   assert_success
   assert_output_contains "ontology-profile-v1"
 }
 
-@test "ontology-profile: install template contains depends_on predicate row" {
+@test "Ontology profile: the install template contains the depends_on predicate row" {
   run grep -F "depends_on" "$TEMPLATE_SCHEMA"
   assert_success
   assert_output_contains "concept"
 }
 
-@test "ontology-profile: install template contains entity_type core values" {
+@test "Ontology profile: the install template contains the entity_type core values" {
   run grep -F "person" "$TEMPLATE_SCHEMA"
   assert_success
   local count
@@ -109,17 +109,17 @@ setup() {
   fi
 }
 
-@test "ontology-profile: install template contains entity_type_extensions calibration key" {
+@test "Ontology profile: the install template contains the entity_type_extensions calibration key" {
   run grep -F "entity_type_extensions" "$TEMPLATE_SCHEMA"
   assert_success
 }
 
-@test "ontology-profile: install template contains page type closed-core note" {
+@test "Ontology profile: the install template contains the page-type closed-core note" {
   run grep -F "not vault-extensible" "$TEMPLATE_SCHEMA"
   assert_success
 }
 
-@test "ontology-profile: install template has graph-traversal note (R2 edge set)" {
+@test "Ontology profile: the install template has the graph-traversal note describing the R2 edge set" {
   run grep "sources.*related.*depends_on" "$TEMPLATE_SCHEMA"
   assert_success
   assert_output_contains "N≤2"
@@ -129,7 +129,7 @@ setup() {
 # Parity check — both files must agree on key invariants
 # ---------------------------------------------------------------------------
 
-@test "ontology-profile: both files have matching entity_type_extensions text" {
+@test "Ontology profile: both files have matching entity_type_extensions text" {
   local vault_count template_count
   vault_count=$(grep -c "entity_type_extensions" "$VAULT_SCHEMA" || true)
   template_count=$(grep -c "entity_type_extensions" "$TEMPLATE_SCHEMA" || true)
@@ -156,7 +156,7 @@ _required_fields_block() {
   ' "$1"
 }
 
-@test "ontology-profile: required-fields table is identical in vault schema and runtime template" {
+@test "Ontology profile: the required-fields table is identical in the vault schema and the runtime template" {
   local vault_block template_block
   vault_block=$(_required_fields_block "$VAULT_SCHEMA")
   template_block=$(_required_fields_block "$TEMPLATE_SCHEMA")

@@ -40,19 +40,19 @@ teardown() {
   rm -rf "$VAULT"
 }
 
-@test "tree-lint: script declares set -euo pipefail (strict mode)" {
+@test "Tree lint: the script declares set -euo pipefail (strict mode)" {
   run grep -qE '^set -euo pipefail' "$SCRIPT"
   assert_success
 }
 
-@test "tree-lint: skips gracefully when wiki/ is absent" {
+@test "Tree lint: skips gracefully when the wiki/ directory is absent" {
   mkdir -p "$VAULT"
   run bash "$SCRIPT" --target "$VAULT"
   assert_success
   assert_output_contains "no wiki/"
 }
 
-@test "tree-lint: spine-only vault → conformance 1, zero non-spine edges" {
+@test "Tree lint: a spine-only vault reports treeConformance 1 and zero non-spine edges" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -66,7 +66,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.metric.treeConformance')" "1"
 }
 
-@test "tree-lint: a cross-tree edge is counted as cross-tree and non-spine" {
+@test "Tree lint: a cross-tree edge is counted as both cross-tree and non-spine" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -82,7 +82,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.metric.nonSpineEdgeCount')" "1"
 }
 
-@test "tree-lint: a page with no parent is reported as an orphan" {
+@test "Tree lint: a page with no parent is reported as an orphan" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -95,7 +95,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.orphans[0]')" "a/lonely.md"
 }
 
-@test "tree-lint: a parent loop is reported as a cycle" {
+@test "Tree lint: a parent loop is reported as a cycle" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -108,7 +108,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.metric.cycleCount')" "1"
 }
 
-@test "tree-lint: --max-saturation flags an over-threshold node" {
+@test "Tree lint: --max-saturation flags a node whose out-degree exceeds the threshold" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \

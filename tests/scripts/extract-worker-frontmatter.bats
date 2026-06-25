@@ -32,7 +32,7 @@ setup() {
 # (a) File existence
 # ---------------------------------------------------------------------------
 
-@test "extract-worker-frontmatter: agent file exists" {
+@test "Extract worker: agent file exists" {
   [ -f "$WORKER_AGENT" ]
 }
 
@@ -40,7 +40,7 @@ setup() {
 # (b) tools line is exactly Read, Glob, Grep
 # ---------------------------------------------------------------------------
 
-@test "extract-worker-frontmatter: tools line contains Read, Glob, Grep" {
+@test "Extract worker: tools line contains Read, Glob, Grep" {
   run grep -E "^tools:" "$WORKER_AGENT"
   assert_success
   assert_output_contains "Read"
@@ -48,7 +48,7 @@ setup() {
   assert_output_contains "Grep"
 }
 
-@test "extract-worker-frontmatter: tools line does NOT contain Write" {
+@test "Extract worker: tools line does NOT contain Write" {
   local tools_line
   tools_line=$(grep -E "^tools:" "$WORKER_AGENT")
   if echo "$tools_line" | grep -q "Write"; then
@@ -57,7 +57,7 @@ setup() {
   fi
 }
 
-@test "extract-worker-frontmatter: tools line does NOT contain Edit" {
+@test "Extract worker: tools line does NOT contain Edit" {
   local tools_line
   tools_line=$(grep -E "^tools:" "$WORKER_AGENT")
   if echo "$tools_line" | grep -q "Edit"; then
@@ -66,7 +66,7 @@ setup() {
   fi
 }
 
-@test "extract-worker-frontmatter: tools line does NOT contain Bash" {
+@test "Extract worker: tools line does NOT contain Bash" {
   local tools_line
   tools_line=$(grep -E "^tools:" "$WORKER_AGENT")
   if echo "$tools_line" | grep -q "Bash"; then
@@ -75,7 +75,7 @@ setup() {
   fi
 }
 
-@test "extract-worker-frontmatter: tools line is exactly Read, Glob, Grep (full value check)" {
+@test "Extract worker: tools line is exactly Read, Glob, Grep (full value check)" {
   # Extract the value after "tools: " and assert it is Read, Glob, Grep
   # (possibly with surrounding whitespace).
   local tools_value
@@ -90,7 +90,7 @@ setup() {
 # (c) name field
 # ---------------------------------------------------------------------------
 
-@test "extract-worker-frontmatter: name field is claude-wiki-pages-extract-worker-agent" {
+@test "Extract worker: name field is claude-wiki-pages-extract-worker-agent" {
   run grep -E "^name:" "$WORKER_AGENT"
   assert_success
   assert_output_contains "claude-wiki-pages-extract-worker-agent"
@@ -100,7 +100,7 @@ setup() {
 # (d) Belt-and-suspenders: no write-capable tool anywhere in frontmatter
 # ---------------------------------------------------------------------------
 
-@test "extract-worker-frontmatter: frontmatter block does not grant Write anywhere" {
+@test "Extract worker: frontmatter block does not grant Write anywhere" {
   # Extract only the frontmatter block (between first and second ---).
   local fm
   fm=$(awk '/^---$/{if(++c==2) exit} c==1' "$WORKER_AGENT")
@@ -110,7 +110,7 @@ setup() {
   fi
 }
 
-@test "extract-worker-frontmatter: frontmatter block does not grant Edit anywhere" {
+@test "Extract worker: frontmatter block does not grant Edit anywhere" {
   local fm
   fm=$(awk '/^---$/{if(++c==2) exit} c==1' "$WORKER_AGENT")
   if echo "$fm" | grep -q "Edit"; then
@@ -119,7 +119,7 @@ setup() {
   fi
 }
 
-@test "extract-worker-frontmatter: frontmatter block does not grant Bash anywhere" {
+@test "Extract worker: frontmatter block does not grant Bash anywhere" {
   local fm
   fm=$(awk '/^---$/{if(++c==2) exit} c==1' "$WORKER_AGENT")
   if echo "$fm" | grep -q "Bash"; then
@@ -132,12 +132,12 @@ setup() {
 # (e) Ingest-agent references the extract-worker (fan-out is documented)
 # ---------------------------------------------------------------------------
 
-@test "extract-worker-frontmatter: ingest-agent references extract-worker agent" {
+@test "Extract worker: ingest-agent references the extract-worker agent" {
   run grep -iE "extract.worker|extract-worker" "$INGEST_AGENT"
   assert_success
 }
 
-@test "extract-worker-frontmatter: ingest-agent documents maxParallelExtract fan-out condition" {
+@test "Extract worker: ingest-agent documents the maxParallelExtract fan-out condition" {
   run grep -iE "maxParallelExtract|max.*parallel.*extract|parallel.*extract" "$INGEST_AGENT"
   assert_success
 }

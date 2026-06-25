@@ -53,7 +53,7 @@ teardown() {
 # mid-sequence command failures are not silently swallowed.
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: script declares set -euo pipefail (strict mode)" {
+@test "Graph quality: the script declares set -euo pipefail (strict mode)" {  # spec N18-graph-quality
   run grep -qE '^set -[a-z]*e[a-z]*uo[a-z]* pipefail|^set -euo pipefail' "$SCRIPT"
   assert_success
 }
@@ -62,7 +62,7 @@ teardown() {
 # Exit code
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: always exits 0 (clean vault)" {
+@test "Graph quality: always exits 0 on a clean vault" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\nbody"
@@ -71,7 +71,7 @@ teardown() {
   assert_success
 }
 
-@test "graph-quality: always exits 0 (dangling vault)" {
+@test "Graph quality: always exits 0 on a vault with a dangling link" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\n[[NonExistent]]"
@@ -84,7 +84,7 @@ teardown() {
 # Missing wiki/ — graceful skip
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: skips gracefully when wiki/ is absent" {
+@test "Graph quality: skips gracefully when the wiki/ directory is absent" {
   mkdir -p "$VAULT"
 
   run bash "$SCRIPT" --target "$VAULT"
@@ -96,7 +96,7 @@ teardown() {
 # No dangling links
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: reports zero dangling when all links resolve" {
+@test "Graph quality: reports zero dangling when all links resolve" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/index.md:---\ntitle: index\n---\n[[Plugin]]" \
@@ -111,7 +111,7 @@ teardown() {
 # Dangling link detected
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: reports dangling target by name" {
+@test "Graph quality: reports a dangling target by name" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/plugin/plugin.md:---\ntitle: Plugin\ntype: index\n---\n[[GhostPage]]"
@@ -126,7 +126,7 @@ teardown() {
 # JSON output
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: --json emits valid JSON with required keys" {
+@test "Graph quality: --json emits valid JSON with the required keys" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -141,7 +141,7 @@ teardown() {
   assert_output_contains '"treeConformance"'
 }
 
-@test "graph-quality: --json danglingCount=0 for resolved-only vault" {
+@test "Graph quality: --json reports danglingCount 0 for a resolved-only vault" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -158,7 +158,7 @@ teardown() {
 # Connectivity / orphans / shadows (ADR-0031)
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: connected pair → one component, zero orphans" {
+@test "Graph quality: a connected pair forms one component with zero orphans" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -172,7 +172,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.nodes')" "2"
 }
 
-@test "graph-quality: a linkless page is reported as an orphan" {
+@test "Graph quality: a linkless page is reported as an orphan" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -186,7 +186,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.orphans[0]')" "wiki/c/lonely.md"
 }
 
-@test "graph-quality: two disconnected pairs → two components" {
+@test "Graph quality: two disconnected pairs form two components" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -201,7 +201,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.connectivity.orphanCount')" "0"
 }
 
-@test "graph-quality: a link resolving into output/ is a shadow, not an edge" {
+@test "Graph quality: a link resolving into output/ is counted as a shadow, not a connecting edge" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   # plugin.md links [[Foo]]; the only "Foo" is an Obsidian stub in output/ →
@@ -221,7 +221,7 @@ teardown() {
   assert_eq "$(printf '%s' "$output" | jq -r '.danglingCount')" "1"
 }
 
-@test "graph-quality: --json danglingCount=1 for vault with one dangling link" {
+@test "Graph quality: --json reports danglingCount 1 for a vault with one dangling link" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \
@@ -239,7 +239,7 @@ teardown() {
 # Cluster metric: Cn=1.0 when all topic pages are in known clusters
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: Cn=1.0 when all topic pages are in known clusters" {
+@test "Graph quality: Cn is 1.0 when all topic pages are in known clusters" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   # "plugin" is one of the 7 CLUSTERS in graph-quality.sh.
@@ -257,7 +257,7 @@ teardown() {
 # Dangling from _sources/ pages are detected
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: dangling link inside _sources/ page is detected" {
+@test "Graph quality: a dangling link inside a _sources/ page is detected" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   _make_vault "$VAULT" \
     "wiki/_sources/src.md:---\ntitle: Src\n---\n[[Nowhere]]"
@@ -271,7 +271,7 @@ teardown() {
 # Alias resolution: [[Alias]] resolves when the target declares that alias
 # ---------------------------------------------------------------------------
 
-@test "graph-quality: alias link resolves (not dangling)" {
+@test "Graph quality: a link to a declared alias resolves and is not dangling" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   _make_vault "$VAULT" \

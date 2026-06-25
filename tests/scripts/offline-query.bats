@@ -43,18 +43,18 @@ EOF
   chmod +x "$1/curl"
 }
 
-@test "offline-query: script exists and is executable" {
+@test "Offline query: script exists and is executable" {
   [ -f "$OQ" ]
   [ -x "$OQ" ]
 }
 
-@test "offline-query: missing --question fails closed (rc 2)" {
+@test "Offline query: missing --question fails closed (rc 2)" {
   run bash "$OQ"
   assert_status 2
   assert_output_contains "--question"
 }
 
-@test "offline-query: disabled localModel refuses (rc 2)" {
+@test "Offline query: disabled localModel refuses (rc 2)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj
   proj=$(mk_project '{"enabled":false,"model":"qwen3-coder:30b","tier":"query"}')
@@ -63,7 +63,7 @@ EOF
   assert_output_contains "localModel.enabled is false"
 }
 
-@test "offline-query: wrong tier refuses (rc 1)" {
+@test "Offline query: wrong tier refuses (rc 1)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"ingest-extract","offlinePolicy":"prefer-local"}')
@@ -72,7 +72,7 @@ EOF
   assert_output_contains "not \"query\""
 }
 
-@test "offline-query: verified answer is printed with citations (exit 0)" {
+@test "Offline query: verified answer is printed with citations (exit 0)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj fake_bin answer
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"query","offlinePolicy":"prefer-local"}')
@@ -94,7 +94,7 @@ EOF
   assert_output_contains "[[Pandoc]]"
 }
 
-@test "offline-query: nonexistent cited page is DENIED with a warning (exit 1)" {
+@test "Offline query: a nonexistent cited page is DENIED with a warning (exit 1)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj fake_bin answer
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"query","offlinePolicy":"prefer-local"}')
@@ -116,7 +116,7 @@ EOF
   assert_output_contains "DENIED"
 }
 
-@test "offline-query: non-verbatim quote is DENIED with a warning (exit 1)" {
+@test "Offline query: a non-verbatim quote is DENIED with a warning (exit 1)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj fake_bin answer
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"query","offlinePolicy":"prefer-local"}')
@@ -138,7 +138,7 @@ EOF
   assert_output_contains "not verbatim"
 }
 
-@test "offline-query: protocol-violating response is DENIED (exit 1)" {
+@test "Offline query: a protocol-violating response is DENIED (exit 1)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj fake_bin answer
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"query","offlinePolicy":"prefer-local"}')
@@ -152,7 +152,7 @@ EOF
   assert_output_contains "DENIED"
 }
 
-@test "offline-query: never writes the vault (read-only)" {
+@test "Offline query: never writes the vault (read-only)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj fake_bin answer before after
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"query","offlinePolicy":"prefer-local"}')

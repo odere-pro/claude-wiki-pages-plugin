@@ -21,20 +21,20 @@ teardown() {
 
 # --- happy paths -------------------------------------------------------------
 
-@test "verify-output: passes on the canonical fixture" {
+@test "Output verifier: it passes on the canonical fixture vault with no output" {
   run bash "$REPO_ROOT/scripts/verify-output.sh" "$FIXTURE_VAULT"
   assert_success
   assert_output_empty
 }
 
-@test "verify-output: passes when output/ is absent" {
+@test "Output verifier: it passes and stays silent when output/ is absent" {
   rm -rf "$FIXTURE_VAULT/output"
   run bash "$REPO_ROOT/scripts/verify-output.sh" "$FIXTURE_VAULT"
   assert_success
   assert_output_empty
 }
 
-@test "verify-output: passes when output/ is empty" {
+@test "Output verifier: it passes and stays silent when output/ is empty" {
   rm -f "$FIXTURE_VAULT/output"/*.md
   run bash "$REPO_ROOT/scripts/verify-output.sh" "$FIXTURE_VAULT"
   assert_success
@@ -43,7 +43,7 @@ teardown() {
 
 # --- failure paths -----------------------------------------------------------
 
-@test "verify-output: fails when generated_by is missing" {
+@test "Output verifier: it fails with an explanatory message when generated_by is missing" {
   cat >"$FIXTURE_VAULT/output/missing-generated-by.md" <<'MD'
 ---
 source_query: "what about X?"
@@ -60,7 +60,7 @@ MD
   assert_output_contains "missing or wrong generated_by field"
 }
 
-@test "verify-output: fails when generated_at is malformed" {
+@test "Output verifier: it fails with an explanatory message when generated_at is malformed" {
   cat >"$FIXTURE_VAULT/output/bad-date.md" <<'MD'
 ---
 generated_by: markdown
@@ -78,7 +78,7 @@ MD
   assert_output_contains "missing or malformed generated_at"
 }
 
-@test "verify-output: fails when body contains a [[wikilink]]" {
+@test "Output verifier: it fails when the body contains a stray [[wikilink]] outside the attribution line" {
   cat >"$FIXTURE_VAULT/output/leaks-wikilink.md" <<'MD'
 ---
 generated_by: markdown
@@ -97,7 +97,7 @@ MD
   assert_output_contains "body wikilink"
 }
 
-@test "verify-output: allows wikilinks in the trailing attribution line" {
+@test "Output verifier: it allows wikilinks in the trailing Generated-by attribution line" {
   cat >"$FIXTURE_VAULT/output/clean-with-attribution.md" <<'MD'
 ---
 generated_by: markdown
@@ -118,13 +118,13 @@ MD
   assert_success
 }
 
-@test "verify-output: fails with usage when invoked without a vault arg" {
+@test "Output verifier: it fails with usage and exits 2 when invoked without a vault argument" {
   run bash "$REPO_ROOT/scripts/verify-output.sh"
   assert_status 2
   assert_output_contains "usage:"
 }
 
-@test "verify-output: fails when vault root does not exist" {
+@test "Output verifier: it fails and exits 2 when the vault root does not exist" {
   run bash "$REPO_ROOT/scripts/verify-output.sh" "/no/such/vault/$$"
   assert_status 2
   assert_output_contains "vault root not found"

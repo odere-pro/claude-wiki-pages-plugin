@@ -74,7 +74,7 @@ run_chat_call() {
 
 # ── C05: source-vs-exec guard ─────────────────────────────────────────────────
 
-@test "ollama-chat: sourcing inside a strict-mode script does not abort the caller" {
+@test "Ollama chat: sourcing inside a strict-mode script does not abort the caller" {  # spec C05
   # Source inside a script that already has set -euo pipefail.
   # We verify that sourcing does NOT exit the caller prematurely.
   run bash -c "
@@ -86,7 +86,7 @@ run_chat_call() {
   assert_output_contains "source succeeded"
 }
 
-@test "ollama-chat: sourcing exposes ollama_chat_call as a function" {
+@test "Ollama chat: sourcing exposes ollama_chat_call as a function" {  # spec C05
   run bash -c "
     die() { printf 'DIE: %s\n' \"\$1\" >&2; exit 2; }
     source '$SCRIPT'
@@ -98,7 +98,7 @@ run_chat_call() {
 
 # ── Backoff sleep (C06) ───────────────────────────────────────────────────────
 
-@test "ollama-chat: sleep is called between retries (backoff fires)" {
+@test "Ollama chat: sleep is called between retries so the backoff fires" {  # spec C06
   mk_curl_succeed_on_nth 3 "$BIN"
   mk_fake_sleep "$BIN"
 
@@ -113,7 +113,7 @@ run_chat_call() {
   }
 }
 
-@test "ollama-chat: successful call on first attempt skips sleep" {
+@test "Ollama chat: a successful call on the first attempt skips the backoff sleep" {  # spec C06
   mk_curl_succeed_on_nth 1 "$BIN"
   mk_fake_sleep "$BIN"
 
@@ -129,7 +129,7 @@ run_chat_call() {
 
 # ── Failure path (exhausted retries → die) ────────────────────────────────────
 
-@test "ollama-chat: exhausting retries calls die (exit 2)" {
+@test "Ollama chat: exhausting all retries calls die and exits 2" {
   mk_curl_always_fail "$BIN"
   mk_fake_sleep "$BIN"
 
@@ -140,7 +140,7 @@ run_chat_call() {
 
 # ── Happy path ────────────────────────────────────────────────────────────────
 
-@test "ollama-chat: successful curl returns .message.content" {
+@test "Ollama chat: a successful curl returns the .message.content payload" {
   mk_curl_succeed_on_nth 1 "$BIN"
   mk_fake_sleep "$BIN"
 

@@ -51,7 +51,7 @@ EOF
   chmod +x "$1/curl"
 }
 
-@test "offline-draft: script exists and is executable" {
+@test "Offline draft: script exists and is executable" {
   [ -f "$DRAFT" ]
   [ -x "$DRAFT" ]
 }
@@ -60,17 +60,17 @@ EOF
 # Without -e, a mid-sequence failure (e.g. a failing helper call) is silently
 # swallowed and the script continues in an undefined state — a security-relevant
 # silent failure per scripts/CLAUDE.md "Script anatomy".
-@test "offline-draft: uses set -euo pipefail (strict mode includes -e)" {
+@test "Offline draft: uses set -euo pipefail (strict mode includes -e)" {
   grep -qE '^set -euo pipefail' "$DRAFT"
 }
 
-@test "offline-draft: --help exits 0 and prints usage" {
+@test "Offline draft: --help exits 0 and prints usage" {
   run bash "$DRAFT" --help
   assert_success
   assert_output_contains "--target"
 }
 
-@test "offline-draft: disabled localModel refuses to draft (rc 2)" {
+@test "Offline draft: disabled localModel refuses to draft (rc 2)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj
   proj=$(mk_project '{"enabled":false,"model":"qwen3-coder:30b"}')
@@ -79,7 +79,7 @@ EOF
   assert_output_contains "localModel.enabled is false"
 }
 
-@test "offline-draft: BLOCKED tier refuses to draft (rc 1) and writes nothing" {
+@test "Offline draft: BLOCKED tier refuses to draft (rc 1) and writes nothing" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"draft","offlinePolicy":"prefer-local"}')
@@ -89,7 +89,7 @@ EOF
   [ ! -d "$proj/vault/_proposed" ] || [ -z "$(find "$proj/vault/_proposed" -type f 2>/dev/null)" ]
 }
 
-@test "offline-draft: valid run writes only _proposed/ with stamps, never wiki/" {
+@test "Offline draft: valid run writes only _proposed/ with stamps, never wiki/" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj fake_bin
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"ingest-extract","offlinePolicy":"prefer-local"}')
@@ -106,7 +106,7 @@ EOF
   [ -z "$(find "$proj/vault/wiki" -type f 2>/dev/null)" ]
 }
 
-@test "offline-draft: --endpoint with non-loopback URL is rejected by allow-list (rc 2)" {
+@test "Offline draft: --endpoint with a non-loopback URL is rejected by the allow-list (rc 2)" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"ingest-extract","offlinePolicy":"prefer-local"}')
@@ -116,7 +116,7 @@ EOF
   assert_output_contains "endpoint rejected by allow-list"
 }
 
-@test "offline-draft: --endpoint with localhost URL passes allow-list validation" {
+@test "Offline draft: --endpoint with a localhost URL passes allow-list validation" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"ingest-extract","offlinePolicy":"prefer-local","endpoint":"http://localhost:11434"}')
@@ -127,7 +127,7 @@ EOF
   refute_output_contains "endpoint rejected by allow-list"
 }
 
-@test "offline-draft: a protocol-violating response fails closed with no partial _proposed/" {
+@test "Offline draft: a protocol-violating response fails closed with no partial _proposed/" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local proj fake_bin
   proj=$(mk_project '{"enabled":true,"model":"qwen3-coder:30b","tier":"ingest-extract","offlinePolicy":"prefer-local"}')

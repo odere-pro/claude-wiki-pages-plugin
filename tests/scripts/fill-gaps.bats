@@ -46,7 +46,7 @@ no links
 EOF
 }
 
-@test "graph-quality: flags exactly the one dangling target" {
+@test "Fill-gaps: the dangling-wikilink scanner flags exactly the one dangling target" {
   _seed_vault
   run bash "$REPO_ROOT/$GQ" --target "$VAULT" --json
   [ "$status" -eq 0 ]
@@ -54,7 +54,7 @@ EOF
   [[ "$output" == *'Nonexistent Thing'* ]]
 }
 
-@test "graph-quality: resolves by stem, title, and alias (no false positives)" {
+@test "Fill-gaps: the scanner resolves links by stem, title, and alias without false positives" {
   _seed_vault
   run bash "$REPO_ROOT/$GQ" --target "$VAULT" --json
   # 'Search Tool' (title), 'verify-cmd' (stem) and 'Wiki Engine' (alias) all resolve
@@ -63,7 +63,7 @@ EOF
   [[ "$output" != *'"target": "Wiki Engine"'* ]]
 }
 
-@test "graph-quality: assigns pages to the engine cluster (Cn) and reports tree conformance" {
+@test "Fill-gaps: the scanner assigns pages to the engine cluster (Cn) and reports tree conformance" {
   _seed_vault
   run bash "$REPO_ROOT/$GQ" --target "$VAULT" --json
   assert_output_contains '"engine": 3'
@@ -73,7 +73,7 @@ EOF
   assert_output_contains '"treeConformance"'
 }
 
-@test "graph-quality: clean vault reports zero dangling" {
+@test "Fill-gaps: the scanner reports zero dangling for a clean vault" {
   cat >"$VAULT/wiki/engine/engine.md" <<'EOF'
 ---
 title: "Wiki Engine"
@@ -86,12 +86,12 @@ EOF
   [[ "$output" == *'"danglingCount": 0'* ]]
 }
 
-@test "fill-gaps skill declares disable-model-invocation (side-effecting)" {
+@test "Fill-gaps: the side-effecting skill declares disable-model-invocation: true" {
   run grep -E '^disable-model-invocation:[[:space:]]*true' "$REPO_ROOT/skills/fill-gaps/SKILL.md"
   [ "$status" -eq 0 ]
 }
 
-@test "bundled workflow template parses in the Workflow async wrapper" {
+@test "Fill-gaps: the bundled workflow template parses inside the Workflow async wrapper" {
   command -v node >/dev/null || skip "node not installed"
   run node -e '
     const fs = require("fs");

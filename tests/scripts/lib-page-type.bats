@@ -19,70 +19,70 @@ setup() {
   TMPF="$BATS_TEST_TMPDIR/test-page.md"
 }
 
-@test "_page_type: extracts unquoted type field" {
+@test "Page-type library: _page_type extracts an unquoted type field" {
   printf -- '---\ntype: concept\ntitle: Test\n---\n\nBody\n' >"$TMPF"
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '$TMPF'"
   assert_success
   [ "$output" = "concept" ]
 }
 
-@test "_page_type: extracts double-quoted type field" {
+@test "Page-type library: _page_type extracts a double-quoted type field" {
   printf -- '---\ntype: "entity"\ntitle: Test\n---\n\nBody\n' >"$TMPF"
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '$TMPF'"
   assert_success
   [ "$output" = "entity" ]
 }
 
-@test "_page_type: extracts single-quoted type field" {
+@test "Page-type library: _page_type extracts a single-quoted type field" {
   printf -- "---\ntype: 'topic'\ntitle: Test\n---\n\nBody\n" >"$TMPF"
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '$TMPF'"
   assert_success
   [ "$output" = "topic" ]
 }
 
-@test "_page_type: returns empty when type: field is absent" {
+@test "Page-type library: _page_type returns empty when the type: field is absent" {
   printf -- '---\ntitle: No type here\n---\n\nBody\n' >"$TMPF"
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '$TMPF'"
   assert_success
   [ -z "$output" ]
 }
 
-@test "_page_type: returns empty when file has no frontmatter" {
+@test "Page-type library: _page_type returns empty when the file has no frontmatter" {
   printf 'Just a body without frontmatter\n' >"$TMPF"
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '$TMPF'"
   assert_success
   [ -z "$output" ]
 }
 
-@test "_page_type: ignores type: in the body (only frontmatter counts)" {
+@test "Page-type library: _page_type ignores type: in the body so only frontmatter counts" {
   printf -- '---\ntitle: Test\n---\n\ntype: this-is-in-body\n' >"$TMPF"
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '$TMPF'"
   assert_success
   [ -z "$output" ]
 }
 
-@test "_page_type: handles synthesis page type" {
+@test "Page-type library: _page_type handles the synthesis page type" {
   printf -- '---\ntype: synthesis\ntitle: Combined\nsources: []\n---\n' >"$TMPF"
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '$TMPF'"
   assert_success
   [ "$output" = "synthesis" ]
 }
 
-@test "_page_type: handles source page type" {
+@test "Page-type library: _page_type handles the source page type" {
   printf -- '---\ntype: source\ntitle: Raw Source\nsource_type: web\n---\n' >"$TMPF"
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '$TMPF'"
   assert_success
   [ "$output" = "source" ]
 }
 
-@test "_page_type: handles index page type" {
+@test "Page-type library: _page_type handles the index page type" {
   printf -- '---\ntype: index\ntitle: Index\n---\n' >"$TMPF"
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '$TMPF'"
   assert_success
   [ "$output" = "index" ]
 }
 
-@test "_page_type: exits 0 on a non-existent file (graceful failure)" {
+@test "Page-type library: _page_type exits 0 on a non-existent file for graceful failure" {
   run bash -c "source '$REPO_ROOT/scripts/lib-page-type.sh'; _page_type '/nonexistent/page.md'"
   assert_success
   [ -z "$output" ]

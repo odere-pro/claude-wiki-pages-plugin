@@ -22,7 +22,7 @@ setup() {
   _load_helpers
 }
 
-@test "replay-corpus: passes on the shipped corpus" {
+@test "Adversarial replay: the driver passes on the shipped corpus, every verdict matching its filename prefix" {
   run bash "$REPO_ROOT/$DRIVER"
 
   assert_success
@@ -30,7 +30,7 @@ setup() {
   refute_output_contains "MISMATCH"
 }
 
-@test "replay-corpus: shipped corpus exercises both block and allow classes" {
+@test "Adversarial replay: the shipped corpus exercises both block and allow classes" {
   run bash "$REPO_ROOT/$DRIVER"
 
   assert_success
@@ -40,7 +40,7 @@ setup() {
   assert_output_contains "allow-"
 }
 
-@test "replay-corpus: fails when a corpus expectation is flipped" {
+@test "Adversarial replay: the driver exits 1 when a corpus expectation is flipped" {
   local corpus="$BATS_TEST_TMPDIR/flipped-corpus"
   mkdir -p "$corpus"
   # Named allow-* but targets a write outside the vault — the firewall will
@@ -61,7 +61,7 @@ EOF
   assert_output_contains "MISMATCH"
 }
 
-@test "replay-corpus: fails closed on malformed corpus JSON" {
+@test "Adversarial replay: the driver fails closed on malformed corpus JSON" {
   local corpus="$BATS_TEST_TMPDIR/broken-corpus"
   mkdir -p "$corpus"
   printf 'this is not json{{{\n' >"$corpus/block-broken.json"

@@ -89,16 +89,16 @@ JSONEOF
 # must source it rather than carrying an inline duplicate.
 # ---------------------------------------------------------------------------
 
-@test "eval-query H13: eval-normalize-ws.sh shared helper exists" {
+@test "Eval query: the shared eval-normalize-ws.sh helper exists" { # spec H13
   [ -f "$NORMALIZE_HELPER" ]
 }
 
-@test "eval-query H13: eval-query.sh sources eval-normalize-ws.sh (no inline duplicate)" {
+@test "Eval query: eval-query.sh sources eval-normalize-ws.sh rather than carrying an inline duplicate" { # spec H13
   # The source directive must be present.
   grep -qF 'eval-normalize-ws.sh' "$DRIVER"
 }
 
-@test "eval-query H13: eval-query.sh has no inline normalize_ws function definition" {
+@test "Eval query: eval-query.sh has no inline normalize_ws function definition" { # spec H13
   # An inline `normalize_ws()` definition would re-introduce the H13 fork.
   # The only definition must live in eval-normalize-ws.sh.
   # We search for a function-declaration line (name followed by '()' or
@@ -113,11 +113,11 @@ JSONEOF
 # Driver existence and executability (the RED→GREEN boundary).
 # ---------------------------------------------------------------------------
 
-@test "eval-query: driver script exists" {
+@test "Eval query: driver script exists" {
   [ -f "$DRIVER" ]
 }
 
-@test "eval-query: driver script is executable" {
+@test "Eval query: driver script is executable" {
   [ -x "$DRIVER" ]
 }
 
@@ -126,7 +126,7 @@ JSONEOF
 # This exercises all five built-in cases, including the normalize_ws path.
 # ---------------------------------------------------------------------------
 
-@test "eval-query: --self-test passes (all five built-in cases produce the expected verdict)" {
+@test "Eval query: --self-test passes with all five built-in cases producing the expected verdict" {
   run bash "$DRIVER" --self-test
   assert_success
   assert_output_contains "good answer passes"
@@ -141,7 +141,7 @@ JSONEOF
 # --self-test must run without any configured local model.
 # ---------------------------------------------------------------------------
 
-@test "eval-query: --self-test needs no configured local model" {
+@test "Eval query: --self-test runs without any configured local model" {
   run env -u CLAUDE_WIKI_PAGES_EVAL_MODEL bash "$DRIVER" --self-test
   assert_success
   assert_output_contains "self-test passed"
@@ -151,13 +151,13 @@ JSONEOF
 # Individual scoring cases — exercise the normalize_ws code path directly.
 # ---------------------------------------------------------------------------
 
-@test "eval-query: good answer (verbatim normalized quote) verdicts PASS (rc 0)" {
+@test "Eval query: good answer with a verbatim whitespace-normalized quote verdicts PASS at rc 0" {
   run bash "$DRIVER" --answer "$TMPVAULT/good.txt" --gold "$TMPVAULT/gold.json" --vault "$TMPVAULT/vault"
   assert_success
   assert_output_contains "PASS"
 }
 
-@test "eval-query: good answer emits JSON scorecard with expected keys" {
+@test "Eval query: good answer emits a JSON scorecard with the expected keys" {
   run bash "$DRIVER" --answer "$TMPVAULT/good.txt" --gold "$TMPVAULT/gold.json" --vault "$TMPVAULT/vault" --json
   assert_success
   assert_output_contains "verdict"
@@ -168,7 +168,7 @@ JSONEOF
   echo "$output" | jq -e '.verdict == "pass"'
 }
 
-@test "eval-query: fabricated quote (not verbatim in the page) verdicts FAIL (rc 1)" {
+@test "Eval query: a fabricated quote that is not verbatim in the page verdicts FAIL at rc 1" {
   # normalize_ws is called inside verify_citations; a forked/missing
   # implementation would produce rc 2 (command-not-found via set -u), not rc 1.
   run bash "$DRIVER" --answer "$TMPVAULT/fabquote.txt" --gold "$TMPVAULT/gold.json" --vault "$TMPVAULT/vault"
@@ -176,18 +176,18 @@ JSONEOF
   assert_output_contains "FAIL"
 }
 
-@test "eval-query: nonexistent cited page verdicts FAIL (rc 1)" {
+@test "Eval query: a nonexistent cited page verdicts FAIL at rc 1" {
   run bash "$DRIVER" --answer "$TMPVAULT/fabpage.txt" --gold "$TMPVAULT/gold.json" --vault "$TMPVAULT/vault"
   assert_status 1
   assert_output_contains "FAIL"
 }
 
-@test "eval-query: malformed answer protocol dies rc 2 (fail-closed, never silent)" {
+@test "Eval query: a malformed answer protocol dies rc 2, fail-closed and never silent" {
   run bash "$DRIVER" --answer "$TMPVAULT/malformed.txt" --gold "$TMPVAULT/gold.json" --vault "$TMPVAULT/vault"
   assert_status 2
 }
 
-@test "eval-query: coverage mismatch (gold=none, answer=full) verdicts FAIL (rc 1)" {
+@test "Eval query: a coverage mismatch where gold is none and answer is full verdicts FAIL at rc 1" {
   run bash "$DRIVER" --answer "$TMPVAULT/good.txt" --gold "$TMPVAULT/gold-none.json" --vault "$TMPVAULT/vault"
   assert_status 1
   assert_output_contains "FAIL"
@@ -200,7 +200,7 @@ JSONEOF
 # either hang or produce a non-zero exit with a curl error, not a PASS verdict.
 # ---------------------------------------------------------------------------
 
-@test "eval-query: scorer makes no network call — PASS verdict without any model env" {
+@test "Eval query: scorer makes no network call, returning a PASS verdict without any model env" {
   run env -u OLLAMA_HOST -u CLAUDE_WIKI_PAGES_EVAL_MODEL \
     bash "$DRIVER" --answer "$TMPVAULT/good.txt" --gold "$TMPVAULT/gold.json" --vault "$TMPVAULT/vault"
   assert_success

@@ -122,7 +122,7 @@ EOF
 # S1-check: domain/range violation is flagged as WARN
 # ---------------------------------------------------------------------------
 
-@test "lint-ontology: WARN when depends_on points at a source (range violation)" {
+@test "Ontology lint: a depends_on link pointing at a source is flagged as a range violation" {  # spec S1-check
   # The profile says: depends_on domain=concept|topic|project, range=concept|entity.
   # Pointing depends_on at a source page violates the range rule.
   # "Sample" is a source page in the fixture vault.
@@ -140,7 +140,7 @@ EOF
 # S1-check: conformant page emits no WARN and exits 0
 # ---------------------------------------------------------------------------
 
-@test "lint-ontology: clean when all typed wikilinks conform to the profile" {
+@test "Ontology lint: a page whose typed wikilinks all conform to the profile passes cleanly" {  # spec S1-check
   _write_conformant_concept "good-concept"
 
   run bash "$SCRIPTS_DIR/lint-ontology.sh" --target "$FIXTURE_VAULT"
@@ -155,7 +155,7 @@ EOF
 # (skips silently) rather than falling back to a built-in table.
 # ---------------------------------------------------------------------------
 
-@test "lint-ontology: reads profile from CLAUDE.md — no hardcoded table" {
+@test "Ontology lint: reads the predicate table from CLAUDE.md and does not fall back to a hardcoded table" {  # spec S1-check
   # Inject a range-violating page so that a built-in table WOULD fire.
   _write_concept_depends_on_source "bad-concept" "Sample"
 
@@ -188,7 +188,7 @@ fs.writeFileSync(p, txt);
 # S1-check: parent predicate pointing at a non-index page is flagged
 # ---------------------------------------------------------------------------
 
-@test "lint-ontology: WARN when parent points at a non-index page" {
+@test "Ontology lint: a parent predicate pointing at a non-index page is flagged with a WARN" {  # spec S1-check
   # parent range must be index; pointing at a source violates the rule.
   cat >"$FIXTURE_VAULT/wiki/topics/bad-parent.md" <<'EOF'
 ---
@@ -240,7 +240,7 @@ EOF
 # S1-check: reference vault passes cleanly
 # ---------------------------------------------------------------------------
 
-@test "lint-ontology: reference vault tests/fixtures/reference-vault passes with no WARNs" {
+@test "Ontology lint: the reference vault at tests/fixtures/reference-vault passes with no WARNs" {  # spec S1-check
   run bash "$SCRIPTS_DIR/lint-ontology.sh" --target "$REPO_ROOT/tests/fixtures/reference-vault"
 
   assert_success

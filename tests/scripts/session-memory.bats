@@ -40,7 +40,7 @@ teardown() {
   unset VAULT_DIR
 }
 
-@test "session-memory: no-op when scratch file is absent" {
+@test "Durable session memory: no-op when the session scratch file is absent" {
   local session_id="sess-absent-$$"
   local scratch="/tmp/no-such-file-$$"
   [ ! -e "$scratch" ]
@@ -59,7 +59,7 @@ teardown() {
   assert_eq "$count" "0"
 }
 
-@test "session-memory: no-op when scratch file is empty" {
+@test "Durable session memory: no-op when the session scratch file is empty" {
   local session_id="sess-empty-$$"
   local scratch="$BATS_TEST_TMPDIR/scratch-empty-$$.txt"
   touch "$scratch"
@@ -77,7 +77,7 @@ teardown() {
   assert_eq "$count" "0"
 }
 
-@test "session-memory: writes ONE new file with source_type: agent-session" {
+@test "Durable session memory: writes exactly one new file carrying source_type: agent-session" {
   local session_id="sess-write-$$"
   local scratch="$BATS_TEST_TMPDIR/scratch-write-$$.txt"
   echo "A useful session learning to persist." >"$scratch"
@@ -107,7 +107,7 @@ teardown() {
   assert_contains "$(cat "$written")" "A useful session learning to persist."
 }
 
-@test "session-memory: git-commits the new file" {
+@test "Durable session memory: git-commits the new file" {
   local session_id="sess-commit-$$"
   local scratch="$BATS_TEST_TMPDIR/scratch-commit-$$.txt"
   echo "Learning to commit." >"$scratch"
@@ -129,7 +129,7 @@ teardown() {
   [ "$commits_after" -gt "$commits_before" ]
 }
 
-@test "session-memory: idempotent — second fire for same session ID writes no second file" {
+@test "Durable session memory: idempotent — a second fire for the same session ID writes no second file" {
   local session_id="sess-idem-$$"
   local scratch="$BATS_TEST_TMPDIR/scratch-idem-$$.txt"
   echo "Idempotency test learning." >"$scratch"

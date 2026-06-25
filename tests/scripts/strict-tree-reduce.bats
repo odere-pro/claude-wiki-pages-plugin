@@ -26,12 +26,12 @@ teardown() {
   rm -rf "$VAULT"
 }
 
-@test "strict-tree-reduce: script declares set -euo pipefail (strict mode)" {
+@test "Strict-tree reduce: the script declares set -euo pipefail (strict mode)" {
   run grep -qE '^set -euo pipefail' "$SCRIPT"
   assert_success
 }
 
-@test "strict-tree-reduce: skips gracefully when wiki/ is absent" {
+@test "Strict-tree reduce: skips gracefully when the wiki/ directory is absent" {
   local empty="$BATS_TEST_TMPDIR/empty"
   mkdir -p "$empty"
   run bash "$SCRIPT" --target "$empty"
@@ -39,7 +39,7 @@ teardown() {
   assert_output_contains "no wiki/"
 }
 
-@test "strict-tree-reduce: dry-run writes nothing" {
+@test "Strict-tree reduce: the default dry-run writes nothing" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   before="$(cat "$VAULT/wiki/alpha/a1.md")"
   run bash "$SCRIPT" --target "$VAULT"
@@ -48,7 +48,7 @@ teardown() {
   assert_eq "$before" "$after"
 }
 
-@test "strict-tree-reduce: --apply yields a spine-only graph (conformance 1, no danglers)" {
+@test "Strict-tree reduce: --apply yields a spine-only graph with conformance 1 and no danglers" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   run bash "$SCRIPT" --target "$VAULT" --apply
@@ -62,7 +62,7 @@ teardown() {
   assert_eq "$(printf '%s' "$gq" | jq -r '.danglingCount')" "0"
 }
 
-@test "strict-tree-reduce: --apply adds topic/<tree> de-cycle tags for cross-tree edges" {
+@test "Strict-tree reduce: --apply adds topic/<tree> de-cycle tags for demoted cross-tree edges" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   run bash "$SCRIPT" --target "$VAULT" --apply
   assert_success
@@ -73,7 +73,7 @@ teardown() {
   assert_success
 }
 
-@test "strict-tree-reduce: never touches spine/provenance fields (parent, sources)" {
+@test "Strict-tree reduce: never touches the spine and provenance fields (parent, sources)" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   run bash "$SCRIPT" --target "$VAULT" --apply
   assert_success
@@ -85,7 +85,7 @@ teardown() {
   assert_success
 }
 
-@test "strict-tree-reduce: idempotent — a second --apply changes 0 files" {
+@test "Strict-tree reduce: is idempotent — a second --apply changes 0 files" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   command -v jq >/dev/null 2>&1 || skip "jq not available"
   bash "$SCRIPT" --target "$VAULT" --apply >/dev/null

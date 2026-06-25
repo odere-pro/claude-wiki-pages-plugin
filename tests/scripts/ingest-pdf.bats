@@ -46,23 +46,23 @@ setup() {
 # (a) PDF ingest section + required-field rules documented in ingest/SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "ingest-pdf: skills/ingest/SKILL.md contains a PDF ingest section heading" {
+@test "Ingest PDF extraction: skills/ingest/SKILL.md contains a PDF ingest section heading" {
   run grep -iE "pdf|source_format.*pdf" "$INGEST_SKILL"
   assert_success
   assert_output_contains "pdf"
 }
 
-@test "ingest-pdf: skills/ingest/SKILL.md documents source_format: pdf field" {
+@test "Ingest PDF extraction: skills/ingest/SKILL.md documents the source_format: pdf field" {
   run grep -E "source_format.*pdf|pdf.*source_format" "$INGEST_SKILL"
   assert_success
 }
 
-@test "ingest-pdf: skills/ingest/SKILL.md documents attachment_path as required for PDF" {
+@test "Ingest PDF extraction: skills/ingest/SKILL.md documents attachment_path as required for PDF" {
   run grep -iE "attachment_path" "$INGEST_SKILL"
   assert_success
 }
 
-@test "ingest-pdf: skills/ingest/SKILL.md documents extracted_at as required for PDF" {
+@test "Ingest PDF extraction: skills/ingest/SKILL.md documents extracted_at as required for PDF" {
   run grep -iE "extracted_at" "$INGEST_SKILL"
   assert_success
 }
@@ -71,7 +71,7 @@ setup() {
 # (b) raw/assets/ immutability statement in ingest/SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "ingest-pdf: skills/ingest/SKILL.md states PDF is immutable in raw/assets/" {
+@test "Ingest PDF extraction: skills/ingest/SKILL.md states the PDF is immutable in raw/assets/" {
   # The skill must explicitly state the PDF lives immutably under raw/assets/
   # and is never modified by ingest (raw is append-only per TEAM-BRIEF §5).
   run grep -iE "immut|raw/assets" "$INGEST_SKILL"
@@ -84,7 +84,7 @@ setup() {
 # (c) Provenance via sources unchanged for PDF sources
 # ---------------------------------------------------------------------------
 
-@test "ingest-pdf: skills/ingest/SKILL.md states provenance via sources is unchanged for PDF" {
+@test "Ingest PDF extraction: skills/ingest/SKILL.md states provenance via sources is unchanged for PDF" {
   # The sources field must still trace a PDF-sourced wiki page back to raw/.
   # The skill must mention sources/provenance in the PDF context.
   run grep -iE "sources|provenance" "$INGEST_SKILL"
@@ -95,7 +95,7 @@ setup() {
 # (d) Cross-reference in skills/ingest-pipeline/SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "ingest-pdf: skills/ingest-pipeline/SKILL.md references the PDF ingest path" {
+@test "Ingest PDF extraction: skills/ingest-pipeline/SKILL.md references the PDF ingest path" {
   run grep -iE "pdf|source_format" "$PIPELINE_SKILL"
   assert_success
   assert_output_contains "pdf"
@@ -106,7 +106,7 @@ setup() {
 #     (committed rule — this is a guard, not a new assertion)
 # ---------------------------------------------------------------------------
 
-@test "ingest-pdf: validate-frontmatter allows PDF source with attachment_path + extracted_at" {
+@test "Ingest PDF extraction: validate-frontmatter allows a PDF source with attachment_path + extracted_at" {
   local content
   content=$(cat <<'MD'
 ---
@@ -152,7 +152,7 @@ MD
 #     (committed rule — this is a guard confirming enforcement holds)
 # ---------------------------------------------------------------------------
 
-@test "ingest-pdf: validate-frontmatter rejects PDF source missing attachment_path" {
+@test "Ingest PDF extraction: validate-frontmatter rejects a PDF source missing attachment_path" {
   # source_format: pdf without attachment_path must be blocked.
   # The committed validate-frontmatter.sh enforces this (non-text rule).
   local content

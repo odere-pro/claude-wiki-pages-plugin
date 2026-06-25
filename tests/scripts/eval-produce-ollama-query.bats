@@ -26,29 +26,29 @@ setup() {
 # Existence + arg validation (fail-closed, rc 2)
 # ---------------------------------------------------------------------------
 
-@test "eval-produce-ollama-query: driver script exists and is executable" {
+@test "Eval Ollama query: driver script exists and is executable" {
   [ -f "$DRIVER" ]
   [ -x "$DRIVER" ]
 }
 
-@test "eval-produce-ollama-query: missing --model fails closed (rc 2)" {
+@test "Eval Ollama query: missing --model fails closed with rc 2" {
   run bash "$DRIVER"
   assert_status 2
   assert_output_contains "--model"
 }
 
-@test "eval-produce-ollama-query: unknown flag fails closed (rc 2)" {
+@test "Eval Ollama query: unknown flag fails closed with rc 2" {
   run bash "$DRIVER" --model m --no-such-flag
   assert_status 2
 }
 
-@test "eval-produce-ollama-query: unknown case fails closed (rc 2)" {
+@test "Eval Ollama query: unknown case fails closed with rc 2" {
   run bash "$DRIVER" --model m --case no-such-case --dry-run-prompt
   assert_status 2
   assert_output_contains "no-such-case"
 }
 
-@test "eval-produce-ollama-query: --help exits 0 and prints usage" {
+@test "Eval Ollama query: --help exits 0 and prints usage" {
   run bash "$DRIVER" --help
   assert_success
   assert_output_contains "--model"
@@ -59,7 +59,7 @@ setup() {
 # M10: shared ollama-chat.sh helper is sourced and the defensive guard fires
 # ---------------------------------------------------------------------------
 
-@test "eval-produce-ollama-query: sourcing exposes ollama_chat_call (DRY helper wired)" {
+@test "Eval Ollama query: sourcing the driver exposes ollama_chat_call from the shared DRY helper" { # spec M10
   # Verify the M10 DRY extraction: sourcing the driver must expose ollama_chat_call
   # because eval-produce-ollama-query.sh sources ollama-chat.sh at load time.
   run bash -c "
@@ -71,7 +71,7 @@ setup() {
   assert_output_contains "function present"
 }
 
-@test "eval-produce-ollama-query: defensive guard exits 2 when ollama-chat.sh is structurally broken" {
+@test "Eval Ollama query: defensive guard exits 2 when ollama-chat.sh is structurally broken" { # spec M10
   # The guard fires when ollama-chat.sh sources without error but does NOT define
   # ollama_chat_call (models a stub or a broken helper). We copy the driver into a
   # fake scripts/ tree so dirname resolves to the fake tree, not the real repo root.
@@ -94,7 +94,7 @@ setup() {
 # Prompt assembly (--dry-run-prompt; no network)
 # ---------------------------------------------------------------------------
 
-@test "eval-produce-ollama-query: dry-run prompt emits system and user sections" {
+@test "Eval Ollama query: dry-run prompt emits both the system and user sections" {
   run bash "$DRIVER" --model m --case query-basic --dry-run-prompt
   assert_success
   # System prompt landmark
@@ -104,7 +104,7 @@ setup() {
   assert_output_contains "WIKI PAGES"
 }
 
-@test "eval-produce-ollama-query: dry-run prompt never reads gold.json into prompt" {
+@test "Eval Ollama query: dry-run prompt never reads gold.json into the prompt" {
   # gold.json exists in the case dir; its content must never appear in the prompt
   # (reading it would contaminate the measurement — §NO-RAG / ADR-0019).
   run bash "$DRIVER" --model m --case query-basic --dry-run-prompt
@@ -117,7 +117,7 @@ setup() {
 # End-to-end with a fake curl (no live model, no network)
 # ---------------------------------------------------------------------------
 
-@test "eval-produce-ollama-query: e2e with fake curl writes answer file" {
+@test "Eval Ollama query: end-to-end with a fake curl writes the answer file" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-bin"
   local out="$BATS_TEST_TMPDIR/answers"
   mkdir -p "$fake_bin" "$out"
@@ -143,7 +143,7 @@ EOF
   assert_output_contains "answer ready"
 }
 
-@test "eval-produce-ollama-query: preflight fails closed when the model is not pulled" {
+@test "Eval Ollama query: preflight fails closed when the model is not pulled" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-bin-nomodel"
   mkdir -p "$fake_bin"
   cat >"$fake_bin/curl" <<'EOF'
@@ -158,7 +158,7 @@ EOF
   assert_output_contains "not-pulled"
 }
 
-@test "eval-produce-ollama-query: --retries retries with exponential backoff" {
+@test "Eval Ollama query: --retries retries the chat call with exponential backoff" {
   # Fake curl: /api/tags succeeds; the FIRST /api/chat call fails (rc 1),
   # the second succeeds. With --retries 1 the driver must recover.
   local fake_bin="$BATS_TEST_TMPDIR/fake-bin-retry"
@@ -190,7 +190,7 @@ EOF
   assert_output_contains "200"
 }
 
-@test "eval-produce-ollama-query: --retries exhausted still fails closed (rc 2)" {
+@test "Eval Ollama query: --retries exhausted still fails closed with rc 2" {
   local fake_bin="$BATS_TEST_TMPDIR/fake-bin-always-fail"
   mkdir -p "$fake_bin"
   cat >"$fake_bin/curl" <<'EOF'

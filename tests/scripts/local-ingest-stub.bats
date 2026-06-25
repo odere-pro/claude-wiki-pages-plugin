@@ -37,13 +37,13 @@ setup() {
 # (a) ingest-extract capability tier documented
 # ---------------------------------------------------------------------------
 
-@test "local-ingest-stub: skills/draft/SKILL.md documents the ingest-extract capability tier" {
+@test "Local-model ingest: skills/draft/SKILL.md documents the ingest-extract capability tier" {
   run grep -iF "ingest-extract" "$DRAFT_SKILL"
   assert_success
   assert_output_contains "ingest-extract"
 }
 
-@test "local-ingest-stub: skills/draft/SKILL.md mentions capability tier" {
+@test "Local-model ingest: skills/draft/SKILL.md mentions the capability tier" {
   run grep -iE "capability.tier|tier.*ingest" "$DRAFT_SKILL"
   assert_success
 }
@@ -52,13 +52,13 @@ setup() {
 # (b) _proposed/-only routing — never wiki/ directly
 # ---------------------------------------------------------------------------
 
-@test "local-ingest-stub: skills/draft/SKILL.md states output goes to _proposed/ only" {
+@test "Local-model ingest: skills/draft/SKILL.md states output goes to _proposed/ only" {
   run grep -F "_proposed/" "$DRAFT_SKILL"
   assert_success
   assert_output_contains "_proposed/"
 }
 
-@test "local-ingest-stub: skills/draft/SKILL.md states the stub never writes wiki/ directly" {
+@test "Local-model ingest: skills/draft/SKILL.md states the stub never writes wiki/ directly" {
   # The doc must contain a negative statement: "never" or "not" near "wiki/"
   run grep -iE "never.*wiki/|not.*wiki/|wiki/.*never|wiki/.*not.*(directly|write)" "$DRAFT_SKILL"
   assert_success
@@ -68,13 +68,13 @@ setup() {
 # (c) proposed_by provenance
 # ---------------------------------------------------------------------------
 
-@test "local-ingest-stub: skills/draft/SKILL.md documents proposed_by frontmatter field" {
+@test "Local-model ingest: skills/draft/SKILL.md documents the proposed_by frontmatter field" {
   run grep -F "proposed_by" "$DRAFT_SKILL"
   assert_success
   assert_output_contains "proposed_by"
 }
 
-@test "local-ingest-stub: skills/draft/SKILL.md shows a proposed_by example with a local model (e.g. ollama:*)" {
+@test "Local-model ingest: skills/draft/SKILL.md shows a proposed_by example with a local model (e.g. ollama:*)" {
   run grep -E 'proposed_by.*ollama|ollama.*proposed_by|proposed_by.*"[a-z]+:[a-z]' "$DRAFT_SKILL"
   assert_success
 }
@@ -83,17 +83,17 @@ setup() {
 # (d) Promotion via the existing review gate — no second write path
 # ---------------------------------------------------------------------------
 
-@test "local-ingest-stub: skills/draft/SKILL.md references the review gate for promotion" {
+@test "Local-model ingest: skills/draft/SKILL.md references the review gate for promotion" {
   run grep -iE "propose.approve|review.*gate|/claude-wiki-pages:review" "$DRAFT_SKILL"
   assert_success
 }
 
-@test "local-ingest-stub: skills/draft/SKILL.md states propose approve is the promotion path" {
+@test "Local-model ingest: skills/draft/SKILL.md states propose approve is the promotion path" {
   run grep -iE "propose.*approve|approve.*propose" "$DRAFT_SKILL"
   assert_success
 }
 
-@test "local-ingest-stub: skills/draft/SKILL.md does NOT introduce a second write channel" {
+@test "Local-model ingest: skills/draft/SKILL.md does NOT introduce a second write channel" {
   # Guard: the doc must not say local-ingest writes directly to wiki/.
   # Strategy: ensure "write" near "wiki/" appears only in a negative context.
   # We check there is no unconditional "writes to wiki/" (without "not" or "never").
@@ -110,7 +110,7 @@ setup() {
 # (e) Cross-reference to skills/review/SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "local-ingest-stub: skills/draft/SKILL.md cross-references skills/review/SKILL.md" {
+@test "Local-model ingest: skills/draft/SKILL.md cross-references skills/review/SKILL.md" {
   run grep -iE "skills/review/SKILL\.md|review/SKILL|skills/review" "$DRAFT_SKILL"
   assert_success
 }
@@ -119,13 +119,13 @@ setup() {
 # (f) Tier-scoped to ingest-extract only — scope not widened beyond it
 # ---------------------------------------------------------------------------
 
-@test "local-ingest-stub: skills/draft/SKILL.md states local-model scope is limited to ingest-extract" {
+@test "Local-model ingest: skills/draft/SKILL.md states local-model scope is limited to ingest-extract" {
   # The doc must contain language that scopes the local model to ingest-extract.
   run grep -iE "scoped.*ingest.extract|ingest.extract.*only|only.*ingest.extract|limited.*ingest.extract|ingest.extract.*scope" "$DRAFT_SKILL"
   assert_success
 }
 
-@test "local-ingest-stub: skills/draft/SKILL.md does not widen local-model scope to full ingest or wiki write" {
+@test "Local-model ingest: skills/draft/SKILL.md does not widen local-model scope to full ingest or wiki write" {
   # Guard: the section must not say the local model is authorized to write wiki/ at any point
   # in the ingest-extract tier. Check there is no uncaveated "local model" + "writes to wiki/".
   local bad_line
@@ -142,7 +142,7 @@ setup() {
 # in its "Who uses this channel" section (existing cross-reference check)
 # ---------------------------------------------------------------------------
 
-@test "local-ingest-stub: skills/review/SKILL.md mentions local-ingest-stub in the _proposed/ channel consumers" {
+@test "Local-model ingest: skills/review/SKILL.md mentions local-ingest-stub in the _proposed/ channel consumers" {
   run grep -iE "local.ingest.stub|local-ingest-stub" "$REVIEW_SKILL"
   assert_success
   assert_output_contains "local-ingest-stub"

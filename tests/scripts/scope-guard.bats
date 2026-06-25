@@ -27,14 +27,14 @@ _scope_json_grep() {
 
 # ── Non-blocking guarantee ────────────────────────────────────────────────────
 
-@test "scope-guard: always exits 0 (never blocks)" {
+@test "Read-scope guard: always exits 0 and never blocks" {
   local json
   json=$(_scope_json "Read" "/tmp/outside-any-vault/file.md")
   run bash -c "printf '%s' '$json' | CLAUDE_WIKI_PAGES_VAULT=/tmp/vault bash '$REPO_ROOT/scripts/scope-guard.sh'"
   assert_success
 }
 
-@test "scope-guard: exits 0 for Write (non-Read/Grep/Glob tool — no-op)" {
+@test "Read-scope guard: exits 0 with no output for a Write tool (non-Read/Grep/Glob is a no-op)" {
   local json
   json=$(_scope_json "Write" "/tmp/outside/file.md")
   run bash -c "printf '%s' '$json' | CLAUDE_WIKI_PAGES_VAULT=/tmp/vault bash '$REPO_ROOT/scripts/scope-guard.sh'"
@@ -44,7 +44,7 @@ _scope_json_grep() {
 
 # ── Advisory emission ─────────────────────────────────────────────────────────
 
-@test "scope-guard: emits advisory on stderr for Read outside vault" {
+@test "Read-scope guard: emits an advisory on stderr for a Read path outside the vault" {
   local json vault tmpdir
   tmpdir="$BATS_TEST_TMPDIR"
   vault="$tmpdir/vault"
@@ -56,7 +56,7 @@ _scope_json_grep() {
   assert_output_contains "ADVISORY"
 }
 
-@test "scope-guard: emits advisory on stderr for Grep outside vault" {
+@test "Read-scope guard: emits an advisory on stderr for a Grep path outside the vault" {
   local tmpdir vault
   tmpdir="$BATS_TEST_TMPDIR"
   vault="$tmpdir/vault"
@@ -70,7 +70,7 @@ _scope_json_grep() {
 
 # ── No-op when inside vault ───────────────────────────────────────────────────
 
-@test "scope-guard: no advisory when Read path is inside vault" {
+@test "Read-scope guard: no advisory when the Read path is inside the vault" {
   local tmpdir vault
   tmpdir="$BATS_TEST_TMPDIR"
   vault="$tmpdir/vault"
@@ -82,7 +82,7 @@ _scope_json_grep() {
   assert_output_empty
 }
 
-@test "scope-guard: no advisory when Read path is the vault root itself" {
+@test "Read-scope guard: no advisory when the Read path is the vault root itself" {
   local tmpdir vault
   tmpdir="$BATS_TEST_TMPDIR"
   vault="$tmpdir/vault"
@@ -96,7 +96,7 @@ _scope_json_grep() {
 
 # ── Non-matching tool types are no-ops ────────────────────────────────────────
 
-@test "scope-guard: no output for Edit tool (not Read/Grep/Glob)" {
+@test "Read-scope guard: no output for an Edit tool (not Read/Grep/Glob)" {
   local json
   json=$(_scope_json "Edit" "/tmp/outside/file.md")
   run bash -c "printf '%s' '$json' | CLAUDE_WIKI_PAGES_VAULT=/tmp/vault bash '$REPO_ROOT/scripts/scope-guard.sh' 2>&1"
@@ -104,7 +104,7 @@ _scope_json_grep() {
   assert_output_empty
 }
 
-@test "scope-guard: no output for Bash tool (not Read/Grep/Glob)" {
+@test "Read-scope guard: no output for a Bash tool (not Read/Grep/Glob)" {
   local json
   json='{"tool_name":"Bash","tool_input":{"command":"ls /tmp"}}'
   run bash -c "printf '%s' '$json' | CLAUDE_WIKI_PAGES_VAULT=/tmp/vault bash '$REPO_ROOT/scripts/scope-guard.sh' 2>&1"

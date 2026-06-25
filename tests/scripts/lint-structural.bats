@@ -30,7 +30,7 @@ teardown() {
 # S2-structural: missing required heading is flagged
 # ---------------------------------------------------------------------------
 
-@test "lint-structural: WARN when concept page missing required heading" {
+@test "Structural lint: a concept page missing a required template heading is flagged with a WARN" {  # spec S2-structural
   # The concept template requires: ## Definition, ## Key Principles, ## Examples, ## Related Concepts
   # Write a concept page that omits "## Key Principles".
   cat >"$FIXTURE_VAULT/wiki/topics/bad-concept.md" <<'EOF'
@@ -79,7 +79,7 @@ EOF
 # S2-structural: raw HTML <div> is flagged
 # ---------------------------------------------------------------------------
 
-@test "lint-structural: WARN when page contains raw HTML div" {
+@test "Structural lint: a page containing a raw HTML div is flagged with a WARN" {  # spec S2-structural
   cat >"$FIXTURE_VAULT/wiki/topics/html-entity.md" <<'EOF'
 ---
 title: "HTML Entity"
@@ -126,7 +126,7 @@ EOF
 # S2-structural: raw HTML <table> is flagged
 # ---------------------------------------------------------------------------
 
-@test "lint-structural: WARN when page contains raw HTML table" {
+@test "Structural lint: a page containing a raw HTML table is flagged with a WARN" {  # spec S2-structural
   cat >"$FIXTURE_VAULT/wiki/topics/table-entity.md" <<'EOF'
 ---
 title: "Table Entity"
@@ -173,7 +173,7 @@ EOF
 # S2-structural: raw HTML <span> is flagged
 # ---------------------------------------------------------------------------
 
-@test "lint-structural: WARN when page contains raw HTML span" {
+@test "Structural lint: a page containing a raw HTML span is flagged with a WARN" {  # spec S2-structural
   cat >"$FIXTURE_VAULT/wiki/topics/span-entity.md" <<'EOF'
 ---
 title: "Span Entity"
@@ -218,7 +218,7 @@ EOF
 # S2-structural: conformant page exits 0 with no WARN
 # ---------------------------------------------------------------------------
 
-@test "lint-structural: clean when entity page has all required headings and no HTML" {
+@test "Structural lint: an entity page with all required headings and no raw HTML passes cleanly" {  # spec S2-structural
   # entity template requires: ## Overview, ## Key Facts, ## Related
   # The existing sample-entity.md in the fixture already has Overview/Related but
   # let's write a fresh conformant page to be explicit.
@@ -265,7 +265,7 @@ EOF
 # S2-structural: reference vault tests/fixtures/reference-vault/ passes cleanly
 # ---------------------------------------------------------------------------
 
-@test "lint-structural: reference vault tests/fixtures/reference-vault passes with no WARNs" {
+@test "Structural lint: the reference vault at tests/fixtures/reference-vault passes with no WARNs" {  # spec S2-structural
   run bash "$SCRIPTS_DIR/lint-structural.sh" --target "$REPO_ROOT/tests/fixtures/reference-vault"
 
   assert_success
@@ -276,7 +276,7 @@ EOF
 # H12-str: DRY guard — _page_type() must NOT be re-inlined in lint-structural.sh
 # ---------------------------------------------------------------------------
 
-@test "lint-structural: does not define _page_type() inline (shared helper must live in lib-page-type.sh)" {
+@test "Structural lint: does not re-inline _page_type() — the shared helper must live in lib-page-type.sh" {  # spec H12-str
   # Pin the H12 (DRY) fix: _page_type() was extracted to scripts/lib-page-type.sh.
   # Grep for a function definition line (^_page_type\(\)), not any comment reference.
   # '|| true' absorbs grep's exit-1 on no-match so Bats sees exit 0; output is the count.

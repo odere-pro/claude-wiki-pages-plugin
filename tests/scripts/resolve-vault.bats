@@ -29,7 +29,7 @@ teardown() {
   unset CLAUDE_WIKI_PAGES_VAULT
 }
 
-@test "resolve_vault: returns current_vault_path from settings file" {
+@test "Vault resolution: resolve_vault returns current_vault_path from the settings file" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "my/custom/vault"\n}\n' >"$SETTINGS_TMP"
 
@@ -44,7 +44,7 @@ teardown() {
   [ "$output" = "my/custom/vault" ]
 }
 
-@test "resolve_vault: CLAUDE_WIKI_PAGES_VAULT env var overrides settings file" {
+@test "Vault resolution: the CLAUDE_WIKI_PAGES_VAULT env var overrides the settings file" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "my/custom/vault"\n}\n' >"$SETTINGS_TMP"
 
@@ -59,7 +59,7 @@ teardown() {
   [ "$output" = "env-override" ]
 }
 
-@test "resolve_vault: falls back to default when settings file absent" {
+@test "Vault resolution: resolve_vault falls back to a default when the settings file is absent" {
   # SETTINGS_TMP does not exist — no mkdir here.
   # Without a settings file OR an env var, resolution reaches tier 3 (auto-detect)
   # or tier 4 (default). In the repo working tree, tier 3 detects docs/vault-example
@@ -93,7 +93,7 @@ teardown() {
   [ -f "$SETTINGS_TMP" ]
 }
 
-@test "init_vault_settings: creates settings.json with default values" {
+@test "Vault resolution: init_vault_settings creates settings.json with default values" {
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
@@ -106,7 +106,7 @@ teardown() {
   grep -q '"current_vault_path": "docs/vault"' "$SETTINGS_TMP"
 }
 
-@test "init_vault_settings: does not overwrite existing file" {
+@test "Vault resolution: init_vault_settings does not overwrite an existing settings file" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "already/set"\n}\n' >"$SETTINGS_TMP"
 
@@ -120,7 +120,7 @@ teardown() {
   grep -q '"current_vault_path": "already/set"' "$SETTINGS_TMP"
 }
 
-@test "set_vault_path: updates current_vault_path, leaves default_vault_path" {
+@test "Vault resolution: set_vault_path updates current_vault_path and leaves default_vault_path untouched" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
 
@@ -135,7 +135,7 @@ teardown() {
   grep -q '"current_vault_path": "user/projects/my-vault"' "$SETTINGS_TMP"
 }
 
-@test "set_vault_path: creates settings.json when absent then sets path" {
+@test "Vault resolution: set_vault_path creates settings.json when absent then sets the path" {
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
     source '$REPO_ROOT/scripts/resolve-vault.sh'
@@ -148,14 +148,14 @@ teardown() {
   grep -q '"current_vault_path": "brand/new/vault"' "$SETTINGS_TMP"
 }
 
-@test "set-vault.sh: exits 1 with no argument" {
+@test "Vault resolution: set-vault.sh exits 1 with no argument" {
   run bash "$REPO_ROOT/scripts/set-vault.sh"
 
   assert_status 1
   assert_output_contains "Usage:"
 }
 
-@test "set-vault.sh: updates current_vault_path via CLI" {
+@test "Vault resolution: set-vault.sh updates current_vault_path via the CLI" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
 
@@ -169,7 +169,7 @@ teardown() {
   grep -q '"current_vault_path": "cli/vault/path"' "$SETTINGS_TMP"
 }
 
-@test "init_vault_settings: warns and exits 0 when settings directory cannot be created" {
+@test "Vault resolution: init_vault_settings warns and exits 0 when the settings directory cannot be created" {
   # Place a regular file where the parent dir would go so mkdir -p fails.
   # Capture stderr into $output (via 2>&1) and pin the WARN message — a
   # mutation that silently swallows the failure should fail this test.
@@ -187,7 +187,7 @@ teardown() {
   assert_output_contains "settings"
 }
 
-@test "set_vault_path: warns and exits 0 when settings.json cannot be written" {
+@test "Vault resolution: set_vault_path warns and exits 0 when settings.json cannot be written" {
   # Make the parent a regular file so both mkdir and write fail.
   local blocker="$BATS_TEST_TMPDIR/blocker2"
   printf 'not-a-dir\n' >"$blocker"
@@ -202,7 +202,7 @@ teardown() {
   assert_output_contains "WARN"
 }
 
-@test "set_vault_path: degraded awk path handles ampersand in vault path without corruption (M30)" {
+@test "Vault resolution: the degraded awk writer in set_vault_path handles an ampersand in the vault path without corruption" {  # spec M30
   # M30 injection fix: awk sub() replacement string interprets '&' as the matched
   # text. A raw vault path containing '&' (e.g. "projects/foo&bar-vault") would
   # corrupt the JSON when passed directly as the replacement string.
@@ -222,7 +222,7 @@ teardown() {
   grep -q '"current_vault_path": "projects/foo&bar-vault"' "$SETTINGS_TMP"
 }
 
-@test "set_vault_path: degraded awk path handles backslash in vault path without corruption (M30)" {
+@test "Vault resolution: the degraded awk writer in set_vault_path handles a backslash in the vault path without corruption" {  # spec M30
   # M30 injection fix: awk sub() replacement string interprets '\' as an escape.
   # A vault path with a backslash (unusual but valid) would produce garbled JSON.
   # Override _cwp_bun_available to force the degraded awk writer.
@@ -240,7 +240,7 @@ teardown() {
   grep -q '"current_vault_path": "projects/foo\\bar-vault"' "$SETTINGS_TMP"
 }
 
-@test "set-vault.sh: warns when vault path does not exist on disk" {
+@test "Vault resolution: set-vault.sh warns when the vault path does not exist on disk" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
 
@@ -256,7 +256,7 @@ teardown() {
 
 # ── S3: multi-vault registry lifecycle ──────────────────────────────────────────
 
-@test "vault_add: appends vault to registry without changing current_vault_path" {
+@test "Vault resolution: vault_add appends a vault to the registry without changing current_vault_path" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
 
@@ -273,7 +273,7 @@ teardown() {
   grep -q '"user/second-vault"' "$SETTINGS_TMP"
 }
 
-@test "vault_add: idempotent — adding the same path twice only appears once in vaults[]" {
+@test "Vault resolution: vault_add is idempotent — adding the same path twice appears only once in vaults[]" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
 
@@ -291,7 +291,7 @@ teardown() {
   [ "$vault_count" -eq 1 ]
 }
 
-@test "vault_add: backfills vaults array when settings.json has no vaults key" {
+@test "Vault resolution: vault_add backfills the vaults array when settings.json has no vaults key" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   # Old-format settings without vaults key
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
@@ -307,7 +307,7 @@ teardown() {
   grep -q '"user/new-vault"' "$SETTINGS_TMP"
 }
 
-@test "vault_switch: changes current_vault_path to a registered vault" {
+@test "Vault resolution: vault_switch changes current_vault_path to a registered vault" {
   # PM.4 health-check requires a real dir + CLAUDE.md(schema_version) + wiki/.
   local V2="$BATS_TEST_TMPDIR/switch-second"
   mkdir -p "$V2/wiki"
@@ -326,7 +326,7 @@ teardown() {
   grep -q "\"current_vault_path\": \"$V2\"" "$SETTINGS_TMP"
 }
 
-@test "vault_switch: refuses unregistered vault" {
+@test "Vault resolution: vault_switch refuses an unregistered vault" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
 
@@ -341,7 +341,7 @@ teardown() {
   assert_output_contains "not registered"
 }
 
-@test "vault_remove: deregisters vault and leaves files on disk" {
+@test "Vault resolution: vault_remove deregisters a vault and leaves its files on disk" {
   local VAULT_ON_DISK="$BATS_TEST_TMPDIR/real-vault"
   mkdir -p "$VAULT_ON_DISK/wiki"
   printf 'content\n' >"$VAULT_ON_DISK/wiki/page.md"
@@ -364,7 +364,7 @@ teardown() {
   grep -q '"current_vault_path": "docs/vault"' "$SETTINGS_TMP"
 }
 
-@test "vault_remove: refuses to remove the last registered vault (min-one invariant)" {
+@test "Vault resolution: vault_remove refuses to remove the last registered vault, holding the min-one invariant" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
 
@@ -378,7 +378,7 @@ teardown() {
   assert_output_contains "switch first"
 }
 
-@test "vault_remove: refuses to remove the active vault" {
+@test "Vault resolution: vault_remove refuses to remove the active vault" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"user/second","name":"second"}]\n}\n' >"$SETTINGS_TMP"
 
@@ -392,7 +392,7 @@ teardown() {
   assert_output_contains "switch first"
 }
 
-@test "vault_list: prints registry with active marker" {
+@test "Vault resolution: vault_list prints the registry with an active marker" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"},{"path":"user/second","name":"second"}]\n}\n' >"$SETTINGS_TMP"
 
@@ -409,7 +409,7 @@ teardown() {
   assert_output_contains "*"
 }
 
-@test "resolve_vault: output is UNCHANGED after vault_add (only switch moves it)" {
+@test "Vault resolution: resolve_vault output is unchanged after vault_add — only switch moves it" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
 
@@ -424,7 +424,7 @@ teardown() {
   [ "$output" = "docs/vault" ]
 }
 
-@test "resolve_vault: output is UNCHANGED after vault_remove (only switch moves it)" {
+@test "Vault resolution: resolve_vault output is unchanged after vault_remove — only switch moves it" {
   local EXTRA="$BATS_TEST_TMPDIR/extra-vault"
   mkdir -p "$EXTRA"
 
@@ -442,7 +442,7 @@ teardown() {
   [ "$output" = "docs/vault" ]
 }
 
-@test "set-vault.sh add: registers a new vault without switching" {
+@test "Vault resolution: set-vault.sh add registers a new vault without switching" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
 
@@ -456,7 +456,7 @@ teardown() {
   grep -q '"user/new"' "$SETTINGS_TMP"
 }
 
-@test "set-vault.sh switch: changes the active vault" {
+@test "Vault resolution: set-vault.sh switch changes the active vault" {
   # PM.4 health-check requires a real dir + CLAUDE.md(schema_version) + wiki/.
   local V2="$BATS_TEST_TMPDIR/cli-switch-second"
   mkdir -p "$V2/wiki"
@@ -474,7 +474,7 @@ teardown() {
   grep -q "\"current_vault_path\": \"$V2\"" "$SETTINGS_TMP"
 }
 
-@test "set-vault.sh list: prints registry" {
+@test "Vault resolution: set-vault.sh list prints the registry" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault",\n  "vaults": [{"path":"docs/vault","name":"main"}]\n}\n' >"$SETTINGS_TMP"
 
@@ -487,7 +487,7 @@ teardown() {
   assert_output_contains "docs/vault"
 }
 
-@test "set-vault.sh remove: deregisters a non-active vault" {
+@test "Vault resolution: set-vault.sh remove deregisters a non-active vault" {
   local EXTRA="$BATS_TEST_TMPDIR/remove-vault"
   mkdir -p "$EXTRA"
 
@@ -510,7 +510,7 @@ teardown() {
 #   2. First vault_add introduces the vaults array.
 #   3. N>=3 vaults: add/list/switch/remove maintain the single-active invariant.
 
-@test "PM.1 init_vault_settings: fresh init produces settings.json with NO vaults key" {
+@test "Vault resolution: a fresh init_vault_settings produces settings.json with no vaults key (progressive disclosure)" {  # spec PM.1
   # Must produce exactly two keys: default_vault_path and current_vault_path.
   # The vaults key must be ABSENT until the first vault_add (progressive disclosure
   # per ADR-0016 Part B item 3).
@@ -527,7 +527,7 @@ teardown() {
   assert_success
 }
 
-@test "PM.1 vault_add: first vault_add introduces the vaults array (progressive disclosure)" {
+@test "Vault resolution: the first vault_add introduces the vaults array (progressive disclosure)" {  # spec PM.1
   # Start from a fresh init — no vaults key — then add one vault.
   # The vaults array must appear only after the first vault_add.
   run bash -c "
@@ -543,7 +543,7 @@ teardown() {
   assert_success
 }
 
-@test "PM.1 N=3 vaults: add three vaults, list shows all three" {
+@test "Vault resolution: with N=3 vaults, adding three vaults makes list show all three" {  # spec PM.1
   local V1="$BATS_TEST_TMPDIR/vault-alpha"
   local V2="$BATS_TEST_TMPDIR/vault-beta"
   local V3="$BATS_TEST_TMPDIR/vault-gamma"
@@ -571,7 +571,7 @@ teardown() {
   [ "$star_count" -eq 1 ]
 }
 
-@test "PM.1 N=3 vaults: switch changes active, single-active invariant holds" {
+@test "Vault resolution: with N=3 vaults, switch changes the active vault and the single-active invariant holds" {  # spec PM.1
   local V1="$BATS_TEST_TMPDIR/vault-a"
   local V2="$BATS_TEST_TMPDIR/vault-b"
   local V3="$BATS_TEST_TMPDIR/vault-c"
@@ -613,7 +613,7 @@ teardown() {
   assert_output_contains "* $V2"
 }
 
-@test "PM.1 N=3 vaults: remove non-active vault leaves two in registry, single-active holds" {
+@test "Vault resolution: with N=3 vaults, removing a non-active vault leaves two in the registry and the single-active invariant holds" {  # spec PM.1
   local V1="$BATS_TEST_TMPDIR/vault-one"
   local V2="$BATS_TEST_TMPDIR/vault-two"
   local V3="$BATS_TEST_TMPDIR/vault-three"
@@ -642,7 +642,7 @@ teardown() {
   grep -q "\"current_vault_path\": \"$V1\"" "$SETTINGS_TMP"
 }
 
-@test "PM.1 N=3 vaults: remove then switch preserves single-active invariant" {
+@test "Vault resolution: with N=3 vaults, remove then switch preserves the single-active invariant" {  # spec PM.1
   local V1="$BATS_TEST_TMPDIR/vault-x"
   local V2="$BATS_TEST_TMPDIR/vault-y"
   local V3="$BATS_TEST_TMPDIR/vault-z"
@@ -685,7 +685,7 @@ teardown() {
 #   Output format: awk-parseable columns separated by two or more spaces; fields must
 #   be stable enough that `awk '{print $1, $2}` yields marker and path.
 
-@test "PM.4 list --status: N=3 vaults prints one row per vault with raw-pending and last-op columns" {
+@test "Vault resolution: list --status with N=3 vaults prints one row per vault with raw-pending and last-op columns" {  # spec PM.4
   local V1="$BATS_TEST_TMPDIR/status-v1"
   local V2="$BATS_TEST_TMPDIR/status-v2"
   local V3="$BATS_TEST_TMPDIR/status-v3"
@@ -731,7 +731,7 @@ teardown() {
   assert_output_contains "2026-03-01"
 }
 
-@test "PM.4 list --status: output is awk-parseable (field 1 = marker, field 2 = path)" {
+@test "Vault resolution: list --status output is awk-parseable, with field 1 the marker and field 2 the path" {  # spec PM.4
   local V1="$BATS_TEST_TMPDIR/awk-v1"
   local V2="$BATS_TEST_TMPDIR/awk-v2"
   local V3="$BATS_TEST_TMPDIR/awk-v3"
@@ -758,7 +758,7 @@ teardown() {
   assert_output_contains "$V3"
 }
 
-@test "PM.4 bare list: does NOT read log.md — works even when log.md is absent" {
+@test "Vault resolution: bare list does not read log.md and works even when log.md is absent" {  # spec PM.4
   local V1="$BATS_TEST_TMPDIR/nolog-v1"
   local V2="$BATS_TEST_TMPDIR/nolog-v2"
   # NO wiki/log.md created for either vault — bare list must still succeed
@@ -782,7 +782,7 @@ teardown() {
   refute_output_contains "fix"
 }
 
-@test "PM.4 switch <deleted-path>: exits 1 naming missing path; active vault UNCHANGED" {
+@test "Vault resolution: switch to a deleted path exits 1 naming the missing path and leaves the active vault unchanged" {  # spec PM.4
   local V1="$BATS_TEST_TMPDIR/switch-v1"
   local MISSING="$BATS_TEST_TMPDIR/does-not-exist-at-all"
   mkdir -p "$V1"
@@ -804,7 +804,7 @@ teardown() {
   grep -q "\"current_vault_path\": \"$V1\"" "$SETTINGS_TMP"
 }
 
-@test "PM.4 switch <valid>: succeeds when dir + CLAUDE.md(schema_version) + wiki/ all present" {
+@test "Vault resolution: switch to a valid vault succeeds when dir, CLAUDE.md with schema_version, and wiki/ are all present" {  # spec PM.4
   local V1="$BATS_TEST_TMPDIR/hc-active"
   local V2="$BATS_TEST_TMPDIR/hc-target"
   mkdir -p "$V1" "$V2/wiki"
@@ -823,7 +823,7 @@ teardown() {
   grep -q "\"current_vault_path\": \"$V2\"" "$SETTINGS_TMP"
 }
 
-@test "PM.4 switch <no-wiki>: WARNs naming /claude-wiki-pages:init; switch is allowed" {
+@test "Vault resolution: switch to a vault with no wiki/ warns naming /claude-wiki-pages:init but the switch is allowed" {  # spec PM.4
   local V1="$BATS_TEST_TMPDIR/scaff-active"
   local V2="$BATS_TEST_TMPDIR/scaff-target"
   mkdir -p "$V1" "$V2"
@@ -849,7 +849,7 @@ teardown() {
   grep -q "\"current_vault_path\": \"$V2\"" "$SETTINGS_TMP"
 }
 
-@test "PM.4 switch <no-CLAUDE.md>: treats as missing-dir-class, exits 1" {
+@test "Vault resolution: switch to a vault with no CLAUDE.md is treated as the missing-dir class and exits 1" {  # spec PM.4
   # A vault registered but whose directory exists yet has no CLAUDE.md with schema_version
   # is treated as an unscaffolded/invalid vault — exit 1.
   local V1="$BATS_TEST_TMPDIR/noclaude-active"
@@ -872,13 +872,13 @@ teardown() {
   grep -q "\"current_vault_path\": \"$V1\"" "$SETTINGS_TMP"
 }
 
-@test "PM.4 list --status: set-vault.sh usage shows --status flag" {
+@test "Vault resolution: set-vault.sh usage shows the list --status flag" {  # spec PM.4
   run bash -c "bash '$REPO_ROOT/scripts/set-vault.sh' 2>&1"
   assert_status 1
   assert_output_contains "--status"
 }
 
-@test "PM.1 sole-resolver: resolve_vault is the only resolution function in resolve-vault.sh" {
+@test "Vault resolution: resolve_vault is the only resolution function in resolve-vault.sh (sole-resolver invariant)" {  # spec PM.1
   # ADR-0016 Part B: registry selects, resolver confines — no parallel resolution function.
   # Grep confirms resolve_vault is the only function whose name ends in _vault and
   # whose body echoes a vault path (the resolver pattern). This pins the
@@ -911,7 +911,7 @@ teardown() {
 #   an intentional WARN + non-zero exit — no Python traceback — and remain
 #   fail-closed (writes blocked).
 
-@test "MEDIUM compact-JSON: resolve_vault returns current_vault_path not default when settings.json is single-line" {
+@test "Vault resolution: with single-line compact settings.json, resolve_vault returns current_vault_path and not the default" {  # spec MEDIUM compact-JSON
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   # Single-line compact JSON — this is the exact repro from QA-Adversarial.
   printf '{"default_vault_path":"/tmp/alpha","current_vault_path":"/tmp/beta","vaults":[{"path":"/tmp/alpha","name":"a"},{"path":"/tmp/beta","name":"b"}]}' \
@@ -929,7 +929,7 @@ teardown() {
   [ "$output" = "/tmp/beta" ]
 }
 
-@test "MEDIUM compact-JSON: multiline settings.json still resolves correctly (no regression)" {
+@test "Vault resolution: multiline settings.json still resolves correctly after the compact-JSON fix (no regression)" {  # spec MEDIUM compact-JSON
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   # Canonical multi-line indented format — must continue to work after the fix.
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "my/custom/vault"\n}\n' \
@@ -946,7 +946,7 @@ teardown() {
   [ "$output" = "my/custom/vault" ]
 }
 
-@test "MEDIUM compact-JSON: registry_other_vaults reads active correctly from compact settings" {
+@test "Vault resolution: registry_other_vaults reads the active vault correctly from compact settings" {  # spec MEDIUM compact-JSON
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   local ALPHA="$BATS_TEST_TMPDIR/compact-alpha"
   local BETA="$BATS_TEST_TMPDIR/compact-beta"
@@ -967,7 +967,7 @@ teardown() {
   refute_output_contains "$BETA"
 }
 
-@test "LOW non-string-name: vaults[] entry with non-string name (integer) exits non-zero with WARN, no traceback" {
+@test "Vault resolution: a vaults[] entry with an integer name exits non-zero with a WARN and no traceback" {  # spec LOW non-string-name
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   # Valid JSON but name is an integer — _vaults_read must WARN + exit 1, not traceback.
   printf '{"default_vault_path":"/tmp/x","current_vault_path":"/tmp/x","vaults":[{"path":"/tmp/x","name":42}]}' \
@@ -988,7 +988,7 @@ teardown() {
   refute_output_contains "TypeError"
 }
 
-@test "LOW non-string-name: vaults[] entry with NaN name exits non-zero with WARN, no traceback" {
+@test "Vault resolution: a vaults[] entry with a NaN name exits non-zero with a WARN and no traceback" {  # spec LOW non-string-name
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   # Python's json.load accepts bare NaN and parses it as float — the concatenation
   # then raises TypeError. The fix must catch it with an explicit WARN + exit 1.
@@ -1007,7 +1007,7 @@ teardown() {
   refute_output_contains "TypeError"
 }
 
-@test "LOW non-string-name: non-string name is fail-closed — no stale awk pattern extracts current_vault_path" {
+@test "Vault resolution: a non-string name is fail-closed and no stale awk pattern extracts current_vault_path" {  # spec LOW non-string-name
   # Structural guard: confirm no stale awk -F'"' ... print \$4 pattern for
   # current_vault_path remains in resolve-vault.sh after the fix.
   run bash -c "
@@ -1021,7 +1021,7 @@ teardown() {
 # Obsidian displays the vault's folder name; new vaults default to
 # docs/<root-slug>-vault so each project's vault is distinguishable.
 
-@test "slugify: lowercases, collapses non-alphanumerics, trims hyphens" {
+@test "Vault resolution: slugify lowercases, collapses non-alphanumerics, and trims hyphens" {
   run bash -c "source '$REPO_ROOT/scripts/resolve-vault.sh'; slugify 'My Project'"
   assert_success
   assert_output_contains "my-project"
@@ -1030,7 +1030,7 @@ teardown() {
   assert_output_contains "weird-name-2-0"
 }
 
-@test "default_new_vault_path: docs/<root-slug>-vault from the cwd basename" {
+@test "Vault resolution: default_new_vault_path builds docs/<root-slug>-vault from the cwd basename" {
   local proj="$BATS_TEST_TMPDIR/My Cool Project"
   mkdir -p "$proj"
   run bash -c "cd '$proj'; source '$REPO_ROOT/scripts/resolve-vault.sh'; default_new_vault_path"
@@ -1038,7 +1038,7 @@ teardown() {
   assert_output_contains "docs/my-cool-project-vault"
 }
 
-@test "default_new_vault_path: falls back to docs/vault on an empty slug" {
+@test "Vault resolution: default_new_vault_path falls back to docs/vault on an empty slug" {
   local proj="$BATS_TEST_TMPDIR/---"
   mkdir -p "$proj"
   run bash -c "cd '$proj'; source '$REPO_ROOT/scripts/resolve-vault.sh'; default_new_vault_path"
@@ -1046,7 +1046,7 @@ teardown() {
   assert_output_contains "docs/vault"
 }
 
-@test "default_new_vault_path: read-side resolve_vault default is unchanged (docs/vault)" {
+@test "Vault resolution: the new-vault naming does not change the read-side resolve_vault default of docs/vault" {
   # The new-vault naming must not leak into tier-4 resolution for existing flows.
   run bash -c "cd '$BATS_TEST_TMPDIR'; source '$REPO_ROOT/scripts/resolve-vault.sh'; resolve_vault"
   assert_success
@@ -1082,7 +1082,7 @@ _make_shim_dir() {
   printf '%s\n' "$shim_dir"
 }
 
-@test "degraded: Bun broken — tier 2 still resolves current_vault_path from settings.json" {
+@test "Vault resolution: with Bun broken, tier 2 still resolves current_vault_path from settings.json" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "degraded/from-settings"\n}\n' >"$SETTINGS_TMP"
 
@@ -1103,7 +1103,7 @@ _make_shim_dir() {
   [ "$output" = "degraded/from-settings" ]
 }
 
-@test "degraded: Bun broken — stderr carries the degraded-parser WARN" {
+@test "Vault resolution: with Bun broken, stderr carries the degraded-parser WARN" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "degraded/from-settings"\n}\n' >"$SETTINGS_TMP"
 
@@ -1124,7 +1124,7 @@ _make_shim_dir() {
   assert_output_contains "degraded settings parser"
 }
 
-@test "degraded: Bun broken + compact single-line JSON — degraded parser still extracts the value" {
+@test "Vault resolution: with Bun broken and compact single-line JSON, the degraded parser still extracts the value" {
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   # Compact layout: no spaces, no newlines — the grep/sed fallback must handle it.
   printf '{"default_vault_path":"docs/vault","current_vault_path":"compact/degraded-vault"}' >"$SETTINGS_TMP"
@@ -1144,7 +1144,7 @@ _make_shim_dir() {
   [ "$output" = "compact/degraded-vault" ]
 }
 
-@test "degraded: sort broken — tier 3 auto-detect still finds the vault instead of tier-4 default" {
+@test "Vault resolution: with sort broken, tier 3 auto-detect still finds the vault instead of the tier-4 default" {
   # A project whose only resolution signal is auto-detect: CLAUDE.md with
   # schema_version + wiki/ sibling, 2 levels down.
   local proj="$BATS_TEST_TMPDIR/sortless-proj"
@@ -1174,7 +1174,7 @@ _make_shim_dir() {
   [ "$output" = "./docs/found-vault" ]
 }
 
-@test "degraded: Bun AND sort broken — settings value still wins over tier-4 default (silent-wrong-vault repro)" {
+@test "Vault resolution: with Bun and sort both broken, the settings value still wins over the tier-4 default (silent-wrong-vault repro)" {
   # The exact user-reported scenario: PATH-degraded shell, settings.json
   # present with an explicit current_vault_path. Resolution must return that
   # value, never silently land on docs/vault.
@@ -1196,7 +1196,7 @@ _make_shim_dir() {
   [ "$output" = "docs/claude-wiki-pages-plugin-vault" ]
 }
 
-@test "hardening: stripped PATH — tier 2 still resolves the settings value via the scoped tool path" {
+@test "Vault resolution: with a stripped PATH, tier 2 still resolves the settings value via the scoped tool path" {
   # A hook shell arriving with a PATH that contains none of the standard tool
   # dirs. The scoped hardened lookup PATH (_CLAUDE_WIKI_PAGES_TOOL_PATH) makes
   # the JSON parser reachable so tier 2 resolves normally — either via bun (the
@@ -1218,7 +1218,7 @@ _make_shim_dir() {
   [ "$output" = "stripped/path-vault" ]
 }
 
-@test "hardening: sourcing NEVER mutates the caller PATH (scoped lookup, not global prepend)" {
+@test "Vault resolution: sourcing never mutates the caller PATH, using a scoped lookup rather than a global prepend" {
   # Sourced-safety guard: this file is sourced by every hook script, so a
   # global PATH prepend would change the CALLER's tool resolution (e.g.
   # re-introduce /usr/bin/jq into a deliberately curated sandbox PATH —
@@ -1241,7 +1241,7 @@ _make_shim_dir() {
   assert_output_contains "unchanged"
 }
 
-@test "degraded: normal PATH behavior unchanged — Bun path still authoritative for malformed JSON" {
+@test "Vault resolution: with a normal PATH, the Bun path stays authoritative for malformed JSON (behavior unchanged)" {
   # With a working bun, malformed JSON must keep its current behavior:
   # _settings_get_field exits non-zero, prints nothing, and emits NO
   # degraded-parser WARN (the fallback is for missing tools, not bad JSON).
@@ -1268,7 +1268,7 @@ _make_shim_dir() {
 # WARN to stderr and falls through to the next resolution tier.
 # Legitimate values (relative, absolute, no ..) are returned verbatim.
 
-@test "M32 path-traversal: CLAUDE_WIKI_PAGES_VAULT with .. component is rejected with WARN" {
+@test "Vault resolution: a CLAUDE_WIKI_PAGES_VAULT value with a .. component is rejected with a WARN and falls through" {  # spec M32
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
 
@@ -1287,7 +1287,7 @@ _make_shim_dir() {
   refute_output_contains "../../etc/passwd"
 }
 
-@test "M32 path-traversal: CLAUDE_WIKI_PAGES_VAULT with embedded .. component is rejected" {
+@test "Vault resolution: a CLAUDE_WIKI_PAGES_VAULT value with an embedded .. component is rejected" {  # spec M32
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "safe/custom-vault"\n}\n' >"$SETTINGS_TMP"
 
@@ -1305,7 +1305,7 @@ _make_shim_dir() {
   [ "$output" = "safe/custom-vault" ]
 }
 
-@test "M32 path-traversal: legitimate relative CLAUDE_WIKI_PAGES_VAULT (no ..) still returned verbatim" {
+@test "Vault resolution: a legitimate relative CLAUDE_WIKI_PAGES_VAULT with no .. is still returned verbatim" {  # spec M32
   # Regression guard: a normal relative path must not be affected by the fix.
   run bash -c "
     export CLAUDE_WIKI_PAGES_SETTINGS_FILE='$SETTINGS_TMP'
@@ -1318,7 +1318,7 @@ _make_shim_dir() {
   [ "$output" = "docs/my-project-vault" ]
 }
 
-@test "M32 path-traversal: legitimate absolute CLAUDE_WIKI_PAGES_VAULT (no ..) still returned verbatim" {
+@test "Vault resolution: a legitimate absolute CLAUDE_WIKI_PAGES_VAULT with no .. is still returned verbatim" {  # spec M32
   # Regression guard: an absolute path with no .. must pass through unchanged.
   local abs_vault="/tmp/ci-vault"
   run bash -c "
@@ -1332,7 +1332,7 @@ _make_shim_dir() {
   [ "$output" = "$abs_vault" ]
 }
 
-@test "M32 path-traversal: LLM_WIKI_VAULT (deprecated) with .. is also rejected" {
+@test "Vault resolution: the deprecated LLM_WIKI_VAULT with a .. component is also rejected" {  # spec M32
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{\n  "default_vault_path": "docs/vault",\n  "current_vault_path": "docs/vault"\n}\n' >"$SETTINGS_TMP"
 

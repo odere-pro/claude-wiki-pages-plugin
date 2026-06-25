@@ -81,7 +81,7 @@ process.exit(0);
 
 # ── validate-frontmatter.sh --json ──────────────────────────────────────────
 
-@test "json-envelope: validate-frontmatter --json clean vault emits valid JSON with findings[]" {
+@test "JSON envelope: validate-frontmatter --json on a clean vault emits valid JSON with a findings[] array" {
   run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --target "$MINIMAL_VAULT" --json
   assert_success
   assert_valid_json "$output"
@@ -89,7 +89,7 @@ process.exit(0);
   assert_findings_keys_conformant "$output"
 }
 
-@test "json-envelope: validate-frontmatter --json clean vault findings is empty array" {
+@test "JSON envelope: validate-frontmatter --json on a clean vault returns an empty findings array" {
   run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --target "$MINIMAL_VAULT" --json
   assert_success
   local count
@@ -97,7 +97,7 @@ process.exit(0);
   assert_eq "$count" "0"
 }
 
-@test "json-envelope: validate-frontmatter --json dirty vault emits error finding with required keys" {
+@test "JSON envelope: validate-frontmatter --json on a dirty vault emits an error finding with the required keys" {
   local dirty_vault
   dirty_vault="$BATS_TEST_TMPDIR/dirty-fm-vault"
   mkdir -p "$dirty_vault/wiki/topics"
@@ -139,7 +139,7 @@ MD
   }
 }
 
-@test "json-envelope: validate-frontmatter --json findings[].severity is one of error|warn|info" {
+@test "JSON envelope: validate-frontmatter --json findings[].severity is one of error|warn|info" {
   local dirty_vault
   dirty_vault="$BATS_TEST_TMPDIR/dirty-fm-sev-vault"
   mkdir -p "$dirty_vault/wiki/topics"
@@ -178,12 +178,12 @@ process.exit(0);
 " <<<"$output"
 }
 
-@test "json-envelope: validate-frontmatter --json exit 0 when clean (stable exit codes)" {
+@test "JSON envelope: validate-frontmatter --json exits 0 when clean (stable exit codes)" {
   run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --target "$MINIMAL_VAULT" --json
   assert_status 0
 }
 
-@test "json-envelope: validate-frontmatter --json exit 1 when errors (stable exit codes)" {
+@test "JSON envelope: validate-frontmatter --json exits 1 when there are errors (stable exit codes)" {
   local dirty_vault
   dirty_vault="$BATS_TEST_TMPDIR/dirty-fm-exit-vault"
   mkdir -p "$dirty_vault/wiki/topics"
@@ -212,14 +212,14 @@ MD
   assert_status 1
 }
 
-@test "json-envelope: validate-frontmatter --json bad-args exit 2" {
+@test "JSON envelope: validate-frontmatter --json exits 2 on bad arguments" {
   run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --json --target /nonexistent/no-such-vault-xyz
   assert_status 2
 }
 
 # ── firewall.sh --json ──────────────────────────────────────────────────────
 
-@test "json-envelope: firewall --json allowed path emits valid JSON with findings[]" {
+@test "JSON envelope: firewall --json on an allowed path emits valid JSON with a findings[] array" {
   local vault_dir="$BATS_TEST_TMPDIR/fw-vault"
   mkdir -p "$vault_dir/wiki/topics"
   run bash "$REPO_ROOT/scripts/firewall.sh" \
@@ -232,7 +232,7 @@ MD
   assert_findings_keys_conformant "$output"
 }
 
-@test "json-envelope: firewall --json allowed path findings is empty" {
+@test "JSON envelope: firewall --json on an allowed path returns an empty findings array" {
   local vault_dir="$BATS_TEST_TMPDIR/fw-vault-clean"
   mkdir -p "$vault_dir/wiki/topics"
   run bash "$REPO_ROOT/scripts/firewall.sh" \
@@ -245,7 +245,7 @@ MD
   assert_eq "$count" "0"
 }
 
-@test "json-envelope: firewall --json blocked path emits error finding with required keys" {
+@test "JSON envelope: firewall --json on a blocked path emits an error finding with the required keys" {
   local vault_dir="$BATS_TEST_TMPDIR/fw-vault-block"
   mkdir -p "$vault_dir/wiki"
   run bash "$REPO_ROOT/scripts/firewall.sh" \
@@ -264,7 +264,7 @@ MD
   }
 }
 
-@test "json-envelope: firewall --json exit 0 when allowed (stable exit codes)" {
+@test "JSON envelope: firewall --json exits 0 when the path is allowed (stable exit codes)" {
   local vault_dir="$BATS_TEST_TMPDIR/fw-vault-exit0"
   mkdir -p "$vault_dir/wiki"
   run bash "$REPO_ROOT/scripts/firewall.sh" \
@@ -274,7 +274,7 @@ MD
   assert_status 0
 }
 
-@test "json-envelope: firewall --json exit 1 when blocked (stable exit codes)" {
+@test "JSON envelope: firewall --json exits 1 when the path is blocked (stable exit codes)" {
   local vault_dir="$BATS_TEST_TMPDIR/fw-vault-exit1"
   mkdir -p "$vault_dir/wiki"
   run bash "$REPO_ROOT/scripts/firewall.sh" \
@@ -284,14 +284,14 @@ MD
   assert_status 1
 }
 
-@test "json-envelope: firewall --json bad-args exit 2" {
+@test "JSON envelope: firewall --json exits 2 on bad arguments" {
   run bash "$REPO_ROOT/scripts/firewall.sh" --json
   assert_status 2
 }
 
 # ── check-wikilinks.sh --json ───────────────────────────────────────────────
 
-@test "json-envelope: check-wikilinks --json clean vault emits valid JSON with findings[]" {
+@test "JSON envelope: check-wikilinks --json on a clean vault emits valid JSON with a findings[] array" {
   run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --target "$MINIMAL_VAULT" --json
   assert_success
   assert_valid_json "$output"
@@ -299,7 +299,7 @@ MD
   assert_findings_keys_conformant "$output"
 }
 
-@test "json-envelope: check-wikilinks --json clean vault findings is empty array" {
+@test "JSON envelope: check-wikilinks --json on a clean vault returns an empty findings array" {
   run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --target "$MINIMAL_VAULT" --json
   assert_success
   local count
@@ -307,7 +307,7 @@ MD
   assert_eq "$count" "0"
 }
 
-@test "json-envelope: check-wikilinks --json dirty vault emits error finding with required keys" {
+@test "JSON envelope: check-wikilinks --json on a dirty vault emits an error finding with the required keys" {
   local dirty_vault
   dirty_vault="$BATS_TEST_TMPDIR/dirty-wl-vault"
   mkdir -p "$dirty_vault/wiki/topics"
@@ -335,12 +335,12 @@ MD
   }
 }
 
-@test "json-envelope: check-wikilinks --json exit 0 when clean (stable exit codes)" {
+@test "JSON envelope: check-wikilinks --json exits 0 when clean (stable exit codes)" {
   run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --target "$MINIMAL_VAULT" --json
   assert_status 0
 }
 
-@test "json-envelope: check-wikilinks --json exit 1 when errors (stable exit codes)" {
+@test "JSON envelope: check-wikilinks --json exits 1 when there are errors (stable exit codes)" {
   local dirty_vault
   dirty_vault="$BATS_TEST_TMPDIR/dirty-wl-exit-vault"
   mkdir -p "$dirty_vault/wiki/topics"
@@ -356,14 +356,14 @@ MD
   assert_status 1
 }
 
-@test "json-envelope: check-wikilinks --json bad-args exit 2" {
+@test "JSON envelope: check-wikilinks --json exits 2 on bad arguments" {
   run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --json --target /nonexistent/no-such-vault-xyz
   assert_status 2
 }
 
 # ── default (no --json) behavior is unchanged ───────────────────────────────
 
-@test "json-envelope: validate-frontmatter without --json emits human text (behavior unchanged)" {
+@test "JSON envelope: validate-frontmatter without --json emits human text rather than JSON (behavior unchanged)" {
   run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" --target "$MINIMAL_VAULT"
   assert_success
   # Human output must NOT be valid JSON
@@ -374,7 +374,7 @@ MD
   assert_output_contains "All frontmatter valid"
 }
 
-@test "json-envelope: check-wikilinks without --json emits human text (behavior unchanged)" {
+@test "JSON envelope: check-wikilinks without --json emits human text rather than JSON (behavior unchanged)" {
   run bash "$REPO_ROOT/scripts/check-wikilinks.sh" --target "$MINIMAL_VAULT"
   assert_success
   if printf '%s' "$output" | bun -e "JSON.parse(await Bun.stdin.text())" >/dev/null 2>&1; then
@@ -388,7 +388,7 @@ MD
   assert_output_contains "OK: all checks passed"
 }
 
-@test "json-envelope: firewall without --json emits human text (behavior unchanged)" {
+@test "JSON envelope: firewall without --json emits human text rather than JSON (behavior unchanged)" {
   local vault_dir="$BATS_TEST_TMPDIR/fw-human-vault"
   mkdir -p "$vault_dir/wiki"
   run bash "$REPO_ROOT/scripts/firewall.sh" \
@@ -420,7 +420,7 @@ schema_version: 2
 SCHEMA
 }
 
-@test "json-envelope: validate-frontmatter --json tab in message produces valid JSON" {
+@test "JSON envelope: validate-frontmatter --json escapes a tab in the message and still produces valid JSON" {
   # TAB (0x09) in a frontmatter field value flows into the error message string.
   local v="$BATS_TEST_TMPDIR/ctrl-tab-fm"
   mkdir -p "$v/wiki/entities"
@@ -434,7 +434,7 @@ SCHEMA
   assert_envelope_has_findings "$output"
 }
 
-@test "json-envelope: validate-frontmatter --json CR in message produces valid JSON" {
+@test "JSON envelope: validate-frontmatter --json escapes a CR in the message and still produces valid JSON" {
   # CR (0x0D) in a frontmatter field value flows into the error message string.
   local v="$BATS_TEST_TMPDIR/ctrl-cr-fm"
   mkdir -p "$v/wiki/entities"
@@ -446,7 +446,7 @@ SCHEMA
   assert_envelope_has_findings "$output"
 }
 
-@test "json-envelope: validate-frontmatter --json BEL (0x07) in message produces valid JSON" {
+@test "JSON envelope: validate-frontmatter --json escapes a BEL (0x07) in the message and still produces valid JSON" {
   # Generic C0 control char (BEL = 0x07) must be escaped.
   local v="$BATS_TEST_TMPDIR/ctrl-bel-fm"
   mkdir -p "$v/wiki/entities"
@@ -458,7 +458,7 @@ SCHEMA
   assert_envelope_has_findings "$output"
 }
 
-@test "json-envelope: validate-frontmatter --json tab in filename produces valid JSON" {
+@test "JSON envelope: validate-frontmatter --json escapes a tab in the filename and still produces valid JSON" {
   # A filename containing a tab reaches the file field in the JSON finding.
   local v="$BATS_TEST_TMPDIR/ctrl-tab-fname"
   mkdir -p "$v/wiki/entities"
@@ -472,7 +472,7 @@ SCHEMA
   assert_envelope_has_findings "$output"
 }
 
-@test "json-envelope: validate-frontmatter --json CR in filename produces valid JSON" {
+@test "JSON envelope: validate-frontmatter --json escapes a CR in the filename and still produces valid JSON" {
   local v="$BATS_TEST_TMPDIR/ctrl-cr-fname"
   mkdir -p "$v/wiki/entities"
   _ctrl_schema_cat >"$v/CLAUDE.md"
@@ -484,7 +484,7 @@ SCHEMA
   assert_envelope_has_findings "$output"
 }
 
-@test "json-envelope: check-wikilinks --json tab in message produces valid JSON" {
+@test "JSON envelope: check-wikilinks --json escapes a tab in the message and still produces valid JSON" {
   # A markdown-link text with a tab flows into the message field.
   local v="$BATS_TEST_TMPDIR/ctrl-tab-wl"
   mkdir -p "$v/wiki/topics"
@@ -496,7 +496,7 @@ SCHEMA
   assert_envelope_has_findings "$output"
 }
 
-@test "json-envelope: check-wikilinks --json CR in message produces valid JSON" {
+@test "JSON envelope: check-wikilinks --json escapes a CR in the message and still produces valid JSON" {
   local v="$BATS_TEST_TMPDIR/ctrl-cr-wl"
   mkdir -p "$v/wiki/topics"
   printf '%s\n' $'---\ntitle: "T"\ntype: topic\n---\n\nSee [the\rsample](page.md) here.' \
@@ -507,7 +507,7 @@ SCHEMA
   assert_envelope_has_findings "$output"
 }
 
-@test "json-envelope: check-wikilinks --json tab in filename produces valid JSON" {
+@test "JSON envelope: check-wikilinks --json escapes a tab in the filename and still produces valid JSON" {
   local v="$BATS_TEST_TMPDIR/ctrl-tab-wl-fname"
   mkdir -p "$v/wiki/topics"
   printf '%s\n' $'---\ntitle: "T"\ntype: topic\n---\n\nSee [bad](page.md) here.' \
@@ -518,7 +518,7 @@ SCHEMA
   assert_envelope_has_findings "$output"
 }
 
-@test "json-envelope: check-wikilinks --json CR in filename produces valid JSON" {
+@test "JSON envelope: check-wikilinks --json escapes a CR in the filename and still produces valid JSON" {
   local v="$BATS_TEST_TMPDIR/ctrl-cr-wl-fname"
   mkdir -p "$v/wiki/topics"
   printf '%s\n' $'---\ntitle: "T"\ntype: topic\n---\n\nSee [bad](page.md) here.' \

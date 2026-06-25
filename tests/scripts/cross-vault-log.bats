@@ -60,7 +60,7 @@ _write_registry() {
 
 # ── test 1: ≥2-vault fold — entries from both vaults appear, vault-tagged ────
 
-@test "PM.3 cross-vault-log: lists entries from ≥2 registered vaults, vault-tagged" {
+@test "Cross-vault log: lists vault-tagged entries from two or more registered vaults" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/vault-alpha"
   local V2="$BATS_TEST_TMPDIR/vault-beta"
   _make_vault "$V1" "alpha" 2
@@ -83,7 +83,7 @@ _write_registry() {
 
 # ── test 2: date-sort — entries are ordered chronologically across vaults ─────
 
-@test "PM.3 cross-vault-log: entries are date-sorted across vaults" {
+@test "Cross-vault log: entries are date-sorted across vaults" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/ds-vault-a"
   local V2="$BATS_TEST_TMPDIR/ds-vault-b"
   mkdir -p "$V1/wiki" "$V2/wiki"
@@ -117,7 +117,7 @@ _write_registry() {
 
 # ── test 3: --last N limits entries per vault ─────────────────────────────────
 
-@test "PM.3 cross-vault-log: --last N limits entries per vault" {
+@test "Cross-vault log: --last N limits the number of entries per vault" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/last-vault-a"
   local V2="$BATS_TEST_TMPDIR/last-vault-b"
   _make_vault "$V1" "a" 3
@@ -138,7 +138,7 @@ _write_registry() {
   [ "$entry_count" -ge 1 ]   # at least 1 entry present
 }
 
-@test "PM.3 cross-vault-log: without --last returns all entries from all vaults" {
+@test "Cross-vault log: without --last returns all entries from all vaults" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/nolast-a"
   local V2="$BATS_TEST_TMPDIR/nolast-b"
   _make_vault "$V1" "x" 3
@@ -160,7 +160,7 @@ _write_registry() {
 # Running cross-vault-log twice must leave every vault's wiki/ byte-identical.
 # We take a snapshot before the first run, diff after the second run.
 
-@test "PM.3 cross-vault-log: running twice creates/modifies NO file under any vault wiki/" {
+@test "Cross-vault log: running twice creates or modifies no file under any vault wiki/" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/snap-vault-a"
   local V2="$BATS_TEST_TMPDIR/snap-vault-b"
   _make_vault "$V1" "snap-a" 2
@@ -198,7 +198,7 @@ _write_registry() {
 # ── test 5: malformed registry → own status, zero entries, non-zero exit ──────
 # The roll-up must NOT emit __FAIL_CLOSED__ (that is a firewall-internal token).
 
-@test "PM.3 cross-vault-log: malformed registry → registry-malformed status, non-zero exit" {
+@test "Cross-vault log: a malformed registry reports registry-malformed status and exits non-zero" { # spec PM.3
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   # Write intentionally malformed JSON
   printf '{"default_vault_path":"x","current_vault_path":"x","vaults":[INVALID}' >"$SETTINGS_TMP"
@@ -218,7 +218,7 @@ _write_registry() {
   [ "$entry_count" -eq 0 ]
 }
 
-@test "PM.3 cross-vault-log: malformed registry → __FAIL_CLOSED__ token ABSENT from output" {
+@test "Cross-vault log: a malformed registry keeps the __FAIL_CLOSED__ token absent from output" { # spec PM.3
   mkdir -p "$(dirname "$SETTINGS_TMP")"
   printf '{"default_vault_path":"x","current_vault_path":"x","vaults":[INVALID}' >"$SETTINGS_TMP"
 
@@ -231,7 +231,7 @@ _write_registry() {
   refute_output_contains "__FAIL_CLOSED__"
 }
 
-@test "PM.3 cross-vault-log: current_vault_path not in vaults[] → registry-malformed status, non-zero exit" {
+@test "Cross-vault log: a current_vault_path absent from vaults[] reports registry-malformed status and exits non-zero" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/notin-a"
   local V2="$BATS_TEST_TMPDIR/notin-b"
   mkdir -p "$V1/wiki" "$V2/wiki"
@@ -254,7 +254,7 @@ _write_registry() {
 
 # ── test 6: missing wiki/log.md → WARN on stderr, others still listed ─────────
 
-@test "PM.3 cross-vault-log: vault missing wiki/log.md is skipped with stderr WARN" {
+@test "Cross-vault log: a vault missing wiki/log.md is skipped with a stderr WARN" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/nolog-a"
   local V2="$BATS_TEST_TMPDIR/nolog-b"
   _make_vault "$V1" "has-log" 2   # V1 has a log
@@ -275,7 +275,7 @@ _write_registry() {
   assert_output_contains "log.md"
 }
 
-@test "PM.3 cross-vault-log: vault with no wiki/ directory is skipped with stderr WARN" {
+@test "Cross-vault log: a vault with no wiki/ directory is skipped with a stderr WARN" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/nowiki-a"
   local V2="$BATS_TEST_TMPDIR/nowiki-b"
   _make_vault "$V1" "with-wiki" 2   # V1 has wiki/log.md
@@ -294,7 +294,7 @@ _write_registry() {
 
 # ── test 7: usage / bad args ──────────────────────────────────────────────────
 
-@test "PM.3 cross-vault-log: --last requires a numeric argument" {
+@test "Cross-vault log: --last requires a numeric argument" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/args-a"
   _make_vault "$V1" "args" 1
   mkdir -p "$(dirname "$SETTINGS_TMP")"
@@ -312,7 +312,7 @@ _write_registry() {
 
 # ── test 8: set-vault.sh cross-vault-log appears in usage ────────────────────
 
-@test "PM.3 set-vault.sh: cross-vault-log subcommand appears in usage/help" {
+@test "Cross-vault log: the cross-vault-log subcommand appears in set-vault.sh usage and help" { # spec PM.3
   run bash -c "bash '$REPO_ROOT/scripts/set-vault.sh' 2>&1"
   # set-vault.sh with no args exits 1 and prints usage
   assert_status 1
@@ -321,7 +321,7 @@ _write_registry() {
 
 # ── test 9: N=3 vault fold — all three vaults' logs appear ───────────────────
 
-@test "PM.3 cross-vault-log: N=3 vaults all folded correctly" {
+@test "Cross-vault log: all three vaults are folded correctly when N=3" { # spec PM.3
   local V1="$BATS_TEST_TMPDIR/tri-a"
   local V2="$BATS_TEST_TMPDIR/tri-b"
   local V3="$BATS_TEST_TMPDIR/tri-c"

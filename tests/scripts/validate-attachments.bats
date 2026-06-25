@@ -14,7 +14,7 @@ setup() {
   _load_helpers
 }
 
-@test "validate-attachments: text source passes without attachment" {
+@test "Attachment validation: a text source passes without an attachment" {
   # The existing write-good fixture is a source-less entity, but the script
   # only acts on _sources/. We need a text-format source summary.
   local json_file="$BATS_TEST_TMPDIR/input.json"
@@ -53,7 +53,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-attachments: blocks non-text source missing attachment_path" {
+@test "Attachment validation: blocks a non-text source missing attachment_path" {
   local json_file="$BATS_TEST_TMPDIR/input.json"
   local content
   content=$(cat <<'MD'
@@ -92,7 +92,7 @@ MD
   assert_output_contains "no attachment_path"
 }
 
-@test "validate-attachments: blocks non-text source with missing file on disk" {
+@test "Attachment validation: blocks a non-text source whose attachment file is missing on disk" {
   # Use a real vault_root under the tmpdir so attachment existence check runs.
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/raw/assets"
@@ -137,7 +137,7 @@ MD
   assert_output_contains "does not exist"
 }
 
-@test "validate-attachments: passes when attachment file exists" {
+@test "Attachment validation: passes when the attachment file exists on disk" {
   local proj="$BATS_TEST_TMPDIR/proj"
   mkdir -p "$proj/vault/raw/assets"
   : >"$proj/vault/raw/assets/real.png"
@@ -196,7 +196,7 @@ _path_without_bun_va() {
   printf '%s' "$tooldir"
 }
 
-@test "validate-attachments: FAIL-CLOSED — Bun absent blocks a source-note write" {
+@test "Attachment validation: Bun absent blocks a source-note write (fail-closed)" {
   local tooldir
   tooldir=$(_path_without_bun_va)
   run bash -c "PATH='$tooldir' command -v bun"
@@ -208,7 +208,7 @@ _path_without_bun_va() {
   assert_output_contains "Bun is required"
 }
 
-@test "validate-attachments: FAIL-CLOSED — Bun absent passes through non-source paths" {
+@test "Attachment validation: Bun absent passes through non-source paths (fail-closed is scoped)" {
   local tooldir
   tooldir=$(_path_without_bun_va)
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test-project/vault/wiki/topics/x.md","content":"x"}}'

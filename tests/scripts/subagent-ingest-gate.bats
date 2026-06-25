@@ -12,7 +12,7 @@ setup() {
   _load_helpers
 }
 
-@test "subagent-ingest-gate: silent when agent_name is not claude-wiki-pages-ingest-agent" {
+@test "Ingest gate: stays silent when agent_name is not claude-wiki-pages-ingest-agent" {
   local json='{"agent_name":"something-else"}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/subagent-ingest-gate.sh'"
 
@@ -20,7 +20,7 @@ setup() {
   assert_output_empty
 }
 
-@test "subagent-ingest-gate: exits 0 when vault missing" {
+@test "Ingest gate: exits 0 as a graceful no-op when the vault is missing" {
   # CLAUDE_PROJECT_DIR points at a dir without vault/ — the script should
   # no-op rather than crash.
   local proj="$BATS_TEST_TMPDIR/proj"
@@ -32,7 +32,7 @@ setup() {
   assert_success
 }
 
-@test "subagent-ingest-gate: runs verify-ingest when vault and plugin scripts exist" {
+@test "Ingest gate: runs verify-ingest and emits the QUALITY GATE result when the vault and plugin scripts exist" {
   # Positive path: stub verify-ingest.sh to exit non-zero, and confirm the
   # gate emits QUALITY GATE. Pins the vault-exists branch so inverting the
   # `[ ! -d "$VAULT" ]` check is caught.

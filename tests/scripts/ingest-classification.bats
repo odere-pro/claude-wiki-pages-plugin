@@ -29,32 +29,32 @@ setup() {
 # (a) Checklist presence + enum-source pointer
 # ---------------------------------------------------------------------------
 
-@test "ingest-classification: skills/ingest/SKILL.md contains classification checklist heading" {
+@test "Ingest classification: skills/ingest/SKILL.md contains the classification checklist heading" {
   run grep -iF "classification checklist" "$INGEST_SKILL"
   assert_success
   assert_output_contains "Classification"
 }
 
-@test "ingest-classification: skills/ingest/SKILL.md references ontology-profile-v1 as the enum source" {
+@test "Ingest classification: skills/ingest/SKILL.md references ontology-profile-v1 as the enum source" {
   run grep -F "ontology-profile-v1" "$INGEST_SKILL"
   assert_success
   assert_output_contains "ontology-profile-v1"
 }
 
-@test "ingest-classification: skills/ingest/SKILL.md references vault/CLAUDE.md as the enum authority" {
+@test "Ingest classification: skills/ingest/SKILL.md references vault/CLAUDE.md as the enum authority" {
   run grep -F "vault/CLAUDE.md" "$INGEST_SKILL"
   assert_success
   assert_output_contains "vault/CLAUDE.md"
 }
 
-@test "ingest-classification: skills/ingest/SKILL.md addresses out-of-enum handling (never invent)" {
+@test "Ingest classification: skills/ingest/SKILL.md addresses out-of-enum handling so the classifier never invents a value" {
   # The checklist must instruct the classifier to direct an out-of-enum item to
   # the closest legal type or flag it — never invent an out-of-enum value.
   run grep -iE "out.of.enum|closest legal|never invent|flag" "$INGEST_SKILL"
   assert_success
 }
 
-@test "ingest-classification: skills/ingest/SKILL.md preserves provenance (sources required)" {
+@test "Ingest classification: skills/ingest/SKILL.md preserves provenance by requiring sources on classified pages" {
   # The checklist must state that classified pages still require sources.
   run grep -iE "sources|provenance" "$INGEST_SKILL"
   assert_success
@@ -64,7 +64,7 @@ setup() {
 # (b) No-duplicate-enum guard — the checklist must NOT inline a second copy
 # ---------------------------------------------------------------------------
 
-@test "ingest-classification: skills/ingest/SKILL.md does NOT inline a page-type enum list" {
+@test "Ingest classification: skills/ingest/SKILL.md does NOT inline a duplicate page-type enum list" {
   # The §6 invariant: the enum lives ONLY in ontology-profile-v1 in
   # vault/CLAUDE.md. A second copy here would drift.
   # We guard against a table or list that restates ALL core page types
@@ -92,7 +92,7 @@ setup() {
   fi
 }
 
-@test "ingest-classification: skills/ingest/SKILL.md does NOT inline an entity_type enum list" {
+@test "Ingest classification: skills/ingest/SKILL.md does NOT inline a duplicate entity_type enum list" {
   # Guard against restating the entity_type core values inline.
   # A line that contains 5+ of: person,organization,product,tool,service,standard,place
   # is a red flag for an inlined duplicate.
@@ -121,7 +121,7 @@ setup() {
 # (c) Cross-reference in skills/ingest-pipeline/SKILL.md
 # ---------------------------------------------------------------------------
 
-@test "ingest-classification: skills/ingest-pipeline/SKILL.md cross-references the classification checklist" {
+@test "Ingest classification: skills/ingest-pipeline/SKILL.md cross-references the classification checklist" {
   run grep -iE "classification|ingest.*SKILL|skills/ingest" "$PIPELINE_SKILL"
   assert_success
   assert_output_contains "classification"

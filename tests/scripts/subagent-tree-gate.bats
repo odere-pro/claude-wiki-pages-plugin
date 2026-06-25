@@ -15,7 +15,7 @@ setup() {
   _load_helpers
 }
 
-@test "subagent-tree-gate: silent for a non-gated agent" {
+@test "Tree gate: stays silent for a non-gated agent" {
   local json='{"agent_name":"claude-wiki-pages-ingest-agent"}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/subagent-tree-gate.sh'"
 
@@ -23,7 +23,7 @@ setup() {
   assert_output_empty
 }
 
-@test "subagent-tree-gate: silent for the curator agent (tree healed later by polish)" {
+@test "Tree gate: stays silent for the curator agent since the tree is healed later by polish" {
   local json='{"agent_name":"claude-wiki-pages-curator-agent"}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/subagent-tree-gate.sh'"
 
@@ -31,7 +31,7 @@ setup() {
   assert_output_empty
 }
 
-@test "subagent-tree-gate: warns when polish leaves cross-tree edges" {
+@test "Tree gate: emits a TREE GATE warning when the polish agent leaves cross-tree edges" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local vault="$REPO_ROOT/tests/fixtures/tangled-vault"
   local json='{"agent_name":"claude-wiki-pages-polish-agent"}'
@@ -42,7 +42,7 @@ setup() {
   assert_output_contains "cross-tree="
 }
 
-@test "subagent-tree-gate: silent on a clean strict tree" {
+@test "Tree gate: stays silent when the resolved vault is a clean strict tree" {
   command -v bun >/dev/null 2>&1 || skip "bun not installed"
   local vault="$REPO_ROOT/tests/fixtures/minimal-vault"
   local json='{"agent_name":"claude-wiki-pages-polish-agent"}'

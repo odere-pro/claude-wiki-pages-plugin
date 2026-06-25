@@ -62,21 +62,21 @@ console.log('OK');
 # localModel.tier — valid enum values
 # ---------------------------------------------------------------------------
 
-@test "config-schema: localModel.tier 'draft' is a valid enum value" {
+@test "Config schema: the schema accepts 'draft' as a localModel.tier enum value" {
   _validate_config '{"version":1,"localModel":{"enabled":true,"tier":"draft"}}'
 
   assert_success
   assert_output_contains "OK"
 }
 
-@test "config-schema: localModel.tier 'ingest-extract' is a valid enum value" {
+@test "Config schema: the schema accepts 'ingest-extract' as a localModel.tier enum value" {
   _validate_config '{"version":1,"localModel":{"enabled":true,"tier":"ingest-extract"}}'
 
   assert_success
   assert_output_contains "OK"
 }
 
-@test "config-schema: localModel.tier invalid value is rejected" {
+@test "Config schema: the schema rejects an invalid localModel.tier value" {
   _validate_config '{"version":1,"localModel":{"enabled":true,"tier":"unknown-tier"}}'
 
   assert_status 1
@@ -87,28 +87,28 @@ console.log('OK');
 # localModel.offlinePolicy — valid enum values
 # ---------------------------------------------------------------------------
 
-@test "config-schema: localModel.offlinePolicy 'strict' is a valid enum value" {
+@test "Config schema: the schema accepts 'strict' as a localModel.offlinePolicy enum value" {
   _validate_config '{"version":1,"localModel":{"enabled":true,"offlinePolicy":"strict"}}'
 
   assert_success
   assert_output_contains "OK"
 }
 
-@test "config-schema: localModel.offlinePolicy 'prefer-local' is a valid enum value" {
+@test "Config schema: the schema accepts 'prefer-local' as a localModel.offlinePolicy enum value" {
   _validate_config '{"version":1,"localModel":{"enabled":true,"offlinePolicy":"prefer-local"}}'
 
   assert_success
   assert_output_contains "OK"
 }
 
-@test "config-schema: localModel.offlinePolicy 'off' is a valid enum value" {
+@test "Config schema: the schema accepts 'off' as a localModel.offlinePolicy enum value" {
   _validate_config '{"version":1,"localModel":{"enabled":true,"offlinePolicy":"off"}}'
 
   assert_success
   assert_output_contains "OK"
 }
 
-@test "config-schema: localModel.offlinePolicy invalid value is rejected" {
+@test "Config schema: the schema rejects an invalid localModel.offlinePolicy value" {
   _validate_config '{"version":1,"localModel":{"enabled":true,"offlinePolicy":"always-local"}}'
 
   assert_status 1
@@ -119,7 +119,7 @@ console.log('OK');
 # Both fields together + existing fields still valid
 # ---------------------------------------------------------------------------
 
-@test "config-schema: localModel with tier and offlinePolicy together is valid" {
+@test "Config schema: the schema accepts a localModel block carrying both tier and offlinePolicy together" {
   _validate_config '{
     "version": 1,
     "localModel": {
@@ -137,7 +137,7 @@ console.log('OK');
   assert_output_contains "OK"
 }
 
-@test "config-schema: gate-07 default config still conforms after schema extension" {
+@test "Config schema: the default config still conforms after the schema is extended # spec gate-07" {
   run bash "$REPO_ROOT/tests/gates/gate-07-config-schema.sh"
 
   assert_success

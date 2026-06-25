@@ -39,7 +39,7 @@ setup() {
 # Non-CLAUDE.md paths — always silent
 # ---------------------------------------------------------------------------
 
-@test "enforce-must-rule: ignores non-CLAUDE.md file (exit 0, no output)" {
+@test "Must-rule enforcement: ignores a non-CLAUDE.md file (exit 0, no output)" {
   local json
   json=$(_write_claude_json "/tmp/test-project/vault/wiki/topics/page.md" "You must read this.")
   run_hook_with_json_string "$SCRIPT" "$json"
@@ -47,7 +47,7 @@ setup() {
   assert_output_empty
 }
 
-@test "enforce-must-rule: ignores README.md (exit 0, no output)" {
+@test "Must-rule enforcement: ignores a README.md (exit 0, no output)" {
   local json
   json=$(_write_claude_json "/any/path/README.md" "Always use wikilinks.")
   run_hook_with_json_string "$SCRIPT" "$json"
@@ -59,7 +59,7 @@ setup() {
 # CLAUDE.md with no imperative words — silent
 # ---------------------------------------------------------------------------
 
-@test "enforce-must-rule: CLAUDE.md with no must/never/always exits 0 silently" {
+@test "Must-rule enforcement: a CLAUDE.md with no must/never/always exits 0 silently" {
   local json
   json=$(_write_claude_json "/tmp/vault/CLAUDE.md" "schema_version: 1")
   run_hook_with_json_string "$SCRIPT" "$json"
@@ -71,7 +71,7 @@ setup() {
 # CLAUDE.md with imperative words — warning emitted, still exits 0
 # ---------------------------------------------------------------------------
 
-@test "enforce-must-rule: CLAUDE.md write with 'must' emits warning" {
+@test "Must-rule enforcement: a CLAUDE.md write containing 'must' emits a warning" {
   local json
   json=$(_write_claude_json "/tmp/vault/CLAUDE.md" "You must validate frontmatter.")
   export json
@@ -81,7 +81,7 @@ setup() {
   assert_output_contains "must"
 }
 
-@test "enforce-must-rule: CLAUDE.md write with 'never' emits warning" {
+@test "Must-rule enforcement: a CLAUDE.md write containing 'never' emits a warning" {
   local json
   json=$(_write_claude_json "/tmp/vault/CLAUDE.md" "Never skip validation.")
   export json
@@ -90,7 +90,7 @@ setup() {
   assert_output_contains "enforce-must-rule"
 }
 
-@test "enforce-must-rule: CLAUDE.md write with 'always' emits warning" {
+@test "Must-rule enforcement: a CLAUDE.md write containing 'always' emits a warning" {
   local json
   json=$(_write_claude_json "/tmp/vault/CLAUDE.md" "Always use wikilinks.")
   export json
@@ -99,7 +99,7 @@ setup() {
   assert_output_contains "enforce-must-rule"
 }
 
-@test "enforce-must-rule: warning counts multiple imperative hits" {
+@test "Must-rule enforcement: the warning counts the number of imperative hits" {
   local json
   # Three lines each with one imperative word → grep -c (line count) returns 3.
   json=$(_write_claude_json "/tmp/vault/CLAUDE.md" "Must validate.\\nNever skip.\\nAlways log.")
@@ -113,7 +113,7 @@ setup() {
 # Edit payload — uses new_string
 # ---------------------------------------------------------------------------
 
-@test "enforce-must-rule: Edit payload with 'must' in new_string emits warning" {
+@test "Must-rule enforcement: an Edit payload with 'must' in new_string emits a warning" {
   local json
   json=$(_edit_claude_json "/tmp/vault/CLAUDE.md" "You must validate frontmatter.")
   export json
@@ -122,7 +122,7 @@ setup() {
   assert_output_contains "enforce-must-rule"
 }
 
-@test "enforce-must-rule: Edit payload with clean new_string exits 0 silently" {
+@test "Must-rule enforcement: an Edit payload with a clean new_string exits 0 silently" {
   local json
   json=$(_edit_claude_json "/tmp/vault/CLAUDE.md" "schema_version: 1")
   run_hook_with_json_string "$SCRIPT" "$json"
@@ -134,7 +134,7 @@ setup() {
 # MultiEdit payload — no content / new_string → no-op
 # ---------------------------------------------------------------------------
 
-@test "enforce-must-rule: MultiEdit payload (no content/new_string) exits 0 silently" {
+@test "Must-rule enforcement: a MultiEdit payload with no content or new_string exits 0 silently" {
   local json
   json='{"tool_name":"MultiEdit","tool_input":{"file_path":"/tmp/vault/CLAUDE.md","edits":[]}}'
   run_hook_with_json_string "$SCRIPT" "$json"
@@ -146,7 +146,7 @@ setup() {
 # Nested CLAUDE.md paths
 # ---------------------------------------------------------------------------
 
-@test "enforce-must-rule: nested vault/CLAUDE.md path is recognized" {
+@test "Must-rule enforcement: a nested vault/CLAUDE.md path is recognized" {
   local json
   json=$(_write_claude_json "/any/deep/path/vault/CLAUDE.md" "Must validate.")
   export json
@@ -159,7 +159,7 @@ setup() {
 # The hook always exits 0
 # ---------------------------------------------------------------------------
 
-@test "enforce-must-rule: hook exits 0 even when imperative words are present" {
+@test "Must-rule enforcement: the hook exits 0 even when imperative words are present (advisory only)" {
   local json
   json=$(_write_claude_json "/tmp/vault/CLAUDE.md" "Must do this. Never do that.")
   export json
@@ -182,7 +182,7 @@ _path_without_bun_mr() {
   printf '%s' "$tooldir"
 }
 
-@test "enforce-must-rule: FAIL-OPEN — Bun absent exits 0 silently on a rule-bearing CLAUDE.md" {
+@test "Must-rule enforcement: Bun absent exits 0 silently on a rule-bearing CLAUDE.md (fail-open advisory)" {
   local tooldir
   tooldir=$(_path_without_bun_mr)
   run bash -c "PATH='$tooldir' command -v bun"

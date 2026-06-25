@@ -63,7 +63,7 @@ install_noop_stub() {
   chmod +x "$SANDBOX_BIN/obsidian"
 }
 
-@test "obsidian-rename: renames via the CLI, passes --vault, exit 0" {
+@test "Backlink-safe rename: renames via the CLI, passing --vault, and exits 0" {
   install_working_stub
   run_rename --from wiki/topics/old-page.md --to wiki/topics/new-page.md
   assert_success
@@ -76,14 +76,14 @@ install_noop_stub() {
   assert_output_contains "$VAULT"
 }
 
-@test "obsidian-rename: CLI absent → exit 3 with the exact skip marker" {
+@test "Backlink-safe rename: exits 3 with the exact skip marker when the CLI is absent" {
   run_rename --from wiki/topics/old-page.md --to wiki/topics/new-page.md
   assert_status 3
   assert_output_contains "[skip] cli-rename: obsidian-cli unavailable"
   [ -f "$VAULT/wiki/topics/old-page.md" ] # untouched
 }
 
-@test "obsidian-rename: CLI succeeds but file did not move → post-condition → exit 3" {
+@test "Backlink-safe rename: a post-condition check exits 3 when the CLI succeeds but the file did not move" {
   install_noop_stub
   run_rename --from wiki/topics/old-page.md --to wiki/topics/new-page.md
   assert_status 3
@@ -91,7 +91,7 @@ install_noop_stub() {
   [ -f "$VAULT/wiki/topics/old-page.md" ]
 }
 
-@test "obsidian-rename: usage errors exit 2 (missing args, absent --from, traversal, non-wiki, collision)" {
+@test "Backlink-safe rename: usage errors exit 2 — missing args, absent --from, traversal, non-wiki, and collision" {
   install_working_stub
   run_rename --from wiki/topics/old-page.md
   assert_status 2
@@ -106,7 +106,7 @@ install_noop_stub() {
   assert_status 2
 }
 
-@test "obsidian-rename: realpath confinement blocks wiki/-prefixed traversal (../../escape)" {
+@test "Backlink-safe rename: realpath confinement blocks wiki/-prefixed traversal such as ../../escape" {
   # H03 regression guard: a path like wiki/../../escape.md starts with wiki/
   # so a string-glob check would pass it, but realpath confinement must reject
   # it because its canonical target escapes vault/wiki/.
@@ -124,7 +124,7 @@ install_noop_stub() {
 # failed vault resolution) is silently swallowed and execution continues with
 # invalid state — a classic insecure-configuration vulnerability.
 # This test will FAIL until set -euo pipefail replaces set -uo pipefail.
-@test "obsidian-rename: N18 — script source declares set -euo pipefail (strict mode with -e)" {
+@test "Backlink-safe rename: the script source declares set -euo pipefail for strict mode with -e" { # spec N18
   # Static structural check: grep for the full strict-mode line.
   run grep -q 'set -euo pipefail' "$REPO_ROOT/scripts/obsidian-rename.sh"
   assert_success

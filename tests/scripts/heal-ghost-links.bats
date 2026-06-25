@@ -32,18 +32,18 @@ teardown() {
   rm -rf "$VAULT"
 }
 
-@test "heal-ghost-links: declares set -euo pipefail" {
+@test "Ghost-link healing: the script declares set -euo pipefail" {
   grep -qF 'set -euo pipefail' "$SCRIPT"
 }
 
-@test "heal-ghost-links: exits 0 and skips when wiki/ is absent" {
+@test "Ghost-link healing: exits 0 and skips when the wiki/ directory is absent" {
   rm -rf "$VAULT/wiki"
   run bash "$SCRIPT" --target "$VAULT"
   assert_success
   assert_output_contains "no wiki/"
 }
 
-@test "heal-ghost-links: rewrites a title-only ghost to piped basename" {
+@test "Ghost-link healing: rewrites a title-only ghost link to piped basename form" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   cat >"$VAULT/wiki/product/notes.md" <<'EOF'
 ---
@@ -60,7 +60,7 @@ EOF
   assert_output_contains '[[buyer-co-pilot|Buyer Co-pilot]]'
 }
 
-@test "heal-ghost-links: preserves display text and #heading anchor" {
+@test "Ghost-link healing: preserves the display text and a #heading anchor when healing" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   cat >"$VAULT/wiki/product/notes.md" <<'EOF'
 ---
@@ -77,7 +77,7 @@ EOF
   assert_output_contains '[[buyer-co-pilot#Pricing|the pricing]]'
 }
 
-@test "heal-ghost-links: leaves a genuinely dangling link untouched" {
+@test "Ghost-link healing: leaves a genuinely dangling link untouched" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   cat >"$VAULT/wiki/product/notes.md" <<'EOF'
 ---
@@ -94,7 +94,7 @@ EOF
   assert_output_contains '[[Nonexistent Page]]'
 }
 
-@test "heal-ghost-links: idempotent — second run heals nothing" {
+@test "Ghost-link healing: is idempotent — a second run heals nothing" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   cat >"$VAULT/wiki/product/notes.md" <<'EOF'
 ---
@@ -110,7 +110,7 @@ EOF
   assert_output_contains "0 ghost links healed"
 }
 
-@test "heal-ghost-links: --check exits 3 on ghosts and never writes" {
+@test "Ghost-link healing: --check exits 3 when ghosts remain and never writes" {
   command -v bun >/dev/null 2>&1 || skip "bun not available"
   cat >"$VAULT/wiki/product/notes.md" <<'EOF'
 ---

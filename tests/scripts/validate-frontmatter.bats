@@ -57,7 +57,7 @@ setup() {
 
 # --- happy path --------------------------------------------------------------
 
-@test "validate-frontmatter: allows clean entity via write-good fixture" {
+@test "Frontmatter validation: allows a clean entity via the write-good fixture" {
   run_hook_with_json "scripts/validate-frontmatter.sh" \
     "$JSON_FIXTURES_DIR/write-good.json"
 
@@ -65,7 +65,7 @@ setup() {
   assert_output_empty
 }
 
-@test "validate-frontmatter: ignores non-wiki paths" {
+@test "Frontmatter validation: ignores non-wiki paths" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/not-a-wiki.md","content":"no frontmatter here"}}'
   run bash -c "printf '%s' '$json' | bash '$REPO_ROOT/scripts/validate-frontmatter.sh'"
 
@@ -75,7 +75,7 @@ setup() {
 
 # --- block cases -------------------------------------------------------------
 
-@test "validate-frontmatter: blocks write missing type field" {
+@test "Frontmatter validation: blocks a write missing the type field" {
   run_hook_with_json "scripts/validate-frontmatter.sh" \
     "$JSON_FIXTURES_DIR/write-invalid-no-type.json"
 
@@ -85,7 +85,7 @@ setup() {
   assert_output_contains "type"
 }
 
-@test "validate-frontmatter: blocks legacy type: moc" {
+@test "Frontmatter validation: blocks the legacy type: moc value" {
   run_hook_with_json "scripts/validate-frontmatter.sh" \
     "$JSON_FIXTURES_DIR/write-invalid-moc-type.json"
 
@@ -94,7 +94,7 @@ setup() {
   assert_output_contains "Unknown type: moc"
 }
 
-@test "validate-frontmatter: blocks entity missing entity_type" {
+@test "Frontmatter validation: blocks an entity missing entity_type" {
   local content
   content=$(cat <<'MD'
 ---
@@ -127,7 +127,7 @@ MD
   assert_output_contains "entity_type"
 }
 
-@test "validate-frontmatter: blocks missing YAML frontmatter entirely" {
+@test "Frontmatter validation: blocks a page missing the YAML frontmatter entirely" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test-project/vault/wiki/topics/no-frontmatter.md","content":"# No frontmatter\n\nJust body text.\n"}}'
   run bash -c "export CLAUDE_WIKI_PAGES_VAULT=vault; printf '%s' '$json' | bash '$REPO_ROOT/scripts/validate-frontmatter.sh'"
 
@@ -136,7 +136,7 @@ MD
   assert_output_contains "YAML frontmatter"
 }
 
-@test "validate-frontmatter: allows index with new-schema fields" {
+@test "Frontmatter validation: allows an index page with new-schema fields" {
   local content
   content=$(cat <<'MD'
 ---
@@ -169,7 +169,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-frontmatter: allows schema-v2 topic page" {
+@test "Frontmatter validation: allows a schema-v2 topic page" {
   local content
   content=$(cat <<'MD'
 ---
@@ -203,7 +203,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-frontmatter: blocks topic missing summary" {
+@test "Frontmatter validation: blocks a topic missing summary" {
   local content
   content=$(cat <<'MD'
 ---
@@ -234,7 +234,7 @@ MD
   assert_output_contains "summary"
 }
 
-@test "validate-frontmatter: allows schema-v2 project page" {
+@test "Frontmatter validation: allows a schema-v2 project page" {
   local content
   content=$(cat <<'MD'
 ---
@@ -268,7 +268,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-frontmatter: allows schema-v2 manifest page" {
+@test "Frontmatter validation: allows a schema-v2 manifest page" {
   local content
   content=$(cat <<'MD'
 ---
@@ -293,7 +293,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-frontmatter: blocks path mismatch on entity" {
+@test "Frontmatter validation: blocks an entity whose declared path mismatches the file location" {
   # Declared path is wrong-folder but actual file is under topics/
   local content
   content=$(cat <<'MD'
@@ -329,7 +329,7 @@ MD
 
 # --- U4 errors-that-teach ----------------------------------------------------
 
-@test "validate-frontmatter: reports ALL missing fields in one message (U4)" {
+@test "Frontmatter validation: reports all missing fields in one message" {  # spec U4
   # A topic page missing sources, status, and confidence (3 required fields).
   # Before U4: the hook blocked on the FIRST missing field only.
   # After U4: all 3 appear in one reason string, plus the frontmatter block.
@@ -367,7 +367,7 @@ MD
   assert_output_contains "type: topic"
 }
 
-@test "validate-frontmatter: reports multiple base missing fields in one message (U4)" {
+@test "Frontmatter validation: reports multiple base missing fields in one message" {  # spec U4
   # A page missing both 'type' and 'title' (the two universal required fields).
   local content
   content=$(cat <<'MD'
@@ -395,7 +395,7 @@ MD
 
 # --- source_type: agent-session (Wave-2 durable memory) ----------------------
 
-@test "validate-frontmatter: allows source with source_type: agent-session" {
+@test "Frontmatter validation: allows a source with source_type: agent-session" {
   # Decision #4: durable memory writes carry source_type: agent-session.
   # This value must NOT be rejected by the hook (it is in the enum).
   local content
@@ -438,7 +438,7 @@ MD
 
 # --- source_format: pdf (Wave-2 I4 PDF ingest) --------------------------------
 
-@test "validate-frontmatter: allows source with source_format: pdf and required fields" {
+@test "Frontmatter validation: allows a source with source_format: pdf and its required fields" {  # spec I4
   # I4: PDF ingest path requires attachment_path and extracted_at when source_format != text.
   local content
   content=$(cat <<'MD'
@@ -480,7 +480,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-frontmatter: blocks source with source_format: pdf missing attachment_path" {
+@test "Frontmatter validation: blocks a source with source_format: pdf missing attachment_path" {
   # source_format != text → attachment_path + extracted_at required.
   local content
   content=$(cat <<'MD'
@@ -520,7 +520,7 @@ MD
   assert_output_contains "attachment_path"
 }
 
-@test "validate-frontmatter: blocks source with source_format: image missing extracted_at" {
+@test "Frontmatter validation: blocks a source with source_format: image missing extracted_at" {
   # The non-text rule applies to all non-text formats, not just pdf.
   local content
   content=$(cat <<'MD'
@@ -565,7 +565,7 @@ MD
 # The field list comes from the table parsed at gate time, not from a hardcoded
 # case block in the script (ADR-0014 Part A).
 
-@test "validate-frontmatter: P2.2 blocks concept missing parent" {
+@test "Frontmatter validation: blocks a concept missing parent" {  # spec P2.2
   # concept required: parent path sources created updated status confidence
   local content
   content=$(cat <<'MD'
@@ -596,7 +596,7 @@ MD
   assert_output_contains "parent"
 }
 
-@test "validate-frontmatter: P2.2 allows complete concept page" {
+@test "Frontmatter validation: allows a complete concept page" {  # spec P2.2
   local content
   content=$(cat <<'MD'
 ---
@@ -626,7 +626,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-frontmatter: P2.2 blocks synthesis missing synthesis_type" {
+@test "Frontmatter validation: blocks a synthesis missing synthesis_type" {  # spec P2.2
   # synthesis required: synthesis_type sources created updated status confidence
   local content
   content=$(cat <<'MD'
@@ -656,7 +656,7 @@ MD
   assert_output_contains "synthesis_type"
 }
 
-@test "validate-frontmatter: P2.2 allows complete synthesis page" {
+@test "Frontmatter validation: allows a complete synthesis page" {  # spec P2.2
   local content
   content=$(cat <<'MD'
 ---
@@ -685,7 +685,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-frontmatter: P2.2 blocks log missing created" {
+@test "Frontmatter validation: blocks a log missing created" {  # spec P2.2
   # log required: created updated
   local content
   content=$(cat <<'MD'
@@ -711,7 +711,7 @@ MD
   assert_output_contains "created"
 }
 
-@test "validate-frontmatter: P2.2 allows complete log page" {
+@test "Frontmatter validation: allows a complete log page" {  # spec P2.2
   local content
   content=$(cat <<'MD'
 ---
@@ -736,7 +736,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-frontmatter: P2.2 blocks project missing objective" {
+@test "Frontmatter validation: blocks a project missing objective" {  # spec P2.2
   # project required: objective project_status parent path sources created updated status confidence
   local content
   content=$(cat <<'MD'
@@ -769,7 +769,7 @@ MD
   assert_output_contains "objective"
 }
 
-@test "validate-frontmatter: P2.2 blocks source missing source_type" {
+@test "Frontmatter validation: blocks a source missing source_type" {  # spec P2.2
   # source required: source_type sources created updated status confidence
   local content
   content=$(cat <<'MD'
@@ -799,7 +799,7 @@ MD
   assert_output_contains "source_type"
 }
 
-@test "validate-frontmatter: P2.2 blocks entity missing entity_type (schema-table path)" {
+@test "Frontmatter validation: blocks an entity missing entity_type via the schema-table path" {  # spec P2.2
   # entity required: entity_type parent path sources created updated status confidence
   # This re-asserts entity enforcement via the schema-table path (same behavior as before).
   local content
@@ -832,7 +832,7 @@ MD
   assert_output_contains "entity_type"
 }
 
-@test "validate-frontmatter: P2.2 blocks index missing aliases" {
+@test "Frontmatter validation: blocks an index missing aliases" {  # spec P2.2
   # index required: aliases created updated
   local content
   content=$(cat <<'MD'
@@ -861,7 +861,7 @@ MD
 
 # --- P2.2: drift test — schema-table change propagates to gate with no script edit ---
 
-@test "validate-frontmatter: P2.2 drift — gate derives allowed-type set from schema table" {
+@test "Frontmatter validation: derives the allowed-type set from the schema table so a schema change propagates without a script edit (drift)" {  # spec P2.2
   # This test verifies that the gate reads type keys from the schema table.
   # An unknown type that is NOT in the schema table must be rejected with a
   # message that names allowed types, derived from the table keys.
@@ -897,7 +897,7 @@ MD
 
 # --- P2.2: fallback + malformed-table tests (ADR-0014 amended) ----------------
 
-@test "validate-frontmatter: P2.2 fallback — no table in vault CLAUDE.md validates against bundled table" {
+@test "Frontmatter validation: validates against the bundled table when the vault CLAUDE.md has no table (fallback)" {  # spec P2.2
   # ADR-0014 amended: a vault CLAUDE.md with NO "### Required fields by type" heading
   # triggers FALLBACK to the inline bundled table — does NOT fail closed.
   # A valid entity page must PASS when the vault has no table.
@@ -945,7 +945,7 @@ MD
   assert_output_empty
 }
 
-@test "validate-frontmatter: P2.2 fallback — missing field blocked by bundled table (no vault table)" {
+@test "Frontmatter validation: blocks a missing field via the bundled table when the vault has no table (fallback)" {  # spec P2.2
   # Inverse of the above: a page MISSING a required field must be blocked
   # even when the vault has no Required fields table (bundled table is used).
   local tmp_vault="$BATS_TEST_TMPDIR/no-table-vault2"
@@ -990,7 +990,7 @@ MD
   assert_output_contains "entity_type"
 }
 
-@test "validate-frontmatter: P2.2 fail-closed — malformed table (heading present, zero data rows)" {
+@test "Frontmatter validation: fails closed when the table heading is present but has zero data rows (malformed table)" {  # spec P2.2
   # ADR-0014 amended: when the "### Required fields by type" heading IS present
   # but zero valid data rows parse, the gate must FAIL CLOSED (not use the
   # bundled fallback). This prevents a broken schema from silently allowing all writes.
@@ -1060,7 +1060,7 @@ _path_without_bun() {
   printf '%s' "$tooldir"
 }
 
-@test "validate-frontmatter: FAIL-CLOSED — Bun absent blocks a wiki write with install-Bun reason" {
+@test "Frontmatter validation: Bun absent blocks a wiki write with an install-Bun reason (fail-closed)" {
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test-project/vault/wiki/topics/x.md","content":"# no frontmatter\n"}}'
   local tooldir
   tooldir=$(_path_without_bun)
@@ -1075,7 +1075,7 @@ _path_without_bun() {
   assert_output_contains "Bun is required"
 }
 
-@test "validate-frontmatter: FAIL-CLOSED — Bun absent still passes through non-wiki paths" {
+@test "Frontmatter validation: Bun absent still passes through non-wiki paths (fail-closed is scoped)" {
   # Fail-closed must be SCOPED: a missing-Bun box should not block edits the
   # gate would never have validated (anything outside <vault>/wiki/*.md).
   local json='{"tool_name":"Write","tool_input":{"file_path":"/tmp/elsewhere/notes.md","content":"# anything"}}'
@@ -1093,14 +1093,14 @@ _path_without_bun() {
 # `engine hook --gate frontmatter --cli`. When Bun is absent the CLI cannot
 # validate, so it exits 2 (cannot validate) — never a silent pass.
 
-@test "validate-frontmatter: CLI --json delegates to engine (clean vault → empty findings)" {
+@test "Frontmatter validation: CLI --json delegates to the engine and returns empty findings for a clean vault" {
   run bash "$REPO_ROOT/scripts/validate-frontmatter.sh" \
     --target "$REPO_ROOT/tests/fixtures/minimal-vault" --json
   assert_success
   assert_output_contains '"findings":[]'
 }
 
-@test "validate-frontmatter: CLI --json FAIL-CLOSED — Bun absent exits 2 with empty envelope" {
+@test "Frontmatter validation: CLI --json with Bun absent exits 2 with an empty envelope (fail-closed)" {
   local tooldir
   tooldir=$(_path_without_bun)
   # Sanity: bun must be unreachable on the curated PATH.
@@ -1113,7 +1113,7 @@ _path_without_bun() {
   assert_output_contains '"findings":[]'
 }
 
-@test "validate-frontmatter: CLI (plain) FAIL-CLOSED — Bun absent exits 2 with install-Bun message" {
+@test "Frontmatter validation: CLI plain with Bun absent exits 2 with an install-Bun message (fail-closed)" {
   local tooldir
   tooldir=$(_path_without_bun)
 

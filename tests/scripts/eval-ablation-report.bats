@@ -31,7 +31,7 @@ plant_query_scores() { # $1 = arm, $2 = verdict
 EOF
 }
 
-@test "eval-ablation-report: renders both arms side by side from canned scores" {
+@test "Ablation report: renders the plugin and baseline arms side by side from canned scores" {
   plant_ingest_scores plugin pass 1.0
   plant_ingest_scores baseline fail 0.0
   plant_query_scores plugin pass
@@ -49,7 +49,7 @@ EOF
   assert_output_contains "4"
 }
 
-@test "eval-ablation-report: a FAIL verdict is a measurement, not an error (rc 0)" {
+@test "Ablation report: a scorer FAIL verdict is treated as a measurement and exits 0, not as an error" {
   plant_ingest_scores plugin fail 0.5
   plant_ingest_scores baseline fail 0.0
 
@@ -59,7 +59,7 @@ EOF
   assert_output_contains "fail"
 }
 
-@test "eval-ablation-report: an unscorable cell renders labeled with dashes, not numbers" {
+@test "Ablation report: an unscorable cell renders labeled with dashes instead of metric numbers" {
   plant_query_scores plugin pass
   cat >"$OUT/query/baseline/query-basic.scores.json" <<'EOF'
 {"verdict":"unscorable","scorer_rc":2,"reason":"parse_answer: malformed citation row"}
@@ -74,7 +74,7 @@ EOF
   assert_output_contains "| - | - | - | - | unscorable |"
 }
 
-@test "eval-ablation-report: invalid score JSON is fatal (rc 2), never rendered" {
+@test "Ablation report: invalid score JSON is fatal with rc 2 and is never rendered" {
   plant_ingest_scores plugin pass 1.0
   printf 'not json\n' >"$OUT/ingest-extract/baseline/extract-basic.scores.json"
 
@@ -84,13 +84,13 @@ EOF
   assert_output_contains "invalid score JSON"
 }
 
-@test "eval-ablation-report: nothing to render is fatal (rc 2)" {
+@test "Ablation report: having no score files to render is fatal with rc 2" {
   run bash "$REPORT" --render-only --out "$OUT"
   assert_status 2
   assert_output_contains "no score files"
 }
 
-@test "eval-ablation-report: missing --model without --render-only is a usage error" {
+@test "Ablation report: omitting --model when not in --render-only mode is a usage error" {
   run bash "$REPORT" --out "$OUT"
   assert_status 2
 }
