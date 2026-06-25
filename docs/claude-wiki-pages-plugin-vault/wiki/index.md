@@ -5,7 +5,12 @@ parent: ""
 path: ""
 children: []
 child_indexes:
-  - "[[docs|Docs]]"
+  - "[[guides|Guides]]"
+  - "[[how-it-works|How It Works]]"
+  - "[[features|Features]]"
+  - "[[glossary|Glossary]]"
+  - "[[decisions|Decisions]]"
+  - "[[design|Design]]"
 aliases: ["Wiki Index", "ROOT"]
 tags: []
 created: 2026-04-24
@@ -19,7 +24,12 @@ Master catalog of every page in the wiki.
 
 ## Topics
 
-- [[docs|Docs]] — 67 pages, last updated 2026-06-25
+- [[guides|Guides]] — 12 pages, last updated 2026-06-25
+- [[how-it-works|How It Works]] — 6 pages, last updated 2026-06-25
+- [[features|Features]] — 6 pages, last updated 2026-06-25
+- [[glossary|Glossary]] — 3 pages, last updated 2026-06-25
+- [[decisions|Decisions]] — 37 pages, last updated 2026-06-25
+- [[design|Design]] — 6 pages, last updated 2026-06-25
 
 ## Synthesis
 
