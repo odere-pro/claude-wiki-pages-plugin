@@ -11,6 +11,7 @@ child_indexes:
   - "[[rules|Rules]]"
   - "[[schemas|Schemas]]"
   - "[[templates|Templates]]"
+  - "[[site|Site]]"
 aliases: ["Wiki Index", "ROOT"]
 tags: []
 created: 2026-04-24
@@ -29,6 +30,7 @@ Master catalog of every page in the wiki.
 - [[rules|Rules]] — 3 pages, last updated 2026-06-25
 - [[schemas|Schemas]] — 2 pages, last updated 2026-06-25
 - [[templates|Templates]] — 1 page, last updated 2026-06-25
+- [[site|Site]] — 1 page, last updated 2026-06-25
 
 ## Synthesis
 

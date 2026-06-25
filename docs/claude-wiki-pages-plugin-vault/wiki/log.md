@@ -55,3 +55,9 @@ New concepts: Plugin Config Schema, Config Sections
 Processed 1 template file from raw/repo/templates/. Created 1 new wiki page, 0 updated.
 New folders: templates
 New concepts: Default Config
+
+## [2026-06-25] ingest | claude-wiki-pages site (4 sources)
+
+Processed 4 site files from raw/repo/site/. Created 1 new wiki page, 0 updated.
+New folders: site
+New entities: GitHub Pages Site
