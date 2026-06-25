@@ -31,6 +31,11 @@ model and the dev-time-vs-runtime split).
   in `core/` do the work.
 - **Colocated tests** — `*.test.ts` next to each module, run with `bun test`.
   Typecheck with `tsc --noEmit`; lint with `eslint "src/**/*.ts"`.
+- **Tests as documentation** — every top-level `describe` opens with
+  `Feature: <Group> › <feature>` (the user-facing feature, not the symbol), so
+  `bun test` output reads as a feature spec. The `feature-coverage` gate
+  ([`../tests/gates/gate-14-feature-coverage.sh`](../tests/gates/gate-14-feature-coverage.sh),
+  backed by [`core/feature-coverage.ts`](./core/feature-coverage.ts)) enforces it.
 
 ## Shell ↔ TS parity
 
