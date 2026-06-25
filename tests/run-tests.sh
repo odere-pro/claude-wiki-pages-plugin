@@ -48,6 +48,14 @@ cd "$REPO_ROOT" || exit 1
 
 FAILED=0
 
+# Portable logical-core count for parallel test execution (nproc on Linux,
+# sysctl on macOS, 4 as a safe floor).
+_cpu_count() {
+  command -v nproc >/dev/null 2>&1 && nproc 2>/dev/null && return 0
+  sysctl -n hw.ncpu 2>/dev/null && return 0
+  echo 4
+}
+
 run() {
   local label="$1"
   shift
@@ -75,7 +83,21 @@ tier0() {
 }
 
 tier1() {
-  run "bats (tests/scripts/)" bats --recursive tests/scripts/
+  # Parallelize ACROSS files when GNU parallel is available (bats --jobs needs it);
+  # each test owns a unique $BATS_TEST_TMPDIR, so cross-file parallelism is safe.
+  # --no-parallelize-within-files keeps each file's tests in written order: a few
+  # files (e.g. gate-13-no-rag.bats) plant-then-restore a real source file within a
+  # test, which is only correct when that file's tests run serially.
+  # Fall back to plain serial so contributors without parallel are never broken.
+  if command -v parallel >/dev/null 2>&1; then
+    local jobs
+    jobs="$(_cpu_count)"
+    run "bats (tests/scripts/, -j ${jobs})" \
+      bats --jobs "${jobs}" --no-parallelize-within-files --recursive tests/scripts/
+  else
+    echo "NOTE: GNU parallel not found — running bats serially. Run 'bash tests/install-deps.sh' for the parallel speedup." >&2
+    run "bats (tests/scripts/)" bats --recursive tests/scripts/
+  fi
 }
 
 tier2() {
