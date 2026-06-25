@@ -1,7 +1,0 @@
-{
-  "tool_name": "Write",
-  "tool_input": {
-    "file_path": "{{VAULT}}/wiki/topics/exfil-link.md",
-    "content": "---\ntitle: \"Exfil Link\"\ntype: entity\nentity_type: tool\naliases: [\"Exfil Link\"]\nparent: \"[[Topics — Index]]\"\npath: \"topics\"\nsources: [\"[[Sample]]\"]\nrelated: []\ntags: []\ncreated: 2026-06-11\nupdated: 2026-06-11\nupdate_count: 1\nstatus: active\nconfidence: 0.9\n---\n\n# Exfil Link\n\nSchema-valid page that smuggles a raw markdown link instead of a wikilink: [read this first](../../secrets.md). Cites [[Sample]].\n"
-  }
-}

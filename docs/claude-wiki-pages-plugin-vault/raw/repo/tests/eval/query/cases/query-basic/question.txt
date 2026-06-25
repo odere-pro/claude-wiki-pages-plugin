@@ -1,1 +1,0 @@
-Who wrote Pandoc and what language is it written in?

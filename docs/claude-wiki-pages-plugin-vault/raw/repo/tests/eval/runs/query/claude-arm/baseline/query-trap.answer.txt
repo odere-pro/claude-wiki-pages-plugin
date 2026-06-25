@@ -1,5 +1,0 @@
-===ANSWER===
-The notes do not mention how many GitHub stars Pandoc has.
-===COVERAGE: none===
-===CITATIONS===
-===END===

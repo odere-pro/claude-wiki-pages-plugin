@@ -1,7 +1,0 @@
-{
-  "expected_coverage": "full",
-  "required_citations": ["Pandoc"],
-  "required_quotes": [
-    "Pandoc is a free and open-source document converter written in Haskell by John MacFarlane."
-  ]
-}

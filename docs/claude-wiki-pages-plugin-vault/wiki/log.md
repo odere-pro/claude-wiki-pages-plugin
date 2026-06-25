@@ -94,3 +94,8 @@ New entities: engine.sh, resolve-vault.sh, firewall.sh, verify-ingest.sh, sessio
 New concepts: Fail-Closed Security Pattern, Bash-to-Bun Wrapper Pattern, Four-Tier Vault Resolution, TypeScript Utility Scripts, Validation and Lint Scripts
 New sources: scripts-engine-sh, scripts-resolve-vault-sh, scripts-firewall-sh, scripts-verify-ingest-sh, scripts-graph-quality-sh, scripts-strict-tree-reduce-sh, scripts-check-wikilinks-sh, scripts-scope-guard-sh, scripts-protect-raw-sh, scripts-session-start-sh, scripts-heartbeat-sh, scripts-doctor-sh, scripts-validate-docs-sh, scripts-validate-frontmatter-sh, scripts-check-duplicate-claims-sh, scripts-enforce-dmi-sh, scripts-enforce-must-rule-sh, scripts-apply-obsidian-config-sh, scripts-snapshot-sh, scripts-lint-structural-sh, scripts-set-vault-sh, scripts-strict-tree-reduce-ts, scripts-disambiguate-collisions-ts, scripts-declutter-source-outlinks-ts, scripts-migrate-piped-links-ts
 Backlog: 57 of 82 scripts remain unprocessed (heartbeat.sh, protect-raw.sh, check-wikilinks.sh, scope-guard.sh, apply-obsidian-config.sh/.ts, set-vault.sh, validate-docs.sh, validate-frontmatter.sh, check-duplicate-claims.sh, enforce-dmi.sh, enforce-must-rule.sh, lint-structural.sh, heal-ghost-links.sh/.ts, scaffold-vault.sh, graph-quality.ts, disambiguate-collisions.ts, declutter-source-outlinks.ts, migrate-piped-links.ts, eval-*, lib-*, subagent-gate scripts, and others)
+## [2026-06-25] snapshot | reduce to docs-only: strip non-docs topics + raw (snap-20260625143328)
+
+- pre-state: bd0d729
+- rollback: git revert the snapshot commit below
+
