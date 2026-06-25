@@ -165,4 +165,8 @@ Updated: adrs.md (new ADR pages added), docs.md (design and llm-wiki child_index
 
 - pre-state: fb0f633
 - rollback: git revert the snapshot commit below
+## [2026-06-25] snapshot | enrichment: 31 grounded term/concept/process proposals in _proposed/ (snap-20260625183023)
+
+- pre-state: 4b2bb53
+- rollback: git revert the snapshot commit below
 
