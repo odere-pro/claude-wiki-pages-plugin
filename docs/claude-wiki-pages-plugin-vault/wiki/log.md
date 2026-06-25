@@ -37,3 +37,9 @@ Processed hooks.json from raw/repo/hooks/. Created 3 new wiki pages, 0 updated.
 New folders: hooks
 New entities: Hooks Configuration
 New concepts: Write-Path Firewall, Commit Backstop
+
+## [2026-06-25] ingest | claude-wiki-pages rules (4 sources)
+
+Processed 4 rule files from raw/repo/rules/. Created 3 new wiki pages, 0 updated.
+New folders: rules
+New concepts: Path-Scoped Rules, Raw Immutability, Wiki Page Format
