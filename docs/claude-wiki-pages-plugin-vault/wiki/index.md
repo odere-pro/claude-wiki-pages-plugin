@@ -9,6 +9,7 @@ child_indexes:
   - "[[commands|Commands]]"
   - "[[hooks|Hooks]]"
   - "[[rules|Rules]]"
+  - "[[schemas|Schemas]]"
 aliases: ["Wiki Index", "ROOT"]
 tags: []
 created: 2026-04-24
@@ -25,6 +26,7 @@ Master catalog of every page in the wiki.
 - [[commands|Commands]] — 4 pages, last updated 2026-06-25
 - [[hooks|Hooks]] — 3 pages, last updated 2026-06-25
 - [[rules|Rules]] — 3 pages, last updated 2026-06-25
+- [[schemas|Schemas]] — 2 pages, last updated 2026-06-25
 
 ## Synthesis
 

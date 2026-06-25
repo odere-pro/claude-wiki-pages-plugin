@@ -43,3 +43,9 @@ New concepts: Write-Path Firewall, Commit Backstop
 Processed 4 rule files from raw/repo/rules/. Created 3 new wiki pages, 0 updated.
 New folders: rules
 New concepts: Path-Scoped Rules, Raw Immutability, Wiki Page Format
+
+## [2026-06-25] ingest | claude-wiki-pages schemas (2 sources)
+
+Processed 2 schema files from raw/repo/schemas/. Created 2 new wiki pages, 0 updated.
+New folders: schemas
+New concepts: Plugin Config Schema, Config Sections
