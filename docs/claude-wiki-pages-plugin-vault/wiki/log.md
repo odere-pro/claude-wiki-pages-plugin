@@ -157,4 +157,8 @@ Updated: adrs.md (new ADR pages added), docs.md (design and llm-wiki child_index
 
 - pre-state: 426e9bd
 - rollback: git revert the snapshot commit below
+## [2026-06-25] snapshot | scrub leaked src/tests contamination — docs-only (snap-20260625150328)
+
+- pre-state: bf0d6de
+- rollback: git revert the snapshot commit below
 
