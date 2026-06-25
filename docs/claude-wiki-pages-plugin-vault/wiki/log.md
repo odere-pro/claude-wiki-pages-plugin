@@ -3,7 +3,7 @@ title: "Operations Log"
 type: log
 aliases: ["Operations Log"]
 created: 2026-04-24
-updated: 2026-04-24
+updated: 2026-06-25
 ---
 
 # Operations Log
@@ -18,3 +18,9 @@ Empty vault created from `skills/llm-wiki/template/`. No sources ingested yet.
 - pre-state: c1a62de
 - rollback: git revert the snapshot commit below
 
+## [2026-06-25] ingest | claude-wiki-pages agents (8 sources)
+
+Processed 8 agent definition files from raw/repo/agents/. Created 9 new wiki pages, 0 updated.
+New folders: agents
+New entities: Orchestrator Agent, Ingest Agent, Curator Agent, Analyst Agent, Extract Worker Agent, Maintenance Agent, Onboarding Agent, Polish Agent
+New concepts: Specialist Dispatch Pattern
