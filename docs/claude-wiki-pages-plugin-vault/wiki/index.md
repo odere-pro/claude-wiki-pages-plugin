@@ -27,7 +27,7 @@ Master catalog of every page in the wiki.
 - [[guides|Guides]] — 12 pages, last updated 2026-06-25
 - [[how-it-works|How It Works]] — 6 pages, last updated 2026-06-25
 - [[features|Features]] — 6 pages, last updated 2026-06-25
-- [[glossary|Glossary]] — 3 pages, last updated 2026-06-25
+- [[glossary|Glossary]] — 229 pages, last updated 2026-06-25
 - [[decisions|Decisions]] — 37 pages, last updated 2026-06-25
 - [[design|Design]] — 6 pages, last updated 2026-06-25
 

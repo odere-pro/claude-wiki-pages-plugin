@@ -1,7 +1,7 @@
 ---
 title: "Canonical Glossary"
 type: concept
-aliases: ["canonical glossary", "Glossary", "GLOSSARY.md"]
+aliases: ["canonical glossary", "GLOSSARY.md"]
 parent: "[[glossary|Glossary]]"
 path: "glossary"
 sources: ["[[docs-glossary|Glossary]]"]

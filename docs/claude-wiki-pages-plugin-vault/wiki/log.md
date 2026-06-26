@@ -173,4 +173,8 @@ Updated: adrs.md (new ADR pages added), docs.md (design and llm-wiki child_index
 
 - pre-state: 3bd5a9f
 - rollback: git revert the snapshot commit below
+## [2026-06-26] snapshot | add glossary: 209 per-term concept pages in 17 sections (manual gen, lint-green strict tree) (snap-20260626150548)
+
+- pre-state: 1537177
+- rollback: git revert the snapshot commit below
 
