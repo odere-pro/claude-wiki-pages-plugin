@@ -2,16 +2,16 @@
 title: ""
 type: project
 aliases: []
-parent: "[[Parent Index]]"
+parent: "[[parent-folder|Parent Index]]" # piped basename link to the folder note (replace with the real basename); never a bare title
 path: ""
 objective: ""
 project_status: planned
-members: []
-sources: []
-related: []
+members: [] # piped basename links, e.g. ["[[related-entity|Related Entity]]"]
+sources: [] # piped basename links, e.g. ["[[source-note|Source Note]]"]
+related: [] # strict-tree: kept as tags not wikilinks; use topic/<name> tags for cross-tree associations
 source_quotes: []
 derived: false
-tags: []
+tags: [] # slash-nested taxonomy: ["family/oop", "severity/high", "topic/<related-tree>"]
 created:
 updated:
 update_count: 1

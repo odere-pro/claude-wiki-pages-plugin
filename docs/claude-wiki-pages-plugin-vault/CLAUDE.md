@@ -11,7 +11,9 @@ This file is the authoritative schema for any wiki operation. Skills and agents 
 
 ## Purpose
 
-This is the knowledge wiki for the **claude-wiki-pages plugin project** — the plugin repository itself (located at the repo root alongside this vault). The wiki tracks the plugin's architecture decisions, design patterns, agent and skill contracts, ADRs, and source material about the project's own design and implementation. The LLM maintains the wiki. The human curates sources (docs, ADRs, specs, changelogs) and asks questions.
+This is a personal research vault following Karpathy's LLM Wiki pattern.
+The LLM maintains the wiki. The human curates sources and asks questions.
+Domain-agnostic — works for any research topic.
 
 ## Data layer layout
 
@@ -306,8 +308,8 @@ The canonical group order (first match wins, top-down) is the seven **topics**:
 
 The graph draws **only topic pages, as topic islands** (ADR-0033). Two exclusion layers produce that shape:
 
-- **Excluded from Obsidian's index** (`.obsidian/app.json` → `userIgnoreFilters: ["raw/", "_templates/", "_proposed/", "_inbox/"]`): `raw/` provenance, `_templates/`, draft `_proposed/`, and the `_inbox/` stub quarantine never appear in the graph, search, or autocomplete.
-- **Excluded from the topic graph view** (`.obsidian/graph.json` → `search`): the connective scaffolding — `wiki/_sources/`, `wiki/_synthesis/`, `wiki/index.md`, `wiki/log.md` — is filtered out so the topics render as clean islands instead of one hairball fused through shared sources and the MOC. These pages stay in the vault (provenance, synthesis, MOC, log are intact); they are simply not drawn. `_sources`/`_synthesis` therefore get **no color group** — they are not shown.
+- **Excluded from Obsidian's index** (`.obsidian/app.json` → `userIgnoreFilters: ["raw/", "_templates/", "_proposed/", "_inbox/", "output/", "CLAUDE.md", "wiki/log.md"]`): `raw/` provenance, `_templates/`, draft `_proposed/`, the `_inbox/` stub quarantine, `output/` scratch (incl. `_pipeline-plan-*`), the `CLAUDE.md` schema file, and the `wiki/log.md` ops log never appear in the graph, search, or autocomplete. Index-level exclusion is robust; it is the right home for bookkeeping artifacts that never need to stay searchable.
+- **Excluded from the topic graph view** (`.obsidian/graph.json` → `search`): the connective scaffolding that must stay searchable — `wiki/_sources/`, `wiki/_synthesis/`, `wiki/index.md` — is filtered out of the drawn graph only, so the topics render as clean islands instead of one hairball fused through shared sources and the MOC. These pages stay in the vault and in search (provenance, synthesis, MOC are intact); they are simply not drawn. `_sources`/`_synthesis` therefore get **no color group** — they are not shown.
 
 When `obsidian eval` is unavailable (no CLI, no running Obsidian), the skill's documented HEADLESS FALLBACK writes `.obsidian/graph.json` directly, touching only `colorGroups`/`collapse-color-groups`. Trade-off: a running Obsidian can clobber a direct file write with its in-memory state — restart Obsidian after a headless write.
 
@@ -356,6 +358,23 @@ Every non-root page has a `parent` wikilink that points to the containing folder
 
 **`aliases`** aid search and autocomplete discovery — they are **not** a link-resolution mechanism. Obsidian resolves a written `[[target]]` by **exact vault path or filename basename only**; it does not resolve a bare `[[Alias]]` or `[[Title]]` to a note that merely carries that string in `aliases:` or `title:`. (Obsidian's autocomplete inserts an alias pick as a piped link `[[file-basename|Alias]]` — target is the real filename, the alias is only display text.) So aliases never make a written link resolve; they only help a human or the autocomplete find the page. Keep useful display variants here (slug, title case, abbreviations) for discoverability. The old "the title must be the first alias to avoid ghost nodes" rule is **obsolete**: ghost nodes came from authoring bare `[[Title Case]]` links and relying on alias resolution Obsidian never performs. The fix is to write links in piped basename form (`[[file-basename|Title Case]]`) — see "Linking conventions" — not to add aliases.
 
+**`tags`** are the wiki's **cross-cutting** metadata layer. The topic folder already captures a page's vertical place in the tree; tags capture the _horizontal_ themes that cut **across** topics, so a reader (and the graph's tag view) can pivot between islands by theme. A tagging policy that produces a connective layer rather than noise:
+
+- **3–6 tags per page.** Fewer than 3 says nothing; more than 6 dilutes.
+- **Reuse before you invent.** A tag earns its place only if it will recur on **2+ pages** — a singleton tag connects nothing and is just noise (the `vocabulary-tag-floor` lint flags registered tags used on fewer than `minTagUsage` pages). Before coining a tag, check whether an existing one fits. Register recurring theme tags in `_vocabulary.md` so the controlled set stays small and stable.
+- **Compose each page's tags as:** the page's topic slug (matches its folder, e.g. `legal`) + 2–5 cross-cutting theme tags from the controlled set (e.g. `regulator`, `compliance`, `sweden`, `moat`, `pricing`). Prefer a shared theme tag (`pricing`) over a page-unique descriptor (`499-sek`) — the shared tag links pages, the unique one does not.
+- **Bookkeeping tags** (`source`, `index`, `adr`, `session`) classify provenance, not theme; they are fine but do not count toward the 3–6 semantic tags.
+- **Format:** lowercase kebab-case in the frontmatter `tags:` array; never inline `#hashtags` in body text (they fragment the tag set).
+
+**Nested tag taxonomy (ADR-0036).** For structured knowledge domains (design patterns, principles, code smells, standards), use slash-nested tags to express hierarchy without graph edges:
+
+- `family/<x>` — the overarching knowledge family, e.g. `family/oop`, `family/distributed-systems`
+- `severity/<x>` — impact level, e.g. `severity/critical`, `severity/high`, `severity/medium`
+- `principle/<x>` — the design principle this page relates to, e.g. `principle/srp`, `principle/cohesion`
+- `topic/<x>` — cross-tree relationship to another topic tree (ADR-0036 §3). **Do not author these by hand**: `strict-tree-reduce --apply` adds them automatically when a `[[wikilink]]` to another tree is demoted. Writing them manually is fine for bootstrap, but the tool is authoritative.
+
+No `#` prefix in the `tags:` array (Obsidian handles the `#` display automatically for frontmatter tags). Nested tags appear in Obsidian's tag pane as collapsible hierarchies, so `family/oop` nests under `family/`. `expand-records.ts` sets `family/`, `severity/`, and `principle/` tags directly from structured source fields — pages produced this way are born tree-shaped with no wikilinks to demote.
+
 **`created` / `updated`** use `YYYY-MM-DD` format.
 
 ## Ontology profile (`ontology-profile-v1`)
@@ -385,6 +404,8 @@ Each row states: which predicate, which page class may originate the link (domai
 > The graph-traversal primitive (Brief §6) takes its edge set from this table. R2 `--graph` walks the provenance/association core — `sources`+`related`+`depends_on` — to N≤2; the remaining rows (`key_pages`, `members`, `scope`, `children`, `child_indexes`, `parent`) are the MOC/descent edges C1 uses. `contradicts`/`supersedes` are available to R3/synthesis. An edge violating a row's domain/range is a future S1-check lint finding, NOT a traversal the engine follows.
 >
 > **Topic-locality (ADR-0033).** The association predicates `related`, `depends_on`, `key_pages`, `members`, `scope`, `contradicts`, and `supersedes` are additionally constrained: both endpoints must live in the **same top-level topic folder**. A cross-topic association is written as prose, not a typed link, so the graph stays a set of topic islands. `parent`/`sources`/`children`/`child_indexes` are exempt (they target the navigation spine or `_sources/`, which the topic graph excludes from view).
+>
+> **Strict tree (ADR-0036).** The stricter successor demotes the association predicates further still: even a _same-topic_ `related`/`depends_on`/`key_pages`/`members`/`scope`/`contradicts`/`supersedes` value renders as a nested **tag**, not a graph edge. Among visible topic pages only the `parent`/`children`/`child_indexes` spine (plus the single ROOT→folder-note connector) draws edges; every associative relationship is a `family/…`-style tag. `scripts/strict-tree-reduce.sh` performs the demotion and records a `topic/<group>` tag for a demoted cross-tree reference (tag de-cycling). `sources:` provenance is unchanged.
 
 ### Enum list
 
@@ -477,6 +498,7 @@ These rules keep pages scannable in Obsidian and in plain-markdown viewers. They
 - **Every cross-page link MUST target the destination's file basename** (the kebab-case filename stem, no extension), with the Title-Case page title as piped display text: `[[entity-name|Entity Name]]`. The bare `[[Entity Name]]` form is wrong — it relies on alias resolution Obsidian does not perform.
 - **Default to the bare basename. Path-qualify ONLY on a genuine vault-wide collision — the basename occurs in 2+ files anywhere in the vault** (including `raw/` originals). A `wiki/_sources/adr-0001-x.md` summary and its `raw/docs/adr/ADR-0001-x.md` original share a basename, so a bare-basename link silently routes to the wrong file. Then target the page's **actual** wiki-relative path (no extension), verified to exist: `[[_sources/adr-0001-four-layer-orchestrator|ADR-0001: Four-Layer Orchestrator]]`. Never guess the folder — over-qualifying a unique basename with the wrong folder creates a dangling link.
 - This applies to **both** body text and frontmatter link fields (`parent`, `sources`, `related`, `children`, `child_indexes`, `key_pages`, `members`, `scope`, `depends_on`, etc.). Every link field uses the piped basename (or path-qualified) form.
+- **`sources:` anti-pattern (the #1 ghost source).** Cite a source by its **file basename**, not its title: `"[[0006-defensibility-moat|ADR 0006]]"`, never `"[[Source: ADR 0006 — Defend with four behavioral/brand layers …]]"` or `"[[BRF Health Score]]"`. A `[[Source: <full title>]]` or bare-`[[Title Case]]` entry resolves only via `title:`, so the plugin's `verify` reports it clean while Obsidian renders it as a ghost node — exactly the failure that left 100+ ghosts in a real ingest. When unsure of a source's basename, look it up in `wiki/_sources/`; do not synthesise a link from the title. (`scripts/heal-ghost-links.sh` rewrites any that slip through, but author them correctly.)
 - Link to the most specific page.
 - Every wiki page must link back to at least one source.
 - `aliases` aid search/autocomplete discovery only — they are not a resolution mechanism. Do not rely on an alias to make a written link resolve; write the piped basename form instead.
@@ -544,6 +566,8 @@ These skills were written for a **flat** directory layout: `wiki/sources/`, `wik
 | No `parent` / `path` fields                                   | Required on all pages except top-level index | Always set `parent` and `path`                                                   |
 | No per-folder index files                                     | A folder note in every topic folder          | Create the folder note (`wiki/<topic>/<topic>.md`) when creating a topic folder  |
 | No `aliases` on indexes                                       | Required on every folder note                | Add topic name variants (slug, title case, abbreviations)                        |
+
+> **Table-cell citations.** Inside a markdown **table** (e.g. the `_sources/manifest.md` source ledger) a wikilink's pipe is escaped as `\|` so it does not break the cell: `[[source-note\|Source Note]]`. The link resolver strips that trailing `\`, so the citation resolves to `source-note` and does **not** dangle as a ghost node. In **frontmatter** `sources:` (not a table) use a plain pipe: `[[source-note|Source Note]]`.
 
 When running `/claude-wiki-pages:ingest`: follow the 13-step ingest rules in this document, not the skill's simpler defaults. The skill provides the workflow structure; this document provides the schema.
 
