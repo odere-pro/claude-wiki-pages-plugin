@@ -55,3 +55,9 @@ docs/claude-wiki-pages-plugin-vault/_inbox/
 **/raw/assets/*.webm
 **/raw/assets/*.zip
 **/raw/assets/*.epub
+
+# Stray in-vault wiki settings: resolve-vault.sh auto-creates a settings.json
+# (defaulting to docs/vault) whenever a wiki script runs with cwd inside the
+# vault. The resolver only reads the repo-root file, so these are junk — never
+# read, never correct. Keep them out of Source Control.
+docs/claude-wiki-pages-plugin-vault/**/.claude/
