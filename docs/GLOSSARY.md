@@ -383,8 +383,7 @@ Concepts for bounded map-only parallel extraction and host-owned scheduled upkee
 | vault schema         | `vault/CLAUDE.md`. The authoritative schema; read at the start of every operation. Shipped as `skills/init/template/CLAUDE.md` in this repo.                                                             |
 | repo guide           | The repo root `CLAUDE.md`. A map for LLMs editing this repo. Not the schema.                                                                                                                             |
 | specification        | The authority set that replaced the former single spec file: `docs/architecture.md` (four-layer architecture & contracts), `skills/init/template/CLAUDE.md` (schema), and this glossary (canonical terms). |
-| NOTICE               | `NOTICE` at the repo root. Attribution for bundled third-party code. Apache-2.0 requires preservation.                                                                                                   |
-| third-party licenses | `THIRD_PARTY_LICENSES.md`. Full license text of any bundled non-Apache-2.0 code.                                                                                                                         |
+| third-party licenses | `THIRD_PARTY_LICENSES.md`. Full license text of any bundled third-party code.                                                                                                                         |
 
 ### Banned strings
 

@@ -17,7 +17,7 @@ To change the vault: `bash scripts/set-vault.sh <path>`. This updates only `curr
 
 ## Dev-time vs. runtime
 
-This tree is the plugin source — contributor view. End-users do not interact with this root; it is not loaded as session context. On install, Claude Code loads only `skills/`, `agents/`, `hooks/hooks.json` + `scripts/`, and `rules/` as runtime context. The onboarding wizard (`/claude-wiki-pages:init`) additionally copies `skills/init/template/` into the user's project as `docs/vault/` (or the path set in `CLAUDE_WIKI_PAGES_VAULT`); the copied `vault/CLAUDE.md` takes over the schema-authority role in their sessions. Everything else — `docs/`, `tests/`, `.github/`, this root `CLAUDE.md`, `NOTICE`, `LICENSE`, `CHANGELOG.md` — sits in the plugin cache but is never session context.
+This tree is the plugin source — contributor view. End-users do not interact with this root; it is not loaded as session context. On install, Claude Code loads only `skills/`, `agents/`, `hooks/hooks.json` + `scripts/`, and `rules/` as runtime context. The onboarding wizard (`/claude-wiki-pages:init`) additionally copies `skills/init/template/` into the user's project as `docs/vault/` (or the path set in `CLAUDE_WIKI_PAGES_VAULT`); the copied `vault/CLAUDE.md` takes over the schema-authority role in their sessions. Everything else — `docs/`, `tests/`, `.github/`, this root `CLAUDE.md`, `LICENSE`, `CHANGELOG.md` — sits in the plugin cache but is never session context.
 
 ## Four-layer stack
 

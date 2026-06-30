@@ -41,5 +41,5 @@
   </text>
 
   <!-- Footer chip -->
-  <text x="96" y="592" font-size="21" fill="#6b7689">Apache-2.0 · Bash for the reflexes, Bun for the brain</text>
+  <text x="96" y="592" font-size="21" fill="#6b7689">MIT · Bash for the reflexes, Bun for the brain</text>
 </svg>
