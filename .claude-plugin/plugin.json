@@ -3,12 +3,13 @@
   "version": "1.2.1",
   "description": "A Claude Code plugin for Obsidian — Karpathy's LLM Wiki shipped as a four-layer, hook-enforced agent stack with multi-agent orchestration.",
   "author": {
-    "name": "Aleksandr Derechei",
-    "email": "odere.pub@gmail.com"
+    "name": "Oleksandr Derechei",
+    "email": "odere.pro@gmail.com",
+    "url": "https://github.com/odere-pro"
   },
   "homepage": "https://github.com/odere-pro/claude-wiki-pages-plugin",
   "repository": "https://github.com/odere-pro/claude-wiki-pages-plugin",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "supported_schema_versions": [
     1,
     2,

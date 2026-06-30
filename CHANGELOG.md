@@ -54,6 +54,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 
 ### Changed
 
+- **Relicensed Apache-2.0 → MIT.** Suite-wide odere-pro standard. Removed `NOTICE` (bundled third-party attribution stays in `THIRD_PARTY_LICENSES.md`); canonical author is now Oleksandr Derechei.
+
 - **Strict-tree topology is the linking model (ADR-0036).** Among visible topic pages the only `[[wikilinks]]` are the `parent` spine plus the single ROOT→folder-note connector; every association (`related`, a "see also", a cross-tree mention) is demoted to prose or a nested tag, so the graph draws one clean spine rather than per-topic islands. `scripts/strict-tree-reduce.{sh,ts}` is now the **sole** link reducer — it supersedes and replaces the topic-local pass — and a new `scripts/subagent-tree-gate.sh` (SubagentStop) warns, non-blocking, when a polish/maintenance run leaves cross-tree edges, parent-chain cycles, or multi-parent pages. `graph-quality` drops the superseded `Ce`/`Ch` cluster-edge metrics (subsumed by `treeConformance` + `maxSaturation`); `health-score` folds `treeConformance` into its cluster-shape sub-score.
 - **Node ≥ 22 for the dev toolchain.** `package.json` declares `engines.node >= 22` (Bun stays the runtime engine — node is only the floor for eslint, markdownlint, and knip). `knip.json` was corrected to cover `scripts/` and ignore in-file-used exports, so the dead-code report is accurate.
 - **Repo-wide voice pass.** Explanatory docs (README, `docs/llm-wiki/`, getting-started, install, features, operations) rewritten to the new voice for newcomers; engineer docs (architecture, design, ADRs, SECURITY) kept precise but de-LLM'd. Frontmatter, vault `raw/`/`wiki/`, and GLOSSARY term definitions were left untouched. The GitHub Pages landing page (`site/index.html`) and the `docs/design/` mermaid diagrams were synced to the current counts (8 agents, 14 verbs, 26 skills, 4 commands, 7 hook events, 13 engine verbs).
@@ -82,6 +84,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Version
 - **`SPEC.md`.** The consolidated specification has been retired; its contracts now live in the documents that own them — `docs/architecture.md` (four-layer model, command and agent contracts), `docs/vault-example/CLAUDE.md` (schema), `docs/GLOSSARY.md` (canonical terms), `docs/security.md` (threat model), and `tests/README.md` (test tiers). All references across the README, `CLAUDE.md`, agent/command/skill footers, and docs were repointed; the `docs/SPECIFICATION.md` stub now redirects to those living docs. Historical mentions in `CHANGELOG.md`, `docs/adr/*`, and the migration docs are preserved.
 
 ### Glossary changes
+
+- Removed the `NOTICE` row (the file is gone under MIT) and dropped "non-Apache-2.0" wording from the third-party-licenses row.
 
 - Added (minor): **snapshot**, **commit backstop**, **backlink-safe rename**, **link parity** (Architecture terms); **sync** (User-facing verbs); **wired source** (Vault management terms); **superseded** (Ingest and memory terms); **scaffolding ablation**, **plugin arm**, **baseline arm** (Capability and model terms); **folder note** (Schema terms); **Sources section** (Retrieval terms).
 - Changed: **schema version** (current: 3), **migrate** (v1 → v2 → v3, `rename-index`), **MOC** / **topic page** (per-folder MOC is the folder note), **layer coloring** (ordered after topics and specials; `path:_templates` orange) — per ADR-0022.

@@ -39,12 +39,12 @@
   },
   "author": {
     "name": "Aleksandr Derechei",
-    "email": "odere.pub@gmail.com"
+    "email": "odere.pro@gmail.com"
   },
   "homepage": "https://github.com/odere-pro/claude-wiki-pages-plugin",
   "repository": {
     "type": "git",
     "url": "https://github.com/odere-pro/claude-wiki-pages-plugin.git"
   },
-  "license": "Apache-2.0"
+  "license": "MIT"
 }

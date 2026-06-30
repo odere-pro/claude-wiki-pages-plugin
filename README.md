@@ -2,7 +2,7 @@
 
 > Karpathy's LLM Wiki, shipped as a Claude Code plugin — four layers, hook-enforced.
 
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](./LICENSE)
 [![Version](https://img.shields.io/badge/version-1.2.1-green.svg)](./CHANGELOG.md)
 [![Claude Code plugin](https://img.shields.io/badge/claude%20code-plugin-8A2BE2.svg)](https://docs.claude.com/en/docs/claude-code/plugins)
 
@@ -184,7 +184,7 @@ No telemetry. The plugin never phones home. Your vault, your hooks, your shell. 
 
 ## License and non-affiliation
 
-Licensed under [Apache 2.0](./LICENSE). See [`NOTICE`](./NOTICE) for bundled third-party code and [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md) for full license text.
+Licensed under the [MIT License](./LICENSE). Bundled third-party code is credited in [`THIRD_PARTY_LICENSES.md`](./THIRD_PARTY_LICENSES.md).
 
 Not affiliated with Anthropic, Obsidian, or Andrej Karpathy — this is an independent implementation built on their public work. Credits:
 
