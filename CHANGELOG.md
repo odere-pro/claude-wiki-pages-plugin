@@ -2,6 +2,194 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [SemVer](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0](https://github.com/odere-pro/claude-wiki-pages-plugin/compare/v1.2.1...v1.3.0) (2026-06-30)
+
+
+### Features
+
+* 0.2.0 — top-level orchestrator + polish agent (four-layer DX retrofit) ([ea89835](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/ea89835d6fd6c44bfa84c5bacd284a55e245f257))
+* 1.0.0 — rebrand to claude-wiki-pages + deterministic Bun engine (M1–M5) ([376888b](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/376888b05a757b4c68070e7c525689ca10a2e94a))
+* 6-topic decomposition + 209-page glossary (post-[#64](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/64) follow-up) ([#65](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/65)) ([1ad9041](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/1ad90419ca299978e9a62617281d7fca0f0767e7))
+* ablation smoke + measured with/without-plugin matrix in features.md ([#27](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/27)) ([9fb7177](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/9fb71772c68241ec6b3f6bc268d78a7f52234b6f))
+* add OG/Twitter cards, JSON-LD, and share image to landing page ([b5dcff8](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/b5dcff8e6fa1b399ca8feee270bec26d1ae37e98))
+* backlink-safe renames via Obsidian CLI with git mv fallback ([#24](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/24)) ([5b1e90b](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/5b1e90b45c275ce102065ed14e156ab9aae3b1fe))
+* bounded parallel extract + scheduled upkeep (ADR-0026) + ADR-consistency reconciliation ([#33](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/33)) ([7333a58](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/7333a5850e48d68bb2852da3437a15ef369ceb58))
+* C1 budget-aware MOC descent reading R4 score (no re-rank) ([bc7e8e8](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/bc7e8e86f146c21b35f038408729910b0b81943b))
+* C2/C4-write durable memory — sanctioned agent-session raw carve-out ([a3e81bb](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/a3e81bb457b045fd8753f1522f420496961975ad))
+* C3 stale-memory flagging (reuse S4 + status:stale + confidence) ([bb4acca](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/bb4acca0c80a8f5d7b25e2b8bd4f465b82cdbd87))
+* C4-read + U3 SessionStart MOC pointer, NEXT line, undo clause ([7e23014](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/7e23014355fa32c0d7be13c031fb926bc5f62422))
+* commit-hash paper trace in wiki/log.md ([760816c](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/760816c8f523a2b81ea4b27e80bd6f93bd6dc94b))
+* D2 tag/vocabulary freshness-eval lint + honest exemplar lexicon ([cd6087d](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/cd6087deeddc2fb36c137c3daf446230c33dd1c2))
+* dangling-wikilink verify check (ADR-0028) + clear lint-structural warnings ([#35](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/35)) ([8673aa2](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/8673aa206dc0b3fbc7267a5b9ff75812a0003beb))
+* deterministic Tier 4 prompt-injection corpus replay ([bda8193](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/bda819345de3103a48c0fd8b18170eb850f58974))
+* doctor D11 — advisory Obsidian link parity check ([#25](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/25)) ([745e19a](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/745e19acf51bad4b328e6996ea7435bc52ac3a22))
+* enrich plugin wiki vault — fuller pages, full index coverage, zero orphans ([1ea4e50](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/1ea4e5029b5e08da20a82a7c74b68198f73bc29b))
+* fill-gaps capability + complete the plugin wiki (0 dangling, 7-topic clusters) — ADR-0026 ([#34](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/34)) ([66bd278](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/66bd2787bb5ff8e7cf7f56bdf0d3666986a539c2))
+* git protection everywhere + project wiring + sync skill ([10e3370](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/10e33700d2b836878e9cd84c5e42d386c42461fc))
+* git-required per-vault init [D4] (ADR-0005) ([80d7cf9](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/80d7cf94e77c29e15d85e67e5854472ae3dda128))
+* graph-quality knowledge base — folder notes (schema v3), color groups, Sources grounding, resolver fix ([#29](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/29)) ([b71f465](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/b71f465994faf9f6558d5c4bf1fac49070f6c161))
+* graph-traversal primitive + R2 --graph (ADR-0008) ([c25d434](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/c25d434cc17087f0e50627705cd74cf92af61b26))
+* host-project intake — "generate a vault for the project" ingests the repo's docs (ADR-0024) ([#31](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/31)) ([c66e067](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/c66e067f626803f181529291220cda80ae38fa1c))
+* I1 ingest classification checklist consuming ontology-profile-v1 ([de6d7e3](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/de6d7e3a27616f7839b0290622a27759ec723160))
+* I2 alias-aware two-pass dedup in ingest ([2ea4ecd](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/2ea4ecdd324e5a38e57890ca12c4cca938593e36))
+* I3 provenance-completeness checks in verify (bash + TS parity) ([66c0fc5](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/66c0fc593498c3d5be09b266ffe5e7c59e110bd2))
+* I4 PDF ingest via source_format: pdf ([afa0792](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/afa079251371ddebf33f2dc383f2e25e44a6764f))
+* init wiki vault for claude-wiki-pages-plugin repo ([7b4f45b](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/7b4f45b47fe8454416ea2356d2245c657f68859c))
+* initial four-layer plugin — spec, vault schema, skills, agents, orchestration, CI ([2f96e50](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/2f96e50d742276a2668fc26c64feb336a28c1504))
+* initial Obsidian graph filters in new vaults ([1d2e1a6](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/1d2e1a6a6325e4f3529636c97787d688b9ced7cd))
+* jq pre-flight check in session-start and doctor ([1c5a71e](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/1c5a71e6d533d3de8e22c68ff0459401dd6d28b4))
+* local-LLM basic ops — ingest-extract gate (ADR-0017), offline fallback (ADR-0018), query tier (ADR-0019) ([#22](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/22)) ([876999f](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/876999f23223655be33c65aa7b866c70ea9557b5))
+* local-model quality-gate eval (ingest-extract tier) + ADR-0011 ([8348638](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/83486380ee69f7be5eb41bb3159554a19861cfd3))
+* Obsidian-accurate resolution, collision + connectivity checks, scaffold write-protection ([#43](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/43)) ([0374662](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/0374662c880d4d6b670b674b65cb914d026a73f7))
+* Obsidian-visible vault name — docs/&lt;root-slug&gt;-vault for new vaults ([#28](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/28)) ([30ab3c7](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/30ab3c7c4ce54771bfb868cb478ffc0d98c81afe))
+* P0.3 — design-drift Check 5 + router parity in validate-docs.sh (ADR-0013) ([929b5db](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/929b5db2da34401c2accf639428fec3b695cd47f))
+* P1.1 — SessionStart emits absolute vault CLAUDE.md on-ramp ([2ba3571](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/2ba3571779e595e8bcd2c96b0d29b9afe06745c4))
+* P2.2 — single-source required-field rules from the schema table (ADR-0014) ([32eca36](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/32eca36e7c272270ed8cba98e7cd032a2d5509f9))
+* P2.4 — duplicate-claim WARN in review gate (exact/normalized match, no RAG) ([4e457fd](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/4e457fd7a72daa56e1299b9e5a597b54e1d371be))
+* P3.1 — single CAPABILITIES table + capabilities verb (N1-N3, ADR-0015) ([0e9944c](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/0e9944c9dc970e052939c4ff66809335875e360c))
+* P3.3 — engine ontology --json parser (N6, ADR-0015) ([6d52277](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/6d5227724c7ad441b3d91ad4a1041af829b19c6d))
+* P3.4 — engine-side entity_type membership check (N7, D15) ([e5dae28](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/e5dae283e42e634f8a5134708ec00eb728ec8b34))
+* P3.5 — opt-in --json envelopes for bash gate scripts (N10, N11) ([89f8d99](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/89f8d99150a8af99fbba9128623d3f644bc8953d))
+* pathspec-scoped vault git ops + consume gitCheckpoint.mode ([4c4fa33](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/4c4fa33626be1aea54ae27ea39c290cb40959b3f))
+* Pc local-ingest-stub (ingest-extract tier) into _proposed/ ([469330c](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/469330c156630600aa0e3b9b32e3e5f86bcf4872))
+* PM.1 — simultaneous N-vault registry contract (ADR-0016) ([e6a9857](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/e6a9857728db1264bc98a8efb79709679f0e5fa1))
+* PM.3 — read-time cross-vault audit roll-up (N8, ADR-0016) ([ca87cec](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/ca87cec3d84ff0c36fac54239869d412a4b6286a))
+* PM.4 — list --status column + pre-switch health-check (OBJ-grill-power-user-5) ([cf40645](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/cf40645055e3ea1a2e3d9dfeb3058c701fcd4e92))
+* PM.7 — 07-ontology.md design doc + validate-docs Check 5g (N12, D13) ([c998f18](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/c998f182d7e4e7e1f483a99e9b1ee1e9158c0c5d))
+* R1 candidate filters --type/--folder/--tag for search ([6502fd2](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/6502fd2f059d521bcbb03c25ce2b3e6de5540965))
+* R3 agent-vs-human retrieval contract on the MOC ([2474fef](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/2474fef1ef4d62fe417f696007caeb6915095a2c))
+* R4 matched{} score breakdown on SearchHit (+ glossary) ([209a539](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/209a539b73f280a4c9994047c7ae1ff97b0b20f1))
+* rebuild docs wiki from scratch on strict-tree graph (+31 grounded proposals) ([#64](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/64)) ([2ab10aa](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/2ab10aa18750f88640355fa2b06b73f86414e38a))
+* S1 ontology-profile-v1 predicate table + enum list (ADR-0004) ([fe30a9d](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/fe30a9d32a0bd6e5dee37eee10ef1b5989d59b5a))
+* S1-check opt-in predicate domain-&gt;range lint (lint-ontology.sh) ([2c772f6](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/2c772f63171b16050878fa791f8956787419093b))
+* S2-structural template-skeleton + no-raw-HTML lint (lint-structural.sh) ([0db59b8](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/0db59b85233baa28951603bf7b6c68d50b11790d))
+* S3 multi-vault registry + per-vault write confinement (ADR-0009) ([cf4ee9b](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/cf4ee9b6bb7858f88abdb2853b1550b0695ad0fd))
+* S4 cited-source staleness in verify (bash CHECK 4 + TS twin) ([8302c72](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/8302c72bb4348cc2e83623a7066055fd98c9c3b9))
+* scaffolding ablation — what the plugin buys, measured (ADR-0020) ([#26](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/26)) ([f85a3a0](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/f85a3a0f3a60a4f8e5dd730f35c7cfa9acf8eaa3))
+* schema enums (source_type agent-session, source_format pdf) + P3 localModel config ([99cc7ff](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/99cc7ff95bc1138b8be563abd9a4d9f1cb09f6c5))
+* schema v2 + firewall, search, maintenance, local-model drafting; audit remediation ([5eddd0b](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/5eddd0bee6b60f6318e66e160ad8e362fd6040be))
+* SEO social cards, JSON-LD, and share image for the landing page ([e93eab1](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/e93eab14e222219bd7ff15f03d22c7f68f2aa65e))
+* snapshot engine verb — git-bound LLM write phases ([f491954](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/f491954de8cbc2dd6dd4a16e6104dc4b211dd34a))
+* SOFTWARE-3.0 agentic-brain roadmap (four-layer stack, dual-entry router) ([620284d](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/620284d60c76475a039dd2ec6980184a8a4d8929))
+* SOFTWARE-3.0 deferred — Phase 3 (engine/ontology surfaces) + Phase M (multi-vault) ([2ec8b92](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/2ec8b92dfaa7bddf5b48461dd7f17f84af3741cc))
+* strict-tree knowledge graph (epic [#54](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/54)–[#59](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/59)) ([#60](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/60)) ([d69d115](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/d69d11586d8440e75cc9762266b7597747acc1fc))
+* SubagentStop commit backstop — no LLM write escapes git coverage ([c45561c](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/c45561c74402787bd2af5cfae4c72c467928c6c7))
+* sync skill + wired-change surfacing (backlog, heartbeat) ([27651d6](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/27651d6bd04ab73b68f7377db5bfdcbcd2e7921f))
+* Tier-2 embedding-free recall — synonym lexicon + Porter stemming ([38c29ed](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/38c29ed283fe5b890ebbd969e7448522c8030f46))
+* topic-island graph + root node (ADR-0033) + context layering & OKF interop ([#44](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/44)) ([25c442c](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/25c442ce8a1ae9b078d1eaaa17e60b1e407533aa))
+* U1 advertise /claude-wiki-pages:wiki as the one entry verb ([f094497](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/f094497b986c63b0e28646d7d4f7d086ae47010b))
+* U2 first-run bundled sample source ([0e70a9a](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/0e70a9acd76fff80ecb6a89a1f4fa0af5f1a7903))
+* U4 errors that teach (all missing fields + offending fragment) ([a5f3a73](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/a5f3a7314cd4206f959d8532b788099095eb5491))
+* U5 optional next? on Report (JSON-only) ([c428b8f](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/c428b8fc45f7ad3b83ee95e08e46c5f9d7ce1325))
+* U6 contributor quick wins (stale-dist gate, gate-09 fix, tier3 stub) ([4d50f94](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/4d50f940371f36fd5f496cee5731f4e1b02de14a))
+* universal graph machinery + wiki detect-and-autofix + self-health (1.2.0) ([#53](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/53)) ([1b4bc62](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/1b4bc62da0b1638ec196952164a59cc4b35a26aa))
+* **vault:** ingest 9 raw sources into structured wiki ([75e7470](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/75e74701d60be2a640d4dab9a82584469370c3ab))
+* wiki-only graph — exclude raw/_templates/_proposed, drop layer pass, graph config as regenerable cache (ADR-0023) ([#30](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/30)) ([ba60920](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/ba60920c455f9275d88fe9df255d24897123b135))
+* wire a project as a docs-only ingest source ([2abee4d](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/2abee4d7ef3fa6eeadb7d8da667514878343e025))
+
+
+### Bug Fixes
+
+* calibrate skill invocation guards + enforcement hooks ([a8ec7a0](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/a8ec7a064eee52482561f8f50beb6681385cdc62))
+* de-link gitignored plan path in design docs (Tier 0 lychee) ([8538a9e](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/8538a9e48c68cf1424035273911692e428198dda))
+* decouple eval --stamp uncommitted-gold test from real-repo commit state ([7367040](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/73670401d456d41626bc82bc870f1e4fed2b1a51))
+* detect & heal ghost wikilinks (alias/title-only) + exclude bookkeeping artifacts from graph ([#49](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/49)) ([c93f16a](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/c93f16a25393c28a2edfdba0b976aa38be44c875))
+* deterministic .obsidian config + ghost-link heal (graph sprawl, ghost nodes, tagging) ([#51](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/51)) ([fefbf79](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/fefbf795fd8232366f2de8a71208ae4176916818))
+* drop removed marketplace.json from release-please extra-files ([8c25ead](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/8c25eadd25a8187e12278ac80adeb6befd11b38f))
+* eliminate verify false positives, honest pending count, Obsidian-parseable frontmatter ([#42](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/42)) ([1dfa755](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/1dfa755d49828ec5de42c7cfa170500dbd1692fa))
+* harden active-vault extractor against compact JSON (QA-adv MEDIUM/LOW) ([bd1b556](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/bd1b556eb983e6a8d01ae1364112e75b3dac8d67))
+* here-string grep -q in validate-docs Check 5 (SIGPIPE on macOS) ([febd907](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/febd907976478399be3a285c729242eebdafca0d))
+* implement all findings from the 2026-06-11 evaluation review ([dcf9813](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/dcf98136072d859d7622a2a074f7def8fa983f61))
+* M15 wired_read hardening + reflect audit changes in docs/vault ([#38](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/38)) ([11c2c3a](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/11c2c3ac829d2777aba9ab98cd60808a746e45df))
+* P3.5 — escape C0 control chars in bash --json emitters (QA-adv HIGH) ([80dbc2f](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/80dbc2feaf9155bbbf8b154647be6c13e9b0a2b1))
+* PM.2 — OQ-9 registry fail-closed (N4, N5, ADR-0016) ([43d56e0](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/43d56e05d0f11a4ca2f5a30d28cca459d48dc8ca))
+* remove duplicate hooks declaration; bump 1.1.2 ([#52](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/52)) ([56f312c](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/56f312cec09cb0cd20c7ee362ce7d214723e1135))
+* render mermaid diagram on Pages site via explicit mermaid.run() ([ae9e7a8](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/ae9e7a8399923b72161f410f1b5970492bb8e5f2))
+* render mermaid diagram on the GitHub Pages site ([9fcb8d2](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/9fcb8d26799618ea45895aa6179b3b20662d9cf3))
+* resolve /audit findings via hybrid oop-excellence + wiki-dev workflow ([#48](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/48)) ([a33d6f3](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/a33d6f37d7089dc615cde8a3c867980554e0004d))
+* resolve /audit findings via wiki-dev team (security, concurrency, tests, lint) ([#37](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/37)) ([e55e752](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/e55e7527f8651c063bdf1d4bcc984f953a03eaa1))
+* resolve residual /audit findings via wiki-dev team (39 findings + injection fix, gates green) ([#39](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/39)) ([0585e51](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/0585e51b2366d45c77c33809d833949ed4e83d32))
+* stop requiring removed marketplace.json in manifest gates ([a2ad793](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/a2ad7930a38f5eb00ef3db4f87f0ac37b18ef25f))
+* **vault:** post-curate touch-ups — title-form wikilinks on qwen3 page, confidence discipline, log entries ([87bb927](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/87bb927b093afb029392443373b3fc882beb25f3))
+* **vault:** resolve 49 dangling wikilinks — aliases, backtick demotions, new entity page ([a4fcadf](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/a4fcadf29e5303ad313ac4353c2f81b02ef88e42))
+
+
+### Performance
+
+* parallelize the Bats suite and gates runner (288s → 76s) ([#63](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/63)) ([14f49ee](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/14f49eef6060d1c38dd018f72eff9566bb0af46b))
+
+
+### Refactoring
+
+* drop vault-example; golden tests → reference fixture; schema authority → skills/init/template (ADR-0029) ([#40](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/40)) ([6700b14](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/6700b1486aeb43bc6a18fd6832607d60a7427b25))
+* pre-0.2.0 hardening — agents, skills, tooling, docs, config, onboarding ([c070ad4](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/c070ad46639c6a5fa9e7c0a510d990790417259e))
+* replace all python3 dependencies with Bun ([#45](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/45)) ([b4a2d38](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/b4a2d381dc82fcc75759f3eef855740d5cbc1052))
+
+
+### Documentation
+
+* add directory-scoped CLAUDE.md context files ([f238442](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/f23844225cbd613df3cc0e518726fdcf96ec38c6))
+* add macOS one-command dependency installer + per-project enablement guide ([#50](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/50)) ([43db752](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/43db752746973c8799b87a8e84c66f5182ec86df))
+* add SOFTWARE-3-0 dual-entry router + docs/design diagrams; redefine the brainstorm team ([10d2543](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/10d25435ff2a12585029fd9d0043f295e2ed71fd))
+* add SOFTWARE-3.0 deferred-work plan (0005) — Phase 3/M proposal ([f522d9b](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/f522d9bb06ae501893a725d796bd6d579f27449d))
+* ADR-0010 durable-memory carve-out (complete the ADR trail through Phase 2) ([0e4faf0](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/0e4faf075eec31f8772704bbddb2a6f992b20849))
+* ADR-0015 engine self-description + ADR-0016 simultaneous multi-vault ([b95562e](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/b95562ef8d35e20ae4027d5c6302d37ebbae9e23))
+* ADRs for the R4 score object + Tier-2 wiki-native recall (0006, 0007) ([b215231](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/b215231c2675c513e859d63e17908d67c5a6ae0c))
+* correct README hook count and surface the multi-vault guide ([b6ed672](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/b6ed6728c92f0b4af5c181c1c5ef9b385d2c0ad2))
+* define a house writing voice (skill), apply it repo-wide, sync Pages + diagrams ([#41](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/41)) ([fb05dcc](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/fb05dcc991a6f12065ac18836336194d9c2e3419))
+* document _proposed/ + proposed_by review-gate contract ([114b49f](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/114b49f3868d7d048119d36917a541e37b9865ae))
+* fix diagram + count drift in README, Pages site, glossary ([#61](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/61)) ([4d3e512](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/4d3e5123f13380a1a81b59cb096ec529796db878))
+* glossary terms, changelog, design-doc sync for git protection + wiring ([388f229](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/388f229ff524acdb63f70466152ca8808e1de1fa))
+* I2.7 — design-diagram template (passes design-drift Check 5) ([7fbfc01](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/7fbfc0103ddbe8ba57c54052a5e660b0b97b2eb4))
+* make ADR-0015/0016 self-contained after docs/plan removal ([a4dfc3d](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/a4dfc3d6d142229f1867e9e1470ef89431a5fc71))
+* P0.2 — glossary rows for Software 3.0 / dual-entry router terms ([cd402ce](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/cd402ce248dea8436f9aae704465f480c04e6daa))
+* P0.4 — pin root CLAUDE.md schema_version to 2 (match authority) ([c2e3d66](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/c2e3d667b305e7d2b289999da4b3fbe90c7fc036))
+* P1.5 — link ontology row to the ontology-profile-v1 anchor ([90de6fc](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/90de6fcb43c1df13277898e7d412cd0035dc573e))
+* P3.6 — graceful-degradation table + ontology-aware write guard (engine-api) ([3d15e96](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/3d15e96a4bdd633feef5ddd57926c13e2bfaaa45))
+* Phase-0 glossary rows for roadmap terms (Brief §13) ([8b1e236](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/8b1e236e1484c369bd8b1fed66cc14eac62beae0))
+* PM.5 — multi-vault operating rules (engine-api links maintain-contract) ([3f71e6e](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/3f71e6e5c4808b00a6e67795002e17a260260516))
+* PM.6 — fix vault-registry merge drift; confirm engine glossary rows ([390d185](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/390d18500b80e44cdd349e194603170287fc2c9d))
+* reconcile architecture.md counts + init schema_version/paths ([b0e3afc](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/b0e3afc9393456d47a003e99f00b5673518b7d88))
+* record review-fix pass in CHANGELOG [Unreleased] ([ec010b9](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/ec010b9b7c89240aed2c5126f764f749d9be1fff))
+* remove build-process scaffolding, consolidate security, add directory context files ([1db92e1](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/1db92e124e1fc578927609f400941f0a78fb0677))
+* remove build-process scaffolding; consolidate security; self-contained ADRs ([1c7fb37](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/1c7fb37dc11d0c00f36bb61bcc51ba41c4f80a49))
+* **site:** align landing-page skill/agent counts with README ([8ec3fee](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/8ec3fee53c283356f6d9ab2d228cf83682be9bf3))
+* slim README; split install/operations/features into docs/ ([a776d27](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/a776d270dabd39129fac05fe63ce279b65b6163c))
+* vault-merge conflict-resolution design — plan 0004 + ADR-0012 ([5ade101](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/5ade101fb06c8d59ff0a4a061d10ebdf6ad81417))
+
+
+### CI
+
+* drop removed marketplace.json from the Tier 0 manifest-parse step ([e38d744](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/e38d744f4729d6127a4039ee89e5c70e43a1211c))
+* fix CD workflow failures ([bce6d5c](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/bce6d5c9cb575a1dc8255306272bae4e04a86052))
+* install bun in Tier 1 so frontmatter/vocab Bats run ([486acfc](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/486acfcd37ece828a7f82f9e9989e657a46c0cd3))
+
+
+### Tests
+
+* calibration-flow fixtures; exclude .claude/fixtures from doc/style gates ([eb4a211](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/eb4a21197be1afac5fa2c9e8ec56797a00bdfdcd))
+* neutralize firewall test paths (gate-06) ([e9d8335](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/e9d833533a7a2f2e93c0c9cb3a8558fda040879e))
+* P3.2 — verb-drift contract test pinned to golden list (N9) ([f4f31c4](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/f4f31c475fa0dd73e795ab4efa9a7381e917ba6c))
+* pin the session-start → heartbeat maintenance trigger ([4fa2264](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/4fa2264b7db9048ba4eb17a5aa275ffa6391786a))
+* refactor the test suite into feature documentation ([#62](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/62)) ([b805be0](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/b805be09e3c1ce3d652eadf2101d4e75568041a0))
+
+
+### Chores
+
+* exclude vault content from the doc-normalization gates ([7eeb58b](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/7eeb58b3a789b4c15818bd1160956e31dfeff4d3))
+* finalize curated history — rewrite CHANGELOG, reconcile manifest to 1.0.0, harden gitleaks scan ([241fce6](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/241fce646ead3d47df19288a147df7e6eaa5e619))
+* git checkpoint before curator fix+curate pass ([4d98c65](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/4d98c65cffa5820a01f3a968480d92f0ccc0d61a))
+* git checkpoint before ingest pipeline run ([12dc6b1](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/12dc6b1cf84ea507eba9adb09f7ba43c4e99a2b0))
+* gitignore the entire .obsidian/ directory — regenerable cache, never tracked ([c537dde](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/c537dde27165b770b4315b7566f8d58085ece99b))
+* local dev marketplace renamed to claude-wiki-pages-local + install docs ([bdfd00c](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/bdfd00c3b623017251c9ff9eb2bd719fb0e1d74b))
+* record Phase-3 delivered/deferred items in team BACKLOG ([a42997c](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/a42997ca4b3d3a5dc81425e233bd168a81dc6c4d))
+* relicense Apache-2.0 → MIT; normalize to odere-pro conventions ([#66](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/66)) ([b1939ad](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/b1939adab26ab8bc3f83138f15c863cf33b855ac))
+* remove marketplace.json (must not ship own marketplace — listing via odere-pro registry) ([308fe67](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/308fe67bac991bad7fe10f777bb73418d7e08977))
+* rename to claude-wiki-pages-plugin; remove SPEC.md, repoint contracts to living docs ([797f7ed](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/797f7edf79d93bb15c1b274916311aa0a80bf7b7))
+* stand up wiki-dev delivery team apparatus + agentic-brain roadmap ([59bb499](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/59bb499afe2a46bbcee519696bd3ce904db754e9))
+* track calibration-audit-parallel workflow ([453e44a](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/453e44af240f61023fb80eb10ccb4d83e69c9582))
+* track paper-trail workflows, remove stale one-offs ([#47](https://github.com/odere-pro/claude-wiki-pages-plugin/issues/47)) ([6564cf5](https://github.com/odere-pro/claude-wiki-pages-plugin/commit/6564cf5909a8f86f29cd94a69e856256ac935a2d))
+
 ## [Unreleased]
 
 ### Added
